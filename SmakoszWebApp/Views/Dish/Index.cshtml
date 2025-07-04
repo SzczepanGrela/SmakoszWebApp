@@ -1,0 +1,67 @@
+﻿@model SmakoszWebApp.ViewModels.DishDetailsViewModel
+@{
+    ViewData["Title"] = Model.Dish.Name;
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <img src="@Model.Dish.ImageUrl" class="img-fluid rounded shadow-lg" alt="@Model.Dish.Name">
+        </div>
+
+        <div class="col-lg-5">
+            <div class="dish-details-panel">
+                <h1 class="display-5 fw-bold">@Model.Dish.Name</h1>
+                <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.Dish.RestaurantId" 
+                class="h4 text-muted text-decoration-none">@Model.Dish.RestaurantName</a>
+                <p class="lead">@Model.Dish.Description</p>
+
+                <div class="d-flex align-items-center my-3">
+                    <div class="stars-lg me-3">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star-half-stroke"></i>
+                    </div>
+                    <span class="fw-bold fs-5">@Model.Dish.AverageRating</span>
+                    <span class="text-muted ms-2">(@Model.Dish.ReviewCount opinii)</span>
+                </div>
+
+                <div class="fs-2 fw-bold my-3">
+                    @Model.Dish.Price.ToString("C")
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex">
+                    <button class="btn btn-primary btn-lg flex-grow-1"><i class="fa-regular fa-star me-2"></i>Oceń to danie</button>
+                    <button class="btn btn-outline-secondary btn-lg"><i class="fa-regular fa-bookmark me-2"></i>Zapisz na później</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Recenzje (@Model.Reviews.Count)</h2>
+            @foreach (var review in Model.Reviews)
+            {
+                <div class="card review-card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <img src="@review.UserAvatarUrl" class="rounded-circle me-3" width="50" height="50" alt="@review.UserName">
+                            <div>
+                                <h5 class="card-title mb-0">@review.UserName</h5>
+                                <div>
+                                    <i class="fa-solid fa-star text-warning"></i>
+                                    <span class="fw-bold">@review.Rating</span>
+                                    <span class="text-muted ms-2">· @review.DatePosted.ToShortDateString()</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text mt-3">@review.Comment</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
