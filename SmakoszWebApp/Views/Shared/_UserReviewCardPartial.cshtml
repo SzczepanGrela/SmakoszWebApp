@@ -1,0 +1,115 @@
+@model SmakoszWebApp.ViewModels.ReviewViewModel
+
+@{
+    var cardSize = ViewData["CardSize"] as string ?? "normal";
+    var showDate = ViewData["ShowDate"] as bool? ?? true;
+    var dateFormat = ViewData["DateFormat"] as string ?? "dd.MM.yyyy";
+    var showDeleteButton = ViewData["ShowDeleteButton"] as bool? ?? true;
+    
+    var cardClass = cardSize == "small" ? "card user-review-card user-review-card-small" : "card user-review-card";
+    var bodyClass = cardSize == "small" ? "card-body py-2" : "card-body";
+    var textClass = cardSize == "small" ? "small" : "";
+}
+
+<div class="@cardClass h-100">
+    <div class="@bodyClass">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="flex-grow-1">
+                <a asp-controller="Dish" asp-action="Index" asp-route-id="@Model.DishId" class="text-decoration-none text-dark">
+                    <h6 class="card-title mb-1">@Model.DishName</h6>
+                </a>
+                <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.RestaurantName" class="text-decoration-none">
+                    <small class="text-muted">@Model.RestaurantName</small>
+                </a>
+            </div>
+            <div class="text-end ms-2">
+                @Html.Partial("_RatingStarsPartial", new ViewDataDictionary(ViewData) { 
+                    { "Rating", Model.Rating }, 
+                    { "ShowReviewCount", false }, 
+                    { "Size", cardSize == "small" ? "small" : "normal" }
+                })
+            </div>
+        </div>
+        
+        <p class="card-text @textClass mb-3">@Model.Comment</p>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            @if (showDate)
+            {
+                <small class="text-muted">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    @Model.Date.ToString(dateFormat)
+                </small>
+            }
+            @if (showDeleteButton)
+            {
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDeleteReview(@Model.Id, '@Model.DishName')" title="Usuń ocenę">
+                    <i class="fa-solid fa-trash me-1"></i>
+                    Usuń
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showDeleteButton)
+{
+    <script>
+    function confirmDeleteReview(reviewId, dishName) {
+        if (confirm(`Czy na pewno chcesz usunąć swoją ocenę dla "${dishName}"?`)) {
+            deleteReview(reviewId);
+        }
+    }
+    
+    function deleteReview(reviewId) {
+        fetch(`/api/reviews/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Usuń kartę z DOM
+                const card = document.querySelector(`[data-review-id="${reviewId}"]`);
+                if (card) {
+                    card.remove();
+                }
+                // Pokazuj powiadomienie o sukcesie
+                showNotification('Ocena została usunięta pomyślnie.', 'success');
+                // Odśwież stronę po krótkiej chwili
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showNotification('Nie udało się usunąć oceny. Spróbuj ponownie.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Błąd podczas usuwania oceny:', error);
+            showNotification('Wystąpił błąd. Spróbuj ponownie.', 'error');
+        });
+    }
+    
+    function showNotification(message, type) {
+        // Prosta implementacja powiadomień - można zastąpić systemem toast
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        // Automatyczne usunięcie po 3 sekundach
+        setTimeout(() => {
+            const alert = document.querySelector('.alert:last-child');
+            if (alert) {
+                alert.remove();
+            }
+        }, 3000);
+    }
+    </script>
+}
