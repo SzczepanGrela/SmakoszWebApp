@@ -1,17 +1,22 @@
 /* Food-themed color palette */
 :root {
     --primary-color: #D4A574;        /* Warm honey */
-    --secondary-color: #F5E6D3;      /* Cream */
+    --secondary-color: #E8D5B7;      /* Darker cream */
     --accent-color: #B8860B;         /* Dark goldenrod */
-    --background-color: #FFF8DC;     /* Cornsilk */
-    --text-color: #8B4513;           /* Saddle brown */
-    --card-bg: #FEFAF5;              /* Warm white */
+    --background-color: #F5F0E8;     /* Warm beige */
+    --text-color: #5D4037;           /* Dark brown */
+    --card-bg: #FEFCF9;              /* Subtle warm white */
     --hover-color: #E8C07D;          /* Lighter honey */
-    --shadow-color: rgba(139, 69, 19, 0.1);
+    --shadow-color: rgba(93, 64, 55, 0.15);
 }
 
 html {
     font-size: 14px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+body {
     background-color: var(--background-color);
     color: var(--text-color);
 }
