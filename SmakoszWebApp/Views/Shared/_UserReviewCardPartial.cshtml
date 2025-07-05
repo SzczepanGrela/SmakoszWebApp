@@ -92,24 +92,6 @@
         });
     }
     
-    function showNotification(message, type) {
-        // Prosta implementacja powiadomień - można zastąpić systemem toast
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        const alertHtml = `
-            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', alertHtml);
-        
-        // Automatyczne usunięcie po 3 sekundach
-        setTimeout(() => {
-            const alert = document.querySelector('.alert:last-child');
-            if (alert) {
-                alert.remove();
-            }
-        }, 3000);
-    }
+    // Toast notifications are now handled by global site.js
     </script>
 }

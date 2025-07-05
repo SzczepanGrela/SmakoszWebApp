@@ -78,28 +78,12 @@
             btn.disabled = false;
 
             // Show success message
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success alert-dismissible fade show';
-            alert.innerHTML = `
-                <i class="fa-solid fa-check-circle me-2"></i>
-                Nowe rekomendacje zostały wygenerowane!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            showToast('success', 'Nowe rekomendacje zostały wygenerowane!');
         }, 2000);
     }
 
     function saveForLater(dishId) {
         // Mock function
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-info alert-dismissible fade show';
-        alert.innerHTML = `
-            <i class="fa-solid fa-bookmark me-2"></i>
-            Danie zostało zapisane na później!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
-
-        setTimeout(() => alert.remove(), 3000);
+        showToast('success', 'Danie zostało zapisane na później!');
     }
 </script>

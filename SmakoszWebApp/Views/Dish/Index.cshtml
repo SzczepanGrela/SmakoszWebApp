@@ -73,16 +73,7 @@
 <script>
     function saveForLater(dishId) {
         // Mock function to save dish for later
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-info alert-dismissible fade show mt-3';
-        alert.innerHTML = `
-            <i class="fa-solid fa-bookmark me-2"></i>
-            Danie zostało zapisane na później!
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
-
-        setTimeout(() => alert.remove(), 3000);
+        showToast('success', 'Danie zostało zapisane na później!');
     }
 
     function reportReview(reviewId) {
@@ -97,22 +88,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show mt-3';
-                    alert.innerHTML = `
-                        <i class="fa-solid fa-check me-2"></i>
-                        Recenzja została zgłoszona. Dziękujemy za zgłoszenie!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
-                    setTimeout(() => alert.remove(), 5000);
+                    showToast('success', 'Recenzja została zgłoszona. Dziękujemy za zgłoszenie!');
                 } else {
-                    alert('Wystąpił błąd podczas zgłaszania recenzji.');
+                    showToast('danger', 'Wystąpił błąd podczas zgłaszania recenzji.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Wystąpił błąd podczas zgłaszania recenzji.');
+                showToast('danger', 'Wystąpił błąd podczas zgłaszania recenzji.');
             });
         }
     }
