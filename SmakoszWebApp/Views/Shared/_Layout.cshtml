@@ -20,8 +20,20 @@
                 </button>
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-end">
                     <ul class="navbar-nav align-items-center">
+                        <!-- Rekomendacje - zawsze widoczne dla mocka -->
                         <li class="nav-item me-2">
-                            <a href="#" class="btn btn-primary btn-sm-block">Dodaj Ocenę</a>
+                            <a class="nav-link text-dark" asp-controller="Recommendations" asp-action="Index">
+                                <i class="fa-solid fa-sparkles me-1"></i>Rekomendacje
+                            </a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="btn btn-primary btn-sm-block" asp-controller="Review" asp-action="Add">Dodaj Ocenę</a>
+                        </li>
+                        <!-- Link do panelu admina (ukryty w rzeczywistej aplikacji) -->
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">
+                                <i class="fa-solid fa-shield-halved me-1"></i>Admin
+                            </a>
                         </li>
                         <li class="nav-item">
                             <partial name="_LoginPartial" />

@@ -1,0 +1,157 @@
+﻿@model SmakoszWebApp.ViewModels.RecommendationsViewModel
+@{
+    ViewData["Title"] = "Rekomendacje dla Ciebie";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold mb-1">Rekomendacje dla Ciebie</h1>
+            <p class="text-muted mb-4">Na podstawie Twoich ocen i preferencji</p>
+
+            <div class="d-flex gap-2 mb-4">
+                <button class="btn btn-primary" onclick="generateRecommendations()">
+                    <i class="fa-solid fa-refresh me-2"></i>Wygeneruj nowe rekomendacje
+                </button>
+                <button class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-sliders me-2"></i>Dostosuj preferencje
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spersonalizowane rekomendacje -->
+    <section class="mb-5">
+        <h2 class="h3 mb-3">
+            <i class="fa-solid fa-sparkles text-warning me-2"></i>
+            Idealne dla Ciebie
+        </h2>
+        <p class="text-muted mb-3">Collaborative Filtering wykrył, że te dania mogą Ci się spodobać</p>
+        <div class="row">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card dish-card position-relative">
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-warning text-dark">95% dopasowanie</span>
+                        </div>
+                        <img src="https://placehold.co/300x200/ff6f61/white?text=Polecane" class="card-img-top" alt="Danie">
+                        <div class="card-body">
+                            <h5 class="card-title">Ramen Shoyu Deluxe</h5>
+                            <p class="text-muted mb-2">Noodle House Tokyo</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">48.00 zł</span>
+                                <div>
+                                    <i class="fa-solid fa-star text-warning"></i>
+                                    <span class="fw-bold">4.9</span>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-primary" onclick="saveForLater(@i)">
+                                    <i class="fa-regular fa-bookmark me-1"></i>Zapisz na później
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Trendy -->
+    <section class="mb-5">
+        <h2 class="h3 mb-3">
+            <i class="fa-solid fa-fire text-danger me-2"></i>
+            Teraz popularne
+        </h2>
+        <div class="row">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="col-lg-4 mb-4">
+                    <div class="card dish-card">
+                        <img src="https://placehold.co/300x200/4CAF50/white?text=Trending" class="card-img-top" alt="Popularne danie">
+                        <div class="card-body">
+                            <h5 class="card-title">Burger BBQ Supreme</h5>
+                            <p class="text-muted mb-2">Grill Masters</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">45.00 zł</span>
+                                <div>
+                                    <i class="fa-solid fa-arrow-trend-up text-success me-1"></i>
+                                    <span class="text-success fw-bold">+18% w tym tygodniu</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Podobni użytkownicy polecają -->
+    <section class="mb-5">
+        <h2 class="h3 mb-3">
+            <i class="fa-solid fa-users text-info me-2"></i>
+            Użytkownicy o podobnym guście polecają
+        </h2>
+        <div class="row">
+            @for (int i = 0; i < 6; i++)
+            {
+                <div class="col-lg-2 col-md-4 col-6 mb-3">
+                    <div class="card dish-card-small">
+                        <img src="https://placehold.co/200x150/2196F3/white?text=Sushi" class="card-img-top" alt="Polecane przez użytkowników">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-1">Sushi Salmon</h6>
+                            <small class="text-muted">Sushi Bar</small>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="fw-bold">32 zł</small>
+                                <small>
+                                    <i class="fa-solid fa-star text-warning"></i>
+                                    4.7
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+<script>
+    function generateRecommendations() {
+        // Mock function
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Generowanie...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fa-solid fa-check-circle me-2"></i>
+                Nowe rekomendacje zostały wygenerowane!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+        }, 2000);
+    }
+
+    function saveForLater(dishId) {
+        // Mock function
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-info alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="fa-solid fa-bookmark me-2"></i>
+            Danie zostało zapisane na później!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+
+        setTimeout(() => alert.remove(), 3000);
+    }
+</script>
