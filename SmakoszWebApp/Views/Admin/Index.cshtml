@@ -2,6 +2,40 @@
     ViewData["Title"] = "Panel Administracyjny";
 }
 
+<style>
+    .admin-nav-link {
+        transition: all 0.3s ease;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .admin-nav-link:hover {
+        background-color: rgba(212, 165, 116, 0.1);
+        transform: translateX(5px);
+    }
+
+    .admin-nav-link.active {
+        background-color: #D4A574;
+        color: #FFF8DC !important;
+        font-weight: 500;
+    }
+
+    .admin-nav-link.active:hover {
+        background-color: #B8860B;
+        transform: translateX(5px);
+    }
+
+    .admin-sidebar {
+        min-height: 100vh;
+        padding: 1rem;
+    }
+
+    .tab-content {
+        animation: fadeInUp 0.3s ease-in-out;
+    }
+</style>
+
 <div class="container-fluid mt-4">
     <div class="row">
         <!-- Sidebar -->
@@ -12,22 +46,22 @@
                     Admin Panel
                 </h4>
                 <nav class="nav flex-column">
-                    <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                    <a class="nav-link active admin-nav-link" href="#dashboard" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-chart-simple me-2"></i>Dashboard
                     </a>
-                    <a class="nav-link" href="#users" data-bs-toggle="tab">
+                    <a class="nav-link admin-nav-link" href="#users" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-users me-2"></i>Użytkownicy
                     </a>
-                    <a class="nav-link" href="#reviews" data-bs-toggle="tab">
+                    <a class="nav-link admin-nav-link" href="#reviews" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-star me-2"></i>Recenzje
                     </a>
-                    <a class="nav-link" href="#photos" data-bs-toggle="tab">
+                    <a class="nav-link admin-nav-link" href="#photos" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-image me-2"></i>Zdjęcia
                     </a>
-                    <a class="nav-link" href="#restaurants" data-bs-toggle="tab">
+                    <a class="nav-link admin-nav-link" href="#restaurants" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-utensils me-2"></i>Restauracje
                     </a>
-                    <a class="nav-link" href="#dishes" data-bs-toggle="tab">
+                    <a class="nav-link admin-nav-link" href="#dishes" data-bs-toggle="tab" onclick="setActiveTab(this)">
                         <i class="fa-solid fa-bowl-food me-2"></i>Dania
                     </a>
                 </nav>
@@ -427,6 +461,58 @@
 </div>
 
 <script>
+    // Enhanced tab management
+    function setActiveTab(element) {
+        // Remove active class from all nav links
+        document.querySelectorAll('.admin-nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Add active class to clicked nav link
+        element.classList.add('active');
+        
+        // Update URL hash without page reload
+        const target = element.getAttribute('href');
+        if (target) {
+            window.location.hash = target;
+        }
+    }
+
+    // Initialize tab based on URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabLink = document.querySelector(`a[href="${hash}"]`);
+            if (tabLink) {
+                // Remove active from all tabs
+                document.querySelectorAll('.admin-nav-link').forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                // Activate the target tab
+                tabLink.classList.add('active');
+                const targetPane = document.querySelector(hash);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                }
+            }
+        }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('hashchange', function() {
+        const hash = window.location.hash || '#dashboard';
+        const tabLink = document.querySelector(`a[href="${hash}"]`);
+        if (tabLink) {
+            // Trigger Bootstrap tab
+            const tab = new bootstrap.Tab(tabLink);
+            tab.show();
+        }
+    });
+
     function approvePhoto(photoId) {
         showAlert('success', `Zdjęcie ${photoId + 1} zostało zatwierdzone!`);
     }

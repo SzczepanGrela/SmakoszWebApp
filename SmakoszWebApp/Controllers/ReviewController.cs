@@ -33,5 +33,17 @@ namespace SmakoszWebApp.Controllers
 
             return Json(results);
         }
+
+        [HttpPost]
+        public IActionResult Report([FromBody] ReportReviewRequest request)
+        {
+            // Mock - w rzeczywistości zapisałoby zgłoszenie do bazy
+            return Json(new { success = true, message = "Recenzja została zgłoszona." });
+        }
+    }
+
+    public class ReportReviewRequest
+    {
+        public int ReviewId { get; set; }
     }
 }

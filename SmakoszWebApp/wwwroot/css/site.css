@@ -1,5 +1,19 @@
+/* Food-themed color palette */
+:root {
+    --primary-color: #D4A574;        /* Warm honey */
+    --secondary-color: #F5E6D3;      /* Cream */
+    --accent-color: #B8860B;         /* Dark goldenrod */
+    --background-color: #FFF8DC;     /* Cornsilk */
+    --text-color: #8B4513;           /* Saddle brown */
+    --card-bg: #FEFAF5;              /* Warm white */
+    --hover-color: #E8C07D;          /* Lighter honey */
+    --shadow-color: rgba(139, 69, 19, 0.1);
+}
+
 html {
     font-size: 14px;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 @media (min-width: 768px) {
@@ -9,10 +23,10 @@ html {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem var(--background-color), 0 0 0 0.25rem var(--primary-color);
 }
 
-/* Styl dla hero section na stronie g³ównej z piêknym zdjêciem jedzenia */
+/* Styl dla hero section na stronie gï¿½ï¿½wnej z piï¿½knym zdjï¿½ciem jedzenia */
 .hero-section {
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
     background-size: cover;
@@ -23,27 +37,33 @@ html {
     padding-top: 56px;
 }
 
-/* Style dla kart dañ */
+/* Style dla kart daï¿½ */
 .dish-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     height: 100%;
     border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border: 1px solid var(--secondary-color);
 }
 
     .dish-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 25px var(--shadow-color);
+        border-color: var(--primary-color);
     }
 
 .dish-card-small {
     transition: transform 0.2s ease-in-out;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 6px var(--shadow-color);
+    border: 1px solid var(--secondary-color);
 }
 
     .dish-card-small:hover {
         transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        border-color: var(--primary-color);
     }
 
 .dish-card img {
@@ -59,17 +79,18 @@ html {
 /* Style dla kart kategorii */
 .category-card {
     transition: all 0.2s ease-in-out;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--secondary-color);
     text-decoration: none;
-    background: white;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
     .category-card:hover {
-        background-color: #f8f9fa;
+        background-color: var(--secondary-color);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px var(--shadow-color);
         text-decoration: none;
-        color: inherit;
+        color: var(--text-color);
     }
 
 /* Panel administracyjny */
@@ -78,28 +99,28 @@ html {
     top: 76px; /* height of navbar + some margin */
     height: calc(100vh - 76px);
     overflow-y: auto;
-    background-color: #f8f9fa;
+    background-color: var(--secondary-color);
 }
 
     .admin-sidebar .nav-link {
-        color: #495057;
+        color: var(--text-color);
         padding: 12px 16px;
         border-radius: 0;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--primary-color);
         transition: all 0.2s ease-in-out;
     }
 
         .admin-sidebar .nav-link:hover {
-            background-color: #e9ecef;
-            color: #495057;
+            background-color: var(--hover-color);
+            color: var(--text-color);
         }
 
         .admin-sidebar .nav-link.active {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--background-color);
         }
 
-/* Padding dla g³ównej zawartoœci gdy jest fixed navbar */
+/* Padding dla gï¿½ï¿½wnej zawartoï¿½ci gdy jest fixed navbar */
 main {
     padding-top: 76px;
 }
@@ -136,35 +157,39 @@ main {
 
 /* Style dla recenzji */
 .review-card {
-    border-left: 4px solid #007bff;
+    border-left: 4px solid var(--primary-color);
     margin-bottom: 1rem;
     transition: box-shadow 0.2s ease-in-out;
+    background-color: var(--card-bg);
+    border: 1px solid var(--secondary-color);
 }
 
     .review-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px var(--shadow-color);
     }
 
-/* Style dla filtrów w wyszukiwaniu */
+/* Style dla filtrï¿½w w wyszukiwaniu */
 .filters-panel {
-    background-color: #f8f9fa;
+    background-color: var(--secondary-color);
     padding: 20px;
     border-radius: 8px;
     position: sticky;
     top: 76px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border: 1px solid var(--primary-color);
 }
 
 /* Upload area styles */
 .upload-area {
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 2px dashed #dee2e6;
+    border: 2px dashed var(--primary-color);
+    background-color: var(--card-bg);
 }
 
     .upload-area:hover {
-        background-color: #f8f9fa;
-        border-color: #007bff;
+        background-color: var(--secondary-color);
+        border-color: var(--accent-color);
     }
 
 /* Restaurant header */
@@ -183,40 +208,46 @@ main {
 .dish-details-panel {
     position: sticky;
     top: 76px;
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: 1px solid var(--secondary-color);
 }
 
 /* Navbar enhancements */
 .navbar {
     backdrop-filter: blur(10px);
-    background-color: rgba(255,255,255,0.95) !important;
+    background-color: var(--card-bg) !important;
+    border-bottom: 1px solid var(--secondary-color);
 }
 
 .navbar-brand {
     font-size: 1.5rem;
-    color: #007bff !important;
+    color: var(--primary-color) !important;
+    font-weight: bold;
 }
 
 /* Button styles */
 .btn-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
     border: none;
     transition: all 0.2s ease-in-out;
+    color: var(--background-color);
 }
 
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        background: linear-gradient(45deg, var(--hover-color), var(--primary-color));
     }
 
 /* Search form on hero */
 .hero-section .form-control {
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid var(--secondary-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
     padding: 12px 16px;
+    background-color: var(--card-bg);
 }
 
 .hero-section .btn {
@@ -226,15 +257,16 @@ main {
 
 /* Cards general improvements */
 .card {
-    border: none;
+    border: 1px solid var(--secondary-color);
     border-radius: 12px;
     overflow: hidden;
+    background-color: var(--card-bg);
 }
 
 /* Footer */
 .footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #dee2e6;
+    background-color: var(--secondary-color);
+    border-top: 1px solid var(--primary-color);
 }
 
 /* Responsive adjustments */
@@ -300,12 +332,13 @@ main {
 
 /* Table improvements */
 .table-hover tbody tr:hover {
-    background-color: rgba(0,123,255,0.05);
+    background-color: var(--secondary-color);
 }
 
 /* Alert improvements */
 .alert {
-    border: none;
+    border: 1px solid var(--primary-color);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    background-color: var(--card-bg);
 }
