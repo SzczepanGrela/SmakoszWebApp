@@ -1,0 +1,116 @@
+@{
+    var alertType = ViewData["AlertType"] as string ?? "success";
+    var message = ViewData["Message"] as string ?? "";
+    var isDismissible = ViewData["IsDismissible"] as bool? ?? true;
+    var autoHide = ViewData["AutoHide"] as bool? ?? true;
+    var autoHideDelay = ViewData["AutoHideDelay"] as int? ?? 5000;
+    var showIcon = ViewData["ShowIcon"] as bool? ?? true;
+    var customIcon = ViewData["CustomIcon"] as string ?? "";
+    
+    var alertClass = $"alert alert-{alertType}";
+    if (isDismissible)
+    {
+        alertClass += " alert-dismissible";
+    }
+    alertClass += " fade show";
+    
+    string icon = customIcon;
+    if (string.IsNullOrEmpty(icon) && showIcon)
+    {
+        icon = alertType switch
+        {
+            "success" => "fa-check",
+            "danger" => "fa-times",
+            "warning" => "fa-exclamation-triangle",
+            "info" => "fa-info-circle",
+            _ => "fa-info-circle"
+        };
+    }
+}
+
+<div class="@alertClass" role="alert" @(autoHide ? $"data-auto-hide='{autoHideDelay}'" : "")>
+    @if (showIcon && !string.IsNullOrEmpty(icon))
+    {
+        <i class="fa-solid @icon me-2"></i>
+    }
+    @Html.Raw(message)
+    @if (isDismissible)
+    {
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    }
+</div>
+
+@if (autoHide)
+{
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('[data-auto-hide]');
+        alerts.forEach(alert => {
+            const delay = parseInt(alert.getAttribute('data-auto-hide'));
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, delay);
+        });
+    });
+    </script>
+}
+
+<script>
+function showAlert(type, message, options = {}) {
+    const {
+        isDismissible = true,
+        autoHide = true,
+        autoHideDelay = 5000,
+        showIcon = true,
+        customIcon = '',
+        container = '.container'
+    } = options;
+    
+    const alertClass = `alert alert-${type}${isDismissible ? ' alert-dismissible' : ''} fade show`;
+    
+    let icon = customIcon;
+    if (!icon && showIcon) {
+        const icons = {
+            'success': 'fa-check',
+            'danger': 'fa-times',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle'
+        };
+        icon = icons[type] || 'fa-info-circle';
+    }
+    
+    const alert = document.createElement('div');
+    alert.className = alertClass;
+    alert.setAttribute('role', 'alert');
+    
+    let alertContent = '';
+    if (showIcon && icon) {
+        alertContent += `<i class="fa-solid ${icon} me-2"></i>`;
+    }
+    alertContent += message;
+    if (isDismissible) {
+        alertContent += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    }
+    
+    alert.innerHTML = alertContent;
+    
+    const containerElement = document.querySelector(container);
+    if (containerElement) {
+        containerElement.insertBefore(alert, containerElement.firstChild);
+    } else {
+        document.body.insertBefore(alert, document.body.firstChild);
+    }
+    
+    if (autoHide) {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, autoHideDelay);
+    }
+    
+    return alert;
+}
+</script>

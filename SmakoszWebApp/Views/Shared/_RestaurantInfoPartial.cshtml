@@ -1,0 +1,122 @@
+@model SmakoszWebApp.ViewModels.RestaurantViewModel
+
+@{
+    var showFullDetails = ViewData["ShowFullDetails"] as bool? ?? false;
+    var cardTitle = ViewData["CardTitle"] as string ?? "Lokalizacja i kontakt";
+    var cardIcon = ViewData["CardIcon"] as string ?? "fa-location-dot";
+    var cardCssClass = ViewData["CardCssClass"] as string ?? "location-info-card";
+    var showMenuCount = ViewData["ShowMenuCount"] as bool? ?? false;
+    var menuCount = ViewData["MenuCount"] as int? ?? 0;
+}
+
+<div class="card @cardCssClass">
+    <div class="card-header @(showFullDetails ? "bg-primary text-white" : "")">
+        <h@(showFullDetails ? "3" : "4") class="mb-0">
+            <i class="fa-solid @cardIcon me-2"></i>
+            @cardTitle
+        </h@(showFullDetails ? "3" : "4")>
+    </div>
+    <div class="card-body">
+        @if (!showFullDetails)
+        {
+            <h5 class="mb-3">
+                <i class="fa-solid fa-store me-2"></i>
+                <a href="@Url.Action("Index", "Restaurant", new { id = Model.Id })" class="text-decoration-none">
+                    @Model.Name
+                </a>
+            </h5>
+        }
+        
+        <h5 class="mb-2">
+            <i class="fa-solid fa-map-marker-alt me-2 text-danger"></i>
+            Adres
+        </h5>
+        <p class="mb-3">@Model.FullAddress</p>
+        
+        @if (!string.IsNullOrEmpty(Model.Phone))
+        {
+            <h5 class="mb-2">
+                <i class="fa-solid fa-phone me-2 text-success"></i>
+                Telefon
+            </h5>
+            <p class="mb-3">
+                <a href="tel:@Model.Phone" class="text-decoration-none">@Model.Phone</a>
+            </p>
+        }
+        
+        @if (!string.IsNullOrEmpty(Model.Website))
+        {
+            <h5 class="mb-2">
+                <i class="fa-solid fa-globe me-2 text-info"></i>
+                Strona internetowa
+            </h5>
+            <p class="mb-3">
+                <a href="@Model.Website" target="_blank" class="text-decoration-none">
+                    @Model.Website <i class="fa-solid fa-external-link-alt ms-1"></i>
+                </a>
+            </p>
+        }
+        
+        @if (showFullDetails)
+        {
+            <h5 class="mb-2">
+                <i class="fa-solid fa-star me-2 text-warning"></i>
+                Ocena
+            </h5>
+            <p class="mb-3">
+                <span class="fw-bold">@Model.AverageRating.ToString("F1")</span>/5
+                @if (showMenuCount)
+                {
+                    <span class="text-muted ms-2">(@menuCount dań w menu)</span>
+                }
+            </p>
+        }
+        
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <a href="@Model.GoogleMapsUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="fa-solid fa-map me-1"></i>
+                Zobacz na mapie
+            </a>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Latitude,@Model.Longitude" target="_blank" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-route me-1"></i>
+                Wyznacz trasę
+            </a>
+            <button class="btn btn-outline-info btn-sm" onclick="shareLocation('@Model.Name', '@Model.FullAddress', @Model.Latitude, @Model.Longitude)">
+                <i class="fa-solid fa-share me-1"></i>
+                Udostępnij lokalizację
+            </button>
+            @if (!showFullDetails)
+            {
+                <a href="@Url.Action("Index", "Restaurant", new { id = Model.Id })" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-utensils me-1"></i>
+                    Zobacz pełne menu
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+function shareLocation(name, address, lat, lng) {
+    if (navigator.share) {
+        navigator.share({
+            title: name,
+            text: `Lokalizacja: ${address}`,
+            url: `https://www.google.com/maps?q=${lat},${lng}`
+        });
+    } else {
+        const url = `https://www.google.com/maps?q=${lat},${lng}`;
+        navigator.clipboard.writeText(url).then(() => {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fa-solid fa-check me-2"></i>
+                Link do lokalizacji został skopiowany do schowka!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+            setTimeout(() => alert.remove(), 5000);
+        });
+    }
+}
+</script>

@@ -21,69 +21,11 @@
     <!-- Location & Contact Information -->
     <div class="row justify-content-center mt-5">
         <div class="col-lg-10">
-            <div class="card location-info-card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">
-                        <i class="fa-solid fa-location-dot me-2"></i>
-                        Lokalizacja i kontakt
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h5><i class="fa-solid fa-map-marker-alt text-primary me-2"></i>Adres</h5>
-                            <p class="mb-3">@Model.FullAddress</p>
-                            
-                            @if (!string.IsNullOrEmpty(Model.Phone))
-                            {
-                                <h5><i class="fa-solid fa-phone text-primary me-2"></i>Telefon</h5>
-                                <p class="mb-3">
-                                    <a href="tel:@Model.Phone" class="text-decoration-none">@Model.Phone</a>
-                                </p>
-                            }
-                            
-                            @if (!string.IsNullOrEmpty(Model.Website))
-                            {
-                                <h5><i class="fa-solid fa-globe text-primary me-2"></i>Strona internetowa</h5>
-                                <p class="mb-3">
-                                    <a href="@Model.Website" target="_blank" class="text-decoration-none">
-                                        Odwiedź naszą stronę <i class="fa-solid fa-external-link-alt ms-1"></i>
-                                    </a>
-                                </p>
-                            }
-                        </div>
-                        <div class="col-md-4">
-                            <h5><i class="fa-solid fa-star text-warning me-2"></i>Ocena</h5>
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="stars-lg me-2">
-                                    @for (int i = 1; i <= 5; i++)
-                                    {
-                                        <i class="fa-solid fa-star @(i <= Model.AverageRating ? "text-warning" : "text-muted")"></i>
-                                    }
-                                </div>
-                                <span class="fw-bold fs-5">@Model.AverageRating</span>
-                            </div>
-                            
-                            <h5><i class="fa-solid fa-utensils text-primary me-2"></i>Menu</h5>
-                            <p class="mb-3">@Model.Dishes.Count dań w menu</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h5><i class="fa-solid fa-directions text-primary me-2"></i>Jak dojechać</h5>
-                            <div class="d-grid gap-2">
-                                <a href="@Model.GoogleMapsUrl" target="_blank" class="btn btn-primary">
-                                    <i class="fa-solid fa-map me-2"></i>Otwórz w Google Maps
-                                </a>
-                                <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Latitude,@Model.Longitude" target="_blank" class="btn btn-outline-primary">
-                                    <i class="fa-solid fa-route me-2"></i>Wyznacz trasę
-                                </a>
-                                <button class="btn btn-outline-info" onclick="shareLocation()">
-                                    <i class="fa-solid fa-share me-2"></i>Udostępnij lokalizację
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @Html.Partial("_RestaurantInfoPartial", Model, new ViewDataDictionary(ViewData) { 
+                { "ShowFullDetails", true }, 
+                { "ShowMenuCount", true }, 
+                { "MenuCount", Model.Dishes.Count } 
+            })
         </div>
     </div>
 
