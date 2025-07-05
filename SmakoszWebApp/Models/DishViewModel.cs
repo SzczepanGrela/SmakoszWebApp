@@ -1,4 +1,6 @@
 ﻿// SmakoszWebApp/ViewModels/DishViewModel.cs
+using System.Collections.Generic;
+
 namespace SmakoszWebApp.ViewModels
 {
     public class DishViewModel
