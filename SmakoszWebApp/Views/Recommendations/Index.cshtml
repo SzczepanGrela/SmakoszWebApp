@@ -28,31 +28,42 @@
         </h2>
         <p class="text-muted mb-3">Collaborative Filtering wykrył, że te dania mogą Ci się spodobać</p>
         <div class="row">
-            @for (int i = 0; i < 4; i++)
+            @{
+                var personalizedDishes = new List<dynamic>
+                {
+                    new { Id = 10, Name = "Ramen Shoyu Deluxe", RestaurantName = "Noodle House Tokyo", Price = 48.00m, Rating = 4.9, Image = "https://placehold.co/300x200/ff6f61/white?text=Polecane" },
+                    new { Id = 11, Name = "Sushi Dragon Roll", RestaurantName = "Sushi Master", Price = 65.00m, Rating = 4.8, Image = "https://placehold.co/300x200/2196F3/white?text=Sushi" },
+                    new { Id = 12, Name = "Pad Thai Premium", RestaurantName = "Thai Garden", Price = 42.00m, Rating = 4.7, Image = "https://placehold.co/300x200/FFC107/white?text=Thai" },
+                    new { Id = 13, Name = "Carbonara Truffle", RestaurantName = "Italiano", Price = 52.00m, Rating = 4.9, Image = "https://placehold.co/300x200/4CAF50/white?text=Pasta" }
+                };
+            }
+            @for (int i = 0; i < personalizedDishes.Count; i++)
             {
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="card dish-card position-relative">
-                        <div class="position-absolute top-0 start-0 m-2">
-                            <span class="badge bg-warning text-dark">95% dopasowanie</span>
-                        </div>
-                        <img src="https://placehold.co/300x200/ff6f61/white?text=Polecane" class="card-img-top" alt="Danie">
-                        <div class="card-body">
-                            <h5 class="card-title">Ramen Shoyu Deluxe</h5>
-                            <p class="text-muted mb-2">Noodle House Tokyo</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">48.00 zł</span>
-                                <div>
-                                    <i class="fa-solid fa-star text-warning"></i>
-                                    <span class="fw-bold">4.9</span>
+                    <a asp-controller="Dish" asp-action="Index" asp-route-id="@personalizedDishes[i].Id" class="text-decoration-none text-dark">
+                        <div class="card dish-card position-relative">
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <span class="badge bg-warning text-dark">95% dopasowanie</span>
+                            </div>
+                            <img src="@personalizedDishes[i].Image" class="card-img-top" alt="@personalizedDishes[i].Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@personalizedDishes[i].Name</h5>
+                                <p class="text-muted mb-2">@personalizedDishes[i].RestaurantName</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">@personalizedDishes[i].Price.ToString("F2") zł</span>
+                                    <div>
+                                        <i class="fa-solid fa-star text-warning"></i>
+                                        <span class="fw-bold">@personalizedDishes[i].Rating</span>
+                                    </div>
+                                </div>
+                                <div class="d-grid gap-2 mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="event.preventDefault(); event.stopPropagation(); saveForLater(@personalizedDishes[i].Id)">
+                                        <i class="fa-regular fa-bookmark me-1"></i>Zapisz na później
+                                    </button>
                                 </div>
                             </div>
-                            <div class="d-grid gap-2 mt-3">
-                                <button class="btn btn-sm btn-outline-primary" onclick="saveForLater(@i)">
-                                    <i class="fa-regular fa-bookmark me-1"></i>Zapisz na później
-                                </button>
-                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             }
         </div>
@@ -65,23 +76,33 @@
             Teraz popularne
         </h2>
         <div class="row">
-            @for (int i = 0; i < 3; i++)
+            @{
+                var trendingDishes = new List<dynamic>
+                {
+                    new { Id = 14, Name = "Burger BBQ Supreme", RestaurantName = "Grill Masters", Price = 45.00m, Trend = "+18% w tym tygodniu", Image = "https://placehold.co/300x200/4CAF50/white?text=BBQ" },
+                    new { Id = 15, Name = "Pizza Quattro Formaggi", RestaurantName = "Pizzeria Roma", Price = 41.00m, Trend = "+15% w tym tygodniu", Image = "https://placehold.co/300x200/ff6f61/white?text=Pizza" },
+                    new { Id = 16, Name = "Fish & Chips Classic", RestaurantName = "Burgerownia Stacja", Price = 38.00m, Trend = "+12% w tym tygodniu", Image = "https://placehold.co/300x200/2196F3/white?text=Fish" }
+                };
+            }
+            @for (int i = 0; i < trendingDishes.Count; i++)
             {
                 <div class="col-lg-4 mb-4">
-                    <div class="card dish-card">
-                        <img src="https://placehold.co/300x200/4CAF50/white?text=Trending" class="card-img-top" alt="Popularne danie">
-                        <div class="card-body">
-                            <h5 class="card-title">Burger BBQ Supreme</h5>
-                            <p class="text-muted mb-2">Grill Masters</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">45.00 zł</span>
-                                <div>
-                                    <i class="fa-solid fa-arrow-trend-up text-success me-1"></i>
-                                    <span class="text-success fw-bold">+18% w tym tygodniu</span>
+                    <a asp-controller="Dish" asp-action="Index" asp-route-id="@trendingDishes[i].Id" class="text-decoration-none text-dark">
+                        <div class="card dish-card">
+                            <img src="@trendingDishes[i].Image" class="card-img-top" alt="@trendingDishes[i].Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@trendingDishes[i].Name</h5>
+                                <p class="text-muted mb-2">@trendingDishes[i].RestaurantName</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">@trendingDishes[i].Price.ToString("F2") zł</span>
+                                    <div>
+                                        <i class="fa-solid fa-arrow-trend-up text-success me-1"></i>
+                                        <span class="text-success fw-bold">@trendingDishes[i].Trend</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             }
         </div>
@@ -94,23 +115,36 @@
             Użytkownicy o podobnym guście polecają
         </h2>
         <div class="row">
-            @for (int i = 0; i < 6; i++)
+            @{
+                var similarUsersRecommendations = new List<dynamic>
+                {
+                    new { Id = 17, Name = "Sushi Salmon", RestaurantName = "Sushi Master", Price = 32m, Rating = 4.7, Image = "https://placehold.co/200x150/2196F3/white?text=Sushi" },
+                    new { Id = 18, Name = "Tacos Al Pastor", RestaurantName = "Thai Garden", Price = 28m, Rating = 4.6, Image = "https://placehold.co/200x150/FFC107/white?text=Tacos" },
+                    new { Id = 19, Name = "Pho Bo Vietnam", RestaurantName = "Noodle House Tokyo", Price = 35m, Rating = 4.8, Image = "https://placehold.co/200x150/4CAF50/white?text=Pho" },
+                    new { Id = 20, Name = "Biryani Chicken", RestaurantName = "Thai Garden", Price = 39m, Rating = 4.7, Image = "https://placehold.co/200x150/FF9800/white?text=Biryani" },
+                    new { Id = 21, Name = "Gyros Greek", RestaurantName = "Italiano", Price = 26m, Rating = 4.5, Image = "https://placehold.co/200x150/9C27B0/white?text=Gyros" },
+                    new { Id = 22, Name = "Kebab Turkish", RestaurantName = "Grill Masters", Price = 24m, Rating = 4.4, Image = "https://placehold.co/200x150/795548/white?text=Kebab" }
+                };
+            }
+            @for (int i = 0; i < similarUsersRecommendations.Count; i++)
             {
                 <div class="col-lg-2 col-md-4 col-6 mb-3">
-                    <div class="card dish-card-small">
-                        <img src="https://placehold.co/200x150/2196F3/white?text=Sushi" class="card-img-top" alt="Polecane przez użytkowników">
-                        <div class="card-body p-2">
-                            <h6 class="card-title mb-1">Sushi Salmon</h6>
-                            <small class="text-muted">Sushi Bar</small>
-                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                <small class="fw-bold">32 zł</small>
-                                <small>
-                                    <i class="fa-solid fa-star text-warning"></i>
-                                    4.7
-                                </small>
+                    <a asp-controller="Dish" asp-action="Index" asp-route-id="@similarUsersRecommendations[i].Id" class="text-decoration-none text-dark">
+                        <div class="card dish-card-small">
+                            <img src="@similarUsersRecommendations[i].Image" class="card-img-top" alt="@similarUsersRecommendations[i].Name">
+                            <div class="card-body p-2">
+                                <h6 class="card-title mb-1">@similarUsersRecommendations[i].Name</h6>
+                                <small class="text-muted">@similarUsersRecommendations[i].RestaurantName</small>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="fw-bold">@similarUsersRecommendations[i].Price zł</small>
+                                    <small>
+                                        <i class="fa-solid fa-star text-warning"></i>
+                                        @similarUsersRecommendations[i].Rating
+                                    </small>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             }
         </div>

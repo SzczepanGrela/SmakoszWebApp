@@ -7,8 +7,9 @@ namespace SmakoszWebApp.Controllers
 {
     public class ReviewController : Controller
     {
-        public IActionResult Add()
+        public IActionResult Add(int? dishId)
         {
+            ViewBag.DishId = dishId;
             return View();
         }
 

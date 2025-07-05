@@ -35,8 +35,8 @@ namespace SmakoszWebApp.Controllers
             return new List<DishViewModel>
             {
                 new DishViewModel { Id = 14, Name = "Burger BBQ Supreme", RestaurantName = "Grill Masters", RestaurantId = 8, Price = 45.00m, AverageRating = 4.8, ReviewCount = 234, ImageUrl = "https://placehold.co/300x200/4CAF50/white?text=BBQ" },
-                new DishViewModel { Id = 15, Name = "Pizza Quattro Formaggi", RestaurantName = "Pizzeria Bella", RestaurantId = 9, Price = 41.00m, AverageRating = 4.6, ReviewCount = 167, ImageUrl = "https://placehold.co/300x200/ff6f61/white?text=Pizza" },
-                new DishViewModel { Id = 16, Name = "Fish & Chips Classic", RestaurantName = "British Pub", RestaurantId = 10, Price = 38.00m, AverageRating = 4.5, ReviewCount = 189, ImageUrl = "https://placehold.co/300x200/2196F3/white?text=Fish" }
+                new DishViewModel { Id = 15, Name = "Pizza Quattro Formaggi", RestaurantName = "Pizzeria Roma", RestaurantId = 1, Price = 41.00m, AverageRating = 4.6, ReviewCount = 167, ImageUrl = "https://placehold.co/300x200/ff6f61/white?text=Pizza" },
+                new DishViewModel { Id = 16, Name = "Fish & Chips Classic", RestaurantName = "Burgerownia Stacja", RestaurantId = 2, Price = 38.00m, AverageRating = 4.5, ReviewCount = 189, ImageUrl = "https://placehold.co/300x200/2196F3/white?text=Fish" }
             };
         }
 
@@ -44,12 +44,12 @@ namespace SmakoszWebApp.Controllers
         {
             return new List<DishViewModel>
             {
-                new DishViewModel { Id = 17, Name = "Sushi Salmon", RestaurantName = "Sushi Bar", RestaurantId = 11, Price = 32.00m, AverageRating = 4.7, ReviewCount = 145, ImageUrl = "https://placehold.co/200x150/2196F3/white?text=Sushi" },
-                new DishViewModel { Id = 18, Name = "Tacos Al Pastor", RestaurantName = "Mexicana", RestaurantId = 12, Price = 28.00m, AverageRating = 4.6, ReviewCount = 201, ImageUrl = "https://placehold.co/200x150/FFC107/white?text=Tacos" },
-                new DishViewModel { Id = 19, Name = "Pho Bo Vietnam", RestaurantName = "Saigon Street", RestaurantId = 13, Price = 35.00m, AverageRating = 4.8, ReviewCount = 178, ImageUrl = "https://placehold.co/200x150/4CAF50/white?text=Pho" },
-                new DishViewModel { Id = 20, Name = "Biryani Chicken", RestaurantName = "Bombay Palace", RestaurantId = 14, Price = 39.00m, AverageRating = 4.7, ReviewCount = 167, ImageUrl = "https://placehold.co/200x150/FF9800/white?text=Biryani" },
-                new DishViewModel { Id = 21, Name = "Gyros Greek", RestaurantName = "Athens Corner", RestaurantId = 15, Price = 26.00m, AverageRating = 4.5, ReviewCount = 198, ImageUrl = "https://placehold.co/200x150/9C27B0/white?text=Gyros" },
-                new DishViewModel { Id = 22, Name = "Kebab Turkish", RestaurantName = "Istanbul Grill", RestaurantId = 16, Price = 24.00m, AverageRating = 4.4, ReviewCount = 234, ImageUrl = "https://placehold.co/200x150/795548/white?text=Kebab" }
+                new DishViewModel { Id = 17, Name = "Sushi Salmon", RestaurantName = "Sushi Master", RestaurantId = 3, Price = 32.00m, AverageRating = 4.7, ReviewCount = 145, ImageUrl = "https://placehold.co/200x150/2196F3/white?text=Sushi" },
+                new DishViewModel { Id = 18, Name = "Tacos Al Pastor", RestaurantName = "Thai Garden", RestaurantId = 6, Price = 28.00m, AverageRating = 4.6, ReviewCount = 201, ImageUrl = "https://placehold.co/200x150/FFC107/white?text=Tacos" },
+                new DishViewModel { Id = 19, Name = "Pho Bo Vietnam", RestaurantName = "Noodle House Tokyo", RestaurantId = 5, Price = 35.00m, AverageRating = 4.8, ReviewCount = 178, ImageUrl = "https://placehold.co/200x150/4CAF50/white?text=Pho" },
+                new DishViewModel { Id = 20, Name = "Biryani Chicken", RestaurantName = "Thai Garden", RestaurantId = 6, Price = 39.00m, AverageRating = 4.7, ReviewCount = 167, ImageUrl = "https://placehold.co/200x150/FF9800/white?text=Biryani" },
+                new DishViewModel { Id = 21, Name = "Gyros Greek", RestaurantName = "Italiano", RestaurantId = 7, Price = 26.00m, AverageRating = 4.5, ReviewCount = 198, ImageUrl = "https://placehold.co/200x150/9C27B0/white?text=Gyros" },
+                new DishViewModel { Id = 22, Name = "Kebab Turkish", RestaurantName = "Grill Masters", RestaurantId = 8, Price = 24.00m, AverageRating = 4.4, ReviewCount = 234, ImageUrl = "https://placehold.co/200x150/795548/white?text=Kebab" }
             };
         }
 
