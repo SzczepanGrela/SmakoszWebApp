@@ -1,6 +1,8 @@
 ﻿// Controllers/RestaurantController.cs
 using Microsoft.AspNetCore.Mvc;
 using SmakoszWebApp.ViewModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SmakoszWebApp.Controllers
 {
@@ -31,6 +33,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.6,
                     Description = "Tradycyjna włoska pizzeria z piecem opalanym drewnem. Serwujemy klasyki kuchni włoskiej od 2005 roku.",
                     ImageUrl = "https://placehold.co/1200x400/ff6f61/white?text=Pizzeria+Roma",
+                    Latitude = 50.0377,
+                    Longitude = 21.9993,
+                    Phone = "+48 17 853 12 34",
+                    Website = "https://pizzeriaroma-rzeszow.pl",
                     Dishes = new List<DishViewModel>
                     {
                          new DishViewModel { Id = 1, Name = "Pizza Diavola", RestaurantName = "Pizzeria Roma", RestaurantId = 1, Price = 38.00m, AverageRating = 4.8, ReviewCount = 45, ImageUrl = "https://placehold.co/600x400/ff6f61/white?text=Pizza" },
@@ -46,6 +52,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.9,
                     Description = "Najlepsze burgery w mieście. Używamy tylko świeżej, lokalnej wołowiny i autorskich sosów.",
                     ImageUrl = "https://placehold.co/1200x400/4CAF50/white?text=Burgerownia",
+                    Latitude = 50.0394,
+                    Longitude = 21.9990,
+                    Phone = "+48 17 862 45 67",
+                    Website = "https://burgerownia-stacja.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 2, Name = "Klasyczny Burger Wołowy", RestaurantName = "Burgerownia Stacja", RestaurantId = 2, Price = 42.00m, AverageRating = 4.9, ReviewCount = 120, ImageUrl = "https://placehold.co/600x400/4CAF50/white?text=Burger" },
@@ -61,6 +71,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.7,
                     Description = "Autentyczne japońskie sushi przygotowywane przez doświadczonych mistrzów sushi.",
                     ImageUrl = "https://placehold.co/1200x400/2196F3/white?text=Sushi+Master",
+                    Latitude = 50.0347,
+                    Longitude = 22.0025,
+                    Phone = "+48 17 864 78 90",
+                    Website = "https://sushimaster-rzeszow.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 3, Name = "Zestaw Sushi Ebi Ten", RestaurantName = "Sushi Master", RestaurantId = 3, Price = 55.00m, AverageRating = 4.7, ReviewCount = 78, ImageUrl = "https://placehold.co/600x400/2196F3/white?text=Sushi" },
@@ -77,6 +91,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.8,
                     Description = "Pierwszy bar ramen w Rzeszowie. Serwujemy tradycyjne japońskie zupy ramen z domowym makaronem.",
                     ImageUrl = "https://placehold.co/1200x400/FFC107/white?text=Ramen-Ya",
+                    Latitude = 50.0381,
+                    Longitude = 22.0021,
+                    Phone = "+48 17 855 32 10",
+                    Website = "https://ramen-ya.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 4, Name = "Tantanmen Ramen", RestaurantName = "Ramen-Ya", RestaurantId = 4, Price = 45.00m, AverageRating = 4.9, ReviewCount = 95, ImageUrl = "https://placehold.co/600x400/FFC107/white?text=Ramen" }
@@ -91,6 +109,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.5,
                     Description = "Specjalizujemy się w tradycyjnych japońskich potrawach z makaronem i azjatyckich fusion.",
                     ImageUrl = "https://placehold.co/1200x400/E91E63/white?text=Tokyo+House",
+                    Latitude = 50.0365,
+                    Longitude = 22.0010,
+                    Phone = "+48 17 867 54 32",
+                    Website = "https://noodlehouse-tokyo.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 10, Name = "Ramen Shoyu Deluxe", RestaurantName = "Noodle House Tokyo", RestaurantId = 5, Price = 48.00m, AverageRating = 4.9, ReviewCount = 87, ImageUrl = "https://placehold.co/600x400/ff6f61/white?text=Ramen" },
@@ -106,6 +128,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.6,
                     Description = "Autentyczne smaki Tajlandii w sercu Rzeszowa. Świeże zioła i przyprawy prosto z Tajlandii.",
                     ImageUrl = "https://placehold.co/1200x400/4CAF50/white?text=Thai+Garden",
+                    Latitude = 50.0401,
+                    Longitude = 22.0045,
+                    Phone = "+48 17 856 98 76",
+                    Website = "https://thai-garden.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 12, Name = "Pad Thai Premium", RestaurantName = "Thai Garden", RestaurantId = 6, Price = 42.00m, AverageRating = 4.7, ReviewCount = 203, ImageUrl = "https://placehold.co/600x400/FFC107/white?text=Thai" },
@@ -122,6 +148,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.7,
                     Description = "Klasyczna kuchnia włoska z nutą nowoczesności. Domowe makarony i świeże składniki.",
                     ImageUrl = "https://placehold.co/1200x400/FF5722/white?text=Italiano",
+                    Latitude = 50.0425,
+                    Longitude = 22.0018,
+                    Phone = "+48 17 858 76 54",
+                    Website = "https://italiano-rzeszow.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 13, Name = "Carbonara Truffle", RestaurantName = "Italiano", RestaurantId = 7, Price = 52.00m, AverageRating = 4.9, ReviewCount = 98, ImageUrl = "https://placehold.co/600x400/4CAF50/white?text=Pasta" },
@@ -137,6 +167,10 @@ namespace SmakoszWebApp.Controllers
                     AverageRating = 4.8,
                     Description = "Specjaliści od grillowanych mięs i BBQ. Najlepsze żeberka i burgery w mieście.",
                     ImageUrl = "https://placehold.co/1200x400/795548/white?text=Grill+Masters",
+                    Latitude = 50.0358,
+                    Longitude = 22.0038,
+                    Phone = "+48 17 859 43 21",
+                    Website = "https://grillmasters.pl",
                     Dishes = new List<DishViewModel>
                     {
                         new DishViewModel { Id = 14, Name = "Burger BBQ Supreme", RestaurantName = "Grill Masters", RestaurantId = 8, Price = 45.00m, AverageRating = 4.8, ReviewCount = 234, ImageUrl = "https://placehold.co/600x400/4CAF50/white?text=BBQ" },
