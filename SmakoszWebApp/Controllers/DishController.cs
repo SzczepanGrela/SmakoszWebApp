@@ -1,5 +1,6 @@
 ﻿// Controllers/DishController.cs
 using Microsoft.AspNetCore.Mvc;
+using SmakoszWebApp.Models;
 using SmakoszWebApp.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace SmakoszWebApp.Controllers
             {
                 Dish = dish,
                 Reviews = GetMockReviews(), // Pobierz przykładowe recenzje
-                Restaurant = restaurant != null ? new RestaurantLocationInfo
+                Restaurant = restaurant != null ? new RestaurantViewModel
                 {
                     Id = restaurant.Id,
                     Name = restaurant.Name,

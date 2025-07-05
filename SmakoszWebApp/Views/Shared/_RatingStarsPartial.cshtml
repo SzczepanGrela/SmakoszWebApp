@@ -1,0 +1,88 @@
+@{
+    var rating = ViewData["Rating"] as double? ?? 0;
+    var showReviewCount = ViewData["ShowReviewCount"] as bool? ?? true;
+    var reviewCount = ViewData["ReviewCount"] as int? ?? 0;
+    var size = ViewData["Size"] as string ?? "normal";
+    var isInteractive = ViewData["IsInteractive"] as bool? ?? false;
+    var selectedRating = ViewData["SelectedRating"] as int? ?? 0;
+    var inputName = ViewData["InputName"] as string ?? "rating";
+    
+    var starSize = size == "small" ? "" : size == "large" ? "fa-lg" : "";
+    var containerClass = isInteractive ? "rating-stars-interactive" : "rating-stars";
+}
+
+<div class="@containerClass" @(isInteractive ? $"data-rating='{selectedRating}'" : "")>
+    @if (isInteractive)
+    {
+        for (int i = 1; i <= 5; i++)
+        {
+            <i class="fa-solid fa-star @starSize @(i <= selectedRating ? "text-warning" : "text-muted") interactive-star" 
+               data-rating="@i" 
+               style="cursor: pointer;"></i>
+        }
+        <input type="hidden" name="@inputName" value="@selectedRating" />
+    }
+    else
+    {
+        <i class="fa-solid fa-star @starSize text-warning"></i>
+        <span class="fw-bold">@rating.ToString("F1")</span>
+        @if (showReviewCount)
+        {
+            <span class="text-muted">(@reviewCount)</span>
+        }
+    }
+</div>
+
+@if (isInteractive)
+{
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('.interactive-star');
+        const hiddenInput = document.querySelector('input[name="@inputName"]');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                hiddenInput.value = rating;
+                
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.remove('text-muted');
+                        s.classList.add('text-warning');
+                    } else {
+                        s.classList.remove('text-warning');
+                        s.classList.add('text-muted');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.add('text-warning');
+                        s.classList.remove('text-muted');
+                    } else {
+                        s.classList.add('text-muted');
+                        s.classList.remove('text-warning');
+                    }
+                });
+            });
+        });
+        
+        const container = document.querySelector('.rating-stars-interactive');
+        container.addEventListener('mouseleave', function() {
+            const selectedRating = parseInt(hiddenInput.value);
+            stars.forEach((s, index) => {
+                if (index < selectedRating) {
+                    s.classList.add('text-warning');
+                    s.classList.remove('text-muted');
+                } else {
+                    s.classList.add('text-muted');
+                    s.classList.remove('text-warning');
+                }
+            });
+        });
+    });
+    </script>
+}

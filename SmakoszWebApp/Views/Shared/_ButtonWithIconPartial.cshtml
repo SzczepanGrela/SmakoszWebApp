@@ -1,0 +1,76 @@
+@{
+    var buttonText = ViewData["ButtonText"] as string ?? "";
+    var icon = ViewData["Icon"] as string ?? "";
+    var buttonClass = ViewData["ButtonClass"] as string ?? "btn-primary";
+    var size = ViewData["Size"] as string ?? "";
+    var isLink = ViewData["IsLink"] as bool? ?? false;
+    var href = ViewData["Href"] as string ?? "#";
+    var target = ViewData["Target"] as string ?? "";
+    var onclick = ViewData["OnClick"] as string ?? "";
+    var disabled = ViewData["Disabled"] as bool? ?? false;
+    var type = ViewData["Type"] as string ?? "button";
+    var additionalAttributes = ViewData["AdditionalAttributes"] as string ?? "";
+    var iconPosition = ViewData["IconPosition"] as string ?? "left";
+    var tooltip = ViewData["Tooltip"] as string ?? "";
+    var id = ViewData["Id"] as string ?? "";
+    var name = ViewData["Name"] as string ?? "";
+    var value = ViewData["Value"] as string ?? "";
+    
+    var fullButtonClass = $"btn {buttonClass}";
+    if (!string.IsNullOrEmpty(size))
+    {
+        fullButtonClass += $" btn-{size}";
+    }
+    if (disabled)
+    {
+        fullButtonClass += " disabled";
+    }
+    
+    var iconHtml = !string.IsNullOrEmpty(icon) ? $"<i class=\"fa-solid {icon}\"></i>" : "";
+    var spacer = !string.IsNullOrEmpty(icon) && !string.IsNullOrEmpty(buttonText) ? " " : "";
+    
+    string buttonContent;
+    if (iconPosition == "right")
+    {
+        buttonContent = $"{buttonText}{spacer}{iconHtml}";
+    }
+    else
+    {
+        buttonContent = $"{iconHtml}{spacer}{buttonText}";
+    }
+    
+    var tooltipAttr = !string.IsNullOrEmpty(tooltip) ? $"title=\"{tooltip}\" data-bs-toggle=\"tooltip\"" : "";
+    var targetAttr = !string.IsNullOrEmpty(target) ? $"target=\"{target}\"" : "";
+    var onclickAttr = !string.IsNullOrEmpty(onclick) ? $"onclick=\"{onclick}\"" : "";
+    var disabledAttr = disabled ? "disabled" : "";
+    var idAttr = !string.IsNullOrEmpty(id) ? $"id=\"{id}\"" : "";
+    var nameAttr = !string.IsNullOrEmpty(name) ? $"name=\"{name}\"" : "";
+    var valueAttr = !string.IsNullOrEmpty(value) ? $"value=\"{value}\"" : "";
+}
+
+@if (isLink)
+{
+    <a href="@href" 
+       class="@fullButtonClass" 
+       @Html.Raw(targetAttr) 
+       @Html.Raw(onclickAttr) 
+       @Html.Raw(tooltipAttr) 
+       @Html.Raw(idAttr)
+       @Html.Raw(additionalAttributes)>
+        @Html.Raw(buttonContent)
+    </a>
+}
+else
+{
+    <button type="@type" 
+            class="@fullButtonClass" 
+            @Html.Raw(onclickAttr) 
+            @Html.Raw(disabledAttr) 
+            @Html.Raw(tooltipAttr) 
+            @Html.Raw(idAttr)
+            @Html.Raw(nameAttr)
+            @Html.Raw(valueAttr)
+            @Html.Raw(additionalAttributes)>
+        @Html.Raw(buttonContent)
+    </button>
+}

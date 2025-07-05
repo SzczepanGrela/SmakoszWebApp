@@ -1,27 +1,63 @@
-ï»¿@model SmakoszWebApp.ViewModels.DishViewModel
+@model SmakoszWebApp.ViewModels.DishViewModel
 
-<div class="card dish-card">
+@{
+    // Pobieranie wartoœci z ViewData z wartoœciami domyœlnymi
+    var cardSize = ViewData["CardSize"] as string ?? "normal";
+    var showBadge = ViewData["ShowBadge"] as bool? ?? false;
+    var badgeText = ViewData["BadgeText"] as string ?? "";
+    var badgeClass = ViewData["BadgeClass"] as string ?? "bg-primary";
+    var showTags = ViewData["ShowTags"] as bool? ?? true;
+    var showReviewCount = ViewData["ShowReviewCount"] as bool? ?? true;
+
+    // Klasy CSS zale¿ne od rozmiaru karty
+    var cardClass = cardSize == "small" ? "dish-card dish-card-small" : "dish-card";
+    var titleClass = cardSize == "small" ? "card-title small-title" : "card-title";
+    var priceClass = cardSize == "small" ? "fw-bold" : "fw-bold fs-5";
+}
+
+<div class="card @cardClass">
+    @if (showBadge && !string.IsNullOrEmpty(badgeText))
+    {
+        <div class="position-absolute top-0 start-0 m-2 z-index-1">
+            <span class="badge @badgeClass">@badgeText</span>
+        </div>
+    }
+
     <a asp-controller="Dish" asp-action="Index" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
         <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Name">
     </a>
+
     <div class="card-body d-flex flex-column">
         <a asp-controller="Dish" asp-action="Index" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
-            <h5 class="card-title">@Model.Name</h5>
+            <h5 class="@titleClass">@Model.Name</h5>
         </a>
+
         <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.RestaurantId"
-           class="card-text text-muted mb-2 text-decoration-none" onclick="event.stopPropagation()">@Model.RestaurantName</a>
+           class="card-text text-muted mb-2 text-decoration-none" onclick="event.stopPropagation()">
+            @Model.RestaurantName
+        </a>
+
         <div class="mt-auto">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="fw-bold fs-5">@Model.Price.ToString("C")</span>
+                <span class="@priceClass">@Model.Price.ToString("C")</span>
                 <div>
-                    <i class="fa-solid fa-star text-warning"></i>
-                    <span class="fw-bold">@Model.AverageRating</span>
-                    <span class="text-muted">(@Model.ReviewCount)</span>
+                    @{
+                        // Tworzymy nowy ViewDataDictionary na podstawie bie¿¹cego
+                        var viewDataForPartial = new ViewDataDictionary(ViewData);
+
+                        // U¿ywamy indeksatora [], aby ustawiæ/nadpisaæ wartoœci. To unika b³êdu zduplikowanego klucza.
+                        viewDataForPartial["Rating"] = Model.AverageRating;
+                        viewDataForPartial["ShowReviewCount"] = showReviewCount;
+                        viewDataForPartial["ReviewCount"] = Model.ReviewCount;
+                        viewDataForPartial["Size"] = (cardSize == "small" ? "small" : "normal");
+                    }
+                    <partial name="_RatingStarsPartial" view-data="viewDataForPartial" />
                 </div>
             </div>
-            @if (Model.Tags != null && Model.Tags.Any())
+
+            @if (showTags && Model.Tags != null && Model.Tags.Any())
             {
-                <div>
+                <div class="dish-tags">
                     @foreach (var tag in Model.Tags)
                     {
                         <span class="badge bg-secondary me-1">@tag</span>
