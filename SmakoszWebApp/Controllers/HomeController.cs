@@ -45,6 +45,7 @@ namespace SmakoszWebApp.Controllers
                     Id = 1,
                     Name = "Pizza Diavola",
                     RestaurantName = "Pizzeria Roma",
+                    RestaurantId = 1,
                     Price = 38.00m,
                     AverageRating = 4.8,
                     ReviewCount = 45,
@@ -54,8 +55,9 @@ namespace SmakoszWebApp.Controllers
                 new DishViewModel
                 {
                     Id = 2,
-                    Name = "Klasyczny Burger Wo≥owy",
+                    Name = "Klasyczny Burger Wo≈Çowy",
                     RestaurantName = "Burgerownia Stacja",
+                    RestaurantId = 2,
                     Price = 42.00m,
                     AverageRating = 4.9,
                     ReviewCount = 120,
@@ -67,6 +69,7 @@ namespace SmakoszWebApp.Controllers
                     Id = 3,
                     Name = "Zestaw Sushi Ebi Ten",
                     RestaurantName = "Sushi Master",
+                    RestaurantId = 3,
                     Price = 55.00m,
                     AverageRating = 4.7,
                     ReviewCount = 78,
@@ -78,11 +81,12 @@ namespace SmakoszWebApp.Controllers
                     Id = 4,
                     Name = "Tantanmen Ramen",
                     RestaurantName = "Ramen-Ya",
+                    RestaurantId = 4,
                     Price = 45.00m,
                     AverageRating = 4.9,
                     ReviewCount = 95,
                     ImageUrl = "https://placehold.co/600x400/FFC107/white?text=Ramen",
-                    Tags = new List<string> { "Ostre", "WegaÒskie" }
+                    Tags = new List<string> { "Ostre", "Wega≈Ñskie" }
                 }
             };
         }

@@ -33,8 +33,12 @@
                 </div>
 
                 <div class="d-grid gap-2 d-md-flex">
-                    <button class="btn btn-primary btn-lg flex-grow-1"><i class="fa-regular fa-star me-2"></i>Oceń to danie</button>
-                    <button class="btn btn-outline-secondary btn-lg"><i class="fa-regular fa-bookmark me-2"></i>Zapisz na później</button>
+                    <a asp-controller="Review" asp-action="Add" asp-route-dishId="@Model.Dish.Id" class="btn btn-primary btn-lg flex-grow-1">
+                        <i class="fa-regular fa-star me-2"></i>Oceń to danie
+                    </a>
+                    <button class="btn btn-outline-secondary btn-lg" onclick="saveForLater(@Model.Dish.Id)">
+                        <i class="fa-regular fa-bookmark me-2"></i>Zapisz na później
+                    </button>
                 </div>
             </div>
         </div>
@@ -65,3 +69,19 @@
         </div>
     </div>
 </div>
+
+<script>
+    function saveForLater(dishId) {
+        // Mock function to save dish for later
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-info alert-dismissible fade show mt-3';
+        alert.innerHTML = `
+            <i class="fa-solid fa-bookmark me-2"></i>
+            Danie zostało zapisane na później!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+
+        setTimeout(() => alert.remove(), 3000);
+    }
+</script>
