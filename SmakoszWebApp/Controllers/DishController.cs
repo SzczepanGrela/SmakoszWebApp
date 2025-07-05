@@ -32,6 +32,7 @@ namespace SmakoszWebApp.Controllers
             {
                 new ReviewViewModel
                 {
+                    Id = 1,
                     UserName = "Anna Kowalska",
                     UserAvatarUrl = "https://placehold.co/100x100/E8117F/white?text=A",
                     Rating = 5,
@@ -40,6 +41,7 @@ namespace SmakoszWebApp.Controllers
                 },
                 new ReviewViewModel
                 {
+                    Id = 2,
                     UserName = "Jan Nowak",
                     UserAvatarUrl = "https://placehold.co/100x100/1143E8/white?text=J",
                     Rating = 4.5,
@@ -48,6 +50,7 @@ namespace SmakoszWebApp.Controllers
                 },
                  new ReviewViewModel
                 {
+                    Id = 3,
                     UserName = "Katarzyna Wiśniewska",
                     UserAvatarUrl = "https://placehold.co/100x100/E8C311/white?text=K",
                     Rating = 4,
