@@ -26,9 +26,25 @@
             @foreach (var category in Model.PopularCategories)
             {
                 <div class="col-6 col-md-4 col-lg-2">
-                    <a href="#" class="card category-card text-decoration-none text-dark">
+                    <a asp-controller="Search" asp-action="Index" asp-route-query="@category" class="card category-card text-decoration-none text-dark">
                         <div class="card-body text-center">
-                            🍔 <span class="d-block mt-2">@category</span>
+                            <span class="fs-4">
+                                @{
+                                    // Prosta logika do wyświetlania ikon na podstawie nazwy
+                                    var icon = category switch
+                                    {
+                                        "Pizza" => "🍕",
+                                        "Burgery" => "🍔",
+                                        "Sushi" => "🍣",
+                                        "Ramen" => "🍜",
+                                        "Pierogi" => "🥟",
+                                        "Desery" => "🍰",
+                                        _ => "🍴"
+                                    };
+                                    @icon
+                                }
+                            </span>
+                            <span class="d-block mt-2">@category</span>
                         </div>
                     </a>
                 </div>
