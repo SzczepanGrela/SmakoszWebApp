@@ -73,62 +73,14 @@
             <div class="tab-content">
                 <!-- Dashboard -->
                 <div class="tab-pane fade show active" id="dashboard">
-                    <h1 class="h3 mb-4">Dashboard</h1>
+                    <partial name="_PageHeaderPartial" view-data="ViewData" />
 
                     <!-- Statystyki -->
                     <div class="row mb-4">
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-white bg-primary">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <h5 class="card-title">Użytkownicy</h5>
-                                            <h2 class="fw-bold">1,234</h2>
-                                        </div>
-                                        <i class="fa-solid fa-users fa-2x opacity-75"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-white bg-success">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <h5 class="card-title">Recenzje</h5>
-                                            <h2 class="fw-bold">5,678</h2>
-                                        </div>
-                                        <i class="fa-solid fa-star fa-2x opacity-75"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-white bg-warning">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <h5 class="card-title">Dania</h5>
-                                            <h2 class="fw-bold">890</h2>
-                                        </div>
-                                        <i class="fa-solid fa-bowl-food fa-2x opacity-75"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-white bg-info">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <h5 class="card-title">Restauracje</h5>
-                                            <h2 class="fw-bold">123</h2>
-                                        </div>
-                                        <i class="fa-solid fa-utensils fa-2x opacity-75"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <partial name="_AdminStatCardPartial" view-data='@(new ViewDataDictionary(ViewData.ModelMetadata, ViewData.ModelState) { ["Color"] = "primary", ["Icon"] = "fa-users", ["Title"] = "Użytkownicy", ["Value"] = "1,234" })' />
+                        <partial name="_AdminStatCardPartial" view-data='@(new ViewDataDictionary(ViewData.ModelMetadata, ViewData.ModelState) { ["Color"] = "success", ["Icon"] = "fa-star", ["Title"] = "Recenzje", ["Value"] = "5,678" })' />
+                        <partial name="_AdminStatCardPartial" view-data='@(new ViewDataDictionary(ViewData.ModelMetadata, ViewData.ModelState) { ["Color"] = "warning", ["Icon"] = "fa-bowl-food", ["Title"] = "Dania", ["Value"] = "890" })' />
+                        <partial name="_AdminStatCardPartial" view-data='@(new ViewDataDictionary(ViewData.ModelMetadata, ViewData.ModelState) { ["Color"] = "info", ["Icon"] = "fa-utensils", ["Title"] = "Restauracje", ["Value"] = "123" })' />
                     </div>
 
                     <!-- Oczekujące zdjęcia -->

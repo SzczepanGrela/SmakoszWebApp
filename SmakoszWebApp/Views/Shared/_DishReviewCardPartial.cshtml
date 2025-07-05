@@ -1,0 +1,25 @@
+@model SmakoszWebApp.ViewModels.ReviewViewModel
+
+<div class="card review-card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex">
+                <img src="@Model.UserAvatarUrl" class="rounded-circle me-3" width="50" height="50" alt="@Model.UserName">
+                <div>
+                    <h5 class="card-title mb-0">@Model.UserName</h5>
+                    <div>
+                        <i class="fa-solid fa-star text-warning"></i>
+                        <span class="fw-bold">@Model.Rating</span>
+                        <span class="text-muted ms-2">· @Model.DatePosted.ToShortDateString()</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-outline-danger btn-sm" onclick="reportReview(@Model.Id)" title="Zgłoś recenzję">
+                    <i class="fa-solid fa-flag"></i>
+                </button>
+            </div>
+        </div>
+        <p class="card-text mt-3">@Model.Comment</p>
+    </div>
+</div>
