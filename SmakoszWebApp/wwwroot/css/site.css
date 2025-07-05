@@ -1,13 +1,13 @@
 /* Food-themed color palette */
 :root {
     --primary-color: #D4A574;        /* Warm honey */
-    --secondary-color: #E8D5B7;      /* Darker cream */
+    --secondary-color: #D4C4A8;      /* Darker cream */
     --accent-color: #B8860B;         /* Dark goldenrod */
-    --background-color: #F5F0E8;     /* Warm beige */
-    --text-color: #5D4037;           /* Dark brown */
-    --card-bg: #FEFCF9;              /* Subtle warm white */
+    --background-color: #E8DDD0;     /* Warm taupe */
+    --text-color: #4A3428;           /* Dark brown */
+    --card-bg: #F2EDE6;              /* Light warm beige */
     --hover-color: #E8C07D;          /* Lighter honey */
-    --shadow-color: rgba(93, 64, 55, 0.15);
+    --shadow-color: rgba(74, 52, 40, 0.2);
 }
 
 html {
@@ -223,14 +223,15 @@ main {
 /* Navbar enhancements */
 .navbar {
     backdrop-filter: blur(10px);
-    background-color: var(--card-bg) !important;
-    border-bottom: 1px solid var(--secondary-color);
+    background-color: var(--secondary-color) !important;
+    border-bottom: 1px solid var(--primary-color);
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
-    color: var(--primary-color) !important;
+    font-size: 1.8rem;
+    color: var(--text-color) !important;
     font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* Button styles */

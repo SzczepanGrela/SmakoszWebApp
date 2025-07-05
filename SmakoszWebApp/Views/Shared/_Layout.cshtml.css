@@ -12,26 +12,26 @@ a {
 }
 
 .btn-primary {
-  color: #FFF8DC;
+  color: #F2EDE6;
   background-color: #D4A574;
   border-color: #B8860B;
 }
 
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #FFF8DC;
+  color: #F2EDE6;
   background-color: #D4A574;
   border-color: #B8860B;
 }
 
 .border-top {
-  border-top: 1px solid #F5E6D3;
+  border-top: 1px solid #D4C4A8;
 }
 .border-bottom {
-  border-bottom: 1px solid #F5E6D3;
+  border-bottom: 1px solid #D4C4A8;
 }
 
 .box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(139, 69, 19, .05);
+  box-shadow: 0 .25rem .75rem rgba(74, 52, 40, .1);
 }
 
 button.accept-policy {
