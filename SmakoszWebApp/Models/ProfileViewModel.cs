@@ -10,7 +10,7 @@ namespace SmakoszWebApp.ViewModels
         public int TotalReviews { get; set; }
         public int TotalPhotos { get; set; }
 
-        public List<DishViewModel> MyRatedDishes { get; set; }
-        public List<DishViewModel> SavedForLaterDishes { get; set; }
+        public List<ReviewViewModel> MyRatedDishes { get; set; }
+        public List<ReviewViewModel> SavedForLaterDishes { get; set; }
     }
 }

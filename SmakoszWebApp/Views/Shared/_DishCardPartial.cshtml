@@ -1,7 +1,7 @@
 @model SmakoszWebApp.ViewModels.DishViewModel
 
 @{
-    // Pobieranie wartoœci z ViewData z wartoœciami domyœlnymi
+    // Pobieranie wartoï¿½ci z ViewData z wartoï¿½ciami domyï¿½lnymi
     var cardSize = ViewData["CardSize"] as string ?? "normal";
     var showBadge = ViewData["ShowBadge"] as bool? ?? false;
     var badgeText = ViewData["BadgeText"] as string ?? "";
@@ -9,7 +9,7 @@
     var showTags = ViewData["ShowTags"] as bool? ?? true;
     var showReviewCount = ViewData["ShowReviewCount"] as bool? ?? true;
 
-    // Klasy CSS zale¿ne od rozmiaru karty
+    // Klasy CSS zaleï¿½ne od rozmiaru karty
     var cardClass = cardSize == "small" ? "dish-card dish-card-small" : "dish-card";
     var titleClass = cardSize == "small" ? "card-title small-title" : "card-title";
     var priceClass = cardSize == "small" ? "fw-bold" : "fw-bold fs-5";
@@ -33,7 +33,7 @@
         </a>
 
         <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.RestaurantId"
-           class="card-text text-muted mb-2 text-decoration-none" onclick="event.stopPropagation()">
+           class="card-text text-muted mb-2 text-decoration-none">
             @Model.RestaurantName
         </a>
 
@@ -42,10 +42,10 @@
                 <span class="@priceClass">@Model.Price.ToString("C")</span>
                 <div>
                     @{
-                        // Tworzymy nowy ViewDataDictionary na podstawie bie¿¹cego
+                        // Tworzymy nowy ViewDataDictionary na podstawie bieï¿½ï¿½cego
                         var viewDataForPartial = new ViewDataDictionary(ViewData);
 
-                        // U¿ywamy indeksatora [], aby ustawiæ/nadpisaæ wartoœci. To unika b³êdu zduplikowanego klucza.
+                        // Uï¿½ywamy indeksatora [], aby ustawiï¿½/nadpisaï¿½ wartoï¿½ci. To unika bï¿½ï¿½du zduplikowanego klucza.
                         viewDataForPartial["Rating"] = Model.AverageRating;
                         viewDataForPartial["ShowReviewCount"] = showReviewCount;
                         viewDataForPartial["ReviewCount"] = Model.ReviewCount;
