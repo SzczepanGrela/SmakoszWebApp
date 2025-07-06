@@ -1,48 +1,39 @@
 @{
     ViewData["Title"] = "Kontakt";
-}
-
-<div class="container py-5">
-    <h1 class="display-4 text-center mb-4">@ViewData["Title"]</h1>
-
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <p class="lead text-center mb-5">
-                Masz pytania, sugestie lub potrzebujesz pomocy? Skontaktuj się z nami!
-            </p>
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h2 class="card-title mb-3"><i class="fa-solid fa-envelope me-2"></i>Napisz do nas</h2>
-                    <p class="card-text">Preferujemy kontakt mailowy. Postaramy się odpowiedzieć jak najszybciej.</p>
-                    <p class="card-text"><strong>Email:</strong> <a href="mailto:kontakt@smakosz.pl">kontakt@smakosz.pl</a></p>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h2 class="card-title mb-3"><i class="fa-solid fa-phone me-2"></i>Telefon</h2>
-                    <p class="card-text">W pilnych sprawach możesz skontaktować się z nami telefonicznie.</p>
-                    <p class="card-text"><strong>Telefon:</strong> <a href="tel:+48123456789">+48 123 456 789</a> (dostępny w godzinach 9:00-17:00 od poniedziałku do piątku)</p>
-                </div>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title mb-3"><i class="fa-solid fa-map-marker-alt me-2"></i>Adres</h2>
-                    <p class="card-text">Nasze biuro znajduje się pod adresem:</p>
-                    <address>
-                        Smakosz Sp. z o.o.<br>
-                        ul. Przykładowa 10<br>
-                        00-001 Warszawa<br>
-                        Polska
-                    </address>
-                </div>
-            </div>
-
-            <p class="text-center mt-5">
-                Dziękujemy za kontakt i zaufanie!
-            </p>
+    var content = new Microsoft.AspNetCore.Html.HtmlString(@"
+    <div class=""card shadow-sm mb-4"">
+        <div class=""card-body"">
+            <h2 class=""card-title mb-3""><i class=""fa-solid fa-envelope me-2""></i>Napisz do nas</h2>
+            <p class=""card-text"">Preferujemy kontakt mailowy. Postaramy się odpowiedzieć jak najszybciej.</p>
+            <p class=""card-text""><strong>Email:</strong> <a href=""mailto:kontakt@smakosz.pl"">kontakt@smakosz.pl</a></p>
         </div>
     </div>
-</div>
+
+    <div class=""card shadow-sm mb-4"">
+        <div class=""card-body"">
+            <h2 class=""card-title mb-3""><i class=""fa-solid fa-phone me-2""></i>Telefon</h2>
+            <p class=""card-text"">W pilnych sprawach możesz skontaktować się z nami telefonicznie.</p>
+            <p class=""card-text""><strong>Telefon:</strong> <a href=""tel:+48123456789"">+48 123 456 789</a> (dostępny w godzinach 9:00-17:00 od poniedziałku do piątku)</p>
+        </div>
+    </div>
+
+    <div class=""card shadow-sm"">
+        <div class=""card-body"">
+            <h2 class=""card-title mb-3""><i class=""fa-solid fa-map-marker-alt me-2""></i>Adres</h2>
+            <p class=""card-text"">Nasze biuro znajduje się pod adresem:</p>
+            <address>
+                Smakosz Sp. z o.o.<br>
+                ul. Przykładowa 10<br>
+                00-001 Warszawa<br>
+                Polska
+            </address>
+        </div>
+    </div>
+
+    <p class=""text-center mt-5"">
+        Dziękujemy za kontakt i zaufanie!
+    </p>
+    ");
+}
+
+<partial name="_CenteredContentPartial" model="@(new { Title = ViewData["Title"], LeadText = "Masz pytania, sugestie lub potrzebujesz pomocy? Skontaktuj się z nami!", Content = content })" />

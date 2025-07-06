@@ -1,0 +1,18 @@
+@model dynamic
+
+<div class="container py-5">
+    <h1 class="display-4 text-center mb-4">@Model.Title</h1>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (!string.IsNullOrEmpty(Model.LeadText))
+            {
+                <p class="lead text-center mb-5">
+                    @Model.LeadText
+                </p>
+            }
+            
+            @Model.Content
+        </div>
+    </div>
+</div>

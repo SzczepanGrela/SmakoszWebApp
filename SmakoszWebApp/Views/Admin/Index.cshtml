@@ -156,42 +156,68 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nazwa użytkownika</th>
-                                            <th>Email</th>
-                                            <th>Data rejestracji</th>
-                                            <th>Status</th>
-                                            <th>Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < 5; i++)
-                                        {
-                                            <tr>
-                                                <td>@(1000 + i)</td>
-                                                <td>user@(i + 1)</td>
-                                                <td>user@(i + 1)@Html.Raw("@")example.com</td>
-                                                <td>2025-01-@((i + 1).ToString("00"))</td>
-                                                <td>
-                                                    <span class="badge bg-success">Aktywny</span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-warning btn-sm" onclick="blockUser(@(1000 + i))">
-                                                        <i class="fa-solid fa-ban"></i> Zablokuj
-                                                    </button>
-                                                    <button class="btn btn-info btn-sm" onclick="resetPassword(@(1000 + i))">
-                                                        <i class="fa-solid fa-key"></i> Reset hasła
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+@{
+    var usersTableHeaders = new[] { "ID", "Nazwa użytkownika", "Email", "Data rejestracji", "Status", "Akcje" };
+    var usersTableContent = new Microsoft.AspNetCore.Html.HtmlString(@"
+        <tr>
+            <td>1000</td>
+            <td>user1</td>
+            <td>user1@example.com</td>
+            <td>2025-01-01</td>
+            <td><span class=""badge bg-success"">Aktywny</span></td>
+            <td>
+                <button class=""btn btn-warning btn-sm"" onclick=""blockUser(1000)""><i class=""fa-solid fa-ban""></i> Zablokuj</button>
+                <button class=""btn btn-info btn-sm"" onclick=""resetPassword(1000)""><i class=""fa-solid fa-key""></i> Reset hasła</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1001</td>
+            <td>user2</td>
+            <td>user2@example.com</td>
+            <td>2025-01-02</td>
+            <td><span class=""badge bg-success"">Aktywny</span></td>
+            <td>
+                <button class=""btn btn-warning btn-sm"" onclick=""blockUser(1001)""><i class=""fa-solid fa-ban""></i> Zablokuj</button>
+                <button class=""btn btn-info btn-sm"" onclick=""resetPassword(1001)""><i class=""fa-solid fa-key""></i> Reset hasła</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1002</td>
+            <td>user3</td>
+            <td>user3@example.com</td>
+            <td>2025-01-03</td>
+            <td><span class=""badge bg-success"">Aktywny</span></td>
+            <td>
+                <button class=""btn btn-warning btn-sm"" onclick=""blockUser(1002)""><i class=""fa-solid fa-ban""></i> Zablokuj</button>
+                <button class=""btn btn-info btn-sm"" onclick=""resetPassword(1002)""><i class=""fa-solid fa-key""></i> Reset hasła</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1003</td>
+            <td>user4</td>
+            <td>user4@example.com</td>
+            <td>2025-01-04</td>
+            <td><span class=""badge bg-success"">Aktywny</span></td>
+            <td>
+                <button class=""btn btn-warning btn-sm"" onclick=""blockUser(1003)""><i class=""fa-solid fa-ban""></i> Zablokuj</button>
+                <button class=""btn btn-info btn-sm"" onclick=""resetPassword(1003)""><i class=""fa-solid fa-key""></i> Reset hasła</button>
+            </td>
+        </tr>
+        <tr>
+            <td>1004</td>
+            <td>user5</td>
+            <td>user5@example.com</td>
+            <td>2025-01-05</td>
+            <td><span class=""badge bg-success"">Aktywny</span></td>
+            <td>
+                <button class=""btn btn-warning btn-sm"" onclick=""blockUser(1004)""><i class=""fa-solid fa-ban""></i> Zablokuj</button>
+                <button class=""btn btn-info btn-sm"" onclick=""resetPassword(1004)""><i class=""fa-solid fa-key""></i> Reset hasła</button>
+            </td>
+        </tr>
+    ");
+}
+
+<partial name="_TablePartial" model="@(new { Headers = usersTableHeaders, Content = usersTableContent })" />
                         </div>
                     </div>
                 </div>
@@ -202,48 +228,18 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Danie</th>
-                                            <th>Restauracja</th>
-                                            <th>Użytkownik</th>
-                                            <th>Ocena</th>
-                                            <th>Komentarz</th>
-                                            <th>Data</th>
-                                            <th>Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < 10; i++)
-                                        {
-                                            <tr>
-                                                <td>@(200 + i)</td>
-                                                <td>Pizza Margherita</td>
-                                                <td>Pizzeria Roma</td>
-                                                <td>jan.kowalski</td>
-                                                <td>
-                                                    <div class="text-warning">
-                                                        @for (int j = 0; j < 5; j++)
-                                                        {
-                                                            <i class="fa-solid fa-star"></i>
-                                                        }
-                                                    </div>
-                                                </td>
-                                                <td>Świetna pizza, polecam!</td>
-                                                <td>2025-01-@((i + 1).ToString("00"))</td>
-                                                <td>
-                                                    <button class="btn btn-danger btn-sm" onclick="deleteReview(@(200 + i))">
-                                                        <i class="fa-solid fa-trash"></i> Usuń
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+@{
+    var reviewsTableHeaders = new[] { "ID", "Danie", "Restauracja", "Użytkownik", "Ocena", "Komentarz", "Data", "Akcje" };
+    var reviewsTableContent = new Microsoft.AspNetCore.Html.HtmlString(@"
+        <tr><td>200</td><td>Pizza Margherita</td><td>Pizzeria Roma</td><td>jan.kowalski</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i></div></td><td>Świetna pizza, polecam!</td><td>2025-01-01</td><td><button class=""btn btn-danger btn-sm"" onclick=""deleteReview(200)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>201</td><td>Pizza Margherita</td><td>Pizzeria Roma</td><td>jan.kowalski</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i></div></td><td>Świetna pizza, polecam!</td><td>2025-01-02</td><td><button class=""btn btn-danger btn-sm"" onclick=""deleteReview(201)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>202</td><td>Pizza Margherita</td><td>Pizzeria Roma</td><td>jan.kowalski</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i></div></td><td>Świetna pizza, polecam!</td><td>2025-01-03</td><td><button class=""btn btn-danger btn-sm"" onclick=""deleteReview(202)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>203</td><td>Pizza Margherita</td><td>Pizzeria Roma</td><td>jan.kowalski</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i></div></td><td>Świetna pizza, polecam!</td><td>2025-01-04</td><td><button class=""btn btn-danger btn-sm"" onclick=""deleteReview(203)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>204</td><td>Pizza Margherita</td><td>Pizzeria Roma</td><td>jan.kowalski</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i></div></td><td>Świetna pizza, polecam!</td><td>2025-01-05</td><td><button class=""btn btn-danger btn-sm"" onclick=""deleteReview(204)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+    ");
+}
+
+<partial name="_TablePartial" model="@(new { Headers = reviewsTableHeaders, Content = reviewsTableContent })" />
                         </div>
                     </div>
                 </div>
@@ -257,42 +253,16 @@
                             <h5 class="mb-0">Restauracje oczekujące na weryfikację</h5>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nazwa</th>
-                                            <th>Adres</th>
-                                            <th>Właściciel</th>
-                                            <th>Status</th>
-                                            <th>Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < 3; i++)
-                                        {
-                                            <tr>
-                                                <td>@(300 + i)</td>
-                                                <td>Nowa Restauracja @(i + 1)</td>
-                                                <td>ul. Przykładowa @(i + 1)</td>
-                                                <td>właściciel@(i + 1)</td>
-                                                <td>
-                                                    <span class="badge bg-warning">Oczekuje</span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-success btn-sm" onclick="approveRestaurant(@(300 + i))">
-                                                        <i class="fa-solid fa-check"></i> Zatwierdź
-                                                    </button>
-                                                    <button class="btn btn-danger btn-sm" onclick="rejectRestaurant(@(300 + i))">
-                                                        <i class="fa-solid fa-times"></i> Odrzuć
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+@{
+    var pendingRestaurantsTableHeaders = new[] { "ID", "Nazwa", "Adres", "Właściciel", "Status", "Akcje" };
+    var pendingRestaurantsTableContent = new Microsoft.AspNetCore.Html.HtmlString(@"
+        <tr><td>300</td><td>Nowa Restauracja 1</td><td>ul. Przykładowa 1</td><td>właściciel1</td><td><span class=""badge bg-warning"">Oczekuje</span></td><td><button class=""btn btn-success btn-sm"" onclick=""approveRestaurant(300)""><i class=""fa-solid fa-check""></i> Zatwierdź</button><button class=""btn btn-danger btn-sm"" onclick=""rejectRestaurant(300)""><i class=""fa-solid fa-times""></i> Odrzuć</button></td></tr>
+        <tr><td>301</td><td>Nowa Restauracja 2</td><td>ul. Przykładowa 2</td><td>właściciel2</td><td><span class=""badge bg-warning"">Oczekuje</span></td><td><button class=""btn btn-success btn-sm"" onclick=""approveRestaurant(301)""><i class=""fa-solid fa-check""></i> Zatwierdź</button><button class=""btn btn-danger btn-sm"" onclick=""rejectRestaurant(301)""><i class=""fa-solid fa-times""></i> Odrzuć</button></td></tr>
+        <tr><td>302</td><td>Nowa Restauracja 3</td><td>ul. Przykładowa 3</td><td>właściciel3</td><td><span class=""badge bg-warning"">Oczekuje</span></td><td><button class=""btn btn-success btn-sm"" onclick=""approveRestaurant(302)""><i class=""fa-solid fa-check""></i> Zatwierdź</button><button class=""btn btn-danger btn-sm"" onclick=""rejectRestaurant(302)""><i class=""fa-solid fa-times""></i> Odrzuć</button></td></tr>
+    ");
+}
+
+<partial name="_TablePartial" model="@(new { Headers = pendingRestaurantsTableHeaders, Content = pendingRestaurantsTableContent })" />
                         </div>
                     </div>
 
@@ -301,44 +271,18 @@
                             <h5 class="mb-0">Wszystkie restauracje</h5>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nazwa</th>
-                                            <th>Adres</th>
-                                            <th>Ocena</th>
-                                            <th>Liczba dań</th>
-                                            <th>Status</th>
-                                            <th>Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < 5; i++)
-                                        {
-                                            <tr>
-                                                <td>@(100 + i)</td>
-                                                <td>Restauracja @(i + 1)</td>
-                                                <td>ul. Główna @(i + 1)</td>
-                                                <td>4.@(5 + i)</td>
-                                                <td>@(10 + i * 2)</td>
-                                                <td>
-                                                    <span class="badge bg-success">Aktywna</span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-primary btn-sm" onclick="viewRestaurant(@(100 + i))">
-                                                        <i class="fa-solid fa-eye"></i> Zobacz
-                                                    </button>
-                                                    <button class="btn btn-warning btn-sm" onclick="suspendRestaurant(@(100 + i))">
-                                                        <i class="fa-solid fa-pause"></i> Zawieś
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+@{
+    var allRestaurantsTableHeaders = new[] { "ID", "Nazwa", "Adres", "Ocena", "Liczba dań", "Status", "Akcje" };
+    var allRestaurantsTableContent = new Microsoft.AspNetCore.Html.HtmlString(@"
+        <tr><td>100</td><td>Restauracja 1</td><td>ul. Główna 1</td><td>4.5</td><td>10</td><td><span class=""badge bg-success"">Aktywna</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewRestaurant(100)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""suspendRestaurant(100)""><i class=""fa-solid fa-pause""></i> Zawieś</button></td></tr>
+        <tr><td>101</td><td>Restauracja 2</td><td>ul. Główna 2</td><td>4.6</td><td>12</td><td><span class=""badge bg-success"">Aktywna</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewRestaurant(101)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""suspendRestaurant(101)""><i class=""fa-solid fa-pause""></i> Zawieś</button></td></tr>
+        <tr><td>102</td><td>Restauracja 3</td><td>ul. Główna 3</td><td>4.7</td><td>14</td><td><span class=""badge bg-success"">Aktywna</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewRestaurant(102)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""suspendRestaurant(102)""><i class=""fa-solid fa-pause""></i> Zawieś</button></td></tr>
+        <tr><td>103</td><td>Restauracja 4</td><td>ul. Główna 4</td><td>4.8</td><td>16</td><td><span class=""badge bg-success"">Aktywna</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewRestaurant(103)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""suspendRestaurant(103)""><i class=""fa-solid fa-pause""></i> Zawieś</button></td></tr>
+        <tr><td>104</td><td>Restauracja 5</td><td>ul. Główna 5</td><td>4.9</td><td>18</td><td><span class=""badge bg-success"">Aktywna</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewRestaurant(104)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""suspendRestaurant(104)""><i class=""fa-solid fa-pause""></i> Zawieś</button></td></tr>
+    ");
+}
+
+<partial name="_TablePartial" model="@(new { Headers = allRestaurantsTableHeaders, Content = allRestaurantsTableContent })" />
                         </div>
                     </div>
                 </div>
@@ -349,61 +293,16 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Zdjęcie</th>
-                                            <th>Nazwa</th>
-                                            <th>Restauracja</th>
-                                            <th>Cena</th>
-                                            <th>Ocena</th>
-                                            <th>Recenzje</th>
-                                            <th>Status</th>
-                                            <th>Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @for (int i = 0; i < 8; i++)
-                                        {
-                                            <tr>
-                                                <td>@(400 + i)</td>
-                                                <td>
-                                                    <img src="https://placehold.co/60x60/ff6f61/white?text=D@(i+1)" class="rounded" alt="Danie">
-                                                </td>
-                                                <td>Danie @(i + 1)</td>
-                                                <td>Restauracja @(i % 3 + 1)</td>
-                                                <td>@(30 + i * 5).00 zł</td>
-                                                <td>
-                                                    <div class="text-warning">
-                                                        @for (int j = 0; j < 4; j++)
-                                                        {
-                                                            <i class="fa-solid fa-star"></i>
-                                                        }
-                                                        <i class="fa-solid fa-star-half-stroke"></i>
-                                                    </div>
-                                                </td>
-                                                <td>@(15 + i * 3)</td>
-                                                <td>
-                                                    <span class="badge bg-success">Aktywne</span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-primary btn-sm" onclick="viewDish(@(400 + i))">
-                                                        <i class="fa-solid fa-eye"></i> Zobacz
-                                                    </button>
-                                                    <button class="btn btn-warning btn-sm" onclick="editDish(@(400 + i))">
-                                                        <i class="fa-solid fa-edit"></i> Edytuj
-                                                    </button>
-                                                    <button class="btn btn-danger btn-sm" onclick="deleteDish(@(400 + i))">
-                                                        <i class="fa-solid fa-trash"></i> Usuń
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+@{
+    var dishesTableHeaders = new[] { "ID", "Zdjęcie", "Nazwa", "Restauracja", "Cena", "Ocena", "Recenzje", "Status", "Akcje" };
+    var dishesTableContent = new Microsoft.AspNetCore.Html.HtmlString(@"
+        <tr><td>400</td><td><img src=""https://placehold.co/60x60/ff6f61/white?text=D1"" class=""rounded"" alt=""Danie""></td><td>Danie 1</td><td>Restauracja 1</td><td>30.00 zł</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star-half-stroke""></i></div></td><td>15</td><td><span class=""badge bg-success"">Aktywne</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewDish(400)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""editDish(400)""><i class=""fa-solid fa-edit""></i> Edytuj</button><button class=""btn btn-danger btn-sm"" onclick=""deleteDish(400)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>401</td><td><img src=""https://placehold.co/60x60/ff6f61/white?text=D2"" class=""rounded"" alt=""Danie""></td><td>Danie 2</td><td>Restauracja 2</td><td>35.00 zł</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star-half-stroke""></i></div></td><td>18</td><td><span class=""badge bg-success"">Aktywne</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewDish(401)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""editDish(401)""><i class=""fa-solid fa-edit""></i> Edytuj</button><button class=""btn btn-danger btn-sm"" onclick=""deleteDish(401)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+        <tr><td>402</td><td><img src=""https://placehold.co/60x60/ff6f61/white?text=D3"" class=""rounded"" alt=""Danie""></td><td>Danie 3</td><td>Restauracja 3</td><td>40.00 zł</td><td><div class=""text-warning""><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star""></i><i class=""fa-solid fa-star-half-stroke""></i></div></td><td>21</td><td><span class=""badge bg-success"">Aktywne</span></td><td><button class=""btn btn-primary btn-sm"" onclick=""viewDish(402)""><i class=""fa-solid fa-eye""></i> Zobacz</button><button class=""btn btn-warning btn-sm"" onclick=""editDish(402)""><i class=""fa-solid fa-edit""></i> Edytuj</button><button class=""btn btn-danger btn-sm"" onclick=""deleteDish(402)""><i class=""fa-solid fa-trash""></i> Usuń</button></td></tr>
+    ");
+}
+
+<partial name="_TablePartial" model="@(new { Headers = dishesTableHeaders, Content = dishesTableContent })" />
                         </div>
                     </div>
                 </div>
