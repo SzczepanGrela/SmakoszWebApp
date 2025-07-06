@@ -21,7 +21,7 @@ namespace SmakoszWebApp.Controllers
                 TotalReviews = 15,
                 TotalPhotos = 5,
                 MyRatedDishes = GetMockReviews(3), // Pobierz 3 przykładowe recenzje
-                SavedForLaterDishes = GetMockReviews(2, 3) // Pobierz 2 inne recenzje
+                SavedForLaterDishes = GetMockSavedDishes(2) // Pobierz 2 zapisane dania
             };
             return View(viewModel);
         }
@@ -38,6 +38,54 @@ namespace SmakoszWebApp.Controllers
                 new ReviewViewModel { Id = 5, UserName = User.Identity.Name, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 5.0, Comment = "Najlepszy sernik baskijski jaki jadłem! Idealnie karmelizowany, kremowy w środku.", Date = DateTime.Now.AddDays(-4), DatePosted = DateTime.Now.AddDays(-4), DishName = "Sernik Baskijski", RestaurantName = "Słodka Dziurka", DishId = 5 }
             };
             return allReviews.Skip(skip).Take(count).ToList();
+        }
+
+        // Metoda pomocnicza do generowania danych tymczasowych dla zapisanych dań
+        private List<DishViewModel> GetMockSavedDishes(int count)
+        {
+            var savedDishes = new List<DishViewModel>
+            {
+                new DishViewModel
+                {
+                    Id = 6,
+                    Name = "Neapolitan Pizza Margherita",
+                    RestaurantName = "Pizzeria Italiana",
+                    RestaurantId = 5,
+                    Price = 36.00m,
+                    AverageRating = 4.8,
+                    ReviewCount = 203,
+                    ImageUrl = "https://placehold.co/400x300/ff6f61/white?text=Margherita",
+                    Tags = new List<string> { "Klasyka", "Wegetariańskie" },
+                    Description = "Klasyczna pizza z San Marzano, mozzarellą i świeżą bazylią"
+                },
+                new DishViewModel
+                {
+                    Id = 7,
+                    Name = "Pad Thai Chicken",
+                    RestaurantName = "Thai Smile",
+                    RestaurantId = 6,
+                    Price = 41.00m,
+                    AverageRating = 4.7,
+                    ReviewCount = 89,
+                    ImageUrl = "https://placehold.co/400x300/FF9800/white?text=Pad+Thai",
+                    Tags = new List<string> { "Ostre", "Azjatyckie" },
+                    Description = "Tradycyjny makaron ryżowy z kurczakiem, kiełkami i sosem tamaryndowym"
+                },
+                new DishViewModel
+                {
+                    Id = 8,
+                    Name = "Korean BBQ Bibimbap",
+                    RestaurantName = "Seoul Kitchen",
+                    RestaurantId = 7,
+                    Price = 47.00m,
+                    AverageRating = 4.8,
+                    ReviewCount = 34,
+                    ImageUrl = "https://placehold.co/400x300/E91E63/white?text=Korean",
+                    Tags = new List<string> { "Nowe", "Koreańskie" },
+                    Description = "Koreańska miska z ryżem, warzywami i marynowanym mięsem"
+                }
+            };
+            return savedDishes.Take(count).ToList();
         }
     }
 }
