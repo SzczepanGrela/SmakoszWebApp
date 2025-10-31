@@ -1,0 +1,73 @@
+﻿@model SmakoszWebApp.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Mój profil";
+}
+
+<div class="container mt-5">
+    <div class="profile-header text-center mb-5">
+        <img src="@Model.UserAvatarUrl" class="rounded-circle profile-avatar mb-3" alt="Avatar użytkownika">
+        <h1 class="display-5">@Model.UserName</h1>
+        <div class="text-muted">
+            <span>@Model.TotalReviews ocen</span>
+            <span class="mx-2">·</span>
+            <span>@Model.TotalPhotos dodanych zdjęć</span>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs justify-content-center mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-pane" type="button" role="tab" aria-controls="reviews-pane" aria-selected="true">Moje oceny</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="saved-tab" data-bs-toggle="tab" data-bs-target="#saved-pane" type="button" role="tab" aria-controls="saved-pane" aria-selected="false">Zapisane na później</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab" aria-controls="settings-pane" aria-selected="false">Ustawienia</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="profileTabsContent">
+        <div class="tab-pane fade show active" id="reviews-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var dish in Model.MyRatedDishes)
+                {
+                    <div class="col">
+                        <partial name="_DishCardPartial" model="dish" />
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade" id="saved-pane" role="tabpanel" aria-labelledby="saved-tab" tabindex="0">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var dish in Model.SavedForLaterDishes)
+                {
+                    <div class="col">
+                        <partial name="_DishCardPartial" model="dish" />
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="tab-pane fade" id="settings-pane" role="tabpanel" aria-labelledby="settings-tab" tabindex="0">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Zmień hasło</h5>
+                            <form>
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Obecne hasło</label>
+                                    <input type="password" class="form-control" id="currentPassword">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">Nowe hasło</label>
+                                    <input type="password" class="form-control" id="newPassword">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Zapisz zmianę</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

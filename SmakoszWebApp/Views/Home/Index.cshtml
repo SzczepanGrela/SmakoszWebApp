@@ -1,0 +1,50 @@
+﻿@model SmakoszWebApp.ViewModels.HomePageViewModel
+@{
+    ViewData["Title"] = "Strona Główna";
+}
+
+<div class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Znajdź najlepszy smak w mieście</h1>
+        <p class="lead">Odkrywaj i oceniaj dania, a nie tylko restauracje.</p>
+        <div class="row justify-content-center mt-4">
+            <div class="col-lg-8">
+                <form asp-controller="Search" asp-action="Index" method="get" class="d-flex flex-column flex-md-row gap-2">
+                    <input name="query" class="form-control form-control-lg" type="search" placeholder="Jakiego dania szukasz? (np. pizza, ramen...)">
+                    <input name="location" class="form-control form-control-lg" type="search" placeholder="Gdzie? (np. Rzeszów, cała Polska)">
+                    <button class="btn btn-primary btn-lg" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Szukaj</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Popularne kategorie</h2>
+        <div class="row g-3">
+            @foreach (var category in Model.PopularCategories)
+            {
+                <div class="col-6 col-md-4 col-lg-2">
+                    <a href="#" class="card category-card text-decoration-none text-dark">
+                        <div class="card-body text-center">
+                            🍔 <span class="d-block mt-2">@category</span>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Ostatnio wysoko oceniane</h2>
+        <div class="row">
+            @foreach (var dish in Model.HighlyRatedDishes)
+            {
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <partial name="_DishCardPartial" model="dish" />
+                </div>
+            }
+        </div>
+    </section>
+</div>
