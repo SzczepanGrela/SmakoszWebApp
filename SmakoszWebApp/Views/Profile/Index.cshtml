@@ -42,10 +42,10 @@
         </div>
         <div class="tab-pane fade" id="saved-pane" role="tabpanel" aria-labelledby="saved-tab" tabindex="0">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var review in Model.SavedForLaterDishes)
+                @foreach (var dish in Model.SavedForLaterDishes)
                 {
-                    <div class="col" data-review-id="@review.Id">
-                        <partial name="_UserReviewCardPartial" model="review" view-data="@(new ViewDataDictionary(ViewData) { ["ShowDate"] = true, ["ShowDeleteButton"] = false, ["CardSize"] = "normal", ["DateFormat"] = "dd.MM.yyyy" })" />
+                    <div class="col" data-dish-id="@dish.Id">
+                        <partial name="_SavedDishCardPartial" model="dish" />
                     </div>
                 }
             </div>
@@ -74,3 +74,37 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Przywróć aktywną kartę tylko przy nawigacji wstecz/dalej
+    const savedTab = sessionStorage.getItem('profileActiveTab');
+    const isBackNavigation = performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
+    
+    if (savedTab && isBackNavigation) {
+        const tabButton = document.querySelector(`[data-bs-target="${savedTab}"]`);
+        const tabPane = document.querySelector(savedTab);
+        
+        if (tabButton && tabPane) {
+            // Usuń active z wszystkich kart
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Aktywuj wybraną kartę
+            tabButton.classList.add('active');
+            tabPane.classList.add('show', 'active');
+        }
+    }
+    
+    // Zapisz aktywną kartę przy przełączaniu
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const target = this.getAttribute('data-bs-target');
+            sessionStorage.setItem('profileActiveTab', target);
+        });
+    });
+});
+</script>

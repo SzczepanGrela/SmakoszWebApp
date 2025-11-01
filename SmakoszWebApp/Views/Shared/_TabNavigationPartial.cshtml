@@ -1,0 +1,17 @@
+@model dynamic
+
+<nav class="nav @(Model.NavClasses ?? "flex-column")">
+    @foreach (var tab in Model.Tabs)
+    {
+        <a class="nav-link @(tab.Active ? "active" : "") @(Model.LinkClasses ?? "")" 
+           href="@tab.Target" 
+           @(Model.DataToggle ? "data-bs-toggle=\"tab\"" : "") 
+           @(Model.OnClick != null ? $"onclick=\"{Model.OnClick}(this)\"" : "")>
+            @if (!string.IsNullOrEmpty(tab.Icon))
+            {
+                <i class="@tab.Icon me-2"></i>
+            }
+            @tab.Text
+        </a>
+    }
+</nav>

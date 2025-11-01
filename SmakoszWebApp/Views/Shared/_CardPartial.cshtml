@@ -1,0 +1,25 @@
+@model dynamic
+
+<div class="card @(Model.ExtraClasses ?? "")">
+    @if (!string.IsNullOrEmpty(Model.HeaderTitle))
+    {
+        <div class="card-header">
+            <h5 class="mb-0">
+                @if (!string.IsNullOrEmpty(Model.HeaderIcon))
+                {
+                    <i class="@Model.HeaderIcon me-2"></i>
+                }
+                @Model.HeaderTitle
+            </h5>
+        </div>
+    }
+    <div class="card-body">
+        @Model.Content
+    </div>
+    @if (Model.FooterContent != null)
+    {
+        <div class="card-footer">
+            @Model.FooterContent
+        </div>
+    }
+</div>

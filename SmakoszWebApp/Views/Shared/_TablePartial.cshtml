@@ -1,0 +1,17 @@
+@model dynamic
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                @foreach (var header in Model.Headers)
+                {
+                    <th>@header</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @Model.Content
+        </tbody>
+    </table>
+</div>
