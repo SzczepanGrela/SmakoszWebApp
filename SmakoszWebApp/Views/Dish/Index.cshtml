@@ -51,15 +51,22 @@
             {
                 <div class="card review-card mb-3">
                     <div class="card-body">
-                        <div class="d-flex">
-                            <img src="@review.UserAvatarUrl" class="rounded-circle me-3" width="50" height="50" alt="@review.UserName">
-                            <div>
-                                <h5 class="card-title mb-0">@review.UserName</h5>
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <img src="@review.UserAvatarUrl" class="rounded-circle me-3" width="50" height="50" alt="@review.UserName">
                                 <div>
-                                    <i class="fa-solid fa-star text-warning"></i>
-                                    <span class="fw-bold">@review.Rating</span>
-                                    <span class="text-muted ms-2">· @review.DatePosted.ToShortDateString()</span>
+                                    <h5 class="card-title mb-0">@review.UserName</h5>
+                                    <div>
+                                        <i class="fa-solid fa-star text-warning"></i>
+                                        <span class="fw-bold">@review.Rating</span>
+                                        <span class="text-muted ms-2">· @review.DatePosted.ToShortDateString()</span>
+                                    </div>
                                 </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="reportReview(@review.Id)" title="Zgłoś recenzję">
+                                    <i class="fa-solid fa-flag"></i>
+                                </button>
                             </div>
                         </div>
                         <p class="card-text mt-3">@review.Comment</p>
@@ -83,5 +90,37 @@
         document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
 
         setTimeout(() => alert.remove(), 3000);
+    }
+
+    function reportReview(reviewId) {
+        if (confirm('Czy na pewno chcesz zgłosić tę recenzję?')) {
+            fetch('/Review/Report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reviewId: reviewId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                    alert.innerHTML = `
+                        <i class="fa-solid fa-check me-2"></i>
+                        Recenzja została zgłoszona. Dziękujemy za zgłoszenie!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                    setTimeout(() => alert.remove(), 5000);
+                } else {
+                    alert('Wystąpił błąd podczas zgłaszania recenzji.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Wystąpił błąd podczas zgłaszania recenzji.');
+            });
+        }
     }
 </script>
