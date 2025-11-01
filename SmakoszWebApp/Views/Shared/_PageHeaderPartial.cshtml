@@ -1,0 +1,21 @@
+@{
+    var title = ViewData["Title"] as string;
+    var icon = ViewData["Icon"] as string;
+    var subtitle = ViewData["Subtitle"] as string;
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold mb-1">
+            @if (!string.IsNullOrEmpty(icon))
+            {
+                <i class="@icon me-2"></i>
+            }
+            @title
+        </h1>
+        @if (!string.IsNullOrEmpty(subtitle))
+        {
+            <p class="text-muted mb-4">@subtitle</p>
+        }
+    </div>
+</div>
