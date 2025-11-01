@@ -209,6 +209,218 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Zarządzanie recenzjami -->
+                <div class="tab-pane fade" id="reviews">
+                    <h1 class="h3 mb-4">Zarządzanie recenzjami</h1>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Danie</th>
+                                            <th>Restauracja</th>
+                                            <th>Użytkownik</th>
+                                            <th>Ocena</th>
+                                            <th>Komentarz</th>
+                                            <th>Data</th>
+                                            <th>Akcje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < 10; i++)
+                                        {
+                                            <tr>
+                                                <td>@(200 + i)</td>
+                                                <td>Pizza Margherita</td>
+                                                <td>Pizzeria Roma</td>
+                                                <td>jan.kowalski</td>
+                                                <td>
+                                                    <div class="text-warning">
+                                                        @for (int j = 0; j < 5; j++)
+                                                        {
+                                                            <i class="fa-solid fa-star"></i>
+                                                        }
+                                                    </div>
+                                                </td>
+                                                <td>Świetna pizza, polecam!</td>
+                                                <td>2025-01-@((i + 1).ToString("00"))</td>
+                                                <td>
+                                                    <button class="btn btn-danger btn-sm" onclick="deleteReview(@(200 + i))">
+                                                        <i class="fa-solid fa-trash"></i> Usuń
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zarządzanie restauracjami -->
+                <div class="tab-pane fade" id="restaurants">
+                    <h1 class="h3 mb-4">Zarządzanie restauracjami</h1>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Restauracje oczekujące na weryfikację</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nazwa</th>
+                                            <th>Adres</th>
+                                            <th>Właściciel</th>
+                                            <th>Status</th>
+                                            <th>Akcje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < 3; i++)
+                                        {
+                                            <tr>
+                                                <td>@(300 + i)</td>
+                                                <td>Nowa Restauracja @(i + 1)</td>
+                                                <td>ul. Przykładowa @(i + 1)</td>
+                                                <td>właściciel@(i + 1)</td>
+                                                <td>
+                                                    <span class="badge bg-warning">Oczekuje</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-success btn-sm" onclick="approveRestaurant(@(300 + i))">
+                                                        <i class="fa-solid fa-check"></i> Zatwierdź
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm" onclick="rejectRestaurant(@(300 + i))">
+                                                        <i class="fa-solid fa-times"></i> Odrzuć
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Wszystkie restauracje</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nazwa</th>
+                                            <th>Adres</th>
+                                            <th>Ocena</th>
+                                            <th>Liczba dań</th>
+                                            <th>Status</th>
+                                            <th>Akcje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            <tr>
+                                                <td>@(100 + i)</td>
+                                                <td>Restauracja @(i + 1)</td>
+                                                <td>ul. Główna @(i + 1)</td>
+                                                <td>4.@(5 + i)</td>
+                                                <td>@(10 + i * 2)</td>
+                                                <td>
+                                                    <span class="badge bg-success">Aktywna</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-primary btn-sm" onclick="viewRestaurant(@(100 + i))">
+                                                        <i class="fa-solid fa-eye"></i> Zobacz
+                                                    </button>
+                                                    <button class="btn btn-warning btn-sm" onclick="suspendRestaurant(@(100 + i))">
+                                                        <i class="fa-solid fa-pause"></i> Zawieś
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zarządzanie daniami -->
+                <div class="tab-pane fade" id="dishes">
+                    <h1 class="h3 mb-4">Zarządzanie daniami</h1>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Zdjęcie</th>
+                                            <th>Nazwa</th>
+                                            <th>Restauracja</th>
+                                            <th>Cena</th>
+                                            <th>Ocena</th>
+                                            <th>Recenzje</th>
+                                            <th>Status</th>
+                                            <th>Akcje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < 8; i++)
+                                        {
+                                            <tr>
+                                                <td>@(400 + i)</td>
+                                                <td>
+                                                    <img src="https://placehold.co/60x60/ff6f61/white?text=D@(i+1)" class="rounded" alt="Danie">
+                                                </td>
+                                                <td>Danie @(i + 1)</td>
+                                                <td>Restauracja @(i % 3 + 1)</td>
+                                                <td>@(30 + i * 5).00 zł</td>
+                                                <td>
+                                                    <div class="text-warning">
+                                                        @for (int j = 0; j < 4; j++)
+                                                        {
+                                                            <i class="fa-solid fa-star"></i>
+                                                        }
+                                                        <i class="fa-solid fa-star-half-stroke"></i>
+                                                    </div>
+                                                </td>
+                                                <td>@(15 + i * 3)</td>
+                                                <td>
+                                                    <span class="badge bg-success">Aktywne</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-primary btn-sm" onclick="viewDish(@(400 + i))">
+                                                        <i class="fa-solid fa-eye"></i> Zobacz
+                                                    </button>
+                                                    <button class="btn btn-warning btn-sm" onclick="editDish(@(400 + i))">
+                                                        <i class="fa-solid fa-edit"></i> Edytuj
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm" onclick="deleteDish(@(400 + i))">
+                                                        <i class="fa-solid fa-trash"></i> Usuń
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -229,6 +441,38 @@
 
     function resetPassword(userId) {
         showAlert('info', `Link do resetowania hasła został wysłany do użytkownika ${userId}!`);
+    }
+
+    function deleteReview(reviewId) {
+        showAlert('success', `Recenzja ${reviewId} została usunięta!`);
+    }
+
+    function approveRestaurant(restaurantId) {
+        showAlert('success', `Restauracja ${restaurantId} została zatwierdzona!`);
+    }
+
+    function rejectRestaurant(restaurantId) {
+        showAlert('danger', `Restauracja ${restaurantId} została odrzucona!`);
+    }
+
+    function viewRestaurant(restaurantId) {
+        showAlert('info', `Przechodzenie do szczegółów restauracji ${restaurantId}...`);
+    }
+
+    function suspendRestaurant(restaurantId) {
+        showAlert('warning', `Restauracja ${restaurantId} została zawieszona!`);
+    }
+
+    function viewDish(dishId) {
+        showAlert('info', `Przechodzenie do szczegółów dania ${dishId}...`);
+    }
+
+    function editDish(dishId) {
+        showAlert('info', `Edycja dania ${dishId}...`);
+    }
+
+    function deleteDish(dishId) {
+        showAlert('danger', `Danie ${dishId} zostało usunięte!`);
     }
 
     function showAlert(type, message) {

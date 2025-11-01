@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Dodaj ocenę";
+    var dishId = ViewBag.DishId as int?;
 }
 
 <div class="container mt-4">
@@ -13,93 +14,141 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Wybór restauracji/dania -->
-                    <div class="mb-4">
-                        <h5>Krok 1: Znajdź danie lub restaurację</h5>
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Wyszukaj danie lub restaurację..." id="searchInput">
-                            <button class="btn btn-outline-secondary" type="button" onclick="searchDishes()">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </button>
-                        </div>
-
-                        <!-- Wyniki wyszukiwania -->
-                        <div id="searchResults" class="mt-3" style="display: none;">
-                            <div class="list-group">
-                                <div class="list-group-item list-group-item-action" onclick="selectDish(1, 'Pizza Margherita', 'Pizzeria Roma')">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://placehold.co/60x60/ff6f61/white?text=P" class="rounded me-3" alt="Pizza">
-                                        <div>
-                                            <h6 class="mb-1">Pizza Margherita</h6>
-                                            <small class="text-muted">Pizzeria Roma</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-group-item-action" onclick="selectDish(2, 'Burger Classic', 'Burgerownia')">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://placehold.co/60x60/4CAF50/white?text=B" class="rounded me-3" alt="Burger">
-                                        <div>
-                                            <h6 class="mb-1">Burger Classic</h6>
-                                            <small class="text-muted">Burgerownia</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wybrane danie -->
-                    <div id="selectedDish" class="mb-4" style="display: none;">
-                        <h5>Oceniasz:</h5>
-                        <div class="alert alert-info">
+                    @if (dishId.HasValue)
+                    {
+                        <!-- Oceniamy konkretne danie -->
+                        <div class="alert alert-info mb-4">
                             <div class="d-flex align-items-center">
-                                <img id="selectedDishImage" src="" class="rounded me-3" width="60" height="60" alt="">
+                                <img src="https://placehold.co/60x60/ff6f61/white?text=D" class="rounded me-3" alt="Danie">
                                 <div>
-                                    <h6 id="selectedDishName" class="mb-1"></h6>
-                                    <small id="selectedRestaurantName" class="text-muted"></small>
+                                    <h6 class="mb-1">Oceniasz danie</h6>
+                                    <small class="text-muted">ID: @dishId</small>
                                 </div>
-                                <button type="button" class="btn-close ms-auto" onclick="clearSelection()"></button>
                             </div>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <!-- Wybór dania -->
+                        <div class="mb-4">
+                            <h5>Wybierz danie do oceny</h5>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Wyszukaj danie..." id="searchInput">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchDishes()">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+
+                            <!-- Wyniki wyszukiwania -->
+                            <div id="searchResults" class="mt-3" style="display: none;">
+                                <div class="list-group">
+                                    <div class="list-group-item list-group-item-action" onclick="selectDish(1, 'Pizza Diavola', 'Pizzeria Roma')">
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://placehold.co/60x60/ff6f61/white?text=P" class="rounded me-3" alt="Pizza">
+                                            <div>
+                                                <h6 class="mb-1">Pizza Diavola</h6>
+                                                <small class="text-muted">Pizzeria Roma</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item list-group-item-action" onclick="selectDish(2, 'Klasyczny Burger Wołowy', 'Burgerownia Stacja')">
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://placehold.co/60x60/4CAF50/white?text=B" class="rounded me-3" alt="Burger">
+                                            <div>
+                                                <h6 class="mb-1">Klasyczny Burger Wołowy</h6>
+                                                <small class="text-muted">Burgerownia Stacja</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item list-group-item-action" onclick="selectDish(3, 'Zestaw Sushi Ebi Ten', 'Sushi Master')">
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://placehold.co/60x60/2196F3/white?text=S" class="rounded me-3" alt="Sushi">
+                                            <div>
+                                                <h6 class="mb-1">Zestaw Sushi Ebi Ten</h6>
+                                                <small class="text-muted">Sushi Master</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Wybrane danie -->
+                        <div id="selectedDish" class="mb-4" style="display: none;">
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <img id="selectedDishImage" src="" class="rounded me-3" width="60" height="60" alt="">
+                                    <div>
+                                        <h6 id="selectedDishName" class="mb-1"></h6>
+                                        <small id="selectedRestaurantName" class="text-muted"></small>
+                                    </div>
+                                    <button type="button" class="btn-close ms-auto" onclick="clearSelection()"></button>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
                     <!-- Formularz oceny -->
-                    <form id="reviewForm" style="display: none;">
-                        <div class="mb-4">
-                            <h5>Krok 2: Oceń danie</h5>
-                            <div class="text-center mb-3">
-                                <div class="rating-stars" data-rating="0">
-                                    <i class="fa-regular fa-star fa-2x" data-star="1"></i>
-                                    <i class="fa-regular fa-star fa-2x" data-star="2"></i>
-                                    <i class="fa-regular fa-star fa-2x" data-star="3"></i>
-                                    <i class="fa-regular fa-star fa-2x" data-star="4"></i>
-                                    <i class="fa-regular fa-star fa-2x" data-star="5"></i>
+                    <form id="reviewForm" style="@(dishId.HasValue ? "" : "display: none;")">
+                        <div class="row">
+                            <!-- Ocena dania -->
+                            <div class="col-md-6 mb-4">
+                                <h5><i class="fa-solid fa-bowl-food text-warning me-2"></i>Ocena dania</h5>
+                                <div class="text-center mb-3">
+                                    <div class="rating-stars" data-rating="0" data-type="dish">
+                                        <i class="fa-regular fa-star fa-2x" data-star="1"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="2"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="3"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="4"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="5"></i>
+                                    </div>
+                                    <div class="rating-text mt-2">
+                                        <span id="dishRatingText" class="h6 text-muted">Oceń jakość dania</span>
+                                    </div>
                                 </div>
-                                <div class="rating-text mt-2">
-                                    <span id="ratingText" class="h5 text-muted">Kliknij gwiazdki, aby ocenić</span>
+                            </div>
+
+                            <!-- Ocena restauracji -->
+                            <div class="col-md-6 mb-4">
+                                <h5><i class="fa-solid fa-utensils text-info me-2"></i>Ocena restauracji</h5>
+                                <div class="text-center mb-3">
+                                    <div class="rating-stars" data-rating="0" data-type="restaurant">
+                                        <i class="fa-regular fa-star fa-2x" data-star="1"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="2"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="3"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="4"></i>
+                                        <i class="fa-regular fa-star fa-2x" data-star="5"></i>
+                                    </div>
+                                    <div class="rating-text mt-2">
+                                        <span id="restaurantRatingText" class="h6 text-muted">Oceń obsługę i lokal</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <h5>Krok 3: Dodaj komentarz (opcjonalnie)</h5>
-                            <textarea class="form-control" rows="4" placeholder="Opowiedz o swoich wrażeniach... Co Ci się podobało? Co można było zrobić lepiej?"></textarea>
-                            <div class="form-text">Twój komentarz pomoże innym użytkownikom w dokonaniu wyboru.</div>
+                            <label for="comment" class="form-label">
+                                <h5><i class="fa-solid fa-comment me-2"></i>Twoja opinia</h5>
+                            </label>
+                            <textarea id="comment" class="form-control" rows="4" placeholder="Podziel się swoimi wrażeniami... Co było dobre? Co można poprawić?"></textarea>
+                            <div class="form-text">Szczera opinia pomoże innym w dokonaniu wyboru.</div>
                         </div>
 
                         <div class="mb-4">
-                            <h5>Krok 4: Dodaj zdjęcie (opcjonalnie)</h5>
-                            <div class="upload-area border-2 border-dashed rounded p-4 text-center">
-                                <i class="fa-solid fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                <p>Przeciągnij zdjęcie tutaj lub <button type="button" class="btn btn-link p-0">wybierz plik</button></p>
+                            <label class="form-label">
+                                <h5><i class="fa-solid fa-camera me-2"></i>Zdjęcie (opcjonalnie)</h5>
+                            </label>
+                            <div class="upload-area border-2 border-dashed rounded p-3 text-center">
+                                <i class="fa-solid fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                <p class="mb-2">Przeciągnij zdjęcie tutaj lub <button type="button" class="btn btn-link p-0">wybierz plik</button></p>
                                 <input type="file" class="d-none" accept="image/*" multiple>
-                                <small class="text-muted">Maksymalnie 5 zdjęć, każde do 10MB</small>
+                                <small class="text-muted">JPG, PNG do 10MB</small>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-outline-secondary me-md-2">Anuluj</button>
-                            <button type="submit" class="btn btn-primary">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary me-md-2">Anuluj</a>
+                            <button type="submit" class="btn btn-success">
                                 <i class="fa-solid fa-check me-2"></i>Opublikuj ocenę
                             </button>
                         </div>
@@ -137,56 +186,69 @@
 
     // Obsługa gwiazdek
     document.addEventListener('DOMContentLoaded', function() {
-        const stars = document.querySelectorAll('.rating-stars i');
-        const ratingContainer = document.querySelector('.rating-stars');
-        const ratingText = document.getElementById('ratingText');
+        const ratingLabels = {
+            dish: [
+                'Oceń jakość dania',
+                'Okropne',
+                'Słabe', 
+                'Przeciętne',
+                'Dobre',
+                'Doskonałe!'
+            ],
+            restaurant: [
+                'Oceń obsługę i lokal',
+                'Okropna obsługa',
+                'Słaba obsługa',
+                'Przeciętna obsługa', 
+                'Dobra obsługa',
+                'Doskonała obsługa!'
+            ]
+        };
 
-        const ratingLabels = [
-            'Kliknij gwiazdki, aby ocenić',
-            'Okropne',
-            'Słabe',
-            'Przeciętne',
-            'Dobre',
-            'Doskonałe!'
-        ];
+        // Obsługa dla każdego zestawu gwiazdek
+        document.querySelectorAll('.rating-stars').forEach(ratingContainer => {
+            const stars = ratingContainer.querySelectorAll('i');
+            const ratingType = ratingContainer.getAttribute('data-type');
+            const ratingText = document.getElementById(ratingType + 'RatingText');
 
-        stars.forEach((star, index) => {
-            star.addEventListener('click', function() {
-                const rating = index + 1;
-                ratingContainer.setAttribute('data-rating', rating);
-                ratingText.textContent = ratingLabels[rating];
-                ratingText.className = 'h5 text-warning';
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    const rating = index + 1;
+                    ratingContainer.setAttribute('data-rating', rating);
+                    ratingText.textContent = ratingLabels[ratingType][rating];
+                    ratingText.className = 'h6 text-warning';
 
-                // Update stars
+                    // Update stars
+                    stars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.className = `fa-solid fa-star fa-2x ${ratingType === 'dish' ? 'text-warning' : 'text-info'}`;
+                        } else {
+                            s.className = 'fa-regular fa-star fa-2x';
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseenter', function() {
+                    const rating = index + 1;
+                    stars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.className = `fa-solid fa-star fa-2x ${ratingType === 'dish' ? 'text-warning' : 'text-info'}`;
+                        } else {
+                            s.className = 'fa-regular fa-star fa-2x';
+                        }
+                    });
+                });
+            });
+
+            ratingContainer.addEventListener('mouseleave', function() {
+                const currentRating = parseInt(ratingContainer.getAttribute('data-rating'));
                 stars.forEach((s, i) => {
-                    if (i < rating) {
-                        s.className = 'fa-solid fa-star fa-2x text-warning';
+                    if (i < currentRating) {
+                        s.className = `fa-solid fa-star fa-2x ${ratingType === 'dish' ? 'text-warning' : 'text-info'}`;
                     } else {
                         s.className = 'fa-regular fa-star fa-2x';
                     }
                 });
-            });
-
-            star.addEventListener('mouseenter', function() {
-                const rating = index + 1;
-                stars.forEach((s, i) => {
-                    if (i < rating) {
-                        s.className = 'fa-solid fa-star fa-2x text-warning';
-                    } else {
-                        s.className = 'fa-regular fa-star fa-2x';
-                    }
-                });
-            });
-        });
-
-        ratingContainer.addEventListener('mouseleave', function() {
-            const currentRating = parseInt(ratingContainer.getAttribute('data-rating'));
-            stars.forEach((s, i) => {
-                if (i < currentRating) {
-                    s.className = 'fa-solid fa-star fa-2x text-warning';
-                } else {
-                    s.className = 'fa-regular fa-star fa-2x';
-                }
             });
         });
     });
@@ -195,12 +257,20 @@
     document.getElementById('reviewForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const dishRating = document.querySelector('[data-type="dish"]').getAttribute('data-rating');
+        const restaurantRating = document.querySelector('[data-type="restaurant"]').getAttribute('data-rating');
+
+        if (dishRating === "0" || restaurantRating === "0") {
+            alert('Proszę ocenić zarówno danie jak i restaurację!');
+            return;
+        }
+
         // Mock submission
         const alert = document.createElement('div');
         alert.className = 'alert alert-success alert-dismissible fade show';
         alert.innerHTML = `
             <i class="fa-solid fa-check-circle me-2"></i>
-            Dziękujemy! Twoja ocena została dodana i czeka na moderację.
+            Dziękujemy! Twoja ocena została dodana (Danie: ${dishRating}/5, Restauracja: ${restaurantRating}/5)
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
         document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
@@ -209,3 +279,4 @@
             window.location.href = '/Profile';
         }, 2000);
     });
+</script>
