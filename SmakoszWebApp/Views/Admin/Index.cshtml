@@ -513,15 +513,5 @@
         showAlert('danger', `Danie ${dishId} zostało usunięte!`);
     }
 
-    function showAlert(type, message) {
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show`;
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.container-fluid').firstChild);
-
-        setTimeout(() => alert.remove(), 3000);
-    }
+    // Toast notifications are now handled by global site.js
 </script>
