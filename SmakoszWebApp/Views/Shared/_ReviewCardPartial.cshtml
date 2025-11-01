@@ -1,0 +1,68 @@
+@model SmakoszWebApp.ViewModels.ReviewViewModel
+
+@{
+    var showDishName = ViewData["ShowDishName"] as bool? ?? true;
+    var showRestaurantName = ViewData["ShowRestaurantName"] as bool? ?? true;
+    var showUserName = ViewData["ShowUserName"] as bool? ?? true;
+    var showDate = ViewData["ShowDate"] as bool? ?? true;
+    var cardSize = ViewData["CardSize"] as string ?? "normal";
+    var showActions = ViewData["ShowActions"] as bool? ?? false;
+    var dateFormat = ViewData["DateFormat"] as string ?? "HH:mm";
+    
+    var cardClass = cardSize == "small" ? "card review-card review-card-small" : "card review-card";
+    var bodyClass = cardSize == "small" ? "card-body py-2" : "card-body";
+    var textClass = cardSize == "small" ? "small" : "";
+}
+
+<div class="@cardClass h-100">
+    <div class="@bodyClass">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                @if (showDishName)
+                {
+                    <a asp-controller="Dish" asp-action="Index" asp-route-id="@Model.DishId" class="text-decoration-none text-dark">
+                        <h6 class="card-title mb-1">@Model.DishName</h6>
+                    </a>
+                }
+                @if (showRestaurantName)
+                {
+                    <small class="text-muted">@Model.RestaurantName</small>
+                }
+            </div>
+            <div class="text-end">
+                @Html.Partial("_RatingStarsPartial", new ViewDataDictionary(ViewData) { 
+                    { "Rating", Model.Rating }, 
+                    { "ShowReviewCount", false }, 
+                    { "Size", cardSize == "small" ? "small" : "normal" }
+                })
+            </div>
+        </div>
+        
+        <p class="card-text @textClass">@Model.Comment</p>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            @if (showUserName)
+            {
+                <small class="text-muted">@Model.UserName</small>
+            }
+            @if (showDate)
+            {
+                <small class="text-muted">@Model.Date.ToString(dateFormat)</small>
+            }
+        </div>
+        
+        @if (showActions)
+        {
+            <div class="mt-2">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="likeReview(@Model.Id)">
+                        <i class="fa-solid fa-thumbs-up"></i> Pomocna
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="reportReview(@Model.Id)">
+                        <i class="fa-solid fa-flag"></i> Zgłoś
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>

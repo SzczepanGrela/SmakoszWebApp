@@ -49,60 +49,12 @@
     {
         <div class="row mt-4">
             <div class="col-12">
-                <div class="card restaurant-location-card">
-                    <div class="card-header">
-                        <h4 class="mb-0">
-                            <i class="fa-solid fa-store me-2"></i>
-                            Informacje o restauracji
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h5>
-                                    <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.Restaurant.Id" class="text-decoration-none">
-                                        @Model.Restaurant.Name
-                                    </a>
-                                </h5>
-                                <p class="text-muted mb-2">
-                                    <i class="fa-solid fa-map-marker-alt me-1"></i>
-                                    @Model.Restaurant.FullAddress
-                                </p>
-                                
-                                @if (!string.IsNullOrEmpty(Model.Restaurant.Phone))
-                                {
-                                    <p class="mb-2">
-                                        <i class="fa-solid fa-phone me-1"></i>
-                                        <a href="tel:@Model.Restaurant.Phone" class="text-decoration-none">@Model.Restaurant.Phone</a>
-                                    </p>
-                                }
-                                
-                                @if (!string.IsNullOrEmpty(Model.Restaurant.Website))
-                                {
-                                    <p class="mb-2">
-                                        <i class="fa-solid fa-globe me-1"></i>
-                                        <a href="@Model.Restaurant.Website" target="_blank" class="text-decoration-none">
-                                            Strona internetowa <i class="fa-solid fa-external-link-alt ms-1"></i>
-                                        </a>
-                                    </p>
-                                }
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-grid gap-2">
-                                    <a href="@Model.Restaurant.GoogleMapsUrl" target="_blank" class="btn btn-outline-primary">
-                                        <i class="fa-solid fa-map me-2"></i>Zobacz lokalizację
-                                    </a>
-                                    <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Restaurant.Latitude,@Model.Restaurant.Longitude" target="_blank" class="btn btn-outline-success">
-                                        <i class="fa-solid fa-route me-2"></i>Wyznacz trasę
-                                    </a>
-                                    <a asp-controller="Restaurant" asp-action="Index" asp-route-id="@Model.Restaurant.Id" class="btn btn-primary">
-                                        <i class="fa-solid fa-utensils me-2"></i>Zobacz pełne menu
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @Html.Partial("_RestaurantInfoPartial", Model.Restaurant, new ViewDataDictionary(ViewData) { 
+                    { "ShowFullDetails", false }, 
+                    { "CardTitle", "Informacje o restauracji" }, 
+                    { "CardIcon", "fa-store" }, 
+                    { "CardCssClass", "restaurant-location-card" } 
+                })
             </div>
         </div>
     }
