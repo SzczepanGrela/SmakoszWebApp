@@ -1,7 +1,10 @@
 ﻿@model SmakoszWebApp.ViewModels.ProfileViewModel
+@using Microsoft.AspNetCore.Mvc.ViewFeatures
 @{
     ViewData["Title"] = "Mój profil";
 }
+
+@Html.AntiForgeryToken()
 
 <div class="container mt-5">
     <div class="profile-header text-center mb-5">
@@ -29,20 +32,20 @@
     <div class="tab-content" id="profileTabsContent">
         <div class="tab-pane fade show active" id="reviews-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var dish in Model.MyRatedDishes)
+                @foreach (var review in Model.MyRatedDishes)
                 {
-                    <div class="col">
-                        <partial name="_DishCardPartial" model="dish" />
+                    <div class="col" data-review-id="@review.Id">
+                        <partial name="_UserReviewCardPartial" model="review" view-data="@(new ViewDataDictionary(ViewData) { ["ShowDate"] = true, ["ShowDeleteButton"] = true, ["CardSize"] = "normal", ["DateFormat"] = "dd.MM.yyyy" })" />
                     </div>
                 }
             </div>
         </div>
         <div class="tab-pane fade" id="saved-pane" role="tabpanel" aria-labelledby="saved-tab" tabindex="0">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var dish in Model.SavedForLaterDishes)
+                @foreach (var review in Model.SavedForLaterDishes)
                 {
-                    <div class="col">
-                        <partial name="_DishCardPartial" model="dish" />
+                    <div class="col" data-review-id="@review.Id">
+                        <partial name="_UserReviewCardPartial" model="review" view-data="@(new ViewDataDictionary(ViewData) { ["ShowDate"] = true, ["ShowDeleteButton"] = false, ["CardSize"] = "normal", ["DateFormat"] = "dd.MM.yyyy" })" />
                     </div>
                 }
             </div>
