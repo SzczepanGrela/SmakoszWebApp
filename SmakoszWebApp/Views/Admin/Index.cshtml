@@ -1,0 +1,245 @@
+﻿@{
+    ViewData["Title"] = "Panel Administracyjny";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light">
+            <div class="admin-sidebar">
+                <h4 class="text-center py-3 border-bottom">
+                    <i class="fa-solid fa-shield-halved text-primary me-2"></i>
+                    Admin Panel
+                </h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                        <i class="fa-solid fa-chart-simple me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="#users" data-bs-toggle="tab">
+                        <i class="fa-solid fa-users me-2"></i>Użytkownicy
+                    </a>
+                    <a class="nav-link" href="#reviews" data-bs-toggle="tab">
+                        <i class="fa-solid fa-star me-2"></i>Recenzje
+                    </a>
+                    <a class="nav-link" href="#photos" data-bs-toggle="tab">
+                        <i class="fa-solid fa-image me-2"></i>Zdjęcia
+                    </a>
+                    <a class="nav-link" href="#restaurants" data-bs-toggle="tab">
+                        <i class="fa-solid fa-utensils me-2"></i>Restauracje
+                    </a>
+                    <a class="nav-link" href="#dishes" data-bs-toggle="tab">
+                        <i class="fa-solid fa-bowl-food me-2"></i>Dania
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div class="tab-content">
+                <!-- Dashboard -->
+                <div class="tab-pane fade show active" id="dashboard">
+                    <h1 class="h3 mb-4">Dashboard</h1>
+
+                    <!-- Statystyki -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Użytkownicy</h5>
+                                            <h2 class="fw-bold">1,234</h2>
+                                        </div>
+                                        <i class="fa-solid fa-users fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Recenzje</h5>
+                                            <h2 class="fw-bold">5,678</h2>
+                                        </div>
+                                        <i class="fa-solid fa-star fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-white bg-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Dania</h5>
+                                            <h2 class="fw-bold">890</h2>
+                                        </div>
+                                        <i class="fa-solid fa-bowl-food fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-white bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Restauracje</h5>
+                                            <h2 class="fw-bold">123</h2>
+                                        </div>
+                                        <i class="fa-solid fa-utensils fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Oczekujące zdjęcia -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa-solid fa-clock me-2"></i>
+                                Zdjęcia oczekujące na moderację (3)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                @for (int i = 0; i < 3; i++)
+                                {
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card">
+                                            <img src="https://placehold.co/300x200/ff6f61/white?text=Oczekuje" class="card-img-top" alt="Zdjęcie">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">Pizza Margherita - jan.kowalski</small>
+                                                <div class="d-flex gap-1 mt-2">
+                                                    <button class="btn btn-success btn-sm flex-fill" onclick="approvePhoto(@i)">
+                                                        <i class="fa-solid fa-check"></i> Zatwierdź
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm flex-fill" onclick="rejectPhoto(@i)">
+                                                        <i class="fa-solid fa-times"></i> Odrzuć
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Moderacja zdjęć -->
+                <div class="tab-pane fade" id="photos">
+                    <h1 class="h3 mb-4">Moderacja zdjęć</h1>
+
+                    <div class="row">
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card">
+                                    <img src="https://placehold.co/400x300/ff6f61/white?text=Zdjęcie+@(i + 1)" class="card-img-top" alt="Zdjęcie">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Pizza Diavola</h6>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                Przesłane przez: jan.kowalski<br>
+                                                Data: 2025-01-05 14:30
+                                            </small>
+                                        </p>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-success btn-sm" onclick="approvePhoto(@i)">
+                                                <i class="fa-solid fa-check me-1"></i>Zatwierdź
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="rejectPhoto(@i)">
+                                                <i class="fa-solid fa-times me-1"></i>Odrzuć
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Zarządzanie użytkownikami -->
+                <div class="tab-pane fade" id="users">
+                    <h1 class="h3 mb-4">Zarządzanie użytkownikami</h1>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nazwa użytkownika</th>
+                                            <th>Email</th>
+                                            <th>Data rejestracji</th>
+                                            <th>Status</th>
+                                            <th>Akcje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            <tr>
+                                                <td>@(1000 + i)</td>
+                                                <td>user@(i + 1)</td>
+                                                <td>user@(i + 1)@Html.Raw("@")example.com</td>
+                                                <td>2025-01-@((i + 1).ToString("00"))</td>
+                                                <td>
+                                                    <span class="badge bg-success">Aktywny</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-warning btn-sm" onclick="blockUser(@(1000 + i))">
+                                                        <i class="fa-solid fa-ban"></i> Zablokuj
+                                                    </button>
+                                                    <button class="btn btn-info btn-sm" onclick="resetPassword(@(1000 + i))">
+                                                        <i class="fa-solid fa-key"></i> Reset hasła
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function approvePhoto(photoId) {
+        showAlert('success', `Zdjęcie ${photoId + 1} zostało zatwierdzone!`);
+    }
+
+    function rejectPhoto(photoId) {
+        showAlert('danger', `Zdjęcie ${photoId + 1} zostało odrzucone!`);
+    }
+
+    function blockUser(userId) {
+        showAlert('warning', `Użytkownik ${userId} został zablokowany!`);
+    }
+
+    function resetPassword(userId) {
+        showAlert('info', `Link do resetowania hasła został wysłany do użytkownika ${userId}!`);
+    }
+
+    function showAlert(type, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.container-fluid').firstChild);
+
+        setTimeout(() => alert.remove(), 3000);
+    }
+</script>
