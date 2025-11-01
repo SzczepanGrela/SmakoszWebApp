@@ -7,6 +7,9 @@
     var cardCssClass = ViewData["CardCssClass"] as string ?? "location-info-card";
     var showMenuCount = ViewData["ShowMenuCount"] as bool? ?? false;
     var menuCount = ViewData["MenuCount"] as int? ?? 0;
+
+    var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var lon = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
 
 <div class="card @cardCssClass">
@@ -77,11 +80,11 @@
                 <i class="fa-solid fa-map me-1"></i>
                 Zobacz na mapie
             </a>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=@Model.Latitude,@Model.Longitude" target="_blank" class="btn btn-outline-success btn-sm">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=@(Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture))" target="_blank" class="btn btn-outline-success btn-sm">
                 <i class="fa-solid fa-route me-1"></i>
                 Wyznacz trasę
             </a>
-            <button class="btn btn-outline-info btn-sm" onclick="shareLocation('@Model.Name', '@Model.FullAddress', @Model.Latitude, @Model.Longitude)">
+            <button class="btn btn-outline-info btn-sm" onclick="shareLocation('@Model.Name', '@Model.FullAddress', '@lat', '@lon')">
                 <i class="fa-solid fa-share me-1"></i>
                 Udostępnij lokalizację
             </button>

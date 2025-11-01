@@ -1,5 +1,6 @@
 ﻿// SmakoszWebApp/ViewModels/RestaurantViewModel.cs
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace SmakoszWebApp.ViewModels
 {
@@ -25,7 +26,7 @@ namespace SmakoszWebApp.ViewModels
         public List<DishViewModel> Dishes { get; set; }
         
         // Helper property for Google Maps URL
-        public string GoogleMapsUrl => $"https://www.google.com/maps?q={Latitude},{Longitude}";
+        public string GoogleMapsUrl => $"https://www.google.com/maps?q={Latitude.ToString(CultureInfo.InvariantCulture)},{Longitude.ToString(CultureInfo.InvariantCulture)}";
         
         // Helper property for full address
         public string FullAddress => $"{Address}, {City}";
