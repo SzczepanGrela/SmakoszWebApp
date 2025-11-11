@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /ROADMAP.md
 
 .claude/
+
+MockDataFactory/config/db_config.ini
