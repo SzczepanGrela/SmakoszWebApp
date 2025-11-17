@@ -73,19 +73,23 @@ MockDataFactory/
 │   ├── statistical.py         # Zipf, Beta, Normal distributions
 │   ├── date_generator.py      # Generowanie dat z spójnością
 │   ├── text_generator.py      # 21 szablonów polskich komentarzy
-│   └── photo_pools.py         # 65+ kategorii URL-i Unsplash
+│   ├── photo_pools.py         # 65+ kategorii URL-i Unsplash
+│   └── __init__.py
 │
-├── generators/                 # 6 plików - 5 faz generacji
+├── generators/                 # 6 plików - 5 faz generacji ⭐ GŁÓWNE
 │   ├── phase1_core.py         # Miasta, składniki, tagi
 │   ├── phase2_restaurants.py  # ~1,200 restauracji + photos
 │   ├── phase3_dishes.py       # ~20,000 dań + photos
 │   ├── phase4_users.py        # ~25,000 użytkowników + preferences
-│   └── phase5_reviews.py      # ~875,000 recenzji (rating engine!)
+│   ├── phase5_reviews.py      # ~875,000 recenzji (rating engine!)
+│   └── __init__.py
+│   └── (+ puste placeholdery: user/dish/restaurant/review/city_generator.py)
 │
 ├── algorithms/                 # 4 pliki - Inteligencja CF ⭐ KLUCZOWE
 │   ├── rating_engine.py       # Algorytm 30+ czynników (RDZEŃ)
 │   ├── restaurant_selector.py # Anchor items (40% TOP 20%)
-│   └── dish_selector.py       # Preferencje + Zipf distribution
+│   ├── dish_selector.py       # Preferencje + Zipf distribution
+│   └── __init__.py
 │
 ├── blueprints/                 # Konfiguracje JSON (dostarczane)
 │   ├── 00_global_rules.json
@@ -95,15 +99,20 @@ MockDataFactory/
 │   ├── 04_user_persona_rules.json
 │   └── dish_variants.json
 │
+├── models/                     # (nieużywane, puste placeholdery)
+├── db/                         # (nieużywane, puste placeholdery)
+│
 ├── main.py                     # Orkiestrator (punkt wejścia)
 ├── config.py                   # Konfiguracja (zmień connection!)
+├── __init__.py
 ├── schema_updated.sql          # Schemat bazy (NAPRAWIONY!)
 ├── requirements.txt            # pyodbc, numpy
 └── README.md                   # Ten dokument
 ```
 
-**Całkowita liczba linii kodu:** ~3,500+
-**Pliki Python:** 21
+**Całkowita liczba linii kodu:** ~2,800
+**Pliki Python używane:** 20 (+ 13 pustych placeholderów = 33 total)
+**Główne moduły:** utils (7), generators (6), algorithms (4), config/main (3)
 
 ---
 
@@ -1072,13 +1081,13 @@ dish_variants.json             - Warianty dań
 
 ### Najważniejsze (MUSISZ PRZECZYTAĆ):
 
-1. **`algorithms/rating_engine.py`** (200+ linii)
+1. **`algorithms/rating_engine.py`** (~239 linii)
    Rdzeń systemu - 30+ czynników oceniania, cross-impact, weighted average
 
-2. **`generators/phase5_reviews.py`** (260+ linii)
+2. **`generators/phase5_reviews.py`** (~274 linie)
    Jak recenzje są generowane, restaurant/dish selection, user photos
 
-3. **`config.py`** (140 linii)
+3. **`config.py`** (~136 linii)
    Wszystkie zoptymalizowane parametry, connection string
 
 ### Użyteczne:
@@ -1114,23 +1123,28 @@ dish_variants.json             - Warianty dań
 
 ## ✅ Status: GOTOWE DO UŻYCIA
 
-**Implementacja:** ✅ 100% ukończona (21 plików, ~3,500 linii)
-**Bugfixy:** ✅ 13 critical bugs naprawionych
+**Implementacja:** ✅ 100% ukończona (20 głównych plików, ~2,800 linii kodu)
+**Bugfixy:** ✅ 13 critical bugs naprawionych + materialized averages
 **Testy:** ✅ Schema-code consistency zweryfikowana
-**SQL Server:** ✅ Pełna kompatybilność
-**Dokumentacja:** ✅ Kompletna
+**SQL Server:** ✅ Pełna kompatybilność (+ SQL Server Agent Job)
+**Dokumentacja:** ✅ Kompletna i zaktualizowana
 
 ### Checklist przed uruchomieniem:
 
 - [ ] SQL Server działa
 - [ ] Baza `MockDataDB` utworzona
-- [ ] `schema_updated.sql` wykonany (NAPRAWIONY schemat!)
+- [ ] `schema_updated.sql` wykonany (zawiera Stored Procedure UpdateAverageRatings!)
 - [ ] ODBC Driver 17 zainstalowany
 - [ ] `config.py` skonfigurowany (connection string)
 - [ ] `pip install -r requirements.txt` wykonane
 - [ ] Folder `blueprints/` z plikami JSON istnieje
 - [ ] ~4-8 GB RAM dostępne
 - [ ] ~30-40 minut czasu na generację
+
+### Po generacji danych:
+
+- [ ] Uruchom `EXEC UpdateAverageRatings;` aby wypełnić kolumny avg_*
+- [ ] Opcjonalnie: Skonfiguruj SQL Server Agent Job (odkomentuj linie 532-586 w schema_updated.sql)
 
 ### Rozpocznij generację:
 
