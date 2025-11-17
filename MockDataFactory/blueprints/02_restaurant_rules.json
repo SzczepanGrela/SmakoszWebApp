@@ -1,0 +1,1645 @@
+{
+  "RESTAURANT_THEMES": {
+    "Pizzeria": {
+      "distribution_chance": 0.1215,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Bella",
+            "chance": 5
+          },
+          {
+            "name": "Gusto",
+            "chance": 3
+          },
+          {
+            "name": "Szybka",
+            "chance": 4
+          },
+          {
+            "name": "Napoli",
+            "chance": 5
+          },
+          {
+            "name": "Da",
+            "chance": 2
+          },
+          {
+            "name": "Primo",
+            "chance": 3
+          },
+          {
+            "name": "Grande",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Pizza",
+            "chance": 3
+          },
+          {
+            "name": "Italia",
+            "chance": 5
+          },
+          {
+            "name": "Grasso",
+            "chance": 2
+          },
+          {
+            "name": "Vesuvio",
+            "chance": 3
+          },
+          {
+            "name": "Antonio",
+            "chance": 1
+          },
+          {
+            "name": "Mario",
+            "chance": 2
+          },
+          {
+            "name": "Giuseppe",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kebab": {
+      "distribution_chance": 0.1053,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Mega",
+            "chance": 5
+          },
+          {
+            "name": "Ostry",
+            "chance": 4
+          },
+          {
+            "name": "Sultan",
+            "chance": 5
+          },
+          {
+            "name": "Habibi",
+            "chance": 3
+          },
+          {
+            "name": "Szybki",
+            "chance": 4
+          },
+          {
+            "name": "Król",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Kebab",
+            "chance": 10
+          },
+          {
+            "name": "Grill",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          },
+          {
+            "name": "Dom",
+            "chance": 2
+          },
+          {
+            "name": "Pałac",
+            "chance": 1
+          }
+        ]
+      }
+    },
+    "Burgerownia": {
+      "distribution_chance": 0.0972,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Super",
+            "chance": 5
+          },
+          {
+            "name": "Mocny",
+            "chance": 3
+          },
+          {
+            "name": "Texas",
+            "chance": 4
+          },
+          {
+            "name": "Smash",
+            "chance": 5
+          },
+          {
+            "name": "Wielki",
+            "chance": 4
+          },
+          {
+            "name": "Soczysty",
+            "chance": 3
+          },
+          {
+            "name": "Król",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Burger",
+            "chance": 10
+          },
+          {
+            "name": "Grill",
+            "chance": 4
+          },
+          {
+            "name": "Bułki",
+            "chance": 3
+          },
+          {
+            "name": "Kotlet",
+            "chance": 3
+          },
+          {
+            "name": "Dom",
+            "chance": 2
+          },
+          {
+            "name": "Bracia",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kuchnia Polska": {
+      "distribution_chance": 0.0891,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Karczma",
+            "chance": 5
+          },
+          {
+            "name": "Gospoda",
+            "chance": 4
+          },
+          {
+            "name": "Stara",
+            "chance": 3
+          },
+          {
+            "name": "U",
+            "chance": 1
+          },
+          {
+            "name": "Pod",
+            "chance": 2
+          },
+          {
+            "name": "Złota",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Polska",
+            "chance": 5
+          },
+          {
+            "name": "Chata",
+            "chance": 4
+          },
+          {
+            "name": "Babci",
+            "chance": 3
+          },
+          {
+            "name": "Szwejka",
+            "chance": 1
+          },
+          {
+            "name": "Kogutem",
+            "chance": 2
+          },
+          {
+            "name": "Orłem",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Sushi Bar": {
+      "distribution_chance": 0.0567,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Tokyo",
+            "chance": 5
+          },
+          {
+            "name": "Sake",
+            "chance": 4
+          },
+          {
+            "name": "Miso",
+            "chance": 3
+          },
+          {
+            "name": "Fuji",
+            "chance": 4
+          },
+          {
+            "name": "Sakura",
+            "chance": 5
+          },
+          {
+            "name": "Zen",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Sushi",
+            "chance": 8
+          },
+          {
+            "name": "Bar",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 3
+          },
+          {
+            "name": "Ogród",
+            "chance": 2
+          },
+          {
+            "name": "Pałac",
+            "chance": 2
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Wegańska Kawiarnia": {
+      "distribution_chance": 0.0405,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Zielona",
+            "chance": 5
+          },
+          {
+            "name": "Świeża",
+            "chance": 4
+          },
+          {
+            "name": "Szczęśliwa",
+            "chance": 3
+          },
+          {
+            "name": "Czysta",
+            "chance": 4
+          },
+          {
+            "name": "Zen",
+            "chance": 3
+          },
+          {
+            "name": "Dzika",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Weganka",
+            "chance": 6
+          },
+          {
+            "name": "Ogród",
+            "chance": 4
+          },
+          {
+            "name": "Życie",
+            "chance": 3
+          },
+          {
+            "name": "Liść",
+            "chance": 3
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 4
+          },
+          {
+            "name": "Miska",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Kuchnia Chińska": {
+      "distribution_chance": 0.0486,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Złoty",
+            "chance": 5
+          },
+          {
+            "name": "Czerwony",
+            "chance": 4
+          },
+          {
+            "name": "Szczęśliwy",
+            "chance": 4
+          },
+          {
+            "name": "Smok",
+            "chance": 5
+          },
+          {
+            "name": "Panda",
+            "chance": 4
+          },
+          {
+            "name": "Ming",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Smok",
+            "chance": 4
+          },
+          {
+            "name": "Pałac",
+            "chance": 5
+          },
+          {
+            "name": "Ogród",
+            "chance": 3
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kuchnia Indyjska": {
+      "distribution_chance": 0.0324,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Taj",
+            "chance": 5
+          },
+          {
+            "name": "Bombay",
+            "chance": 4
+          },
+          {
+            "name": "Delhi",
+            "chance": 4
+          },
+          {
+            "name": "Przyprawa",
+            "chance": 5
+          },
+          {
+            "name": "Curry",
+            "chance": 4
+          },
+          {
+            "name": "Królewski",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Pałac",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 4
+          },
+          {
+            "name": "Masala",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          },
+          {
+            "name": "Tandoor",
+            "chance": 4
+          }
+        ]
+      }
+    },
+    "Włoska Trattoria": {
+      "distribution_chance": 0.0405,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Trattoria",
+            "chance": 6
+          },
+          {
+            "name": "Osteria",
+            "chance": 4
+          },
+          {
+            "name": "Ristorante",
+            "chance": 5
+          },
+          {
+            "name": "La",
+            "chance": 3
+          },
+          {
+            "name": "Il",
+            "chance": 2
+          }
+        ],
+        "part2": [
+          {
+            "name": "Toscana",
+            "chance": 4
+          },
+          {
+            "name": "Roma",
+            "chance": 4
+          },
+          {
+            "name": "Venezia",
+            "chance": 3
+          },
+          {
+            "name": "Napoli",
+            "chance": 3
+          },
+          {
+            "name": "Bella",
+            "chance": 5
+          },
+          {
+            "name": "Vita",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Kuchnia Tajska": {
+      "distribution_chance": 0.0243,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Thai",
+            "chance": 6
+          },
+          {
+            "name": "Bangkok",
+            "chance": 5
+          },
+          {
+            "name": "Siam",
+            "chance": 4
+          },
+          {
+            "name": "Pikantna",
+            "chance": 4
+          },
+          {
+            "name": "Złota",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Kuchnia",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Ogród",
+            "chance": 3
+          },
+          {
+            "name": "Pałac",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          },
+          {
+            "name": "Bazylia",
+            "chance": 4
+          }
+        ]
+      }
+    },
+    "Bar Meksykański": {
+      "distribution_chance": 0.0202,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "El",
+            "chance": 5
+          },
+          {
+            "name": "La",
+            "chance": 4
+          },
+          {
+            "name": "Loco",
+            "chance": 4
+          },
+          {
+            "name": "Picante",
+            "chance": 3
+          },
+          {
+            "name": "Rapido",
+            "chance": 3
+          },
+          {
+            "name": "Mucho",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Taco",
+            "chance": 8
+          },
+          {
+            "name": "Burrito",
+            "chance": 4
+          },
+          {
+            "name": "Amigo",
+            "chance": 3
+          },
+          {
+            "name": "Mexicano",
+            "chance": 4
+          },
+          {
+            "name": "Sombrero",
+            "chance": 2
+          },
+          {
+            "name": "Fiesta",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Francuskie Bistro": {
+      "distribution_chance": 0.0162,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Le",
+            "chance": 5
+          },
+          {
+            "name": "La",
+            "chance": 5
+          },
+          {
+            "name": "Petit",
+            "chance": 4
+          },
+          {
+            "name": "Chez",
+            "chance": 4
+          },
+          {
+            "name": "Bonne",
+            "chance": 3
+          },
+          {
+            "name": "Belle",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Bistro",
+            "chance": 6
+          },
+          {
+            "name": "Cafe",
+            "chance": 5
+          },
+          {
+            "name": "Paryż",
+            "chance": 4
+          },
+          {
+            "name": "Maison",
+            "chance": 3
+          },
+          {
+            "name": "Prowansja",
+            "chance": 3
+          },
+          {
+            "name": "Jardin",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Steakhouse": {
+      "distribution_chance": 0.0283,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Pryma",
+            "chance": 5
+          },
+          {
+            "name": "Czarny",
+            "chance": 4
+          },
+          {
+            "name": "Texas",
+            "chance": 4
+          },
+          {
+            "name": "Angus",
+            "chance": 5
+          },
+          {
+            "name": "Ranczo",
+            "chance": 3
+          },
+          {
+            "name": "Wołowina",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Steakhouse",
+            "chance": 8
+          },
+          {
+            "name": "Grill",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Klub",
+            "chance": 3
+          },
+          {
+            "name": "Ranczo",
+            "chance": 2
+          },
+          {
+            "name": "Bracia",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Ramen Bar": {
+      "distribution_chance": 0.0202,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Ramen",
+            "chance": 6
+          },
+          {
+            "name": "Makaron",
+            "chance": 4
+          },
+          {
+            "name": "Tokyo",
+            "chance": 4
+          },
+          {
+            "name": "Ichiban",
+            "chance": 3
+          },
+          {
+            "name": "Miso",
+            "chance": 3
+          },
+          {
+            "name": "Sake",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Bar",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Sklep",
+            "chance": 4
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 3
+          },
+          {
+            "name": "Ya",
+            "chance": 2
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kuchnia Wietnamska": {
+      "distribution_chance": 0.0162,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Pho",
+            "chance": 7
+          },
+          {
+            "name": "Sajgon",
+            "chance": 5
+          },
+          {
+            "name": "Hanoi",
+            "chance": 4
+          },
+          {
+            "name": "Banh",
+            "chance": 3
+          },
+          {
+            "name": "Wietnam",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Dom",
+            "chance": 5
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 4
+          },
+          {
+            "name": "Express",
+            "chance": 3
+          },
+          {
+            "name": "Pałac",
+            "chance": 2
+          },
+          {
+            "name": "Ogród",
+            "chance": 3
+          },
+          {
+            "name": "Sajgon",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Grecka Taverna": {
+      "distribution_chance": 0.0162,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Taverna",
+            "chance": 5
+          },
+          {
+            "name": "Opa",
+            "chance": 4
+          },
+          {
+            "name": "Ateny",
+            "chance": 4
+          },
+          {
+            "name": "Santorini",
+            "chance": 3
+          },
+          {
+            "name": "Mythos",
+            "chance": 3
+          },
+          {
+            "name": "Zeus",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Grecka",
+            "chance": 5
+          },
+          {
+            "name": "Taverna",
+            "chance": 4
+          },
+          {
+            "name": "Grill",
+            "chance": 4
+          },
+          {
+            "name": "Dom",
+            "chance": 3
+          },
+          {
+            "name": "Pałac",
+            "chance": 2
+          },
+          {
+            "name": "Wyspa",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Korean BBQ": {
+      "distribution_chance": 0.0121,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Seul",
+            "chance": 5
+          },
+          {
+            "name": "Gangnam",
+            "chance": 4
+          },
+          {
+            "name": "K-",
+            "chance": 4
+          },
+          {
+            "name": "Kimchi",
+            "chance": 3
+          },
+          {
+            "name": "Koreański",
+            "chance": 5
+          },
+          {
+            "name": "Bibim",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "BBQ",
+            "chance": 7
+          },
+          {
+            "name": "Grill",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 3
+          },
+          {
+            "name": "Pałac",
+            "chance": 2
+          },
+          {
+            "name": "Ogród",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Bar Tapas": {
+      "distribution_chance": 0.0121,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "La",
+            "chance": 5
+          },
+          {
+            "name": "El",
+            "chance": 5
+          },
+          {
+            "name": "Casa",
+            "chance": 4
+          },
+          {
+            "name": "Tapas",
+            "chance": 5
+          },
+          {
+            "name": "Barcelona",
+            "chance": 3
+          },
+          {
+            "name": "Sewilla",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Tapas",
+            "chance": 6
+          },
+          {
+            "name": "Bar",
+            "chance": 5
+          },
+          {
+            "name": "Hiszpania",
+            "chance": 4
+          },
+          {
+            "name": "Madryt",
+            "chance": 3
+          },
+          {
+            "name": "Amigo",
+            "chance": 3
+          },
+          {
+            "name": "Słońce",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Amerykański Diner": {
+      "distribution_chance": 0.0202,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Droga",
+            "chance": 4
+          },
+          {
+            "name": "Gwiazda",
+            "chance": 4
+          },
+          {
+            "name": "Klasyczny",
+            "chance": 4
+          },
+          {
+            "name": "Niebieski",
+            "chance": 3
+          },
+          {
+            "name": "Srebrny",
+            "chance": 3
+          },
+          {
+            "name": "Szczęśliwy",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Diner",
+            "chance": 8
+          },
+          {
+            "name": "Cafe",
+            "chance": 4
+          },
+          {
+            "name": "Grill",
+            "chance": 4
+          },
+          {
+            "name": "Burger",
+            "chance": 3
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 2
+          },
+          {
+            "name": "Róg",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Restauracja z Owocami Morza": {
+      "distribution_chance": 0.0162,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Ocean",
+            "chance": 5
+          },
+          {
+            "name": "Morze",
+            "chance": 4
+          },
+          {
+            "name": "Niebieskie",
+            "chance": 4
+          },
+          {
+            "name": "Świeże",
+            "chance": 4
+          },
+          {
+            "name": "Kapitan",
+            "chance": 3
+          },
+          {
+            "name": "Port",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Ryby",
+            "chance": 5
+          },
+          {
+            "name": "Owoce Morza",
+            "chance": 6
+          },
+          {
+            "name": "Połów",
+            "chance": 4
+          },
+          {
+            "name": "Port",
+            "chance": 3
+          },
+          {
+            "name": "Grill",
+            "chance": 3
+          },
+          {
+            "name": "Dom",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Piekarnia z Kawiarnią": {
+      "distribution_chance": 0.0243,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Słodka",
+            "chance": 5
+          },
+          {
+            "name": "Złota",
+            "chance": 4
+          },
+          {
+            "name": "Świeża",
+            "chance": 4
+          },
+          {
+            "name": "Poranna",
+            "chance": 3
+          },
+          {
+            "name": "Codzienna",
+            "chance": 3
+          },
+          {
+            "name": "Szczęśliwa",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Piekarnia",
+            "chance": 6
+          },
+          {
+            "name": "Chleb",
+            "chance": 4
+          },
+          {
+            "name": "Cafe",
+            "chance": 5
+          },
+          {
+            "name": "Bułki",
+            "chance": 3
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 2
+          },
+          {
+            "name": "Róg",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kawiarnia": {
+      "distribution_chance": 0.0324,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Kawa",
+            "chance": 5
+          },
+          {
+            "name": "Espresso",
+            "chance": 4
+          },
+          {
+            "name": "Cafe",
+            "chance": 5
+          },
+          {
+            "name": "Ziarno",
+            "chance": 4
+          },
+          {
+            "name": "Poranna",
+            "chance": 3
+          },
+          {
+            "name": "Para",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Dom",
+            "chance": 5
+          },
+          {
+            "name": "Bar",
+            "chance": 4
+          },
+          {
+            "name": "Sklep",
+            "chance": 4
+          },
+          {
+            "name": "Róg",
+            "chance": 3
+          },
+          {
+            "name": "Palarnia",
+            "chance": 3
+          },
+          {
+            "name": "Centrum",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Wędzarnia BBQ": {
+      "distribution_chance": 0.0121,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Dym",
+            "chance": 5
+          },
+          {
+            "name": "Texas",
+            "chance": 4
+          },
+          {
+            "name": "Palenisko",
+            "chance": 4
+          },
+          {
+            "name": "Płomień",
+            "chance": 3
+          },
+          {
+            "name": "Wielki",
+            "chance": 3
+          },
+          {
+            "name": "Hickory",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "BBQ",
+            "chance": 6
+          },
+          {
+            "name": "Wędzarnia",
+            "chance": 5
+          },
+          {
+            "name": "Grill",
+            "chance": 4
+          },
+          {
+            "name": "Dom",
+            "chance": 3
+          },
+          {
+            "name": "Palenisko",
+            "chance": 3
+          },
+          {
+            "name": "Szopa",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Kuchnia Bliskowschodnia": {
+      "distribution_chance": 0.0081,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Bejrut",
+            "chance": 4
+          },
+          {
+            "name": "Damaszek",
+            "chance": 3
+          },
+          {
+            "name": "Petra",
+            "chance": 3
+          },
+          {
+            "name": "Sultan",
+            "chance": 4
+          },
+          {
+            "name": "Oaza",
+            "chance": 4
+          },
+          {
+            "name": "Sahara",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Kuchnia",
+            "chance": 5
+          },
+          {
+            "name": "Pałac",
+            "chance": 4
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Grill",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          },
+          {
+            "name": "Cafe",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Kuchnia Turecka": {
+      "distribution_chance": 0.0121,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Stambuł",
+            "chance": 5
+          },
+          {
+            "name": "Ankara",
+            "chance": 3
+          },
+          {
+            "name": "Bosfor",
+            "chance": 4
+          },
+          {
+            "name": "Sultan",
+            "chance": 5
+          },
+          {
+            "name": "Osmański",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Kuchnia",
+            "chance": 5
+          },
+          {
+            "name": "Dom",
+            "chance": 4
+          },
+          {
+            "name": "Grill",
+            "chance": 4
+          },
+          {
+            "name": "Pałac",
+            "chance": 3
+          },
+          {
+            "name": "Cafe",
+            "chance": 3
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Niemiecki Pub": {
+      "distribution_chance": 0.0081,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Bawarski",
+            "chance": 5
+          },
+          {
+            "name": "Berlin",
+            "chance": 4
+          },
+          {
+            "name": "Oktoberfest",
+            "chance": 4
+          },
+          {
+            "name": "Zum",
+            "chance": 4
+          },
+          {
+            "name": "Stary",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Piwiarna",
+            "chance": 4
+          },
+          {
+            "name": "Pub",
+            "chance": 5
+          },
+          {
+            "name": "Haus",
+            "chance": 4
+          },
+          {
+            "name": "Piwnica",
+            "chance": 3
+          },
+          {
+            "name": "Grill",
+            "chance": 3
+          },
+          {
+            "name": "Izba",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Lodziarnia": {
+      "distribution_chance": 0.0243,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Słodka",
+            "chance": 5
+          },
+          {
+            "name": "Lato",
+            "chance": 4
+          },
+          {
+            "name": "Włoska",
+            "chance": 4
+          },
+          {
+            "name": "Mrożona",
+            "chance": 3
+          },
+          {
+            "name": "Gelato",
+            "chance": 5
+          },
+          {
+            "name": "Krem",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Lodziarnia",
+            "chance": 8
+          },
+          {
+            "name": "Gelato",
+            "chance": 5
+          },
+          {
+            "name": "Smaki",
+            "chance": 4
+          },
+          {
+            "name": "Raj",
+            "chance": 3
+          },
+          {
+            "name": "Przyjemność",
+            "chance": 2
+          },
+          {
+            "name": "Express",
+            "chance": 2
+          }
+        ]
+      }
+    },
+    "Wykwintna Restauracja": {
+      "distribution_chance": 0.0121,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Elegancja",
+            "chance": 5
+          },
+          {
+            "name": "Prestiż",
+            "chance": 4
+          },
+          {
+            "name": "Królewska",
+            "chance": 4
+          },
+          {
+            "name": "Ekskluzywna",
+            "chance": 3
+          },
+          {
+            "name": "Signature",
+            "chance": 5
+          },
+          {
+            "name": "Gourmet",
+            "chance": 4
+          }
+        ],
+        "part2": [
+          {
+            "name": "Restauracja",
+            "chance": 6
+          },
+          {
+            "name": "Kuchnia",
+            "chance": 5
+          },
+          {
+            "name": "Pałac",
+            "chance": 4
+          },
+          {
+            "name": "Salon",
+            "chance": 3
+          },
+          {
+            "name": "Maneż",
+            "chance": 2
+          },
+          {
+            "name": "Dwór",
+            "chance": 3
+          }
+        ]
+      }
+    },
+    "Kanapkownia": {
+      "distribution_chance": 0.0324,
+      "name_templates": {
+        "part1": [
+          {
+            "name": "Świeża",
+            "chance": 5
+          },
+          {
+            "name": "Szybka",
+            "chance": 4
+          },
+          {
+            "name": "Prosta",
+            "chance": 4
+          },
+          {
+            "name": "Zdrowa",
+            "chance": 3
+          },
+          {
+            "name": "Smaczna",
+            "chance": 4
+          },
+          {
+            "name": "Mega",
+            "chance": 3
+          }
+        ],
+        "part2": [
+          {
+            "name": "Kanapkownia",
+            "chance": 6
+          },
+          {
+            "name": "Sandwich",
+            "chance": 5
+          },
+          {
+            "name": "Bułki",
+            "chance": 4
+          },
+          {
+            "name": "Bar",
+            "chance": 4
+          },
+          {
+            "name": "Express",
+            "chance": 3
+          },
+          {
+            "name": "Przystanek",
+            "chance": 2
+          }
+        ]
+      }
+    }
+  }
+}
