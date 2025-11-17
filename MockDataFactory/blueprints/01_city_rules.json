@@ -1,0 +1,76 @@
+{
+  "CITY_CONFIG": {
+    "Warszawa": {
+      "user_count": {"mean": 3300, "stdev": 400},
+      "restaurant_count": {"mean": 150, "stdev": 20}
+    },
+    "Kraków": {
+      "user_count": {"mean": 2500, "stdev": 350},
+      "restaurant_count": {"mean": 120, "stdev": 15}
+    },
+    "Łódź": {
+        "user_count": {"mean": 1700, "stdev": 280},
+        "restaurant_count": {"mean": 90, "stdev": 10}
+    },
+    "Wrocław": {
+        "user_count": {"mean": 2000, "stdev": 300},
+        "restaurant_count": {"mean": 110, "stdev": 15}
+    },
+    "Poznań": {
+        "user_count": {"mean": 1500, "stdev": 220},
+        "restaurant_count": {"mean": 100, "stdev": 15}
+    },
+    "Gdańsk": {
+        "user_count": {"mean": 1400, "stdev": 200},
+        "restaurant_count": {"mean": 90, "stdev": 10}
+    },
+    "Szczecin": {
+        "user_count": {"mean": 1200, "stdev": 180},
+        "restaurant_count": {"mean": 70, "stdev": 10}
+    },
+    "Bydgoszcz": {
+        "user_count": {"mean": 1000, "stdev": 150},
+        "restaurant_count": {"mean": 60, "stdev": 10}
+    },
+    "Lublin": {
+        "user_count": {"mean": 1100, "stdev": 160},
+        "restaurant_count": {"mean": 65, "stdev": 10}
+    },
+    "Białystok": {
+        "user_count": {"mean": 850, "stdev": 130},
+        "restaurant_count": {"mean": 50, "stdev": 8}
+    },
+    "Katowice": {
+        "user_count": {"mean": 1700, "stdev": 280},
+        "restaurant_count": {"mean": 100, "stdev": 15}
+    },
+    "Gorzów Wielkopolski": {
+        "user_count": {"mean": 500, "stdev": 80},
+        "restaurant_count": {"mean": 30, "stdev": 5}
+    },
+    "Kielce": {
+        "user_count": {"mean": 700, "stdev": 110},
+        "restaurant_count": {"mean": 40, "stdev": 5}
+    },
+    "Olsztyn": {
+        "user_count": {"mean": 600, "stdev": 90},
+        "restaurant_count": {"mean": 45, "stdev": 8}
+    },
+    "Opole": {
+        "user_count": {"mean": 500, "stdev": 80},
+        "restaurant_count": {"mean": 35, "stdev": 5}
+    },
+    "Rzeszów": {
+        "user_count": {"mean": 700, "stdev": 110},
+        "restaurant_count": {"mean": 50, "stdev": 8}
+    },
+    "Toruń": {
+        "user_count": {"mean": 750, "stdev": 120},
+        "restaurant_count": {"mean": 55, "stdev": 10}
+    },
+    "Zielona Góra": {
+      "user_count": {"mean": 500, "stdev": 80},
+      "restaurant_count": {"mean": 30, "stdev": 5}
+    }
+  }
+}

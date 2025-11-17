@@ -1,0 +1,1471 @@
+{
+  "MENU_BLUEPRINTS": {
+    "Pizzeria": {
+      "dish_count": {
+        "mean": 20,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Pizza": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Margherita",
+              "chance": 1.0
+            },
+            {
+              "name": "Chorizo",
+              "chance": 0.7
+            },
+            {
+              "name": "Hawajska",
+              "chance": 0.5
+            }
+          ]
+        },
+        "Frytki": {
+          "chance": 0.3,
+          "variants": [
+            {
+              "name": "Frytki",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Calzone": {
+          "chance": 0.4,
+          "variants": [
+            {
+              "name": "Calzone Klasyczne",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Kebab": {
+      "dish_count": {
+        "mean": 10,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Kebab": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Kebab w Bułce",
+              "chance": 1.0
+            },
+            {
+              "name": "Kebab Box",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Frytki": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Frytki",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Burger Joint": {
+      "dish_count": {
+        "mean": 15,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Burger": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Burger Klasyczny",
+              "chance": 1.0
+            },
+            {
+              "name": "Cheeseburger",
+              "chance": 0.9
+            },
+            {
+              "name": "Burger z Bekonem",
+              "chance": 0.7
+            },
+            {
+              "name": "Burger Pikantny",
+              "chance": 0.5
+            }
+          ]
+        },
+        "Frytki": {
+          "chance": 0.95,
+          "variants": [
+            {
+              "name": "Frytki",
+              "chance": 1.0
+            },
+            {
+              "name": "Frytki z Batatów",
+              "chance": 0.4
+            }
+          ]
+        },
+        "Napoje": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Cola",
+              "chance": 1.0
+            },
+            {
+              "name": "Koktajl Mleczny",
+              "chance": 0.6
+            }
+          ]
+        }
+      }
+    },
+    "Polish Traditional": {
+      "dish_count": {
+        "mean": 18,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Pierogi Ruskie",
+              "chance": 1.0
+            },
+            {
+              "name": "Bigos",
+              "chance": 0.9
+            },
+            {
+              "name": "Kotlet Schabowy",
+              "chance": 0.8
+            },
+            {
+              "name": "Żurek",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Zupy": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Rosół",
+              "chance": 1.0
+            },
+            {
+              "name": "Barszcz",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "Sushi Bar": {
+      "dish_count": {
+        "mean": 25,
+        "stdev": 6
+      },
+      "archetypes": {
+        "Nigiri": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Nigiri z Łososia",
+              "chance": 1.0
+            },
+            {
+              "name": "Nigiri z Tuńczyka",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Maki": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "California Roll",
+              "chance": 1.0
+            },
+            {
+              "name": "Pikantne Maki z Tuńczyka",
+              "chance": 0.8
+            },
+            {
+              "name": "Dragon Roll",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Sashimi": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Sashimi z Łososia",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Vegan Cafe": {
+      "dish_count": {
+        "mean": 16,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Bowl": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Buddha Bowl",
+              "chance": 1.0
+            },
+            {
+              "name": "Acai Bowl",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Burgery": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Burger Wegański",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Smoothie": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Zielone Smoothie",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Chinese": {
+      "dish_count": {
+        "mean": 20,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Wieprzowina w Sosie Słodko-Kwaśnym",
+              "chance": 1.0
+            },
+            {
+              "name": "Kurczak Kung Pao",
+              "chance": 0.9
+            },
+            {
+              "name": "Mapo Tofu",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Makaron": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Chow Mein",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Ryż": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Smażony Ryż",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Indian": {
+      "dish_count": {
+        "mean": 18,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Curry": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Butter Chicken",
+              "chance": 1.0
+            },
+            {
+              "name": "Tikka Masala",
+              "chance": 0.9
+            },
+            {
+              "name": "Vindaloo",
+              "chance": 0.5
+            }
+          ]
+        },
+        "Pieczywo": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Naan",
+              "chance": 1.0
+            },
+            {
+              "name": "Naan Czosnkowy",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Tandoori": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Kurczak Tandoori",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Italian Trattoria": {
+      "dish_count": {
+        "mean": 22,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Makaron": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Spaghetti Carbonara",
+              "chance": 1.0
+            },
+            {
+              "name": "Penne Arrabbiata",
+              "chance": 0.8
+            },
+            {
+              "name": "Fettuccine Alfredo",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Risotto": {
+          "chance": 0.6,
+          "variants": [
+            {
+              "name": "Risotto ai Funghi",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Przystawki": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Bruschetta",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Thai": {
+      "dish_count": {
+        "mean": 17,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Pad Thai",
+              "chance": 1.0
+            },
+            {
+              "name": "Zielone Curry",
+              "chance": 0.9
+            },
+            {
+              "name": "Czerwone Curry",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Zupy": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Tom Yum",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Potrawki Smażone": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Kurczak z Bazylią",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Mexican Taco Stand": {
+      "dish_count": {
+        "mean": 12,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Tacos": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Taco al Pastor",
+              "chance": 1.0
+            },
+            {
+              "name": "Taco de Carne",
+              "chance": 0.9
+            },
+            {
+              "name": "Taco Rybne",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Burrito": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Burrito",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Quesadilla": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Quesadilla",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "French Bistro": {
+      "dish_count": {
+        "mean": 16,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Coq au Vin",
+              "chance": 0.8
+            },
+            {
+              "name": "Boeuf Bourguignon",
+              "chance": 0.7
+            },
+            {
+              "name": "Steak Frites",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Przystawki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Zupa Cebulowa",
+              "chance": 1.0
+            },
+            {
+              "name": "Escargot",
+              "chance": 0.5
+            }
+          ]
+        }
+      }
+    },
+    "Steakhouse": {
+      "dish_count": {
+        "mean": 14,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Steki": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Stek Ribeye",
+              "chance": 1.0
+            },
+            {
+              "name": "Filet Mignon",
+              "chance": 0.9
+            },
+            {
+              "name": "Stek T-Bone",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Pieczony Ziemniak",
+              "chance": 1.0
+            },
+            {
+              "name": "Grillowane Warzywa",
+              "chance": 0.7
+            }
+          ]
+        }
+      }
+    },
+    "Ramen Bar": {
+      "dish_count": {
+        "mean": 12,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Ramen": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Tonkotsu Ramen",
+              "chance": 1.0
+            },
+            {
+              "name": "Miso Ramen",
+              "chance": 0.9
+            },
+            {
+              "name": "Pikantne Miso Ramen",
+              "chance": 0.7
+            },
+            {
+              "name": "Shoyu Ramen",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Gyoza",
+              "chance": 1.0
+            },
+            {
+              "name": "Edamame",
+              "chance": 0.6
+            }
+          ]
+        }
+      }
+    },
+    "Vietnamese Pho": {
+      "dish_count": {
+        "mean": 10,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Pho": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Pho Bo",
+              "chance": 1.0
+            },
+            {
+              "name": "Pho Ga",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Banh Mi": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Banh Mi Thit",
+              "chance": 1.0
+            }
+          ]
+        },
+        "Sajgonki": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Świeże Sajgonki",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Greek Taverna": {
+      "dish_count": {
+        "mean": 14,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Moussaka",
+              "chance": 1.0
+            },
+            {
+              "name": "Souvlaki",
+              "chance": 0.9
+            },
+            {
+              "name": "Gyros",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Przystawki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Sałatka Grecka",
+              "chance": 1.0
+            },
+            {
+              "name": "Tzatziki",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "Korean BBQ": {
+      "dish_count": {
+        "mean": 16,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Grillowane Mięsa": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Bulgogi",
+              "chance": 1.0
+            },
+            {
+              "name": "Galbi",
+              "chance": 0.9
+            },
+            {
+              "name": "Samgyeopsal",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Kimchi",
+              "chance": 1.0
+            },
+            {
+              "name": "Bibimbap",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "Spanish Tapas": {
+      "dish_count": {
+        "mean": 18,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Tapas": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Patatas Bravas",
+              "chance": 1.0
+            },
+            {
+              "name": "Jamón Ibérico",
+              "chance": 0.9
+            },
+            {
+              "name": "Gambas al Ajillo",
+              "chance": 0.8
+            },
+            {
+              "name": "Albondigas",
+              "chance": 0.7
+            },
+            {
+              "name": "Croquetas",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Paella": {
+          "chance": 0.6,
+          "variants": [
+            {
+              "name": "Paella Valenciana",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "American Diner": {
+      "dish_count": {
+        "mean": 20,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Śniadanie": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Naleśniki",
+              "chance": 1.0
+            },
+            {
+              "name": "Jajka z Bekonem",
+              "chance": 0.9
+            },
+            {
+              "name": "Tosty Francuskie",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Dania Główne": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Pieczeń Rzymska",
+              "chance": 0.8
+            },
+            {
+              "name": "Smażony Kurczak",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Koktajle": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Koktajl Czekoladowy",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Seafood Restaurant": {
+      "dish_count": {
+        "mean": 16,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Ryby": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Grillowany Łosoś",
+              "chance": 1.0
+            },
+            {
+              "name": "Fish and Chips",
+              "chance": 0.8
+            },
+            {
+              "name": "Okoń Morski",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Owoce Morza": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Grillowane Krewetki",
+              "chance": 1.0
+            },
+            {
+              "name": "Ogon Homara",
+              "chance": 0.6
+            },
+            {
+              "name": "Małże",
+              "chance": 0.7
+            }
+          ]
+        }
+      }
+    },
+    "Bakery Cafe": {
+      "dish_count": {
+        "mean": 18,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Wypieki": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Croissant",
+              "chance": 1.0
+            },
+            {
+              "name": "Pain au Chocolat",
+              "chance": 0.9
+            },
+            {
+              "name": "Drożdżówka z Cynamonem",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Ciasta": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Sernik",
+              "chance": 1.0
+            },
+            {
+              "name": "Ciasto Czekoladowe",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Pieczywo": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Chleb na Zakwasie",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Coffee House": {
+      "dish_count": {
+        "mean": 15,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Kawa": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Espresso",
+              "chance": 1.0
+            },
+            {
+              "name": "Cappuccino",
+              "chance": 0.9
+            },
+            {
+              "name": "Latte",
+              "chance": 0.9
+            },
+            {
+              "name": "Americano",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Przekąski": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Muffin",
+              "chance": 1.0
+            },
+            {
+              "name": "Brownie",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "BBQ Smokehouse": {
+      "dish_count": {
+        "mean": 14,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Mięsa Wędzone": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Pulled Pork",
+              "chance": 1.0
+            },
+            {
+              "name": "Brisket Wołowy",
+              "chance": 0.9
+            },
+            {
+              "name": "Żeberka",
+              "chance": 0.9
+            },
+            {
+              "name": "Wędzony Kurczak",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Coleslaw",
+              "chance": 1.0
+            },
+            {
+              "name": "Mac and Cheese",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "Middle Eastern": {
+      "dish_count": {
+        "mean": 16,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Falafel",
+              "chance": 1.0
+            },
+            {
+              "name": "Shawarma",
+              "chance": 0.9
+            },
+            {
+              "name": "Hummus Bowl",
+              "chance": 0.8
+            },
+            {
+              "name": "Kebab",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Tabbouleh",
+              "chance": 1.0
+            },
+            {
+              "name": "Baba Ganoush",
+              "chance": 0.7
+            }
+          ]
+        }
+      }
+    },
+    "Turkish": {
+      "dish_count": {
+        "mean": 15,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Döner Kebab",
+              "chance": 1.0
+            },
+            {
+              "name": "Lahmacun",
+              "chance": 0.8
+            },
+            {
+              "name": "Adana Kebab",
+              "chance": 0.7
+            },
+            {
+              "name": "Manti",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Börek",
+              "chance": 1.0
+            },
+            {
+              "name": "Turecki Chleb",
+              "chance": 0.9
+            }
+          ]
+        }
+      }
+    },
+    "German Pub": {
+      "dish_count": {
+        "mean": 14,
+        "stdev": 3
+      },
+      "archetypes": {
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Schnitzel",
+              "chance": 1.0
+            },
+            {
+              "name": "Bratwurst",
+              "chance": 0.9
+            },
+            {
+              "name": "Sauerbraten",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Dodatki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Precel",
+              "chance": 1.0
+            },
+            {
+              "name": "Kapusta Kiszona",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Piwo": {
+          "chance": 0.95,
+          "variants": [
+            {
+              "name": "Pilsner",
+              "chance": 1.0
+            },
+            {
+              "name": "Piwo Pszeniczne",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    },
+    "Ice Cream Parlor": {
+      "dish_count": {
+        "mean": 25,
+        "stdev": 5
+      },
+      "archetypes": {
+        "Lody Klasyczne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Lody Waniliowe",
+              "chance": 1.0
+            },
+            {
+              "name": "Lody Czekoladowe",
+              "chance": 1.0
+            },
+            {
+              "name": "Lody Truskawkowe",
+              "chance": 0.9
+            },
+            {
+              "name": "Lody Śmietankowe",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Lody Premium": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Lody Pistacjowe",
+              "chance": 1.0
+            },
+            {
+              "name": "Lody Solony Karmel",
+              "chance": 0.9
+            },
+            {
+              "name": "Lody Orzech Laskowy",
+              "chance": 0.8
+            },
+            {
+              "name": "Lody Kokosowe",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Gelato": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Gelato Stracciatella",
+              "chance": 1.0
+            },
+            {
+              "name": "Gelato Tiramisu",
+              "chance": 0.9
+            },
+            {
+              "name": "Gelato Amarena",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Sorbet": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Sorbet Cytrynowy",
+              "chance": 1.0
+            },
+            {
+              "name": "Sorbet Malinowy",
+              "chance": 0.9
+            },
+            {
+              "name": "Sorbet Mango",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Shake": {
+          "chance": 0.95,
+          "variants": [
+            {
+              "name": "Shake Czekoladowy",
+              "chance": 1.0
+            },
+            {
+              "name": "Shake Waniliowy",
+              "chance": 1.0
+            },
+            {
+              "name": "Shake Truskawkowy",
+              "chance": 0.9
+            },
+            {
+              "name": "Shake Oreo",
+              "chance": 0.8
+            },
+            {
+              "name": "Shake Nutella",
+              "chance": 0.7
+            }
+          ]
+        }
+      }
+    },
+    "Fine Dining": {
+      "dish_count": {
+        "mean": 20,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Przystawki": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Carpaccio",
+              "chance": 1.0
+            },
+            {
+              "name": "Tatar",
+              "chance": 0.9
+            },
+            {
+              "name": "Escargot",
+              "chance": 0.7
+            },
+            {
+              "name": "Ogon Homara",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Zupy": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Krem z Grzybów",
+              "chance": 1.0
+            },
+            {
+              "name": "Zupa Cebulowa",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Dania Główne": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Filet Mignon",
+              "chance": 1.0
+            },
+            {
+              "name": "Stek Ribeye",
+              "chance": 0.9
+            },
+            {
+              "name": "Okoń Morski",
+              "chance": 0.8
+            },
+            {
+              "name": "Grillowany Łosoś",
+              "chance": 0.8
+            },
+            {
+              "name": "Coq au Vin",
+              "chance": 0.7
+            },
+            {
+              "name": "Boeuf Bourguignon",
+              "chance": 0.6
+            }
+          ]
+        },
+        "Makaron": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Linguine alle Vongole",
+              "chance": 1.0
+            },
+            {
+              "name": "Ravioli",
+              "chance": 0.8
+            },
+            {
+              "name": "Risotto ai Funghi",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Desery": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Crème Brûlée",
+              "chance": 1.0
+            },
+            {
+              "name": "Tiramisu",
+              "chance": 0.9
+            },
+            {
+              "name": "Panna Cotta",
+              "chance": 0.9
+            },
+            {
+              "name": "Lawa Czekoladowa",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Wino": {
+          "chance": 0.95,
+          "variants": [
+            {
+              "name": "Wino Czerwone",
+              "chance": 1.0
+            },
+            {
+              "name": "Wino Białe",
+              "chance": 1.0
+            }
+          ]
+        }
+      }
+    },
+    "Sandwich Shop": {
+      "dish_count": {
+        "mean": 18,
+        "stdev": 4
+      },
+      "archetypes": {
+        "Kanapki": {
+          "chance": 1.0,
+          "variants": [
+            {
+              "name": "Kanapka z Kurczakiem",
+              "chance": 1.0
+            },
+            {
+              "name": "Kanapka BLT",
+              "chance": 0.9
+            },
+            {
+              "name": "Kanapka z Tuńczykiem",
+              "chance": 0.8
+            },
+            {
+              "name": "Kanapka z Szynką",
+              "chance": 0.9
+            },
+            {
+              "name": "Kanapka Clubhouse",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Panini": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Panini z Kurczakiem",
+              "chance": 1.0
+            },
+            {
+              "name": "Panini z Mozzarellą",
+              "chance": 0.9
+            }
+          ]
+        },
+        "Wrapy": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Wrap z Kurczakiem",
+              "chance": 1.0
+            },
+            {
+              "name": "Wrap Wegetariański",
+              "chance": 0.8
+            },
+            {
+              "name": "Wrap z Łososiem",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Bagel": {
+          "chance": 0.7,
+          "variants": [
+            {
+              "name": "Bagel z Łososiem",
+              "chance": 1.0
+            },
+            {
+              "name": "Bagel z Serem Kremowym",
+              "chance": 0.8
+            }
+          ]
+        },
+        "Sałatki": {
+          "chance": 0.8,
+          "variants": [
+            {
+              "name": "Sałatka Cezar",
+              "chance": 1.0
+            },
+            {
+              "name": "Sałatka z Grillowanym Kurczakiem",
+              "chance": 0.9
+            },
+            {
+              "name": "Sałatka z Tuńczykiem",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Napoje": {
+          "chance": 0.9,
+          "variants": [
+            {
+              "name": "Sok Pomarańczowy",
+              "chance": 1.0
+            },
+            {
+              "name": "Sok Jabłkowy",
+              "chance": 0.9
+            },
+            {
+              "name": "Lemoniada",
+              "chance": 0.8
+            },
+            {
+              "name": "Mrożona Herbata",
+              "chance": 0.7
+            }
+          ]
+        },
+        "Kawa": {
+          "chance": 0.85,
+          "variants": [
+            {
+              "name": "Espresso",
+              "chance": 1.0
+            },
+            {
+              "name": "Cappuccino",
+              "chance": 0.9
+            },
+            {
+              "name": "Latte",
+              "chance": 0.8
+            }
+          ]
+        }
+      }
+    }
+  }
+}

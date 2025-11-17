@@ -1,0 +1,4598 @@
+{
+  "Pizza": {
+    "Margherita": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto",
+        "sos_pomidorowy",
+        "ser",
+        "bazylia"
+      ]
+    },
+    "Hawajska": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto",
+        "sos_pomidorowy",
+        "ser",
+        "szynka",
+        "ananas"
+      ]
+    },
+    "Chorizo": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "ciasto",
+        "sos_pomidorowy",
+        "ser",
+        "chorizo",
+        "cebula"
+      ]
+    },
+    "Calzone Klasyczne": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto",
+        "sos_pomidorowy",
+        "ser",
+        "szynka",
+        "pieczarki"
+      ]
+    }
+  },
+  "Burger": {
+    "Burger Klasyczny": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bułka",
+        "kotlet_wołowy",
+        "sałata",
+        "pomidor",
+        "cebula",
+        "ogórek_kiszony"
+      ]
+    },
+    "Cheeseburger": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bułka",
+        "kotlet_wołowy",
+        "ser",
+        "sałata",
+        "pomidor",
+        "cebula"
+      ]
+    },
+    "Burger z Bekonem": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bułka",
+        "kotlet_wołowy",
+        "bekon",
+        "ser",
+        "sałata",
+        "pomidor"
+      ]
+    },
+    "Burger Pikantny": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "bułka",
+        "kotlet_wołowy",
+        "jalapeno",
+        "sos_pikantny",
+        "ser"
+      ]
+    },
+    "Burger Wegański": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wegańska_bułka",
+        "kotlet_roślinny",
+        "sałata",
+        "pomidor"
+      ]
+    }
+  },
+  "Kebab": {
+    "Kebab Klasyczny": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "jagnięcina",
+        "warzywa",
+        "ryż",
+        "przyprawy"
+      ]
+    },
+    "Kebab w Bułce": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 3.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "bułka",
+        "kurczak",
+        "sałata",
+        "cebula",
+        "pomidor"
+      ]
+    },
+    "Kebab Box": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "frytki",
+        "kurczak",
+        "sałata",
+        "cebula",
+        "pomidor"
+      ]
+    },
+    "Döner Kebab": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "jagnięcina",
+        "pita",
+        "warzywa",
+        "sos_jogurtowy"
+      ]
+    },
+    "Adana Kebab": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "mielona_jagnięcina",
+        "przyprawy",
+        "ryż",
+        "warzywa"
+      ]
+    },
+    "Shawarma": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "kurczak",
+        "pita",
+        "tahini",
+        "warzywa",
+        "przyprawy"
+      ]
+    },
+    "Gyros": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jagnięcina",
+        "pita",
+        "tzatziki",
+        "cebula",
+        "pomidor"
+      ]
+    }
+  },
+  "Frytki": {
+    "Frytki Klasyczne": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 2.0
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziemniaki",
+        "sól"
+      ]
+    },
+    "Frytki z Batatów": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bataty",
+        "sól"
+      ]
+    }
+  },
+  "Lody": {
+    "Lody Waniliowe": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "wanilia",
+        "cukier"
+      ]
+    },
+    "Lody Czekoladowe": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "czekolada",
+        "cukier"
+      ]
+    },
+    "Lody Truskawkowe": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "truskawki",
+        "cukier"
+      ]
+    },
+    "Lody Cytrynowe": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "cytryna",
+        "cukier"
+      ]
+    },
+    "Lody Karmelowe": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "karmel",
+        "cukier"
+      ]
+    },
+    "Lody Pistacjowe": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "pistacje",
+        "cukier"
+      ]
+    },
+    "Lody Kokosowe": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko_kokosowe",
+        "wiórki_kokosowe",
+        "cukier"
+      ]
+    },
+    "Lody Mango": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "mango",
+        "cukier"
+      ]
+    },
+    "Lody Malinowe": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "maliny",
+        "cukier"
+      ]
+    },
+    "Lody Orzechowe": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "orzechy_włoskie",
+        "cukier"
+      ]
+    },
+    "Lody Orzech Laskowy": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "orzechy_laskowe",
+        "cukier"
+      ]
+    },
+    "Lody Miętowe": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "mięta",
+        "czekolada",
+        "cukier"
+      ]
+    },
+    "Lody Solony Karmel": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "karmel",
+        "sól_morska",
+        "cukier"
+      ]
+    },
+    "Lody Czekoladowe z Chili": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "śmietanka",
+        "czekolada_gorzka",
+        "chili",
+        "cukier"
+      ]
+    },
+    "Lody Śmietankowe": {
+      "base_price": {
+        "mean": 11.0,
+        "stdev": 2.0
+      },
+      "default_price": 11.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "cukier",
+        "wanilia"
+      ]
+    },
+    "Gelato Amarena": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "wiśnie_amarena",
+        "cukier"
+      ]
+    },
+    "Gelato Stracciatella": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "czekoladowe_wiórki",
+        "wanilia"
+      ]
+    },
+    "Gelato Tiramisu": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mascarpone",
+        "kawa",
+        "kakao",
+        "cukier"
+      ]
+    }
+  },
+  "Sorbet": {
+    "Sorbet Cytrynowy": {
+      "base_price": {
+        "mean": 11.0,
+        "stdev": 2.0
+      },
+      "default_price": 11.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cytryna",
+        "cukier",
+        "woda"
+      ]
+    },
+    "Sorbet Malinowy": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "maliny",
+        "cukier",
+        "woda"
+      ]
+    },
+    "Sorbet Mango": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mango",
+        "cukier",
+        "woda"
+      ]
+    }
+  },
+  "Shake": {
+    "Shake Czekoladowy": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "lody_czekoladowe",
+        "syrop_czekoladowy"
+      ]
+    },
+    "Shake Waniliowy": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "lody_waniliowe",
+        "bita_śmietana"
+      ]
+    },
+    "Shake Truskawkowy": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "truskawki",
+        "lody_waniliowe"
+      ]
+    },
+    "Shake Bananowy": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "banan",
+        "lody_waniliowe"
+      ]
+    },
+    "Shake Oreo": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "ciastka_oreo",
+        "lody_waniliowe"
+      ]
+    },
+    "Shake Nutella": {
+      "base_price": {
+        "mean": 19.0,
+        "stdev": 2.0
+      },
+      "default_price": 19.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "nutella",
+        "lody_czekoladowe",
+        "bita_śmietana"
+      ]
+    },
+    "Shake Karmelowy": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "karmel",
+        "lody_waniliowe",
+        "bita_śmietana"
+      ]
+    },
+    "Shake Masło Orzechowe": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "masło_orzechowe",
+        "banan",
+        "lody_waniliowe"
+      ]
+    },
+    "Shake Pistacjowy": {
+      "base_price": {
+        "mean": 19.0,
+        "stdev": 2.0
+      },
+      "default_price": 19.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "pistacje",
+        "lody_pistacjowe"
+      ]
+    },
+    "Shake Jagodowy": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "jagody",
+        "borówki",
+        "lody_waniliowe"
+      ]
+    }
+  },
+  "Sałatka": {
+    "Sałatka Cezar": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "sałata_rzymska",
+        "kurczak",
+        "parmezan",
+        "grzanki",
+        "sos_cezar"
+      ]
+    },
+    "Sałatka Grecka": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 2.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "pomidor",
+        "ogórek",
+        "feta",
+        "oliwki",
+        "oliwa"
+      ]
+    },
+    "Sałatka Caprese": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "pomidor",
+        "mozzarella",
+        "bazylia",
+        "oliwa",
+        "ocet_balsamiczny"
+      ]
+    },
+    "Sałatka z Łososiem": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "łosoś_wędzony",
+        "sałata",
+        "awokado",
+        "ogórek",
+        "koperek"
+      ]
+    },
+    "Sałatka z Tuńczykiem": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tuńczyk",
+        "sałata",
+        "kukurydza",
+        "pomidor",
+        "cebula"
+      ]
+    },
+    "Sałatka z Grillowanym Kurczakiem": {
+      "base_price": {
+        "mean": 27.0,
+        "stdev": 3.0
+      },
+      "default_price": 27.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kurczak",
+        "sałata",
+        "pomidor",
+        "ogórek",
+        "papryka"
+      ]
+    },
+    "Sałatka z Kozim Serem": {
+      "base_price": {
+        "mean": 29.0,
+        "stdev": 3.0
+      },
+      "default_price": 29.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ser_kozi",
+        "sałata",
+        "orzechy_włoskie",
+        "suszone_żurawiny",
+        "miód"
+      ]
+    },
+    "Sałatka z Quinoa": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "komosa_ryżowa",
+        "awokado",
+        "pomidor",
+        "ciecierzyca",
+        "cytryna"
+      ]
+    },
+    "Sałatka z Awokado": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "awokado",
+        "sałata",
+        "pomidor",
+        "ogórek",
+        "cytryna"
+      ]
+    },
+    "Sałatka Nicejska": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tuńczyk",
+        "jajko",
+        "pomidor",
+        "oliwki",
+        "fasolka_szparagowa"
+      ]
+    },
+    "Sałatka Waldorf": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jabłko",
+        "seler_naciowy",
+        "orzechy_włoskie",
+        "winogrona",
+        "majonez"
+      ]
+    },
+    "Sałatka Jarzynowa": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziemniaki",
+        "marchew",
+        "groszek",
+        "ogórki_kiszone",
+        "majonez"
+      ]
+    },
+    "Sałatka Orientalna": {
+      "base_price": {
+        "mean": 27.0,
+        "stdev": 3.0
+      },
+      "default_price": 27.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "sałata",
+        "kurczak",
+        "sezam",
+        "mandarynka",
+        "sos_sojowy"
+      ]
+    },
+    "Coleslaw": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.5
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kapusta",
+        "marchew",
+        "majonez",
+        "ocet"
+      ]
+    }
+  },
+  "Kanapka": {
+    "Kanapka z Kurczakiem": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bułka",
+        "kurczak",
+        "sałata",
+        "pomidor",
+        "majonez"
+      ]
+    },
+    "Kanapka BLT": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "chleb_tostowy",
+        "bekon",
+        "sałata",
+        "pomidor",
+        "majonez"
+      ]
+    },
+    "Kanapka Clubhouse": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "chleb_tostowy",
+        "kurczak",
+        "bekon",
+        "jajko",
+        "sałata",
+        "pomidor"
+      ]
+    },
+    "Kanapka z Szynką": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bułka",
+        "szynka",
+        "ser",
+        "sałata",
+        "pomidor"
+      ]
+    },
+    "Kanapka z Tuńczykiem": {
+      "base_price": {
+        "mean": 23.0,
+        "stdev": 3.0
+      },
+      "default_price": 23.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "chleb",
+        "tuńczyk",
+        "jajko",
+        "majonez",
+        "sałata"
+      ]
+    },
+    "Kanapka Caprese": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bagietka",
+        "mozzarella",
+        "pomidor",
+        "bazylia",
+        "oliwa"
+      ]
+    },
+    "Bagel z Łososiem": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bagel",
+        "łosoś_wędzony",
+        "ser_kremowy",
+        "czerwona_cebula",
+        "kapary"
+      ]
+    },
+    "Bagel z Serem Kremowym": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bagel",
+        "ser_kremowy",
+        "pomidor",
+        "ogórek"
+      ]
+    }
+  },
+  "Panini": {
+    "Panini z Kurczakiem": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "panini",
+        "kurczak",
+        "ser",
+        "papryka",
+        "cebula"
+      ]
+    },
+    "Panini z Mozzarellą": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "panini",
+        "mozzarella",
+        "pomidor",
+        "bazylia",
+        "pesto"
+      ]
+    }
+  },
+  "Wrap": {
+    "Wrap z Kurczakiem": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "tortilla",
+        "kurczak",
+        "sałata",
+        "pomidor",
+        "sos_czosnkowy"
+      ]
+    },
+    "Wrap Wegetariański": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tortilla",
+        "hummus",
+        "warzywa_grillowane",
+        "feta"
+      ]
+    },
+    "Wrap z Łososiem": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tortilla",
+        "łosoś_wędzony",
+        "ser_kremowy",
+        "rukola",
+        "ogórek"
+      ]
+    }
+  },
+  "Pasta": {
+    "Spaghetti Carbonara": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "spaghetti",
+        "jajko",
+        "bekon",
+        "parmezan",
+        "pieprz"
+      ]
+    },
+    "Pasta Bolognese": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron",
+        "mięso_mielone",
+        "pomidor",
+        "cebula",
+        "marchew"
+      ]
+    },
+    "Aglio e Olio": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "spaghetti",
+        "czosnek",
+        "oliwa",
+        "chili",
+        "pietruszka"
+      ]
+    },
+    "Penne Arrabbiata": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "penne",
+        "pomidor",
+        "czosnek",
+        "chili",
+        "oliwa"
+      ]
+    },
+    "Penne alla Vodka": {
+      "base_price": {
+        "mean": 31.0,
+        "stdev": 4.0
+      },
+      "default_price": 31.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "penne",
+        "wódka",
+        "śmietana",
+        "pomidor",
+        "chili"
+      ]
+    },
+    "Pasta Primavera": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron",
+        "warzywa_wiosenne",
+        "oliwa",
+        "czosnek",
+        "parmezan"
+      ]
+    },
+    "Pasta Puttanesca": {
+      "base_price": {
+        "mean": 29.0,
+        "stdev": 3.0
+      },
+      "default_price": 29.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "makaron",
+        "pomidor",
+        "oliwki",
+        "kapary",
+        "anchois"
+      ]
+    },
+    "Fettuccine Alfredo": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "fettuccine",
+        "śmietana",
+        "parmezan",
+        "masło"
+      ]
+    },
+    "Linguine alle Vongole": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "linguine",
+        "małże",
+        "białe_wino",
+        "czosnek",
+        "chili"
+      ]
+    },
+    "Lasagne": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron_lasagne",
+        "sos_boloński",
+        "beszamel",
+        "parmezan"
+      ]
+    },
+    "Ravioli": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ravioli",
+        "ricotta",
+        "szpinak",
+        "sos_pomidorowy"
+      ]
+    },
+    "Tortellini": {
+      "base_price": {
+        "mean": 34.0,
+        "stdev": 4.0
+      },
+      "default_price": 34.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tortellini",
+        "prosciutto",
+        "parmezan",
+        "śmietana"
+      ]
+    },
+    "Gnocchi": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "gnocchi_ziemniaczane",
+        "sos_pomidorowy",
+        "bazylia",
+        "parmezan"
+      ]
+    }
+  },
+  "Zupa": {
+    "Pomidorowa": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "pomidory",
+        "ryż",
+        "śmietana",
+        "bulion"
+      ]
+    },
+    "Ogórkowa": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ogórki_kiszone",
+        "ziemniaki",
+        "śmietana",
+        "koper"
+      ]
+    },
+    "Rosół": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "rosół_drobiowy",
+        "makaron",
+        "warzywa"
+      ]
+    },
+    "Barszcz": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "buraki",
+        "bulion",
+        "warzywa"
+      ]
+    },
+    "Żurek": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 3.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "zakwas",
+        "kiełbasa",
+        "jajko",
+        "ziemniaki"
+      ]
+    },
+    "Chłodnik": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "buraki",
+        "kefir",
+        "ogórek",
+        "jajko",
+        "koper"
+      ]
+    },
+    "Krem z Pomidorów": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "pomidory",
+        "śmietana",
+        "bazylia",
+        "czosnék"
+      ]
+    },
+    "Krem z Grzybów": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "grzyby",
+        "śmietana",
+        "cebula",
+        "bulion"
+      ]
+    },
+    "Krem z Brokułów": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "brokuły",
+        "śmietana",
+        "ser",
+        "bulion"
+      ]
+    },
+    "Krem z Dyni": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "dynia",
+        "śmietana",
+        "imbir",
+        "bulion"
+      ]
+    },
+    "Krem z Kalafiora": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kalafior",
+        "śmietana",
+        "bulion",
+        "ser"
+      ]
+    },
+    "Minestrone": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "warzywa",
+        "fasola",
+        "makaron",
+        "pomidor",
+        "parmezan"
+      ]
+    },
+    "Gazpacho": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "pomidor",
+        "ogórek",
+        "papryka",
+        "czosnek",
+        "ocet"
+      ]
+    },
+    "Tom Yum": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "trawa_cytrynowa",
+        "krewetki",
+        "grzyby",
+        "chili",
+        "limonka"
+      ]
+    },
+    "Zupa Cebulowa": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cebula",
+        "bulion_wołowy",
+        "chleb",
+        "ser"
+      ]
+    }
+  },
+  "Ramen": {
+    "Shoyu Ramen": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron_ramen",
+        "rosół_sojowy",
+        "kurczak",
+        "pędy_bambusa",
+        "jajko"
+      ]
+    },
+    "Miso Ramen": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "makaron_ramen",
+        "rosół_miso",
+        "wieprzowina",
+        "kukurydza",
+        "masło"
+      ]
+    },
+    "Tonkotsu Ramen": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "makaron_ramen",
+        "rosół_wieprzowy",
+        "chashu",
+        "jajko",
+        "nori"
+      ]
+    },
+    "Pikantne Miso Ramen": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "makaron_ramen",
+        "rosół_miso_pikantny",
+        "wieprzowina",
+        "olej_chili",
+        "szczypiorek"
+      ]
+    }
+  },
+  "Pho": {
+    "Pho Bo": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "makaron_ryżowy",
+        "rosół_wołowy",
+        "wołowina",
+        "zioła",
+        "limonka"
+      ]
+    },
+    "Pho Ga": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "makaron_ryżowy",
+        "rosół_drobiowy",
+        "kurczak",
+        "zioła",
+        "limonka"
+      ]
+    }
+  },
+  "Sushi": {
+    "California Roll": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "nori",
+        "krab",
+        "awokado",
+        "ogórek"
+      ]
+    },
+    "Dragon Roll": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "nori",
+        "węgorz",
+        "awokado",
+        "ogórek"
+      ]
+    },
+    "Nigiri z Łososia": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "łosoś"
+      ]
+    },
+    "Nigiri z Tuńczyka": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "tuńczyk"
+      ]
+    },
+    "Sashimi z Łososia": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "łosoś"
+      ]
+    },
+    "Pikantne Maki z Tuńczyka": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "ryż",
+        "nori",
+        "tuńczyk",
+        "pikantny_majonez"
+      ]
+    },
+    "Spring Rolls": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "papier_ryżowy",
+        "warzywa",
+        "makaron_ryżowy",
+        "sos"
+      ]
+    }
+  },
+  "Taco": {
+    "Taco de Carne": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "tortilla",
+        "wołowina",
+        "salsa",
+        "ser",
+        "sałata"
+      ]
+    },
+    "Taco al Pastor": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "tortilla",
+        "wieprzowina",
+        "ananas",
+        "kolendra",
+        "cebula"
+      ]
+    },
+    "Taco Rybne": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "tortilla",
+        "ryba",
+        "kapusta",
+        "sos",
+        "limonka"
+      ]
+    }
+  },
+  "Mexican": {
+    "Burrito": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "duża_tortilla",
+        "ryż",
+        "fasola",
+        "mięso",
+        "ser",
+        "salsa"
+      ]
+    },
+    "Quesadilla": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "tortilla",
+        "ser",
+        "kurczak",
+        "papryka"
+      ]
+    },
+    "Quesadilla Przystawka": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "mini_tortilla",
+        "ser",
+        "salsa"
+      ]
+    },
+    "Nachos": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "chipsy_kukurydziane",
+        "ser",
+        "jalapeño",
+        "salsa",
+        "guacamole"
+      ]
+    },
+    "Tortilla z Kurczakiem": {
+      "base_price": {
+        "mean": 27.0,
+        "stdev": 3.0
+      },
+      "default_price": 27.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "tortilla",
+        "kurczak",
+        "papryka",
+        "cebula",
+        "ser"
+      ]
+    },
+    "Tortilla Wegetariańska": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tortilla",
+        "warzywa",
+        "ser",
+        "salsa"
+      ]
+    }
+  },
+  "Curry": {
+    "Czerwone Curry": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 4,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "pasta_curry_czerwona",
+        "mleko_kokosowe",
+        "wołowina",
+        "warzywa"
+      ]
+    },
+    "Zielone Curry": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "pasta_curry_zielona",
+        "mleko_kokosowe",
+        "kurczak",
+        "bambus",
+        "bazylia"
+      ]
+    },
+    "Butter Chicken": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kurczak",
+        "pomidor",
+        "śmietana",
+        "przyprawy"
+      ]
+    },
+    "Tikka Masala": {
+      "base_price": {
+        "mean": 34.0,
+        "stdev": 4.0
+      },
+      "default_price": 34.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kurczak",
+        "jogurt",
+        "pomidor",
+        "przyprawy"
+      ]
+    },
+    "Vindaloo": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 5,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "wieprzowina",
+        "ocet",
+        "chili",
+        "przyprawy"
+      ]
+    }
+  },
+  "Pierogi": {
+    "Pierogi Ruskie": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto",
+        "ziemniaki",
+        "ser",
+        "cebula"
+      ]
+    }
+  },
+  "Naleśniki": {
+    "Naleśniki Klasyczne": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "jajka",
+        "mleko",
+        "syrop_klonowy",
+        "masło"
+      ]
+    },
+    "Naleśniki z Nutellą": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_naleśnikowe",
+        "nutella",
+        "banan"
+      ]
+    }
+  },
+  "Deser": {
+    "Tiramisu": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 3.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mascarpone",
+        "kawa",
+        "biszkopt",
+        "kakao"
+      ]
+    },
+    "Cheesecake": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 3.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "serek_kremowy",
+        "cukier",
+        "jajka",
+        "herbatniki",
+        "owoce"
+      ]
+    },
+    "Brownie": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 1.5
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "czekolada",
+        "mąka",
+        "masło",
+        "jajka"
+      ]
+    },
+    "Churros": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto",
+        "cukier",
+        "cynamon",
+        "czekolada"
+      ]
+    },
+    "Panna Cotta": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "cukier",
+        "wanilia",
+        "owoce"
+      ]
+    },
+    "Ciasto Czekoladowe": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "czekolada",
+        "jajka",
+        "cukier"
+      ]
+    },
+    "Lawa Czekoladowa": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "czekolada",
+        "masło",
+        "jajka",
+        "cukier",
+        "mąka"
+      ]
+    },
+    "Creme Caramel": {
+      "base_price": {
+        "mean": 17.0,
+        "stdev": 2.0
+      },
+      "default_price": 17.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "jajka",
+        "cukier",
+        "karmel"
+      ]
+    },
+    "Crème Brûlée": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "śmietanka",
+        "żółtka_jaj",
+        "cukier",
+        "wanilia"
+      ]
+    },
+    "Baklava": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_filo",
+        "orzechy",
+        "miód",
+        "syrop"
+      ]
+    },
+    "Sernik": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "serek_kremowy",
+        "cukier",
+        "jajka",
+        "herbatniki"
+      ]
+    },
+    "Szarlotka": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jabłka",
+        "ciasto_kruche",
+        "cynamon",
+        "cukier"
+      ]
+    },
+    "Makowiec": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mak",
+        "ciasto_drożdżowe",
+        "miód",
+        "rodzynki"
+      ]
+    },
+    "Profiterole": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_parzone",
+        "bita_śmietana",
+        "czekolada"
+      ]
+    },
+    "Eklerki": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_parzone",
+        "krem_waniliowy",
+        "polewa_czekoladowa"
+      ]
+    },
+    "Tarta Cytrynowa": {
+      "base_price": {
+        "mean": 19.0,
+        "stdev": 2.0
+      },
+      "default_price": 19.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cytryny",
+        "cukier",
+        "jajka",
+        "ciasto_kruche"
+      ]
+    },
+    "Tarta Jabłkowa": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jabłka",
+        "ciasto_kruche",
+        "cynamon",
+        "migdały"
+      ]
+    }
+  },
+  "Herbata": {
+    "Herbata Czarna": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "herbata_czarna",
+        "woda"
+      ]
+    },
+    "Herbata Zielona": {
+      "base_price": {
+        "mean": 9.0,
+        "stdev": 1.0
+      },
+      "default_price": 9.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "herbata_zielona",
+        "woda"
+      ]
+    },
+    "Herbata Owocowa": {
+      "base_price": {
+        "mean": 9.0,
+        "stdev": 1.0
+      },
+      "default_price": 9.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "herbata_owocowa",
+        "woda"
+      ]
+    },
+    "Herbata Miętowa": {
+      "base_price": {
+        "mean": 9.0,
+        "stdev": 1.0
+      },
+      "default_price": 9.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "herbata_miętowa",
+        "woda",
+        "mięta"
+      ]
+    },
+    "Mrożona Herbata": {
+      "base_price": {
+        "mean": 11.0,
+        "stdev": 1.5
+      },
+      "default_price": 11.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "herbata",
+        "cytryna",
+        "cukier",
+        "lód"
+      ]
+    }
+  },
+  "Kawa": {
+    "Espresso": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziarna_kawy"
+      ]
+    },
+    "Americano": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.0
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziarna_kawy",
+        "woda"
+      ]
+    },
+    "Cappuccino": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 1.5
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziarna_kawy",
+        "mleko",
+        "piana"
+      ]
+    },
+    "Latte": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 1.5
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziarna_kawy",
+        "mleko"
+      ]
+    },
+    "Mrożona Kawa": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kawa",
+        "mleko",
+        "lód",
+        "cukier"
+      ]
+    }
+  },
+  "Gorąca Czekolada": {
+    "Gorąca Czekolada Klasyczna": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "czekolada",
+        "cukier"
+      ]
+    },
+    "Gorąca Czekolada z Bitą Śmietaną": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "czekolada",
+        "cukier",
+        "bita_śmietana"
+      ]
+    }
+  },
+  "Napój Bezalkoholowy": {
+    "Cola": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cola"
+      ]
+    },
+    "Sok Pomarańczowy": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.5
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "pomarańcze"
+      ]
+    },
+    "Sok Jabłkowy": {
+      "base_price": {
+        "mean": 9.0,
+        "stdev": 1.5
+      },
+      "default_price": 9.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jabłka"
+      ]
+    },
+    "Lemoniada": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cytryna",
+        "cukier",
+        "woda",
+        "mięta"
+      ]
+    },
+    "Lemoniada Malinowa": {
+      "base_price": {
+        "mean": 13.0,
+        "stdev": 2.0
+      },
+      "default_price": 13.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cytryna",
+        "maliny",
+        "cukier",
+        "woda"
+      ]
+    },
+    "Zielone Smoothie": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "szpinak",
+        "banan",
+        "jabłko",
+        "mleko_migdałowe"
+      ]
+    }
+  },
+  "Piwo": {
+    "Piwo Pszeniczne": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "piwo_pszeniczne"
+      ]
+    },
+    "Piwo Lager": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "piwo_lager"
+      ]
+    },
+    "Piwo IPA": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "piwo_ipa"
+      ]
+    },
+    "Pilsner": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "piwo"
+      ]
+    }
+  },
+  "Wino": {
+    "Wino Czerwone": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 5.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wino_czerwone"
+      ]
+    },
+    "Wino Białe": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 5.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wino_białe"
+      ]
+    }
+  },
+  "Koktajl Alkoholowy": {
+    "Mojito": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 4.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "rum",
+        "mięta",
+        "limonka",
+        "cukier",
+        "woda_gazowana"
+      ]
+    },
+    "Margarita": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "tequila",
+        "limonka",
+        "likier_pomarańczowy",
+        "sól"
+      ]
+    },
+    "Gin & Tonic": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 4.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "gin",
+        "tonik",
+        "limonka",
+        "jałowiec"
+      ]
+    },
+    "Aperol Spritz": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "aperol",
+        "prosecco",
+        "woda_gazowana",
+        "pomarańcza"
+      ]
+    }
+  },
+  "Koktajl Mleczny": {
+    "Koktajl Mleczny Klasyczny": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "lody",
+        "aromat"
+      ]
+    },
+    "Koktajl Czekoladowy": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mleko",
+        "lody",
+        "syrop_czekoladowy"
+      ]
+    }
+  },
+  "Przystawka": {
+    "Skrzydełka Kurczaka": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "skrzydełka_kurczaka",
+        "sos_pikantny",
+        "przyprawy"
+      ]
+    },
+    "Krążki Cebulowe": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cebula",
+        "bułka_tarta",
+        "mąka"
+      ]
+    },
+    "Paluszki Mozzarelli": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mozzarella",
+        "bułka_tarta",
+        "jajko",
+        "sos_pomidorowy"
+      ]
+    },
+    "Chrupki Serowe": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ser",
+        "bułka_tarta",
+        "jajko"
+      ]
+    },
+    "Bruschetta": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "chleb",
+        "pomidor",
+        "czosnek",
+        "bazylia",
+        "oliwa"
+      ]
+    },
+    "Carpaccio": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wołowina_surowa",
+        "rukola",
+        "parmezan",
+        "oliwa",
+        "cytryna"
+      ]
+    },
+    "Tatar": {
+      "base_price": {
+        "mean": 42.0,
+        "stdev": 5.0
+      },
+      "default_price": 42.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wołowina_surowa",
+        "żółtko",
+        "ogórek_kiszony",
+        "cebula",
+        "kapary"
+      ]
+    },
+    "Escargot": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ślimaki",
+        "masło_czosnkowe",
+        "pietruszka"
+      ]
+    },
+    "Ogon Homara": {
+      "base_price": {
+        "mean": 75.0,
+        "stdev": 10.0
+      },
+      "default_price": 75.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "homar",
+        "masło",
+        "cytryna"
+      ]
+    },
+    "Edamame": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "soja",
+        "sól"
+      ]
+    },
+    "Gyoza": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_na_pierogi",
+        "wieprzowina",
+        "kapusta",
+        "czosnek"
+      ]
+    },
+    "Sajgonki Smażone": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "papier_ryżowy",
+        "mięso_mielone",
+        "warzywa",
+        "sos_słodko-kwaśny"
+      ]
+    },
+    "Świeże Sajgonki": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "papier_ryżowy",
+        "krewetki",
+        "warzywa",
+        "zioła",
+        "sos_orzechowy"
+      ]
+    },
+    "Krewetki w Czosnku": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "krewetki",
+        "czosnek",
+        "masło",
+        "pietruszka",
+        "chili"
+      ]
+    },
+    "Grillowane Krewetki": {
+      "base_price": {
+        "mean": 42.0,
+        "stdev": 5.0
+      },
+      "default_price": 42.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "krewetki",
+        "czosnek",
+        "masło",
+        "cytryna"
+      ]
+    }
+  },
+  "Steak": {
+    "Stek Ribeye": {
+      "base_price": {
+        "mean": 65.0,
+        "stdev": 8.0
+      },
+      "default_price": 65.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "antrykot",
+        "sól",
+        "pieprz"
+      ]
+    },
+    "Stek T-Bone": {
+      "base_price": {
+        "mean": 68.0,
+        "stdev": 8.0
+      },
+      "default_price": 68.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "stek_t-bone",
+        "sól",
+        "pieprz"
+      ]
+    },
+    "Filet Mignon": {
+      "base_price": {
+        "mean": 70.0,
+        "stdev": 8.0
+      },
+      "default_price": 70.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "polędwica",
+        "sól",
+        "pieprz"
+      ]
+    },
+    "Steak Frites": {
+      "base_price": {
+        "mean": 42.0,
+        "stdev": 5.0
+      },
+      "default_price": 42.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "stek",
+        "frytki",
+        "masło",
+        "zioła"
+      ]
+    }
+  },
+  "Naan": {
+    "Naan Klasyczny": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "jogurt",
+        "masło"
+      ]
+    },
+    "Naan Czosnkowy": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.0
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "jogurt",
+        "masło",
+        "czosnek"
+      ]
+    }
+  },
+  "Danie Polskie": {
+    "Bigos": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 4.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kapusta",
+        "kiełbasa",
+        "mięso",
+        "grzyby"
+      ]
+    },
+    "Kotlet Schabowy": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "schab",
+        "bułka_tarta",
+        "jajko"
+      ]
+    },
+    "Pieczeń Rzymska": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mielona_wołowina",
+        "bułka_tarta",
+        "ketchup",
+        "cebula"
+      ]
+    },
+    "Kapusta Kiszona": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.5
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kapusta",
+        "ocet",
+        "kminek"
+      ]
+    },
+    "Pasztet": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wątróbka",
+        "cebula",
+        "masło",
+        "przyprawy"
+      ]
+    }
+  },
+  "Danie Azjatyckie": {
+    "Wieprzowina w Sosie Słodko-Kwaśnym": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wieprzowina",
+        "papryka",
+        "ananas",
+        "sos_słodko-kwaśny"
+      ]
+    },
+    "Kurczak Kung Pao": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 3,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kurczak",
+        "orzeszki_ziemne",
+        "chili",
+        "warzywa"
+      ]
+    },
+    "Mapo Tofu": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 4,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "tofu",
+        "wieprzowina",
+        "pasta_chili",
+        "pieprz_syczuański"
+      ]
+    },
+    "Chow Mein": {
+      "base_price": {
+        "mean": 26.0,
+        "stdev": 3.0
+      },
+      "default_price": 26.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron",
+        "warzywa",
+        "sos_sojowy"
+      ]
+    },
+    "Smażony Ryż": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "jajko",
+        "warzywa",
+        "sos_sojowy"
+      ]
+    },
+    "Pad Thai": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 3.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "makaron_ryżowy",
+        "krewetki",
+        "jajko",
+        "orzeszki_ziemne",
+        "tamaryndowiec"
+      ]
+    },
+    "Kurczak z Bazylią": {
+      "base_price": {
+        "mean": 29.0,
+        "stdev": 3.0
+      },
+      "default_price": 29.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kurczak",
+        "bazylia",
+        "chili",
+        "czosnek",
+        "sos_sojowy"
+      ]
+    },
+    "Kurczak Tandoori": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kurczak",
+        "jogurt",
+        "przyprawy_tandoori"
+      ]
+    },
+    "Bibimbap": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 3.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "ryż",
+        "warzywa",
+        "wołowina",
+        "jajko",
+        "gochujang"
+      ]
+    }
+  },
+  "Danie Koreańskie": {
+    "Bulgogi": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "wołowina",
+        "marynata_sojowa",
+        "sezam",
+        "czosnek"
+      ]
+    },
+    "Galbi": {
+      "base_price": {
+        "mean": 42.0,
+        "stdev": 5.0
+      },
+      "default_price": 42.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "żeberka_wołowe",
+        "marynata_sojowa",
+        "gruszka",
+        "sezam"
+      ]
+    },
+    "Samgyeopsal": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "boczek_wieprzowy",
+        "sałata",
+        "ssamjang",
+        "czosnek"
+      ]
+    },
+    "Kimchi": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.0
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "kapusta_pekińska",
+        "proszek_chili",
+        "czosnek",
+        "imbir"
+      ]
+    }
+  },
+  "Tapas": {
+    "Patatas Bravas": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "ziemniaki",
+        "pikantny_sos_pomidorowy",
+        "aioli"
+      ]
+    },
+    "Jamón Ibérico": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "szynka_iberyjska"
+      ]
+    },
+    "Gambas al Ajillo": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "krewetki",
+        "czosnek",
+        "oliwa",
+        "chili"
+      ]
+    },
+    "Albondigas": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "klopsiki",
+        "sos_pomidorowy",
+        "zioła"
+      ]
+    },
+    "Croquetas": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "szynka",
+        "beszamel",
+        "bułka_tarta"
+      ]
+    },
+    "Paella Valenciana": {
+      "base_price": {
+        "mean": 45.0,
+        "stdev": 5.0
+      },
+      "default_price": 45.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż",
+        "kurczak",
+        "królik",
+        "fasola",
+        "szafran"
+      ]
+    }
+  },
+  "Danie Greckie": {
+    "Moussaka": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bakłażan",
+        "wołowina_mielona",
+        "sos_beszamelowy",
+        "ziemniaki",
+        "pomidor"
+      ]
+    },
+    "Souvlaki": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wieprzowina",
+        "pita",
+        "tzatziki",
+        "warzywa"
+      ]
+    },
+    "Tzatziki": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jogurt",
+        "ogórek",
+        "czosnek",
+        "koper"
+      ]
+    }
+  },
+  "Danie Francuskie": {
+    "Coq au Vin": {
+      "base_price": {
+        "mean": 45.0,
+        "stdev": 5.0
+      },
+      "default_price": 45.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kurczak",
+        "czerwone_wino",
+        "grzyby",
+        "bekon",
+        "cebula"
+      ]
+    },
+    "Boeuf Bourguignon": {
+      "base_price": {
+        "mean": 48.0,
+        "stdev": 5.0
+      },
+      "default_price": 48.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wołowina",
+        "czerwone_wino",
+        "marchew",
+        "grzyby",
+        "cebulka_dymka"
+      ]
+    }
+  },
+  "Danie Niemieckie": {
+    "Schnitzel": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wieprzowina",
+        "bułka_tarta",
+        "cytryna",
+        "ziemniaki"
+      ]
+    },
+    "Bratwurst": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kiełbasa",
+        "kapusta_kiszona",
+        "musztarda",
+        "chleb"
+      ]
+    },
+    "Sauerbraten": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "wołowina",
+        "marynata_octowa",
+        "warzywa",
+        "kluski_ziemniaczane"
+      ]
+    },
+    "Precel": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 1.5
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "sól",
+        "masło"
+      ]
+    }
+  },
+  "BBQ": {
+    "Pulled Pork": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "łopatka_wieprzowa",
+        "przyprawy_bbq",
+        "dym",
+        "sos_bbq"
+      ]
+    },
+    "Brisket Wołowy": {
+      "base_price": {
+        "mean": 42.0,
+        "stdev": 5.0
+      },
+      "default_price": 42.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mostek_wołowy",
+        "przyprawy_bbq",
+        "dym"
+      ]
+    },
+    "Żeberka": {
+      "base_price": {
+        "mean": 40.0,
+        "stdev": 5.0
+      },
+      "default_price": 40.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "żeberka_wieprzowe",
+        "przyprawy_bbq",
+        "dym",
+        "sos_bbq"
+      ]
+    },
+    "Wędzony Kurczak": {
+      "base_price": {
+        "mean": 32.0,
+        "stdev": 4.0
+      },
+      "default_price": 32.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "kurczak",
+        "przyprawy_bbq",
+        "dym"
+      ]
+    }
+  },
+  "Ryby i Owoce Morza": {
+    "Grillowany Łosoś": {
+      "base_price": {
+        "mean": 45.0,
+        "stdev": 5.0
+      },
+      "default_price": 45.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "łosoś",
+        "cytryna",
+        "zioła",
+        "oliwa"
+      ]
+    },
+    "Fish and Chips": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "dorsz",
+        "ciastko",
+        "frytki",
+        "sos_tatarski"
+      ]
+    },
+    "Okoń Morski": {
+      "base_price": {
+        "mean": 50.0,
+        "stdev": 6.0
+      },
+      "default_price": 50.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "okoń_morski",
+        "białe_wino",
+        "masło",
+        "kapary"
+      ]
+    },
+    "Małże": {
+      "base_price": {
+        "mean": 38.0,
+        "stdev": 4.0
+      },
+      "default_price": 38.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "małże",
+        "białe_wino",
+        "czosnek",
+        "śmietana"
+      ]
+    }
+  },
+  "Śniadanie": {
+    "Jajka z Bekonem": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "jajka",
+        "bekon",
+        "tost",
+        "masło"
+      ]
+    },
+    "Tosty Francuskie": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 3.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "chleb",
+        "jajka",
+        "cynamon",
+        "syrop_klonowy"
+      ]
+    }
+  },
+  "Pieczywo": {
+    "Croissant": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "masło",
+        "drożdże"
+      ]
+    },
+    "Pain au Chocolat": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.0
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "masło",
+        "czekolada"
+      ]
+    },
+    "Drożdżówka z Cynamonem": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 1.5
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "cynamon",
+        "cukier",
+        "lukier"
+      ]
+    },
+    "Chleb na Zakwasie": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "zakwas",
+        "sól"
+      ]
+    },
+    "Muffin": {
+      "base_price": {
+        "mean": 10.0,
+        "stdev": 1.5
+      },
+      "default_price": 10.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "jajka",
+        "cukier",
+        "jagody"
+      ]
+    }
+  },
+  "Danie Bliskowschodnie": {
+    "Falafel": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "ciecierzyca",
+        "zioła",
+        "przyprawy",
+        "pita",
+        "tahini"
+      ]
+    },
+    "Hummus Bowl": {
+      "base_price": {
+        "mean": 24.0,
+        "stdev": 3.0
+      },
+      "default_price": 24.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciecierzyca",
+        "tahini",
+        "oliwa",
+        "cytryna",
+        "pita"
+      ]
+    },
+    "Tabbouleh": {
+      "base_price": {
+        "mean": 16.0,
+        "stdev": 2.0
+      },
+      "default_price": 16.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kasza_bulgur",
+        "pietruszka",
+        "pomidor",
+        "cytryna",
+        "oliwa"
+      ]
+    },
+    "Baba Ganoush": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "bakłażan",
+        "tahini",
+        "czosnek",
+        "cytryna"
+      ]
+    },
+    "Lahmacun": {
+      "base_price": {
+        "mean": 22.0,
+        "stdev": 3.0
+      },
+      "default_price": 22.0,
+      "spiciness": {
+        "mean": 2,
+        "stdev": 0.5
+      },
+      "ingredients": [
+        "płaski_chleb",
+        "mięso_mielone",
+        "warzywa",
+        "przyprawy"
+      ]
+    },
+    "Manti": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "pierożki",
+        "mięso_mielone",
+        "jogurt",
+        "masło",
+        "przyprawy"
+      ]
+    },
+    "Börek": {
+      "base_price": {
+        "mean": 18.0,
+        "stdev": 2.0
+      },
+      "default_price": 18.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ciasto_filo",
+        "ser",
+        "pietruszka"
+      ]
+    },
+    "Turecki Chleb": {
+      "base_price": {
+        "mean": 8.0,
+        "stdev": 1.0
+      },
+      "default_price": 8.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "mąka",
+        "drożdże",
+        "sezam"
+      ]
+    }
+  },
+  "Risotto": {
+    "Risotto ai Funghi": {
+      "base_price": {
+        "mean": 35.0,
+        "stdev": 4.0
+      },
+      "default_price": 35.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ryż_arborio",
+        "grzyby",
+        "parmezan",
+        "białe_wino"
+      ]
+    }
+  },
+  "Bowl": {
+    "Buddha Bowl": {
+      "base_price": {
+        "mean": 28.0,
+        "stdev": 3.0
+      },
+      "default_price": 28.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "komosa_ryżowa",
+        "ciecierzyca",
+        "warzywa",
+        "tahini"
+      ]
+    },
+    "Acai Bowl": {
+      "base_price": {
+        "mean": 25.0,
+        "stdev": 3.0
+      },
+      "default_price": 25.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "acai",
+        "banan",
+        "granola",
+        "jagody"
+      ]
+    }
+  },
+  "Dodatek": {
+    "Pieczony Ziemniak": {
+      "base_price": {
+        "mean": 12.0,
+        "stdev": 2.0
+      },
+      "default_price": 12.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "ziemniak",
+        "masło",
+        "śmietana",
+        "szczypiorek"
+      ]
+    },
+    "Grillowane Warzywa": {
+      "base_price": {
+        "mean": 15.0,
+        "stdev": 2.0
+      },
+      "default_price": 15.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "cukinia",
+        "papryka",
+        "cebula",
+        "szparagi"
+      ]
+    },
+    "Mac and Cheese": {
+      "base_price": {
+        "mean": 14.0,
+        "stdev": 2.0
+      },
+      "default_price": 14.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "makaron",
+        "ser",
+        "śmietana",
+        "masło"
+      ]
+    }
+  },
+  "Inne Danie": {
+    "Banh Mi Thit": {
+      "base_price": {
+        "mean": 20.0,
+        "stdev": 2.0
+      },
+      "default_price": 20.0,
+      "spiciness": {
+        "mean": 1,
+        "stdev": 0.3
+      },
+      "ingredients": [
+        "bagietka",
+        "wieprzowina",
+        "kiszone_warzywa",
+        "kolendra",
+        "chili"
+      ]
+    }
+  },
+  "Inne": {
+    "Smażony Kurczak": {
+      "base_price": {
+        "mean": 30.0,
+        "stdev": 4.0
+      },
+      "default_price": 30.0,
+      "spiciness": {
+        "mean": 0,
+        "stdev": 0
+      },
+      "ingredients": [
+        "kurczak",
+        "mąka",
+        "maślanka",
+        "przyprawy"
+      ]
+    }
+  }
+}
