@@ -74,8 +74,9 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             restaurant_data.append({
                 "city_id": city_id,
                 "restaurant_name": name,
-                "theme": theme,
-                "created_date": DateGenerator.to_sql_datetime(created_date),
+                "public_cuisine_theme": theme,  # FIXED: proper column name
+                "theme": theme,  # Keep for backward compatibility
+                "created_at": DateGenerator.to_sql_datetime(created_date),  # FIXED: was created_date
                 "secret_price_multiplier": round(secret_price_multiplier, 3),
                 "secret_overall_food_quality": round(secret_overall_food_quality, 3),
                 "secret_service_quality": round(secret_service_quality, 3),
@@ -197,13 +198,15 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools):
         # 2-3 zdjęcia na restaurację
         num_photos = random.randint(2, 3)
 
-        for _ in range(num_photos):
+        for i in range(num_photos):
             url = photo_pools.get_restaurant_photo(theme)
 
             photo_data.append({
-                "restaurant_id": restaurant_id,
+                "entity_type": "restaurant",  # FIXED: proper column
+                "entity_id": restaurant_id,  # FIXED: was restaurant_id
                 "photo_url": url,
-                "upload_date": DateGenerator.to_sql_datetime(DateGenerator().generate_random_date())
+                "is_primary": (i == 0)  # First photo is primary
+                # created_at is DEFAULT in schema, no need to specify
             })
 
     db.insert_bulk("Photos", photo_data)

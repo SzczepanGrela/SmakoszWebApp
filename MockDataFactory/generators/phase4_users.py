@@ -4,6 +4,7 @@ Phase 4 - Generowanie użytkowników (~25,000)
 
 import logging
 import random
+import json
 import sys
 import os
 
@@ -119,20 +120,28 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
         user_data.append({
             "username": username,
             "email": email,
-            "city_id": city_id,
-            "join_date": DateGenerator.to_sql_datetime(join_date),
+            "password_hash": "mock_password_hash_123",  # Mock password for generation
+            "home_city_id": city_id,  # FIXED: was city_id
+            "account_created_at": DateGenerator.to_sql_datetime(join_date),  # FIXED: was join_date
             "secret_total_review_count": secret_total_review_count,
-            "secret_enjoyed_archetypes": str(enjoyed_archetypes),  # JSON jako string
-            "secret_ingredient_preferences": str(ingredient_preferences),
-            "secret_price_preference_range": str(price_preference_range),
-            "secret_spice_preference": secret_spice_preference,
-            "secret_richness_preference": secret_richness_preference,
-            "secret_texture_preference": secret_texture_preference,
-            "secret_cleanliness_preference": str(cleanliness_expectations),
-            "secret_preferred_ambiance": secret_preferred_ambiance,
-            "secret_mood_propensity": round(secret_mood_propensity, 3),
+            "secret_travel_propensity": round(travel_propensity, 3),  # FIXED: was travel_propensity
+            "secret_chance_dine_random": 0.1,  # Default value
+            "secret_chance_pick_random_dish": 0.05,  # Default value
+            "secret_chance_to_update_rating": 0.02,  # Default value
             "secret_cross_impact_factor": round(secret_cross_impact_factor, 3),
-            "travel_propensity": round(travel_propensity, 3)
+            "secret_mood_propensity": round(secret_mood_propensity, 3),
+            "secret_price_preference_range": str(round(price_preference_range['mean'], 2)),  # Simplified for schema
+            "secret_price_tolerance_above": price_preference_range['tolerance_above'],
+            "secret_price_tolerance_below": price_preference_range['tolerance_below'],
+            "secret_enjoyed_restaurant_themes": json.dumps({}),  # Empty for now
+            "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes),  # FIXED: was str()
+            "secret_enjoyed_variants": json.dumps({}),  # Empty for now
+            "secret_ingredient_preferences": json.dumps(ingredient_preferences),  # FIXED: was str()
+            "secret_cleanliness_preference": json.dumps(cleanliness_expectations),  # FIXED: was str()
+            "secret_preferred_ambiance": secret_preferred_ambiance,
+            "secret_spice_preference": secret_spice_preference,  # NEW column
+            "secret_richness_preference": secret_richness_preference,  # NEW column
+            "secret_texture_preference": secret_texture_preference  # NEW column
         })
 
         if (i + 1) % 5000 == 0:

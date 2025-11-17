@@ -42,19 +42,19 @@ def generate_reviews(db: DatabaseConnection):
 
     # Pobierz wszystkich users
     users = db.fetch_all("""
-        SELECT user_id, city_id, secret_total_review_count, travel_propensity,
+        SELECT user_id, home_city_id, secret_total_review_count, secret_travel_propensity,
                secret_enjoyed_archetypes, secret_ingredient_preferences,
                secret_price_preference_range, secret_spice_preference,
                secret_richness_preference, secret_texture_preference,
                secret_cleanliness_preference, secret_preferred_ambiance,
                secret_mood_propensity, secret_cross_impact_factor,
-               join_date
+               account_created_at
         FROM Users
     """)
 
     # Pobierz wszystkie restauracje
     all_restaurants = db.fetch_all("""
-        SELECT restaurant_id, city_id, theme, created_date,
+        SELECT restaurant_id, city_id, public_cuisine_theme, created_at,
                secret_price_multiplier, secret_overall_food_quality,
                secret_service_quality, secret_cleanliness_score,
                secret_ambiance_type, secret_ambiance_quality
@@ -70,9 +70,7 @@ def generate_reviews(db: DatabaseConnection):
     photo_pools = PhotoPools()
 
     total_reviews = 0
-    batch_size = 5000
-    review_batch = []
-    photo_batch = []
+    log_interval = 5000  # Log every 5000 reviews
 
     for idx, user in enumerate(users):
         user_id = user[0]
@@ -119,8 +117,8 @@ def generate_reviews(db: DatabaseConnection):
                 {
                     'restaurant_id': r[0],
                     'city_id': r[1],
-                    'theme': r[2],
-                    'created_date': r[3],
+                    'theme': r[2],  # public_cuisine_theme
+                    'created_at': r[3],
                     'secret_price_multiplier': r[4],
                     'secret_overall_food_quality': r[5],
                     'secret_service_quality': r[6],
@@ -157,10 +155,21 @@ def generate_reviews(db: DatabaseConnection):
             if not dishes:
                 continue
 
-            # Konwertuj do dict
-            dish_dicts = [
-                {
-                    'dish_id': d[0],
+            # Konwertuj do dict i załaduj składniki
+            dish_dicts = []
+            for d in dishes:
+                dish_id = d[0]
+                # FIXED: Ładuj prawdziwe składniki z bazy danych
+                dish_ingredients = db.fetch_all(f"""
+                    SELECT i.ingredient_name
+                    FROM Dish_Ingredients_Link dil
+                    JOIN Ingredients i ON dil.ingredient_id = i.ingredient_id
+                    WHERE dil.dish_id = {dish_id}
+                """)
+                ingredient_names = [ing[0] for ing in dish_ingredients]
+
+                dish_dicts.append({
+                    'dish_id': dish_id,
                     'dish_name': d[1],
                     'archetype': d[2],
                     'public_price': d[3],
@@ -170,10 +179,8 @@ def generate_reviews(db: DatabaseConnection):
                     'secret_richness': d[7],
                     'secret_texture_score': d[8],
                     'popularity_factor': d[9],
-                    'ingredients': []  # Simplified
-                }
-                for d in dishes
-            ]
+                    'ingredients': ingredient_names  # FIXED: Prawdziwe składniki
+                })
 
             # Wybierz danie (używa dish_selector.py)
             selected_dish = select_dish_from_menu(user_data, dish_dicts)
@@ -197,48 +204,38 @@ def generate_reviews(db: DatabaseConnection):
                 ambiance_score=restaurant['secret_ambiance_quality'] * 10
             )
 
-            # Insert review
-            review_batch.append({
+            # FIXED: Single insert aby mieć prawdziwe review_id
+            review_data = {
                 'user_id': user_id,
                 'restaurant_id': restaurant_id,
                 'dish_id': selected_dish['dish_id'],
-                'overall_rating': ratings['overall_rating'],
-                'food_score': ratings['food_score'],
-                'service_score': ratings['service_score'],
-                'cleanliness_score': ratings['cleanliness_score'],
-                'ambiance_score': ratings['ambiance_score'],
-                'value_for_money_score': ratings['value_for_money_score'],
-                'comment_text': comment,
+                'dish_rating': int(round(ratings['food_score'])),  # FIXED: food_score → dish_rating
+                'service_rating': int(round(ratings['service_score'])),  # FIXED: nazwy kolumn
+                'cleanliness_rating': int(round(ratings['cleanliness_score'])),
+                'ambiance_rating': int(round(ratings['ambiance_score'])),
+                'review_comment': comment,  # FIXED: comment_text → review_comment
                 'review_date': DateGenerator.to_sql_datetime(review_date)
-            })
+            }
 
+            review_id = db.insert_single("Reviews", review_data)  # FIXED: Prawdziwe ID!
             total_reviews += 1
 
             # 30% szans na zdjęcie użytkownika
             if random.random() < 0.30:
-                photo_batch.append({
-                    'review_id': total_reviews,  # Approximation
-                    'photo_url': photo_pools.get_user_photo_generic()
+                # FIXED: User_Photos zamiast Photos!
+                db.insert_single("User_Photos", {
+                    'review_id': review_id,  # FIXED: Prawdziwe ID z bazy danych!
+                    'uploaded_by_user_id': user_id,
+                    'photo_url': photo_pools.get_user_photo_generic(),
+                    'is_approved': 1  # Auto-approve 98% of photos
                 })
 
-            # Bulk insert co batch_size
-            if len(review_batch) >= batch_size:
-                db.insert_bulk("Reviews", review_batch)
-                if photo_batch:
-                    db.insert_bulk("Photos", photo_batch)
-
+            # Log co log_interval recenzji
+            if total_reviews % log_interval == 0:
                 logger.info(f"  ✅ Wygenerowano {total_reviews} recenzji...")
-                review_batch = []
-                photo_batch = []
 
         if (idx + 1) % 1000 == 0:
             logger.info(f"  Przetworzono {idx + 1}/{len(users)} użytkowników...")
-
-    # Insert remaining
-    if review_batch:
-        db.insert_bulk("Reviews", review_batch)
-    if photo_batch:
-        db.insert_bulk("Photos", photo_batch)
 
     logger.info(f"✅ Wygenerowano {total_reviews} recenzji")
 

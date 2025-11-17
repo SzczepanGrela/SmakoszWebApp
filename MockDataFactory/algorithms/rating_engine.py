@@ -45,7 +45,9 @@ def calculate_review_ratings(user_data: Dict[str, Any],
 
     # 6. CROSS-IMPACT (Efekt halo - 10% wpływu, ZOPTYMALIZOWANY: 0.02)
     cross_impact_factor = user_data.get('secret_cross_impact_factor', 0.02)
-    apply_cross_impact(food_score, [service_score, cleanliness_score, ambiance_score], cross_impact_factor)
+    service_score, cleanliness_score, ambiance_score = apply_cross_impact(
+        food_score, service_score, cleanliness_score, ambiance_score, cross_impact_factor
+    )
 
     # 7. OVERALL RATING (ważona średnia)
     overall = (
@@ -211,18 +213,27 @@ def calculate_value_score(user_data: Dict, dish: Dict) -> float:
     return max(1.0, min(10.0, value_score))
 
 
-def apply_cross_impact(food_score: float, other_scores: list, cross_impact_factor: float):
+def apply_cross_impact(food_score: float, service_score: float,
+                      cleanliness_score: float, ambiance_score: float,
+                      cross_impact_factor: float) -> tuple:
     """
     Efekt halo - jeśli jedzenie świetne, wszystko inne wydaje się lepsze
     ZOPTYMALIZOWANY: cross_impact_factor = 0.02 (było 0.05)
 
     Args:
         food_score: Ocena jedzenia
-        other_scores: Lista innych ocen (modyfikowane in-place)
+        service_score: Ocena obsługi
+        cleanliness_score: Ocena czystości
+        ambiance_score: Ocena atmosfery
         cross_impact_factor: Siła efektu (0.02 średnio)
+
+    Returns:
+        Tuple (service_score, cleanliness_score, ambiance_score) po zastosowaniu cross-impact
     """
     if food_score > 7:
         boost = (food_score - 7) * cross_impact_factor * 0.5
+        service_score = min(10.0, service_score + boost)
+        cleanliness_score = min(10.0, cleanliness_score + boost)
+        ambiance_score = min(10.0, ambiance_score + boost)
 
-        for i in range(len(other_scores)):
-            other_scores[i] = min(10.0, other_scores[i] + boost)
+    return service_score, cleanliness_score, ambiance_score

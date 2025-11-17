@@ -21,12 +21,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     """
     Generuje ~20,000 dań z secret attributes
 
-    Secret Attributes:
-    - secret_base_price (przed restaurant multiplier)
-    - secret_quality (0.3-0.95, beta distribution)
-    - secret_spiciness (0-10)
-    - secret_richness (0.0-1.0)
-    - secret_texture_score (0.0-1.0)
+    FIXED: Now uses proper dish_id from database after INSERT
     """
     logger.info("🍕 Generowanie dań...")
 
@@ -45,18 +40,21 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
 
     photo_pools = PhotoPools()
 
-    dish_data = []
-    dish_ingredient_links = []
-    dish_tag_links = []
-    dish_photos = []
+    total_dishes = 0
+    total_ingredients_links = 0
+    total_photos = 0
 
     for restaurant_id, menu_blueprint, price_multiplier in restaurants:
         # Wybierz dania dla tego typu menu
         menu_dishes = _select_dishes_for_menu(menu_blueprint, dish_variants)
 
+        if not menu_dishes:
+            continue
+
         # Zipf distribution dla popularności dań
         popularity_scores = zipf_distribution(len(menu_dishes), alpha=1.5)
 
+        # FIXED: Insert pojedynczo aby mieć prawdziwe dish_id
         for i, variant in enumerate(menu_dishes):
             dish_name = variant.get("name", "Danie")
             archetype = variant.get("archetype", "Unknown")
@@ -70,55 +68,54 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
             secret_richness = random.uniform(0.0, 1.0)
             secret_texture_score = sample_beta(4, 2, 0.0, 1.0)
 
-            dish_id = len(dish_data) + 1
-
-            dish_data.append({
+            # Insert dania i pobierz prawdziwe ID
+            dish_data = {
                 "restaurant_id": restaurant_id,
                 "dish_name": dish_name,
-                "archetype": archetype,
+                "archetype": archetype,  # NEW column in schema
                 "public_price": public_price,
                 "secret_base_price": round(secret_base_price, 2),
                 "secret_quality": round(secret_quality, 3),
                 "secret_spiciness": round(secret_spiciness, 2),
-                "secret_richness": round(secret_richness, 3),
-                "secret_texture_score": round(secret_texture_score, 3),
-                "popularity_factor": round(popularity_scores[i], 4)
-            })
+                "secret_richness": round(secret_richness, 3),  # NEW column
+                "secret_texture_score": round(secret_texture_score, 3),  # NEW column
+                "popularity_factor": round(popularity_scores[i], 4)  # NEW column
+            }
 
-            # Przypisz składniki
+            # FIXED: Insert pojedynczo i pobierz prawdziwe ID
+            dish_id = db.insert_single("Dishes", dish_data)
+            total_dishes += 1
+
+            # Przypisz składniki (teraz z prawdziwym dish_id)
             ingredients = variant.get("ingredients", [])
+            ingredient_links = []
             for ingredient_name in ingredients:
                 if ingredient_name in ingredient_map:
-                    dish_ingredient_links.append({
-                        "dish_id": dish_id,
+                    ingredient_links.append({
+                        "dish_id": dish_id,  # FIXED: prawdziwe ID
                         "ingredient_id": ingredient_map[ingredient_name]
                     })
 
-            # Przypisz tagi
-            tags = variant.get("tags", [])
-            for tag_name in tags[:3]:  # Max 3 tagi
-                dish_tag_links.append({
-                    "dish_id": dish_id,
-                    "tag_name": tag_name
-                })
+            if ingredient_links:
+                db.insert_bulk("Dish_Ingredients_Link", ingredient_links)
+                total_ingredients_links += len(ingredient_links)
 
-            # Dodaj zdjęcie
+            # Dodaj zdjęcie (FIXED: entity_type + entity_id)
             photo_url = photo_pools.get_dish_photo(archetype)
-            dish_photos.append({
-                "dish_id": dish_id,
-                "photo_url": photo_url
+            db.insert_single("Photos", {
+                "entity_type": "dish",  # FIXED: proper column
+                "entity_id": dish_id,  # FIXED: was dish_id direct
+                "photo_url": photo_url,
+                "is_primary": True
             })
+            total_photos += 1
 
-    db.insert_bulk("Dishes", dish_data)
-    logger.info(f"✅ Wygenerowano {len(dish_data)} dań")
+        if (total_dishes % 1000) == 0:
+            logger.info(f"  Wygenerowano {total_dishes} dań...")
 
-    if dish_ingredient_links:
-        db.insert_bulk("Dish_Ingredients_Link", dish_ingredient_links)
-        logger.info(f"✅ Przypisano {len(dish_ingredient_links)} składników do dań")
-
-    if dish_photos:
-        db.insert_bulk("Photos", dish_photos)
-        logger.info(f"✅ Dodano {len(dish_photos)} zdjęć dań")
+    logger.info(f"✅ Wygenerowano {total_dishes} dań")
+    logger.info(f"✅ Przypisano {total_ingredients_links} składników do dań")
+    logger.info(f"✅ Dodano {total_photos} zdjęć dań")
 
 
 def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict) -> list:

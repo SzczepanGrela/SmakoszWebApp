@@ -71,7 +71,11 @@ CREATE TABLE Restaurants (
     secret_service_quality FLOAT,
     secret_cleanliness_score FLOAT,
     secret_ambiance_type NVARCHAR(100),
-    secret_ambiance_quality FLOAT
+    secret_ambiance_quality FLOAT,
+
+    -- Additional attributes for menu generation (ADDED FOR MOCKDATAFACTORY)
+    menu_blueprint NVARCHAR(100), -- Menu type (pizza_menu, burger_menu, etc.)
+    theme NVARCHAR(100) -- Restaurant theme for backward compatibility
 );
 GO
 
@@ -85,7 +89,7 @@ GO
 -- ========================================
 CREATE TABLE Ingredients (
     ingredient_id INT PRIMARY KEY IDENTITY(1,1),
-    name NVARCHAR(100) NOT NULL UNIQUE,
+    ingredient_name NVARCHAR(100) NOT NULL UNIQUE,  -- FIXED: name → ingredient_name for consistency
     is_allergen BIT DEFAULT 0
 );
 GO
@@ -124,7 +128,13 @@ CREATE TABLE Dishes (
     secret_base_price DECIMAL(10, 2),
     secret_price_to_default_ratio FLOAT,
     secret_quality FLOAT,
-    secret_spiciness INT
+    secret_spiciness FLOAT,
+
+    -- Additional attributes for CF model (ADDED FOR MOCKDATAFACTORY)
+    archetype NVARCHAR(100), -- Dish archetype (Pizza, Burger, Sushi, etc.)
+    secret_richness FLOAT,
+    secret_texture_score FLOAT,
+    popularity_factor FLOAT -- For Zipf distribution
 );
 GO
 
@@ -243,7 +253,12 @@ CREATE TABLE Users (
     secret_enjoyed_variants NVARCHAR(MAX), -- JSON
     secret_ingredient_preferences NVARCHAR(MAX), -- JSON
     secret_cleanliness_preference NVARCHAR(MAX), -- JSON
-    secret_preferred_ambiance NVARCHAR(100)
+    secret_preferred_ambiance NVARCHAR(100),
+
+    -- Additional preferences for CF model (ADDED FOR MOCKDATAFACTORY)
+    secret_spice_preference FLOAT,
+    secret_richness_preference FLOAT,
+    secret_texture_preference FLOAT
 );
 GO
 
