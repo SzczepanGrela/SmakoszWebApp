@@ -95,9 +95,12 @@ MockDataFactory/
 │   ├── 00_global_rules.json
 │   ├── 01_city_rules.json
 │   ├── 02_restaurant_rules.json
+│   ├── 03_menu_blueprints.json
 │   ├── 03_menu_blueprints_flat_backup.json
 │   ├── 04_user_persona_rules.json
-│   └── dish_variants.json
+│   ├── dish_variants.json
+│   ├── dish_variants_flat_backup.json
+│   └── dish_variants_old_pricing_backup.json
 │
 ├── models/                     # (nieużywane, puste placeholdery)
 ├── db/                         # (nieużywane, puste placeholdery)
@@ -143,32 +146,43 @@ pip install -r requirements.txt
 - Python >= 3.8
 - pyodbc >= 4.0.35
 - numpy >= 1.24.0
+- Faker >= 18.0.0
+- python-dateutil >= 2.8.2
 - **ODBC Driver 17 for SQL Server** (pobierz z Microsoft)
 
 ### Krok 3: Skonfiguruj połączenie
 
-Edytuj `config.py`:
+**Opcja 1: Zmienne środowiskowe (zalecane):**
 
-```python
-DATABASE_CONFIG = {
-    'server': 'localhost\\SQLEXPRESS',  # ← ZMIEŃ na swój serwer!
-    'database': 'MockDataDB',
-    'driver': 'ODBC Driver 17 for SQL Server',
-    'trusted_connection': 'yes'  # Windows Authentication
-}
+```bash
+export DB_SERVER="localhost\\SQLEXPRESS"
+export DB_NAME="MockDataDB"
+export DB_DRIVER="ODBC Driver 17 for SQL Server"
+export DB_TRUSTED="yes"  # Windows Authentication
 ```
 
 **Dla SQL Authentication:**
+```bash
+export DB_SERVER="localhost\\SQLEXPRESS"
+export DB_NAME="MockDataDB"
+export DB_DRIVER="ODBC Driver 17 for SQL Server"
+export DB_TRUSTED="no"
+export DB_USERNAME="sa"
+export DB_PASSWORD="YourStrongPassword"
+```
+
+**Opcja 2: Edycja domyślnych wartości w config.py:**
+
 ```python
 DATABASE_CONFIG = {
-    'server': 'localhost\\SQLEXPRESS',
-    'database': 'MockDataDB',
-    'username': 'sa',              # ← DODAJ
-    'password': 'YourPassword',    # ← DODAJ
-    'driver': 'ODBC Driver 17 for SQL Server',
-    'trusted_connection': 'no'     # ← ZMIEŃ
+    'server': os.getenv('DB_SERVER', 'localhost\\SQLEXPRESS'),  # ← ZMIEŃ domyślną wartość
+    'database': os.getenv('DB_NAME', 'MockDataDB'),
+    'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
+    'trusted_connection': os.getenv('DB_TRUSTED', 'yes')  # 'yes' lub 'no' (string!)
 }
 ```
+
+**Uwaga:** `trusted_connection` musi być stringiem `'yes'` lub `'no'`, nie booleanem!
 
 ### Krok 4: Uruchom generację
 
@@ -179,6 +193,8 @@ python main.py
 **Czas trwania:** ~20-35 minut
 - Phase 1-4: ~5-10 minut
 - Phase 5 (875k recenzji): ~15-25 minut (pojedyncze INSERT-y dla poprawnych ID!)
+
+**⚠️ WAŻNE:** Po zakończeniu generacji kolumny `avg_rating`, `avg_service`, `avg_cleanliness`, `avg_ambiance`, `avg_food_score` będą **NULL**! Musisz uruchomić `EXEC UpdateAverageRatings;` w Kroku 5 aby je wypełnić.
 
 ### Krok 5: Aktualizuj średnie oceny (WAŻNE!)
 
@@ -730,7 +746,7 @@ PO: Zdjęcia użytkowników do User_Photos
 
 #### 12. ✅ Tags Table
 ```
-category → tag_category
+✓ Kolumna tag_category była zawsze poprawna (bez zmian)
 ```
 
 #### 13. ✅ Ingredients Table
