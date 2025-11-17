@@ -171,7 +171,26 @@ python main.py
 - Phase 1-4: ~5-10 minut
 - Phase 5 (875k recenzji): ~15-25 minut (pojedyncze INSERT-y dla poprawnych ID!)
 
-### Krok 5: Monitoruj postęp
+### Krok 5: Aktualizuj średnie oceny (WAŻNE!)
+
+**Po zakończeniu generacji**, uruchom Stored Procedure aby wypełnić kolumny avg_*:
+
+```sql
+USE MockDataDB;
+GO
+
+EXEC UpdateAverageRatings;
+GO
+```
+
+**Co się stanie:**
+- `Dishes.avg_rating` zostanie wypełniona średnimi z `Reviews.dish_rating`
+- `Restaurants.avg_service/cleanliness/ambiance/food_score` zostaną wypełnione
+- Kolumny będą NULL dopóki nie uruchomisz tej procedury!
+
+**Opcjonalnie:** Skonfiguruj SQL Server Agent Job (odkomentuj sekcję w `schema_updated.sql` linie 532-586) aby automatycznie aktualizować średnie co 10 minut.
+
+### Krok 6: Monitoruj postęp
 
 ```bash
 # W drugim terminalu:
@@ -288,33 +307,97 @@ Algorytm oblicza pomocniczo:
 - `overall_rating` - używany TYLKO do generowania komentarza (text_generator.py)
 - `value_for_money_score` - wpływa na food_score, ale nie jest osobną kolumną
 
-### Średnie Oceny Restauracji (obliczane agregacyjnie)
+### Średnie Oceny - Materialized Columns (SQL Server Job)
 
-**Restauracja ma 4 oceny** (wszystkie obliczane z Reviews, NIE zapisywane jako kolumny):
+**WAŻNE:** Schema zawiera kolumny dla średnich ocen, aktualizowane automatycznie co 10 minut!
 
-1. **Średnia ocena obsługi** - `AVG(service_rating)` dla tej restauracji
-2. **Średnia ocena czystości** - `AVG(cleanliness_rating)` dla tej restauracji
-3. **Średnia ocena atmosfery** - `AVG(ambiance_rating)` dla tej restauracji
-4. **Średnia ocena dań (UKRYTA)** - `AVG(dish_rating)` dla wszystkich dań z menu tej restauracji
-
+#### Dishes Table - avg_rating
 ```sql
--- Przykład: Oceny restauracji
-SELECT
-    r.restaurant_id,
-    r.restaurant_name,
-    AVG(rv.service_rating) AS avg_service,
-    AVG(rv.cleanliness_rating) AS avg_cleanliness,
-    AVG(rv.ambiance_rating) AS avg_ambiance,
-    AVG(rv.dish_rating) AS avg_dish_rating  -- Ukryta 4. ocena!
-FROM Restaurants r
-LEFT JOIN Reviews rv ON r.restaurant_id = rv.restaurant_id
-GROUP BY r.restaurant_id, r.restaurant_name;
+-- Kolumna w Dishes:
+avg_rating FLOAT NULL  -- AVG(dish_rating) from Reviews
+
+-- Indeks dla sortowania:
+CREATE INDEX idx_dishes_avg_rating ON Dishes(avg_rating DESC);
 ```
 
-**To pozwala na:**
-- Ranking restauracji według jakości obsługi/czystości/atmosfery
-- Ranking restauracji według średniej oceny dań (ukryta metryka jakości menu)
-- Porównanie restauracji w różnych wymiarach
+#### Restaurants Table - 4 średnie
+```sql
+-- Kolumny w Restaurants:
+avg_service FLOAT NULL       -- AVG(service_rating) from Reviews
+avg_cleanliness FLOAT NULL   -- AVG(cleanliness_rating) from Reviews
+avg_ambiance FLOAT NULL      -- AVG(ambiance_rating) from Reviews
+avg_food_score FLOAT NULL    -- AVG(dish_rating) for all restaurant's dishes
+```
+
+#### Stored Procedure: UpdateAverageRatings
+
+**Automatyczna aktualizacja średnich** przez SQL Server Agent Job co 10 minut:
+
+```sql
+-- Ręczne wykonanie (po wygenerowaniu danych):
+EXEC UpdateAverageRatings;
+
+-- Job automatycznie uruchamia tę procedurę co 10 minut
+```
+
+**Co robi procedura:**
+1. Aktualizuje `Dishes.avg_rating` = `AVG(Reviews.dish_rating)` dla każdego dania
+2. Aktualizuje `Restaurants.avg_service/cleanliness/ambiance` z Reviews
+3. Aktualizuje `Restaurants.avg_food_score` = średnia wszystkich dań restauracji
+
+#### Konfiguracja SQL Server Agent Job
+
+**Po utworzeniu bazy danych:**
+
+```sql
+-- 1. Odkomentuj sekcję w schema_updated.sql (linie 532-586)
+-- 2. Uruchom sekcję aby utworzyć Job
+-- 3. Job będzie działał automatycznie co 10 minut
+
+-- Sprawdzenie statusu Job:
+SELECT
+    job.name,
+    job.enabled,
+    activity.run_requested_date AS last_run
+FROM msdb.dbo.sysjobs job
+LEFT JOIN msdb.dbo.sysjobactivity activity ON job.job_id = activity.job_id
+WHERE job.name = 'Update Average Ratings Every 10 Minutes';
+```
+
+#### Zalety Materialized Averages
+
+**Wydajność:**
+- ✅ Szybkie odczyty (bez GROUP BY)
+- ✅ Efektywne sortowanie TOP 10 dań/restauracji
+- ✅ Możliwość filtrowania WHERE avg_rating > 7.5
+
+**Przykłady zapytań:**
+```sql
+-- TOP 10 najlepiej ocenianych dań (BARDZO SZYBKIE!)
+SELECT TOP 10
+    dish_name, avg_rating, restaurant_id
+FROM Dishes
+WHERE avg_rating IS NOT NULL
+ORDER BY avg_rating DESC;
+
+-- TOP 10 restauracji według jakości dań
+SELECT TOP 10
+    restaurant_name, avg_food_score, avg_service
+FROM Restaurants
+WHERE avg_food_score IS NOT NULL
+ORDER BY avg_food_score DESC;
+
+-- Restauracje z doskonałą obsługą (>8.5)
+SELECT restaurant_name, avg_service, avg_cleanliness, avg_ambiance
+FROM Restaurants
+WHERE avg_service > 8.5
+ORDER BY avg_service DESC;
+```
+
+**Aktualność:**
+- Dane odświeżane co 10 minut
+- Maksymalne opóźnienie: 10 minut
+- Akceptowalne dla większości aplikacji webowych
 
 ### Restaurant & Dish Selector
 
@@ -646,6 +729,37 @@ category → tag_category
 name → ingredient_name (konsystencja)
 ```
 
+### Dodatkowe Ulepszenia (Post-Implementation)
+
+#### 14. ✅ Materialized Average Columns (schema_updated.sql)
+**Data:** 2025-11-17
+**Powód:** Wydajność zapytań dla 875k recenzji
+
+```sql
+-- Dishes table:
++ avg_rating FLOAT NULL  -- AVG(dish_rating) from Reviews
++ CREATE INDEX idx_dishes_avg_rating ON Dishes(avg_rating DESC);
+
+-- Restaurants table (już istniały, zaktualizowano komentarze):
+avg_service FLOAT NULL       -- AVG(service_rating)
+avg_cleanliness FLOAT NULL   -- AVG(cleanliness_rating)
+avg_ambiance FLOAT NULL      -- AVG(ambiance_rating)
+avg_food_score FLOAT NULL    -- AVG(dish_rating) for restaurant's dishes
+
+-- Stored Procedure:
++ UpdateAverageRatings - aktualizuje wszystkie avg_* kolumny
+
+-- SQL Server Agent Job:
++ Automatyczna aktualizacja co 10 minut (opcjonalna)
+```
+
+**Zalety:**
+- Szybkie zapytania TOP 10 (bez GROUP BY)
+- Możliwość filtrowania WHERE avg_rating > 7.5
+- Efektywne sortowanie
+
+**WAŻNE:** Kolumny avg_* są NULL dopóki nie uruchomisz `EXEC UpdateAverageRatings;` po generacji!
+
 ### Wynik Napraw
 
 ✅ **Wszystkie INSERT statements pasują do schematu**
@@ -728,6 +842,9 @@ Start: 2025-11-17 10:00:00
   Photos (system): 23,000
   User_Photos: 262,500
   TOTAL PHOTOS: 285,500
+
+⚠️  UWAGA: avg_* kolumny w Dishes i Restaurants są NULL!
+    Uruchom: EXEC UpdateAverageRatings; aby je wypełnić
 
 ------------------------------------------------------------
 🎯 METRYKI COLLABORATIVE FILTERING
