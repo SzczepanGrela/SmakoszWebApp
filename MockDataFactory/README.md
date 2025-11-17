@@ -184,15 +184,28 @@ tail -f mockdata_generation.log
 
 **Plik:** `algorithms/rating_engine.py` (RDZEŃ SYSTEMU)
 
-### Obliczane Oceny
+### Struktura Ocen w Systemie
 
-Algorytm oblicza **6 ocen** dla każdej recenzji:
+**WAŻNE:** User w recenzji ocenia **DANIE + 3 aspekty RESTAURACJI**:
 
-#### 1. FOOD SCORE (40% wpływu na overall)
+1. **dish_rating** (1-10) - Ocena konkretnego DANIA (NOT NULL)
+2. **service_rating** (1-10) - Ocena OBSŁUGI restauracji (NULL allowed)
+3. **cleanliness_rating** (1-10) - Ocena CZYSTOŚCI restauracji (NULL allowed)
+4. **ambiance_rating** (1-10) - Ocena ATMOSFERY restauracji (NULL allowed)
+
+**NIE MA** `overall_rating` w tabeli Reviews!
+
+**Restauracja ma ukrytą 4. ocenę** - średnia wszystkich średnich ocen dań z jej menu (obliczana agregacyjnie z Reviews, nie zapisywana jako kolumna).
+
+### Obliczane Oceny (wewnętrznie przez algorytm)
+
+Algorytm oblicza 4 główne oceny które TRAFIAJĄ DO BAZY:
+
+#### 1. FOOD SCORE → dish_rating (ocena DANIA)
+
+**7 czynników wpływających:**
 
 ```python
-# 7 czynników wpływających na food_score:
-
 1. JAKOŚĆ (30%):
    - dish.secret_quality (0.3-0.95, Beta distribution)
    - restaurant.secret_overall_food_quality (0.4-0.95)
@@ -215,40 +228,93 @@ Algorytm oblicza **6 ocen** dla każdej recenzji:
 
 7. NASTRÓJ (10%):
    - Losowa wariancja: user.secret_mood_propensity = 0.3 (ZOPTYMALIZOWANE!)
+
+8. VALUE FOR MONEY (dodatkowy wpływ):
+   - Cena vs user.secret_price_preference_range
 ```
 
-#### 2. SERVICE SCORE (15% wpływu)
-- `restaurant.secret_service_quality` + losowa wariancja
+**Rezultat:** `dish_rating` (1-10) zapisywany do Reviews
 
-#### 3. CLEANLINESS SCORE (15% wpływu)
-- `restaurant.secret_cleanliness_score` vs `user.secret_cleanliness_preference`
-
-#### 4. AMBIANCE SCORE (10% wpływu)
-- `restaurant.secret_ambiance_quality` + dopasowanie typu
-
-#### 5. VALUE FOR MONEY (10% wpływu)
-- Cena vs `user.secret_price_preference_range`
-
-#### 6. CROSS-IMPACT / HALO EFFECT (10% wpływu)
-- Jeśli `food_score > 7`: boost dla service, cleanliness, ambiance
-- Factor: `user.secret_cross_impact_factor = 0.02` (ZOPTYMALIZOWANE!)
-- **NAPRAWIONE:** Funkcja zwraca tuple zamiast modyfikacji in-place
-
-### Overall Rating Formula
+#### 2. SERVICE SCORE → service_rating (ocena OBSŁUGI restauracji)
 
 ```python
-overall_rating = (
-    food_score       * 0.40 +
-    service_score    * 0.15 +
-    cleanliness_score * 0.15 +
-    ambiance_score   * 0.10 +
-    value_score      * 0.10 +
-    cross_impact     * 0.10
-)
-
-# Zaokrąglenie do 1-10
-overall_rating = max(1, min(10, round(overall_rating)))
+- Bazowa: restaurant.secret_service_quality (0.3-0.95)
+- Skalowanie do 1-10
+- Losowa wariancja
+- Cross-impact: Jeśli dish_rating > 7, boost +0.02
 ```
+
+**Rezultat:** `service_rating` (1-10) zapisywany do Reviews
+
+#### 3. CLEANLINESS SCORE → cleanliness_rating (ocena CZYSTOŚCI restauracji)
+
+```python
+- Bazowa: restaurant.secret_cleanliness_score (3.0-9.5)
+- Dopasowanie do user.secret_cleanliness_preference
+- Cross-impact: Jeśli dish_rating > 7, boost +0.02
+```
+
+**Rezultat:** `cleanliness_rating` (1-10) zapisywany do Reviews
+
+#### 4. AMBIANCE SCORE → ambiance_rating (ocena ATMOSFERY restauracji)
+
+```python
+- Bazowa: restaurant.secret_ambiance_quality (0.3-0.95)
+- Dopasowanie typu: user.secret_preferred_ambiance vs restaurant.secret_ambiance_type
+- Skalowanie do 1-10
+- Cross-impact: Jeśli dish_rating > 7, boost +0.02
+```
+
+**Rezultat:** `ambiance_rating` (1-10) zapisywany do Reviews
+
+### Cross-Impact / Halo Effect
+
+**NAPRAWIONE:** Funkcja zwraca tuple zamiast modyfikacji in-place
+
+```python
+# Jeśli ocena dania jest wysoka (>7), user jest bardziej wyrozumiały dla restauracji
+if dish_rating > 7:
+    boost = (dish_rating - 7) * user.secret_cross_impact_factor * 0.5
+    service_rating += boost
+    cleanliness_rating += boost
+    ambiance_rating += boost
+
+# Factor: 0.02 (ZOPTYMALIZOWANE - subtelny efekt)
+```
+
+### Co NIE jest zapisywane w Reviews
+
+Algorytm oblicza pomocniczo:
+- `overall_rating` - używany TYLKO do generowania komentarza (text_generator.py)
+- `value_for_money_score` - wpływa na food_score, ale nie jest osobną kolumną
+
+### Średnie Oceny Restauracji (obliczane agregacyjnie)
+
+**Restauracja ma 4 oceny** (wszystkie obliczane z Reviews, NIE zapisywane jako kolumny):
+
+1. **Średnia ocena obsługi** - `AVG(service_rating)` dla tej restauracji
+2. **Średnia ocena czystości** - `AVG(cleanliness_rating)` dla tej restauracji
+3. **Średnia ocena atmosfery** - `AVG(ambiance_rating)` dla tej restauracji
+4. **Średnia ocena dań (UKRYTA)** - `AVG(dish_rating)` dla wszystkich dań z menu tej restauracji
+
+```sql
+-- Przykład: Oceny restauracji
+SELECT
+    r.restaurant_id,
+    r.restaurant_name,
+    AVG(rv.service_rating) AS avg_service,
+    AVG(rv.cleanliness_rating) AS avg_cleanliness,
+    AVG(rv.ambiance_rating) AS avg_ambiance,
+    AVG(rv.dish_rating) AS avg_dish_rating  -- Ukryta 4. ocena!
+FROM Restaurants r
+LEFT JOIN Reviews rv ON r.restaurant_id = rv.restaurant_id
+GROUP BY r.restaurant_id, r.restaurant_name;
+```
+
+**To pozwala na:**
+- Ranking restauracji według jakości obsługi/czystości/atmosfery
+- Ranking restauracji według średniej oceny dań (ukryta metryka jakości menu)
+- Porównanie restauracji w różnych wymiarach
 
 ### Restaurant & Dish Selector
 
@@ -539,15 +605,20 @@ created_date → created_at
 + popularity_factor
 ```
 
-#### 9. ✅ Reviews Table (6 kolumn)
+#### 9. ✅ Reviews Table - Struktura Ocen
 ```
-food_score → dish_rating
-service_score → service_rating
-cleanliness_score → cleanliness_rating
-ambiance_score → ambiance_rating
-comment_text → review_comment
-- overall_rating (usunięte - nie w schemacie)
-- value_for_money_score (usunięte)
+Zapisywane 4 oceny:
+1. dish_rating (ocena DANIA) ← food_score z algorytmu
+2. service_rating (ocena OBSŁUGI) ← service_score z algorytmu
+3. cleanliness_rating (ocena CZYSTOŚCI) ← cleanliness_score z algorytmu
+4. ambiance_rating (ocena ATMOSFERY) ← ambiance_score z algorytmu
+
+NIE zapisywane (tylko pomocnicze):
+- overall_rating (używany do generowania komentarza)
+- value_for_money_score (wpływa na dish_rating)
+
+Poprawiono też:
+- comment_text → review_comment
 ```
 
 #### 10. ✅ Photos Table (struktura)
