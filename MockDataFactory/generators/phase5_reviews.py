@@ -21,6 +21,26 @@ from algorithms.dish_selector import select_dish_from_menu
 logger = logging.getLogger(__name__)
 
 
+def safe_json_loads(value, default=None):
+    """
+    Bezpieczne parsowanie JSON z obsługą NULL i pustych wartości
+
+    Args:
+        value: Wartość do sparsowania (str lub None)
+        default: Wartość domyślna jeśli value jest None/puste
+
+    Returns:
+        Sparsowany obiekt lub default
+    """
+    if value is None or value == '':
+        return default if default is not None else {}
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.warning(f"JSON parse error: {e}, value: {value}")
+        return default if default is not None else {}
+
+
 def generate_reviews(db: DatabaseConnection):
     """
     Generuje ~875,000 recenzji używając algorytmu oceniania
@@ -78,19 +98,19 @@ def generate_reviews(db: DatabaseConnection):
         num_reviews = user[2]
         travel_prop = user[3]
 
-        # Parse JSON strings
+        # Parse JSON strings (FIXED: używa safe_json_loads zamiast hacka z .replace())
         user_data = {
             'user_id': user_id,
             'city_id': home_city_id,
             'secret_total_review_count': num_reviews,
             'travel_propensity': travel_prop,
-            'secret_enjoyed_archetypes': json.loads(user[4].replace("'", "\"")),
-            'secret_ingredient_preferences': json.loads(user[5].replace("'", "\"")),
-            'secret_price_preference_range': json.loads(user[6].replace("'", "\"")),
+            'secret_enjoyed_archetypes': safe_json_loads(user[4], {}),
+            'secret_ingredient_preferences': safe_json_loads(user[5], {}),
+            'secret_price_preference_range': safe_json_loads(user[6], {'mean': 35.0, 'tolerance_above': 2.0, 'tolerance_below': 0.5}),
             'secret_spice_preference': user[7],
             'secret_richness_preference': user[8],
             'secret_texture_preference': user[9],
-            'secret_cleanliness_preference': json.loads(user[10].replace("'", "\"")),
+            'secret_cleanliness_preference': safe_json_loads(user[10], {}),
             'secret_preferred_ambiance': user[11],
             'secret_mood_propensity': user[12],
             'secret_cross_impact_factor': user[13],
