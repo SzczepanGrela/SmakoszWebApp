@@ -39,6 +39,43 @@ def safe_json_loads(value, default=None):
         logger.warning(f"JSON parse error: {e}, value: {value}")
         return default if default is not None else {}
 
+def safe_divide(numerator, denominator, default=1.0):
+    """
+    Bezpieczne dzielenie z zabezpieczeniem przed zerem
+
+    Args:
+        numerator: Licznik
+        denominator: Mianownik
+        default: Wartość domyślna jeśli dzielenie niemożliwe
+
+    Returns:
+        Wynik dzielenia lub default
+    """
+    if denominator is None or denominator == 0:
+        return default
+    try:
+        return numerator / denominator
+    except (TypeError, ZeroDivisionError):
+        return default
+
+def safe_float(value, default=0.0):
+    """
+    Bezpieczna konwersja do float
+
+    Args:
+        value: Wartość do konwersji
+        default: Wartość domyślna jeśli konwersja niemożliwa
+
+    Returns:
+        Float lub default
+    """
+    if value is None or value == '':
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 def generate_reviews(db: DatabaseConnection):
     """
     Generuje ~875,000 recenzji używając algorytmu oceniania
@@ -62,8 +99,8 @@ def generate_reviews(db: DatabaseConnection):
     users = db.fetch_all("""
         SELECT user_id, home_city_id, secret_total_review_count, secret_travel_propensity,
                secret_enjoyed_archetypes, secret_ingredient_preferences,
-               secret_price_preference_range, secret_spice_preference,
-               secret_richness_preference, secret_texture_preference,
+               secret_price_preference_range, secret_price_tolerance_above, secret_price_tolerance_below,
+               secret_spice_preference, secret_richness_preference, secret_texture_preference,
                secret_cleanliness_preference, secret_preferred_ambiance,
                secret_mood_propensity, secret_cross_impact_factor,
                account_created_at
@@ -104,15 +141,17 @@ def generate_reviews(db: DatabaseConnection):
             'travel_propensity': travel_prop,
             'secret_enjoyed_archetypes': safe_json_loads(user[4], {}),
             'secret_ingredient_preferences': safe_json_loads(user[5], {}),
-            'secret_price_preference_range': safe_json_loads(user[6], {'mean': 35.0, 'tolerance_above': 2.0, 'tolerance_below': 0.5}),
-            'secret_spice_preference': user[7],
-            'secret_richness_preference': user[8],
-            'secret_texture_preference': user[9],
-            'secret_cleanliness_preference': safe_json_loads(user[10], {}),
-            'secret_preferred_ambiance': user[11],
-            'secret_mood_propensity': user[12],
-            'secret_cross_impact_factor': user[13],
-            'join_date': user[14]
+            'secret_price_preference_range': safe_float(user[6], 35.0),  # FIXED: safe conversion
+            'secret_price_tolerance_above': user[7] if user[7] else 2.0,  # Separate column
+            'secret_price_tolerance_below': user[8] if user[8] else 0.5,  # Separate column
+            'secret_spice_preference': user[9],
+            'secret_richness_preference': user[10],
+            'secret_texture_preference': user[11],
+            'secret_cleanliness_preference': safe_json_loads(user[12], {}),
+            'secret_preferred_ambiance': user[13],
+            'secret_mood_propensity': user[14],
+            'secret_cross_impact_factor': user[15],
+            'join_date': user[16]
         }
 
         # Generuj daty recenzji
@@ -162,30 +201,41 @@ def generate_reviews(db: DatabaseConnection):
             restaurant = next(r for r in city_restaurants if r['restaurant_id'] == restaurant_id)
 
             # Pobierz dania restauracji
-            dishes = db.fetch_all(f"""
+            dishes = db.fetch_all("""
                 SELECT dish_id, dish_name, archetype, public_price,
                        secret_base_price, secret_quality, secret_spiciness,
                        secret_richness, secret_texture_score, popularity_factor
                 FROM Dishes
-                WHERE restaurant_id = {restaurant_id}
-            """)
+                WHERE restaurant_id = ?
+            """, (restaurant_id,))
 
             if not dishes:
                 continue
 
             # Konwertuj do dict i załaduj składniki
+            # FIXED N+1 PROBLEM: Pobierz WSZYSTKIE składniki dla WSZYSTKICH dań naraz
+            dish_ids = [d[0] for d in dishes]
+            ingredients_by_dish = {}
+
+            if dish_ids:
+                placeholders = ','.join(['?'] * len(dish_ids))
+                all_ingredients = db.fetch_all(f"""
+                    SELECT dil.dish_id, i.ingredient_name
+                    FROM Dish_Ingredients_Link dil
+                    JOIN Ingredients i ON dil.ingredient_id = i.ingredient_id
+                    WHERE dil.dish_id IN ({placeholders})
+                """, tuple(dish_ids))
+
+                # Grupuj składniki per dish_id
+                for dish_id, ingredient_name in all_ingredients:
+                    if dish_id not in ingredients_by_dish:
+                        ingredients_by_dish[dish_id] = []
+                    ingredients_by_dish[dish_id].append(ingredient_name)
+
+            # Teraz buduj dish_dicts używając zgrupowanych składników
             dish_dicts = []
             for d in dishes:
                 dish_id = d[0]
-                # FIXED: Ładuj prawdziwe składniki z bazy danych
-                dish_ingredients = db.fetch_all(f"""
-                    SELECT i.ingredient_name
-                    FROM Dish_Ingredients_Link dil
-                    JOIN Ingredients i ON dil.ingredient_id = i.ingredient_id
-                    WHERE dil.dish_id = {dish_id}
-                """)
-                ingredient_names = [ing[0] for ing in dish_ingredients]
-
                 dish_dicts.append({
                     'dish_id': dish_id,
                     'dish_name': d[1],
@@ -197,7 +247,7 @@ def generate_reviews(db: DatabaseConnection):
                     'secret_richness': d[7],
                     'secret_texture_score': d[8],
                     'popularity_factor': d[9],
-                    'ingredients': ingredient_names  # FIXED: Prawdziwe składniki
+                    'ingredients': ingredients_by_dish.get(dish_id, [])  # FIXED: Batch loaded
                 })
 
             # Wybierz danie (używa dish_selector.py)
@@ -216,7 +266,7 @@ def generate_reviews(db: DatabaseConnection):
                 restaurant_name=f"Restaurant_{restaurant_id}",
                 city="City",
                 quality_score=selected_dish['secret_quality'],
-                price_ratio=selected_dish['public_price'] / user_data['secret_price_preference_range']['mean'],
+                price_ratio=safe_divide(selected_dish['public_price'], user_data['secret_price_preference_range'], 1.0),  # FIXED: safe division
                 service_score=restaurant['secret_service_quality'],
                 cleanliness_score=restaurant['secret_cleanliness_score'],
                 ambiance_score=restaurant['secret_ambiance_quality'] * 10

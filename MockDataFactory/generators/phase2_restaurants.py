@@ -6,6 +6,9 @@ import logging
 import random
 import sys
 import os
+import re
+import unicodedata
+from faker import Faker
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -16,6 +19,42 @@ from utils.date_generator import DateGenerator
 from utils.photo_pools import PhotoPools
 
 logger = logging.getLogger(__name__)
+fake = Faker('pl_PL')  # Polish locale for realistic data
+
+def slugify(text: str) -> str:
+    """
+    Convert Polish text to URL-safe slug (ASCII-only, lowercase, hyphenated)
+
+    Examples:
+        "Pizzeria Królewska" -> "pizzeria-krolewska"
+        "Sushi Bar Łódź" -> "sushi-bar-lodz"
+    """
+    # Manual mapping for Polish characters that NFKD doesn't handle
+    polish_chars = {
+        'ą': 'a', 'Ą': 'A',
+        'ć': 'c', 'Ć': 'C',
+        'ę': 'e', 'Ę': 'E',
+        'ł': 'l', 'Ł': 'L',
+        'ń': 'n', 'Ń': 'N',
+        'ó': 'o', 'Ó': 'O',
+        'ś': 's', 'Ś': 'S',
+        'ź': 'z', 'Ź': 'Z',
+        'ż': 'z', 'Ż': 'Z'
+    }
+    for polish, ascii_char in polish_chars.items():
+        text = text.replace(polish, ascii_char)
+
+    # Normalize remaining unicode characters
+    text = unicodedata.normalize('NFKD', text)
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    # Convert to lowercase and replace spaces with hyphens
+    text = text.lower().replace(' ', '-')
+    # Remove any remaining non-alphanumeric characters except hyphens
+    text = re.sub(r'[^a-z0-9-]', '', text)
+    # Remove consecutive hyphens
+    text = re.sub(r'-+', '-', text)
+    # Strip leading/trailing hyphens
+    return text.strip('-')
 
 def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     """
@@ -70,10 +109,29 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             # Menu blueprint
             menu_blueprint = _get_menu_blueprint(theme)
 
+            # Calculate public_price_range based on secret_price_multiplier
+            if secret_price_multiplier < 0.9:
+                public_price_range = "$"
+            elif secret_price_multiplier < 1.1:
+                public_price_range = "$$"
+            elif secret_price_multiplier < 1.25:
+                public_price_range = "$$$"
+            else:
+                public_price_range = "$$$$"
+
+            # FIXED: Dodano brakujące pola (address, phone, website, description, image_url, public_price_range)
             restaurant_data.append({
                 "city_id": city_id,
                 "restaurant_name": name,
                 "public_cuisine_theme": theme,  # FIXED: proper column name
+                "public_price_range": public_price_range,  # FIXED: Added
+                "address": f"{fake.street_address()}, {city_name}",  # FIXED: Added
+                "latitude": round(random.uniform(49.0, 54.5), 7),  # FIXED: Added (Poland coords)
+                "longitude": round(random.uniform(14.0, 24.0), 7),  # FIXED: Added (Poland coords)
+                "phone": fake.phone_number(),  # FIXED: Added
+                "website": f"https://{slugify(name)}.pl",  # FIXED: Added, URL-safe slugification
+                "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",  # FIXED: Added
+                "image_url": photo_pools.get_restaurant_photo(theme),  # FIXED: Added
                 "theme": theme,  # Keep for backward compatibility
                 "created_at": DateGenerator.to_sql_datetime(created_date),  # FIXED: was created_date
                 "secret_price_multiplier": round(secret_price_multiplier, 3),
@@ -160,7 +218,7 @@ def _assign_restaurant_tags(db: DatabaseConnection):
     logger.info("🏷️  Przypisywanie tagów do restauracji...")
 
     restaurants = db.fetch_all("SELECT restaurant_id, theme FROM Restaurants")
-    tags = db.fetch_all("SELECT tag_id, tag_name, category FROM Tags")
+    tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM Tags")  # FIXED: category -> tag_category
 
     tag_assignments = []
 

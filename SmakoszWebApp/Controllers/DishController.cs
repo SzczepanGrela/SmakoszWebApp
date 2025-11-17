@@ -11,6 +11,12 @@ namespace SmakoszWebApp.Controllers
         // GET: /Dish/Index/1
         public IActionResult Index(int id)
         {
+            // Walidacja parametru id
+            if (id <= 0)
+            {
+                return BadRequest("Invalid dish ID. ID must be greater than 0.");
+            }
+
             // Znajdź danie o podanym id w naszej liście mocków
             var dish = GetMockDishes().FirstOrDefault(d => d.Id == id);
 
