@@ -32,7 +32,7 @@ namespace SmakoszWebApp.Controllers
                     Name = "Pizza Diavola",
                     RestaurantName = "Pizzeria Roma",
                     Price = 38.00m,
-                    AverageRating = 4.8,
+                    AverageRating = 9.6,
                     ReviewCount = 45,
                     ImageUrl = "https://placehold.co/600x400/ff6f61/white?text=Pizza",
                     Tags = new List<string> { "Ostre" }
@@ -43,7 +43,7 @@ namespace SmakoszWebApp.Controllers
                     Name = "Klasyczny Burger Wołowy",
                     RestaurantName = "Burgerownia Stacja",
                     Price = 42.00m,
-                    AverageRating = 4.9,
+                    AverageRating = 9.8,
                     ReviewCount = 120,
                     ImageUrl = "https://placehold.co/600x400/4CAF50/white?text=Burger",
                     Tags = new List<string>()
@@ -54,7 +54,7 @@ namespace SmakoszWebApp.Controllers
                     Name = "Zestaw Sushi Ebi Ten",
                     RestaurantName = "Sushi Master",
                     Price = 55.00m,
-                    AverageRating = 4.7,
+                    AverageRating = 9.4,
                     ReviewCount = 78,
                     ImageUrl = "https://placehold.co/600x400/2196F3/white?text=Sushi",
                     Tags = new List<string> { "Owoce morza" }

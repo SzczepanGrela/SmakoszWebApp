@@ -32,11 +32,11 @@ namespace SmakoszWebApp.Controllers
             var userName = User.Identity?.Name;
             var allReviews = new List<ReviewViewModel>
             {
-                new ReviewViewModel { Id = 1, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 4.8, Comment = "Fantastyczna pizza z ostrymi pepperoni! Ciasto idealne, składniki świeże.", Date = DateTime.Now.AddDays(-2), DatePosted = DateTime.Now.AddDays(-2), DishName = "Pizza Diavola", RestaurantName = "Pizzeria Roma", DishId = 1 },
-                new ReviewViewModel { Id = 2, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 4.9, Comment = "Najlepszy burger w mieście! Mięso soczyste, dodatki świeże, obsługa super.", Date = DateTime.Now.AddDays(-5), DatePosted = DateTime.Now.AddDays(-5), DishName = "Klasyczny Burger Wołowy", RestaurantName = "Burgerownia Stacja", DishId = 2 },
-                new ReviewViewModel { Id = 3, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 4.7, Comment = "Sushi bardzo smaczne, ryba świeża. Tempura krewetki doskonała.", Date = DateTime.Now.AddDays(-1), DatePosted = DateTime.Now.AddDays(-1), DishName = "Zestaw Sushi Ebi Ten", RestaurantName = "Sushi Master", DishId = 3 },
-                new ReviewViewModel { Id = 4, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 4.9, Comment = "Autentyczny ramen o intensywnym smaku. Makaron al dente, bulion bogaty.", Date = DateTime.Now.AddDays(-3), DatePosted = DateTime.Now.AddDays(-3), DishName = "Tantanmen Ramen", RestaurantName = "Ramen-Ya", DishId = 4 },
-                new ReviewViewModel { Id = 5, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 5.0, Comment = "Najlepszy sernik baskijski jaki jadłem! Idealnie karmelizowany, kremowy w środku.", Date = DateTime.Now.AddDays(-4), DatePosted = DateTime.Now.AddDays(-4), DishName = "Sernik Baskijski", RestaurantName = "Słodka Dziurka", DishId = 5 }
+                new ReviewViewModel { Id = 1, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.6, Comment = "Fantastyczna pizza z ostrymi pepperoni! Ciasto idealne, składniki świeże.", Date = DateTime.Now.AddDays(-2), DatePosted = DateTime.Now.AddDays(-2), DishName = "Pizza Diavola", RestaurantName = "Pizzeria Roma", DishId = 1 },
+                new ReviewViewModel { Id = 2, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.8, Comment = "Najlepszy burger w mieście! Mięso soczyste, dodatki świeże, obsługa super.", Date = DateTime.Now.AddDays(-5), DatePosted = DateTime.Now.AddDays(-5), DishName = "Klasyczny Burger Wołowy", RestaurantName = "Burgerownia Stacja", DishId = 2 },
+                new ReviewViewModel { Id = 3, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.4, Comment = "Sushi bardzo smaczne, ryba świeża. Tempura krewetki doskonała.", Date = DateTime.Now.AddDays(-1), DatePosted = DateTime.Now.AddDays(-1), DishName = "Zestaw Sushi Ebi Ten", RestaurantName = "Sushi Master", DishId = 3 },
+                new ReviewViewModel { Id = 4, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.8, Comment = "Autentyczny ramen o intensywnym smaku. Makaron al dente, bulion bogaty.", Date = DateTime.Now.AddDays(-3), DatePosted = DateTime.Now.AddDays(-3), DishName = "Tantanmen Ramen", RestaurantName = "Ramen-Ya", DishId = 4 },
+                new ReviewViewModel { Id = 5, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 10.0, Comment = "Najlepszy sernik baskijski jaki jadłem! Idealnie karmelizowany, kremowy w środku.", Date = DateTime.Now.AddDays(-4), DatePosted = DateTime.Now.AddDays(-4), DishName = "Sernik Baskijski", RestaurantName = "Słodka Dziurka", DishId = 5 }
             };
             return allReviews.Skip(skip).Take(count).ToList();
         }
@@ -53,7 +53,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Pizzeria Italiana",
                     RestaurantId = 5,
                     Price = 36.00m,
-                    AverageRating = 4.8,
+                    AverageRating = 9.6,
                     ReviewCount = 203,
                     ImageUrl = "https://placehold.co/400x300/ff6f61/white?text=Margherita",
                     Tags = new List<string> { "Klasyka", "Wegetariańskie" },
@@ -66,7 +66,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Thai Garden",
                     RestaurantId = 6,
                     Price = 41.00m,
-                    AverageRating = 4.7,
+                    AverageRating = 9.4,
                     ReviewCount = 89,
                     ImageUrl = "https://placehold.co/400x300/FF9800/white?text=Pad+Thai",
                     Tags = new List<string> { "Ostre", "Azjatyckie" },
@@ -79,7 +79,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Seoul Kitchen",
                     RestaurantId = 7,
                     Price = 47.00m,
-                    AverageRating = 4.8,
+                    AverageRating = 9.6,
                     ReviewCount = 34,
                     ImageUrl = "https://placehold.co/400x300/E91E63/white?text=Korean",
                     Tags = new List<string> { "Nowe", "Koreańskie" },
