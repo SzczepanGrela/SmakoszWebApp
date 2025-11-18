@@ -67,7 +67,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Pizzeria Roma",
                     RestaurantId = 1,
                     Price = 38.00m,
-                    AverageRating = 9.6,
+                    AverageRating = 4.8,
                     ReviewCount = 45,
                     ImageUrl = "https://placehold.co/600x400/ff6f61/white?text=Pizza",
                     Tags = new List<string> { "Ostre" }
@@ -79,7 +79,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Burgerownia Stacja",
                     RestaurantId = 2,
                     Price = 42.00m,
-                    AverageRating = 9.8,
+                    AverageRating = 4.9,
                     ReviewCount = 120,
                     ImageUrl = "https://placehold.co/600x400/4CAF50/white?text=Burger",
                     Tags = new List<string>()
@@ -91,7 +91,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Sushi Master",
                     RestaurantId = 3,
                     Price = 55.00m,
-                    AverageRating = 9.4,
+                    AverageRating = 4.7,
                     ReviewCount = 78,
                     ImageUrl = "https://placehold.co/600x400/2196F3/white?text=Sushi",
                     Tags = new List<string> { "Owoce morza" }
@@ -103,7 +103,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Ramen-Ya",
                     RestaurantId = 4,
                     Price = 45.00m,
-                    AverageRating = 9.8,
+                    AverageRating = 4.9,
                     ReviewCount = 95,
                     ImageUrl = "https://placehold.co/600x400/FFC107/white?text=Ramen",
                     Tags = new List<string> { "Ostre", "Wegańskie" }
@@ -122,7 +122,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Ramen-Ya",
                     RestaurantId = 4,
                     Price = 52.00m,
-                    AverageRating = 9.8,
+                    AverageRating = 4.9,
                     ReviewCount = 156,
                     ImageUrl = "https://placehold.co/400x300/FFC107/white?text=Ramen+Special",
                     Tags = new List<string> { "Polecane", "Nowe" }
@@ -134,7 +134,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Pizzeria Italiana",
                     RestaurantId = 5,
                     Price = 36.00m,
-                    AverageRating = 9.6,
+                    AverageRating = 4.8,
                     ReviewCount = 203,
                     ImageUrl = "https://placehold.co/400x300/ff6f61/white?text=Margherita",
                     Tags = new List<string> { "Klasyka", "Wegetariańskie" }
@@ -146,7 +146,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Thai Garden",
                     RestaurantId = 6,
                     Price = 41.00m,
-                    AverageRating = 9.4,
+                    AverageRating = 4.7,
                     ReviewCount = 89,
                     ImageUrl = "https://placehold.co/400x300/FF9800/white?text=Pad+Thai",
                     Tags = new List<string> { "Ostre", "Azjatyckie" }
@@ -165,7 +165,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Seoul Kitchen",
                     RestaurantId = 7,
                     Price = 47.00m,
-                    AverageRating = 9.6,
+                    AverageRating = 4.8,
                     ReviewCount = 34,
                     ImageUrl = "https://placehold.co/300x200/E91E63/white?text=Korean",
                     Tags = new List<string> { "Nowe", "Koreańskie" }
@@ -177,7 +177,7 @@ namespace SmakoszWebApp.Controllers
                     RestaurantName = "Pasta Perfetta",
                     RestaurantId = 8,
                     Price = 67.00m,
-                    AverageRating = 9.8,
+                    AverageRating = 4.9,
                     ReviewCount = 23,
                     ImageUrl = "https://placehold.co/300x200/8BC34A/white?text=Truffle",
                     Tags = new List<string> { "Nowe", "Luksusowe" }
@@ -197,55 +197,35 @@ namespace SmakoszWebApp.Controllers
                 new ReviewViewModel
                 {
                     Id = 1,
-                    UserId = 201,
-                    RestaurantId = 1,
-                    DishId = 1,
                     DishName = "Pizza Diavola",
                     RestaurantName = "Pizzeria Roma",
-                    DishRating = 10,
-                    ServiceRating = 9,
-                    ReviewTitle = "Fantastyczna pizza!",
+                    Rating = 5,
                     Comment = "Absolutnie fantastyczna pizza! Idealna ostrość i świeże składniki.",
                     UserName = "Anna K.",
-                    ReviewDate = DateTime.Now.AddHours(-2),
-                    HelpfulCount = 8,
-                    IsApproved = true
+                    Date = DateTime.Now.AddHours(-2),
+                    DishId = 1
                 },
                 new ReviewViewModel
                 {
                     Id = 2,
-                    UserId = 202,
-                    RestaurantId = 4,
-                    DishId = 4,
                     DishName = "Ramen Shoyu",
                     RestaurantName = "Ramen-Ya",
-                    DishRating = 10,
-                    ServiceRating = 10,
-                    CleanlinessRating = 9,
-                    AmbianceRating = 10,
-                    ReviewTitle = "Najlepszy ramen!",
+                    Rating = 5,
                     Comment = "Najlepszy ramen w mieście! Bulion idealny, makaron al dente.",
                     UserName = "Tomasz M.",
-                    ReviewDate = DateTime.Now.AddHours(-5),
-                    HelpfulCount = 15,
-                    IsApproved = true
+                    Date = DateTime.Now.AddHours(-5),
+                    DishId = 4
                 },
                 new ReviewViewModel
                 {
                     Id = 3,
-                    UserId = 203,
-                    RestaurantId = 2,
-                    DishId = 2,
                     DishName = "Burger Wołowy",
                     RestaurantName = "Burgerownia Stacja",
-                    DishRating = 8,
-                    ServiceRating = 7,
-                    ReviewTitle = "Solidny burger",
+                    Rating = 4,
                     Comment = "Solidny burger, mięso smakowite, ale bułka mogłaby być lepsza.",
                     UserName = "Marcin L.",
-                    ReviewDate = DateTime.Now.AddHours(-8),
-                    HelpfulCount = 3,
-                    IsApproved = true
+                    Date = DateTime.Now.AddHours(-8),
+                    DishId = 2
                 }
             };
         }

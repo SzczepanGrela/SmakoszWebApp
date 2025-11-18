@@ -5,8 +5,8 @@ namespace SmakoszWebApp.ViewModels
 {
     public class SearchResultsViewModel
     {
-        public string Query { get; set; }
-        public List<DishViewModel> Results { get; set; }
+        public string? Query { get; set; }
+        public List<DishViewModel> Results { get; set; } = new();
         public int ResultCount => Results?.Count ?? 0;
 
         // Tutaj w przyszłości znajdą się dane dla filtrów, 
