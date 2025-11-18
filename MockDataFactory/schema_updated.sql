@@ -59,11 +59,11 @@ CREATE TABLE Restaurants (
     is_active BIT DEFAULT 1,
     created_at DATETIME DEFAULT GETDATE(),
 
-    -- Calculated Averages (for the app, updated from reviews)
-    avg_service FLOAT,
-    avg_cleanliness FLOAT,
-    avg_ambiance FLOAT,
-    avg_food_score FLOAT,
+    -- Calculated Averages (updated by SQL Server Job every 10 minutes)
+    avg_service FLOAT NULL,       -- AVG(service_rating) from Reviews
+    avg_cleanliness FLOAT NULL,   -- AVG(cleanliness_rating) from Reviews
+    avg_ambiance FLOAT NULL,      -- AVG(ambiance_rating) from Reviews
+    avg_food_score FLOAT NULL,    -- AVG(dish_rating) from all restaurant's dishes
 
     -- Secret Simulation Attributes (for CF model and generation)
     secret_price_multiplier FLOAT,
@@ -71,7 +71,11 @@ CREATE TABLE Restaurants (
     secret_service_quality FLOAT,
     secret_cleanliness_score FLOAT,
     secret_ambiance_type NVARCHAR(100),
-    secret_ambiance_quality FLOAT
+    secret_ambiance_quality FLOAT,
+
+    -- Additional attributes for menu generation (ADDED FOR MOCKDATAFACTORY)
+    menu_blueprint NVARCHAR(100), -- Menu type (pizza_menu, burger_menu, etc.)
+    theme NVARCHAR(100) -- Restaurant theme for backward compatibility
 );
 GO
 
@@ -85,7 +89,7 @@ GO
 -- ========================================
 CREATE TABLE Ingredients (
     ingredient_id INT PRIMARY KEY IDENTITY(1,1),
-    name NVARCHAR(100) NOT NULL UNIQUE,
+    ingredient_name NVARCHAR(100) NOT NULL UNIQUE,  -- FIXED: name → ingredient_name for consistency
     is_allergen BIT DEFAULT 0
 );
 GO
@@ -124,12 +128,22 @@ CREATE TABLE Dishes (
     secret_base_price DECIMAL(10, 2),
     secret_price_to_default_ratio FLOAT,
     secret_quality FLOAT,
-    secret_spiciness INT
+    secret_spiciness FLOAT,
+
+    -- Additional attributes for CF model (ADDED FOR MOCKDATAFACTORY)
+    archetype NVARCHAR(100), -- Dish archetype (Pizza, Burger, Sushi, etc.)
+    secret_richness FLOAT,
+    secret_texture_score FLOAT,
+    popularity_factor FLOAT, -- For Zipf distribution
+
+    -- Calculated average (updated by SQL Server Job every 10 minutes)
+    avg_rating FLOAT NULL -- Average dish_rating from Reviews
 );
 GO
 
 CREATE INDEX idx_dishes_restaurant ON Dishes(restaurant_id);
 CREATE INDEX idx_dishes_available ON Dishes(is_available);
+CREATE INDEX idx_dishes_avg_rating ON Dishes(avg_rating DESC); -- For sorting by rating
 GO
 
 -- ========================================
@@ -243,7 +257,12 @@ CREATE TABLE Users (
     secret_enjoyed_variants NVARCHAR(MAX), -- JSON
     secret_ingredient_preferences NVARCHAR(MAX), -- JSON
     secret_cleanliness_preference NVARCHAR(MAX), -- JSON
-    secret_preferred_ambiance NVARCHAR(100)
+    secret_preferred_ambiance NVARCHAR(100),
+
+    -- Additional preferences for CF model (ADDED FOR MOCKDATAFACTORY)
+    secret_spice_preference FLOAT,
+    secret_richness_preference FLOAT,
+    secret_texture_preference FLOAT
 );
 GO
 
@@ -277,8 +296,9 @@ CREATE TABLE Reviews (
     FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
     FOREIGN KEY (dish_id) REFERENCES Dishes(dish_id),
 
-    -- Temporal constraint: review must be after user account creation
-    CONSTRAINT chk_review_after_account CHECK (review_date >= (SELECT account_created_at FROM Users WHERE user_id = Reviews.user_id)),
+    -- Rating range constraints
+    -- NOTE: Temporal constraint (review_date >= account_created_at) removed because SQL Server
+    -- does not support subqueries in CHECK constraints. DateGenerator ensures dates are valid.
     CONSTRAINT chk_dish_rating_range CHECK (dish_rating BETWEEN 1 AND 10),
     CONSTRAINT chk_service_rating_range CHECK (service_rating IS NULL OR service_rating BETWEEN 1 AND 10),
     CONSTRAINT chk_cleanliness_rating_range CHECK (cleanliness_rating IS NULL OR cleanliness_rating BETWEEN 1 AND 10),
@@ -435,9 +455,145 @@ LEFT JOIN User_Photos up ON u.user_id = up.uploaded_by_user_id
 GROUP BY u.user_id, u.username;
 GO
 
+-- ========================================
+-- STORED PROCEDURE: Update Average Ratings
+-- ========================================
+-- This procedure updates avg_rating for Dishes and avg_* columns for Restaurants
+-- Run this manually or via SQL Server Agent Job (recommended: every 10 minutes)
+
+CREATE OR ALTER PROCEDURE UpdateAverageRatings
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        -- =============================================
+        -- 1. Update average ratings for DISHES
+        -- =============================================
+        UPDATE d
+        SET d.avg_rating = avgRatings.avg_dish_rating
+        FROM Dishes d
+        INNER JOIN (
+            SELECT
+                dish_id,
+                AVG(CAST(dish_rating AS FLOAT)) AS avg_dish_rating
+            FROM Reviews
+            WHERE dish_rating IS NOT NULL
+            GROUP BY dish_id
+        ) AS avgRatings ON d.dish_id = avgRatings.dish_id;
+
+        -- =============================================
+        -- 2. Update average ratings for RESTAURANTS
+        -- =============================================
+        UPDATE r
+        SET
+            r.avg_service = avgRatings.avg_service_rating,
+            r.avg_cleanliness = avgRatings.avg_cleanliness_rating,
+            r.avg_ambiance = avgRatings.avg_ambiance_rating,
+            r.avg_food_score = avgRatings.avg_dish_rating
+        FROM Restaurants r
+        INNER JOIN (
+            SELECT
+                restaurant_id,
+                AVG(CAST(service_rating AS FLOAT)) AS avg_service_rating,
+                AVG(CAST(cleanliness_rating AS FLOAT)) AS avg_cleanliness_rating,
+                AVG(CAST(ambiance_rating AS FLOAT)) AS avg_ambiance_rating,
+                AVG(CAST(dish_rating AS FLOAT)) AS avg_dish_rating
+            FROM Reviews
+            WHERE
+                service_rating IS NOT NULL
+                OR cleanliness_rating IS NOT NULL
+                OR ambiance_rating IS NOT NULL
+                OR dish_rating IS NOT NULL
+            GROUP BY restaurant_id
+        ) AS avgRatings ON r.restaurant_id = avgRatings.restaurant_id;
+
+        PRINT 'Average ratings updated successfully at ' + CONVERT(VARCHAR, GETDATE(), 120);
+    END TRY
+    BEGIN CATCH
+        PRINT 'Error updating average ratings: ' + ERROR_MESSAGE();
+        THROW;
+    END CATCH
+END;
+GO
+
+-- =============================================
+-- Initial execution (run once after data generation)
+-- =============================================
+-- Uncomment to run immediately:
+-- EXEC UpdateAverageRatings;
+-- GO
+
+-- =============================================
+-- SQL SERVER AGENT JOB (optional but recommended)
+-- =============================================
+-- Run this section AFTER schema creation to set up automatic updates every 10 minutes
+-- This requires SQL Server Agent to be running
+
+/*
+-- Enable SQL Server Agent (if disabled)
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'Agent XPs', 1;
+RECONFIGURE;
+GO
+
+USE msdb;
+GO
+
+-- Create the Job
+EXEC dbo.sp_add_job
+    @job_name = N'Update Average Ratings Every 10 Minutes',
+    @enabled = 1,
+    @description = N'Updates avg_rating for Dishes and avg_service/cleanliness/ambiance/food_score for Restaurants from Reviews table';
+GO
+
+-- Add job step
+EXEC dbo.sp_add_jobstep
+    @job_name = N'Update Average Ratings Every 10 Minutes',
+    @step_name = N'Execute UpdateAverageRatings',
+    @subsystem = N'TSQL',
+    @database_name = N'MockDataDB',
+    @command = N'EXEC UpdateAverageRatings;',
+    @retry_attempts = 3,
+    @retry_interval = 1;
+GO
+
+-- Create schedule (every 10 minutes)
+EXEC dbo.sp_add_schedule
+    @schedule_name = N'Every 10 Minutes',
+    @freq_type = 4,              -- Daily
+    @freq_interval = 1,           -- Every day
+    @freq_subday_type = 4,        -- Minutes
+    @freq_subday_interval = 10,   -- Every 10 minutes
+    @active_start_time = 0;       -- Start at midnight
+GO
+
+-- Attach schedule to job
+EXEC dbo.sp_attach_schedule
+    @job_name = N'Update Average Ratings Every 10 Minutes',
+    @schedule_name = N'Every 10 Minutes';
+GO
+
+-- Assign job to server
+EXEC dbo.sp_add_jobserver
+    @job_name = N'Update Average Ratings Every 10 Minutes',
+    @server_name = N'(local)';
+GO
+
+-- Start the job immediately (first run)
+EXEC dbo.sp_start_job @job_name = N'Update Average Ratings Every 10 Minutes';
+GO
+*/
+
+-- =============================================
+
 PRINT 'Schema created successfully!';
 PRINT 'Total tables: 17';
 PRINT 'Main entities: Cities, Restaurants, Dishes, Ingredients, Users, Reviews';
 PRINT 'Supporting: Photos, User_Photos, Tags, Saved_Dishes, Reports';
 PRINT 'Moderation: Pending_User_Photos, Pending_Comments';
+PRINT '';
+PRINT 'IMPORTANT: After data generation, run: EXEC UpdateAverageRatings;';
+PRINT 'OPTIONAL: Uncomment SQL Server Agent Job section to enable automatic updates every 10 minutes';
 GO
