@@ -5,8 +5,8 @@ namespace SmakoszWebApp.ViewModels
 {
     public class DishDetailsViewModel
     {
-        public DishViewModel Dish { get; set; }
-        public List<ReviewViewModel> Reviews { get; set; }
-        public RestaurantViewModel Restaurant { get; set; }
+        public DishViewModel Dish { get; set; } = null!;
+        public List<ReviewViewModel> Reviews { get; set; } = new();
+        public RestaurantViewModel? Restaurant { get; set; }
     }
 }

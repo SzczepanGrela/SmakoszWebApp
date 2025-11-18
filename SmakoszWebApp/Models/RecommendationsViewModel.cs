@@ -1,4 +1,8 @@
 ﻿// Models/RecommendationsViewModel.cs
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
+
 namespace SmakoszWebApp.ViewModels
 {
     public class RecommendationsViewModel
@@ -29,10 +33,10 @@ namespace SmakoszWebApp.ViewModels
     public class PendingPhotoViewModel
     {
         public int Id { get; set; }
-        public string DishName { get; set; }
-        public string UserName { get; set; }
+        public string DishName { get; set; } = null!;
+        public string UserName { get; set; } = null!;
         public DateTime UploadedDate { get; set; }
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = null!;
     }
 }
 
@@ -42,9 +46,9 @@ namespace SmakoszWebApp.ViewModels
     public class ReportViewModel
     {
         public int Id { get; set; }
-        public string Type { get; set; }
-        public string ReportedContent { get; set; }
-        public string ReportedBy { get; set; }
+        public string Type { get; set; } = null!;
+        public string ReportedContent { get; set; } = null!;
+        public string ReportedBy { get; set; } = null!;
         public DateTime ReportDate { get; set; }
     }
 }
@@ -55,10 +59,10 @@ namespace SmakoszWebApp.ViewModels
     public class AddReviewViewModel
     {
         public int DishId { get; set; }
-        public string DishName { get; set; }
-        public string RestaurantName { get; set; }
+        public string? DishName { get; set; }
+        public string? RestaurantName { get; set; }
         public int Rating { get; set; }
-        public string Comment { get; set; }
+        public string Comment { get; set; } = null!;
         public List<IFormFile> Photos { get; set; } = new();
     }
 }

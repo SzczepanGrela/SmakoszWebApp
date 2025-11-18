@@ -5,15 +5,15 @@ namespace SmakoszWebApp.ViewModels
 {
     public class HomePageViewModel
     {
-        public List<string> PopularCategories { get; set; }
-        public List<DishViewModel> HighlyRatedDishes { get; set; }
-        public List<DishViewModel> RecommendedDishes { get; set; }
-        public List<DishViewModel> NewDiscoveries { get; set; }
-        public List<string> QuickChoices { get; set; }
-        public List<ReviewViewModel> RecentReviews { get; set; }
-        public HomePageStats Stats { get; set; }
+        public List<string> PopularCategories { get; set; } = new();
+        public List<DishViewModel> HighlyRatedDishes { get; set; } = new();
+        public List<DishViewModel> RecommendedDishes { get; set; } = new();
+        public List<DishViewModel> NewDiscoveries { get; set; } = new();
+        public List<string> QuickChoices { get; set; } = new();
+        public List<ReviewViewModel> RecentReviews { get; set; } = new();
+        public HomePageStats Stats { get; set; } = null!;
         public bool IsUserLoggedIn { get; set; }
-        public List<object> AllDishesForRandom { get; set; }
+        public List<object> AllDishesForRandom { get; set; } = new();
     }
 
     public class HomePageStats
