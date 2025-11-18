@@ -166,13 +166,13 @@ def generate_reviews(db: DatabaseConnection):
             restaurant = next(r for r in city_restaurants if r['restaurant_id'] == restaurant_id)
 
             # Pobierz dania restauracji
-            dishes = db.fetch_all(f"""
+            dishes = db.fetch_all("""
                 SELECT dish_id, dish_name, archetype, public_price,
                        secret_base_price, secret_quality, secret_spiciness,
                        secret_richness, secret_texture_score, popularity_factor
                 FROM Dishes
-                WHERE restaurant_id = {restaurant_id}
-            """)
+                WHERE restaurant_id = ?
+            """, (restaurant_id,))
 
             if not dishes:
                 continue
@@ -182,12 +182,12 @@ def generate_reviews(db: DatabaseConnection):
             for d in dishes:
                 dish_id = d[0]
                 # FIXED: Ładuj prawdziwe składniki z bazy danych
-                dish_ingredients = db.fetch_all(f"""
+                dish_ingredients = db.fetch_all("""
                     SELECT i.ingredient_name
                     FROM Dish_Ingredients_Link dil
                     JOIN Ingredients i ON dil.ingredient_id = i.ingredient_id
-                    WHERE dil.dish_id = {dish_id}
-                """)
+                    WHERE dil.dish_id = ?
+                """, (dish_id,))
                 ingredient_names = [ing[0] for ing in dish_ingredients]
 
                 dish_dicts.append({
@@ -220,7 +220,7 @@ def generate_reviews(db: DatabaseConnection):
                 restaurant_name=f"Restaurant_{restaurant_id}",
                 city="City",
                 quality_score=selected_dish['secret_quality'],
-                price_ratio=selected_dish['public_price'] / user_data['secret_price_preference_range']['mean'],
+                price_ratio=selected_dish['public_price'] / user_data['secret_price_preference_range'],  # FIXED: już jest float, nie dict
                 service_score=restaurant['secret_service_quality'],
                 cleanliness_score=restaurant['secret_cleanliness_score'],
                 ambiance_score=restaurant['secret_ambiance_quality'] * 10

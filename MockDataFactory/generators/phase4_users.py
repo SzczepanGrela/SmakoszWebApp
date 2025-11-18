@@ -42,6 +42,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     # Pobierz miasta
     cities = db.fetch_all("SELECT city_id, city_name FROM Cities")
 
+    if not cities:
+        logger.error("❌ Brak miast w bazie! Najpierw uruchom Phase 1 (generate_cities)")
+        raise ValueError("Cannot generate users without cities in database")
+
     # Pobierz wszystkie składniki
     all_ingredients = db.fetch_all("SELECT ingredient_name FROM Ingredients")
     ingredient_names = [name for (name,) in all_ingredients]
