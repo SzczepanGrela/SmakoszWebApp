@@ -6,6 +6,7 @@ import logging
 import random
 import sys
 import os
+from faker import Faker
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -16,6 +17,7 @@ from utils.date_generator import DateGenerator
 from utils.photo_pools import PhotoPools
 
 logger = logging.getLogger(__name__)
+fake = Faker('pl_PL')  # Polish locale for realistic data
 
 
 def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
@@ -71,10 +73,29 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             # Menu blueprint
             menu_blueprint = _get_menu_blueprint(theme)
 
+            # Calculate public_price_range based on secret_price_multiplier
+            if secret_price_multiplier < 0.9:
+                public_price_range = "$"
+            elif secret_price_multiplier < 1.1:
+                public_price_range = "$$"
+            elif secret_price_multiplier < 1.25:
+                public_price_range = "$$$"
+            else:
+                public_price_range = "$$$$"
+
+            # FIXED: Dodano brakujące pola (address, phone, website, description, image_url, public_price_range)
             restaurant_data.append({
                 "city_id": city_id,
                 "restaurant_name": name,
                 "public_cuisine_theme": theme,  # FIXED: proper column name
+                "public_price_range": public_price_range,  # FIXED: Added
+                "address": f"{fake.street_address()}, {city_name}",  # FIXED: Added
+                "latitude": round(random.uniform(49.0, 54.5), 7),  # FIXED: Added (Poland coords)
+                "longitude": round(random.uniform(14.0, 24.0), 7),  # FIXED: Added (Poland coords)
+                "phone": fake.phone_number(),  # FIXED: Added
+                "website": f"https://{name.lower().replace(' ', '-')}.pl",  # FIXED: Added
+                "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",  # FIXED: Added
+                "image_url": photo_pools.get_restaurant_photo(theme),  # FIXED: Added
                 "theme": theme,  # Keep for backward compatibility
                 "created_at": DateGenerator.to_sql_datetime(created_date),  # FIXED: was created_date
                 "secret_price_multiplier": round(secret_price_multiplier, 3),

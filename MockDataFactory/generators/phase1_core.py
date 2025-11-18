@@ -167,37 +167,37 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
     for ingredient_id, ingredient_name in ingredients:
         ingredient_lower = ingredient_name.lower()
 
-        # Mapowanie składników na restrykcje
+        # Mapowanie składników na restrykcje (FIXED: English names matching schema)
         if any(meat in ingredient_lower for meat in ["mięso", "wołowina", "wieprzowina", "kurczak", "ryba", "krewetki", "łosoś", "szynka"]):
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Wegetariańskie"
+                "restriction_type": "vegetarian"  # FIXED: English name
             })
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Wegańskie"
+                "restriction_type": "vegan"  # FIXED: English name
             })
 
         if any(dairy in ingredient_lower for dairy in ["mleko", "ser", "śmietana", "masło", "jogurt", "mozzarella", "parmezan"]):
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Wegańskie"
+                "restriction_type": "vegan"  # FIXED: English name
             })
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Bez laktozy"
+                "restriction_type": "lactose-free"  # FIXED: English name
             })
 
         if any(gluten in ingredient_lower for gluten in ["mąka", "chleb", "makaron", "pszenica", "bułka"]):
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Bezglutenowe"
+                "restriction_type": "gluten-free"  # FIXED: English name
             })
 
         if ingredient_name == "jaja" or "jajko" in ingredient_lower:
             restrictions.append({
                 "ingredient_id": ingredient_id,
-                "restriction_type": "Wegańskie"
+                "restriction_type": "vegan"  # FIXED: English name
             })
 
     if restrictions:
