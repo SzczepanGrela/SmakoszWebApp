@@ -1,8 +1,6 @@
 ﻿// Controllers/DishController.cs
 using Microsoft.AspNetCore.Mvc;
-using SmakoszWebApp.Models;
 using SmakoszWebApp.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -90,7 +88,7 @@ namespace SmakoszWebApp.Controllers
                 // Dania z rekomendacji strony głównej
                 new DishViewModel { Id = 5, Name = "Ramen Tonkotsu Special", RestaurantName = "Ramen-Ya", RestaurantId = 4, Price = 52.00m, AverageRating = 4.9, ReviewCount = 156, ImageUrl = "https://placehold.co/400x300/FFC107/white?text=Ramen+Special", Tags = new List<string> { "Polecane", "Nowe" }, Description="Specjalny ramen tonkotsu z kremowym bulionem, chashu i marynowanym jajkiem." },
                 new DishViewModel { Id = 6, Name = "Neapolitan Pizza Margherita", RestaurantName = "Pizzeria Italiana", RestaurantId = 5, Price = 36.00m, AverageRating = 4.8, ReviewCount = 203, ImageUrl = "https://placehold.co/400x300/ff6f61/white?text=Margherita", Tags = new List<string> { "Klasyka", "Wegetariańskie" }, Description="Klasyczna neapolitańska margherita z San Marzano, mozzarellą di bufala i świeżą bazylią." },
-                new DishViewModel { Id = 7, Name = "Pad Thai Chicken", RestaurantName = "Thai Smile", RestaurantId = 6, Price = 41.00m, AverageRating = 4.7, ReviewCount = 89, ImageUrl = "https://placehold.co/400x300/FF9800/white?text=Pad+Thai", Tags = new List<string> { "Ostre", "Azjatyckie" }, Description="Autentyczny pad thai z kurczakiem, kiełkami fasoli, orzeszkami i sosem tamaryndowym." },
+                new DishViewModel { Id = 7, Name = "Pad Thai Chicken", RestaurantName = "Thai Garden", RestaurantId = 6, Price = 41.00m, AverageRating = 4.7, ReviewCount = 89, ImageUrl = "https://placehold.co/400x300/FF9800/white?text=Pad+Thai", Tags = new List<string> { "Ostre", "Azjatyckie" }, Description="Autentyczny pad thai z kurczakiem, kiełkami fasoli, orzeszkami i sosem tamaryndowym." },
                 
                 // Dania z nowych odkryć
                 new DishViewModel { Id = 8, Name = "Korean BBQ Bibimbap", RestaurantName = "Seoul Kitchen", RestaurantId = 7, Price = 47.00m, AverageRating = 4.8, ReviewCount = 34, ImageUrl = "https://placehold.co/300x200/E91E63/white?text=Korean", Tags = new List<string> { "Nowe", "Koreańskie" }, Description="Tradycyjny bibimbap z grillowanym mięsem, świeżymi warzywami i kimchi." },

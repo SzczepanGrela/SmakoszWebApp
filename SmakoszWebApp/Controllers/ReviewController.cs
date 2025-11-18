@@ -27,7 +27,7 @@ namespace SmakoszWebApp.Controllers
             var results = new List<dynamic>
             {
                 new { Id = 1, Name = "Pizza Margherita", RestaurantName = "Pizzeria Roma", ImageUrl = "https://placehold.co/60x60/ff6f61/white?text=P" },
-                new { Id = 2, Name = "Burger Classic", RestaurantName = "Burgerownia", ImageUrl = "https://placehold.co/60x60/4CAF50/white?text=B" },
+                new { Id = 2, Name = "Burger Classic", RestaurantName = "Burgerownia Stacja", ImageUrl = "https://placehold.co/60x60/4CAF50/white?text=B" },
                 new { Id = 3, Name = "Sushi Roll", RestaurantName = "Sushi Master", ImageUrl = "https://placehold.co/60x60/2196F3/white?text=S" }
             };
 

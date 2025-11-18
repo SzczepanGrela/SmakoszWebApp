@@ -13,7 +13,7 @@ namespace SmakoszWebApp.Controllers
     {
         public IActionResult Index()
         {
-            var isLoggedIn = User.Identity.IsAuthenticated;
+            var isLoggedIn = User.Identity?.IsAuthenticated ?? false;
             
             var viewModel = new HomePageViewModel
             {
@@ -145,7 +145,7 @@ namespace SmakoszWebApp.Controllers
                 {
                     Id = 7,
                     Name = "Pad Thai Chicken",
-                    RestaurantName = "Thai Smile",
+                    RestaurantName = "Thai Garden",
                     RestaurantId = 6,
                     Price = 41.00m,
                     AverageRating = 4.7,
@@ -224,7 +224,7 @@ namespace SmakoszWebApp.Controllers
                 {
                     Id = 3,
                     DishName = "Burger Wołowy",
-                    RestaurantName = "Burgerownia",
+                    RestaurantName = "Burgerownia Stacja",
                     Rating = 4,
                     Comment = "Solidny burger, mięso smakowite, ale bułka mogłaby być lepsza.",
                     UserName = "Marcin L.",
