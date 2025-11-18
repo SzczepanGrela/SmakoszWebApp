@@ -193,11 +193,12 @@ def calculate_ambiance_score(user_data: Dict, restaurant: Dict) -> float:
 
 def calculate_value_score(user_data: Dict, dish: Dict) -> float:
     """Kalkulacja oceny wartości za pieniądze (10% wpływu)"""
-    expected_price = user_data.get('secret_price_preference_range', {}).get('mean', 35.0)
+    # FIXED: Use separate columns instead of dict
+    expected_price = user_data.get('secret_price_preference_range', 35.0)
     actual_price = dish.get('public_price', 35.0)
 
-    tolerance_above = user_data.get('secret_price_preference_range', {}).get('tolerance_above', 2.0)
-    tolerance_below = user_data.get('secret_price_preference_range', {}).get('tolerance_below', 0.5)
+    tolerance_above = user_data.get('secret_price_tolerance_above', 2.0)
+    tolerance_below = user_data.get('secret_price_tolerance_below', 0.5)
 
     value_score = 5.0  # Neutralny start
 

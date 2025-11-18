@@ -64,8 +64,8 @@ def generate_reviews(db: DatabaseConnection):
     users = db.fetch_all("""
         SELECT user_id, home_city_id, secret_total_review_count, secret_travel_propensity,
                secret_enjoyed_archetypes, secret_ingredient_preferences,
-               secret_price_preference_range, secret_spice_preference,
-               secret_richness_preference, secret_texture_preference,
+               secret_price_preference_range, secret_price_tolerance_above, secret_price_tolerance_below,
+               secret_spice_preference, secret_richness_preference, secret_texture_preference,
                secret_cleanliness_preference, secret_preferred_ambiance,
                secret_mood_propensity, secret_cross_impact_factor,
                account_created_at
@@ -106,15 +106,17 @@ def generate_reviews(db: DatabaseConnection):
             'travel_propensity': travel_prop,
             'secret_enjoyed_archetypes': safe_json_loads(user[4], {}),
             'secret_ingredient_preferences': safe_json_loads(user[5], {}),
-            'secret_price_preference_range': safe_json_loads(user[6], {'mean': 35.0, 'tolerance_above': 2.0, 'tolerance_below': 0.5}),
-            'secret_spice_preference': user[7],
-            'secret_richness_preference': user[8],
-            'secret_texture_preference': user[9],
-            'secret_cleanliness_preference': safe_json_loads(user[10], {}),
-            'secret_preferred_ambiance': user[11],
-            'secret_mood_propensity': user[12],
-            'secret_cross_impact_factor': user[13],
-            'join_date': user[14]
+            'secret_price_preference_range': float(user[6]) if user[6] else 35.0,  # FIXED: string to float
+            'secret_price_tolerance_above': user[7] if user[7] else 2.0,  # Separate column
+            'secret_price_tolerance_below': user[8] if user[8] else 0.5,  # Separate column
+            'secret_spice_preference': user[9],
+            'secret_richness_preference': user[10],
+            'secret_texture_preference': user[11],
+            'secret_cleanliness_preference': safe_json_loads(user[12], {}),
+            'secret_preferred_ambiance': user[13],
+            'secret_mood_propensity': user[14],
+            'secret_cross_impact_factor': user[15],
+            'join_date': user[16]
         }
 
         # Generuj daty recenzji

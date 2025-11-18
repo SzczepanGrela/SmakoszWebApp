@@ -296,8 +296,9 @@ CREATE TABLE Reviews (
     FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
     FOREIGN KEY (dish_id) REFERENCES Dishes(dish_id),
 
-    -- Temporal constraint: review must be after user account creation
-    CONSTRAINT chk_review_after_account CHECK (review_date >= (SELECT account_created_at FROM Users WHERE user_id = Reviews.user_id)),
+    -- Rating range constraints
+    -- NOTE: Temporal constraint (review_date >= account_created_at) removed because SQL Server
+    -- does not support subqueries in CHECK constraints. DateGenerator ensures dates are valid.
     CONSTRAINT chk_dish_rating_range CHECK (dish_rating BETWEEN 1 AND 10),
     CONSTRAINT chk_service_rating_range CHECK (service_rating IS NULL OR service_rating BETWEEN 1 AND 10),
     CONSTRAINT chk_cleanliness_rating_range CHECK (cleanliness_rating IS NULL OR cleanliness_rating BETWEEN 1 AND 10),

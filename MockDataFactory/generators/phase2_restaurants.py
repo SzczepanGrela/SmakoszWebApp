@@ -166,7 +166,7 @@ def _assign_restaurant_tags(db: DatabaseConnection):
     logger.info("🏷️  Przypisywanie tagów do restauracji...")
 
     restaurants = db.fetch_all("SELECT restaurant_id, theme FROM Restaurants")
-    tags = db.fetch_all("SELECT tag_id, tag_name, category FROM Tags")
+    tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM Tags")  # FIXED: category → tag_category
 
     tag_assignments = []
 
