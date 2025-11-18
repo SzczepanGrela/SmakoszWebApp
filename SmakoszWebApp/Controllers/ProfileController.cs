@@ -32,11 +32,101 @@ namespace SmakoszWebApp.Controllers
             var userName = User.Identity?.Name;
             var allReviews = new List<ReviewViewModel>
             {
-                new ReviewViewModel { Id = 1, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.6, Comment = "Fantastyczna pizza z ostrymi pepperoni! Ciasto idealne, składniki świeże.", Date = DateTime.Now.AddDays(-2), DatePosted = DateTime.Now.AddDays(-2), DishName = "Pizza Diavola", RestaurantName = "Pizzeria Roma", DishId = 1 },
-                new ReviewViewModel { Id = 2, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.8, Comment = "Najlepszy burger w mieście! Mięso soczyste, dodatki świeże, obsługa super.", Date = DateTime.Now.AddDays(-5), DatePosted = DateTime.Now.AddDays(-5), DishName = "Klasyczny Burger Wołowy", RestaurantName = "Burgerownia Stacja", DishId = 2 },
-                new ReviewViewModel { Id = 3, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.4, Comment = "Sushi bardzo smaczne, ryba świeża. Tempura krewetki doskonała.", Date = DateTime.Now.AddDays(-1), DatePosted = DateTime.Now.AddDays(-1), DishName = "Zestaw Sushi Ebi Ten", RestaurantName = "Sushi Master", DishId = 3 },
-                new ReviewViewModel { Id = 4, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 9.8, Comment = "Autentyczny ramen o intensywnym smaku. Makaron al dente, bulion bogaty.", Date = DateTime.Now.AddDays(-3), DatePosted = DateTime.Now.AddDays(-3), DishName = "Tantanmen Ramen", RestaurantName = "Ramen-Ya", DishId = 4 },
-                new ReviewViewModel { Id = 5, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 10.0, Comment = "Najlepszy sernik baskijski jaki jadłem! Idealnie karmelizowany, kremowy w środku.", Date = DateTime.Now.AddDays(-4), DatePosted = DateTime.Now.AddDays(-4), DishName = "Sernik Baskijski", RestaurantName = "Słodka Dziurka", DishId = 5 }
+                new ReviewViewModel
+                {
+                    Id = 1,
+                    UserId = 1,
+                    RestaurantId = 1,
+                    DishId = 1,
+                    UserName = userName,
+                    UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
+                    DishRating = 10,
+                    ServiceRating = 9,
+                    CleanlinessRating = 10,
+                    ReviewTitle = "Fantastyczna pizza!",
+                    Comment = "Fantastyczna pizza z ostrymi pepperoni! Ciasto idealne, składniki świeże.",
+                    ReviewDate = DateTime.Now.AddDays(-2),
+                    HelpfulCount = 5,
+                    IsApproved = true,
+                    DishName = "Pizza Diavola",
+                    RestaurantName = "Pizzeria Roma"
+                },
+                new ReviewViewModel
+                {
+                    Id = 2,
+                    UserId = 1,
+                    RestaurantId = 2,
+                    DishId = 2,
+                    UserName = userName,
+                    UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
+                    DishRating = 10,
+                    ServiceRating = 9,
+                    AmbianceRating = 10,
+                    ReviewTitle = "Najlepszy burger!",
+                    Comment = "Najlepszy burger w mieście! Mięso soczyste, dodatki świeże, obsługa super.",
+                    ReviewDate = DateTime.Now.AddDays(-5),
+                    HelpfulCount = 8,
+                    IsApproved = true,
+                    DishName = "Klasyczny Burger Wołowy",
+                    RestaurantName = "Burgerownia Stacja"
+                },
+                new ReviewViewModel
+                {
+                    Id = 3,
+                    UserId = 1,
+                    RestaurantId = 3,
+                    DishId = 3,
+                    UserName = userName,
+                    UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
+                    DishRating = 9,
+                    ServiceRating = 10,
+                    ReviewTitle = "Świeże sushi",
+                    Comment = "Sushi bardzo smaczne, ryba świeża. Tempura krewetki doskonała.",
+                    ReviewDate = DateTime.Now.AddDays(-1),
+                    HelpfulCount = 3,
+                    IsApproved = true,
+                    DishName = "Zestaw Sushi Ebi Ten",
+                    RestaurantName = "Sushi Master"
+                },
+                new ReviewViewModel
+                {
+                    Id = 4,
+                    UserId = 1,
+                    RestaurantId = 4,
+                    DishId = 4,
+                    UserName = userName,
+                    UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
+                    DishRating = 10,
+                    ServiceRating = 9,
+                    CleanlinessRating = 9,
+                    AmbianceRating = 10,
+                    ReviewTitle = "Autentyczny ramen",
+                    Comment = "Autentyczny ramen o intensywnym smaku. Makaron al dente, bulion bogaty.",
+                    ReviewDate = DateTime.Now.AddDays(-3),
+                    HelpfulCount = 12,
+                    IsApproved = true,
+                    DishName = "Tantanmen Ramen",
+                    RestaurantName = "Ramen-Ya"
+                },
+                new ReviewViewModel
+                {
+                    Id = 5,
+                    UserId = 1,
+                    RestaurantId = 9,
+                    DishId = 5,
+                    UserName = userName,
+                    UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
+                    DishRating = 10,
+                    ServiceRating = 8,
+                    CleanlinessRating = 9,
+                    ReviewTitle = "Najlepszy sernik!",
+                    Comment = "Najlepszy sernik baskijski jaki jadłem! Idealnie karmelizowany, kremowy w środku.",
+                    ReviewDate = DateTime.Now.AddDays(-4),
+                    HelpfulCount = 7,
+                    IsApproved = true,
+                    DishName = "Sernik Baskijski",
+                    RestaurantName = "Słodka Dziurka"
+                }
             };
             return allReviews.Skip(skip).Take(count).ToList();
         }

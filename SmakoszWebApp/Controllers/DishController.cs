@@ -49,29 +49,59 @@ namespace SmakoszWebApp.Controllers
                 new ReviewViewModel
                 {
                     Id = 1,
+                    UserId = 101,
+                    RestaurantId = 1,
+                    DishId = 1,
                     UserName = "Anna Kowalska",
                     UserAvatarUrl = "https://placehold.co/100x100/E8117F/white?text=A",
-                    Rating = 10,
+                    DishRating = 10,
+                    ServiceRating = 9,
+                    CleanlinessRating = 10,
+                    AmbianceRating = 9,
+                    ReviewTitle = "Najlepsza pizza!",
                     Comment = "Absolutnie najlepsza pizza w mieście! Ciasto idealne, składniki świeże. Wrócę na pewno!",
-                    DatePosted = DateTime.Now.AddDays(-2)
+                    ReviewDate = DateTime.Now.AddDays(-2),
+                    HelpfulCount = 12,
+                    IsApproved = true,
+                    DishName = "Pizza Diavola",
+                    RestaurantName = "Pizzeria Roma"
                 },
                 new ReviewViewModel
                 {
                     Id = 2,
+                    UserId = 102,
+                    RestaurantId = 1,
+                    DishId = 1,
                     UserName = "Jan Nowak",
                     UserAvatarUrl = "https://placehold.co/100x100/1143E8/white?text=J",
-                    Rating = 9.0,
+                    DishRating = 9,
+                    ServiceRating = 8,
+                    CleanlinessRating = 9,
+                    ReviewTitle = "Bardzo dobre",
                     Comment = "Bardzo smaczne danie, dobrze doprawione. Lokal mógłby być trochę większy, ale jedzenie pierwsza klasa.",
-                    DatePosted = DateTime.Now.AddDays(-5)
+                    ReviewDate = DateTime.Now.AddDays(-5),
+                    HelpfulCount = 5,
+                    IsApproved = true,
+                    DishName = "Pizza Diavola",
+                    RestaurantName = "Pizzeria Roma"
                 },
                  new ReviewViewModel
                 {
                     Id = 3,
+                    UserId = 103,
+                    RestaurantId = 1,
+                    DishId = 1,
                     UserName = "Katarzyna Wiśniewska",
                     UserAvatarUrl = "https://placehold.co/100x100/E8C311/white?text=K",
-                    Rating = 8,
+                    DishRating = 8,
+                    ServiceRating = 6,
+                    ReviewTitle = "Dobre, ale...",
                     Comment = "Dobre, ale jadłam lepsze. Trochę za długi czas oczekiwania.",
-                    DatePosted = DateTime.Now.AddDays(-10)
+                    ReviewDate = DateTime.Now.AddDays(-10),
+                    HelpfulCount = 3,
+                    IsApproved = true,
+                    DishName = "Pizza Diavola",
+                    RestaurantName = "Pizzeria Roma"
                 }
             };
         }

@@ -201,35 +201,55 @@ namespace SmakoszWebApp.Controllers
                 new ReviewViewModel
                 {
                     Id = 1,
+                    UserId = 201,
+                    RestaurantId = 1,
+                    DishId = 1,
                     DishName = "Pizza Diavola",
                     RestaurantName = "Pizzeria Roma",
-                    Rating = 10,
+                    DishRating = 10,
+                    ServiceRating = 9,
+                    ReviewTitle = "Fantastyczna pizza!",
                     Comment = "Absolutnie fantastyczna pizza! Idealna ostrość i świeże składniki.",
                     UserName = "Anna K.",
-                    Date = DateTime.Now.AddHours(-2),
-                    DishId = 1
+                    ReviewDate = DateTime.Now.AddHours(-2),
+                    HelpfulCount = 8,
+                    IsApproved = true
                 },
                 new ReviewViewModel
                 {
                     Id = 2,
+                    UserId = 202,
+                    RestaurantId = 4,
+                    DishId = 4,
                     DishName = "Ramen Shoyu",
                     RestaurantName = "Ramen-Ya",
-                    Rating = 10,
+                    DishRating = 10,
+                    ServiceRating = 10,
+                    CleanlinessRating = 9,
+                    AmbianceRating = 10,
+                    ReviewTitle = "Najlepszy ramen!",
                     Comment = "Najlepszy ramen w mieście! Bulion idealny, makaron al dente.",
                     UserName = "Tomasz M.",
-                    Date = DateTime.Now.AddHours(-5),
-                    DishId = 4
+                    ReviewDate = DateTime.Now.AddHours(-5),
+                    HelpfulCount = 15,
+                    IsApproved = true
                 },
                 new ReviewViewModel
                 {
                     Id = 3,
+                    UserId = 203,
+                    RestaurantId = 2,
+                    DishId = 2,
                     DishName = "Burger Wołowy",
                     RestaurantName = "Burgerownia Stacja",
-                    Rating = 8,
+                    DishRating = 8,
+                    ServiceRating = 7,
+                    ReviewTitle = "Solidny burger",
                     Comment = "Solidny burger, mięso smakowite, ale bułka mogłaby być lepsza.",
                     UserName = "Marcin L.",
-                    Date = DateTime.Now.AddHours(-8),
-                    DishId = 2
+                    ReviewDate = DateTime.Now.AddHours(-8),
+                    HelpfulCount = 3,
+                    IsApproved = true
                 }
             };
         }

@@ -61,8 +61,23 @@ namespace SmakoszWebApp.ViewModels
         public int DishId { get; set; }
         public string? DishName { get; set; }
         public string? RestaurantName { get; set; }
-        public int Rating { get; set; }
+
+        // Multi-dimensional ratings (1-10 scale, matching database schema)
+        public int DishRating { get; set; }           // Required - rating of the dish (1-10)
+        public int? ServiceRating { get; set; }       // Optional - rating of service (1-10)
+        public int? CleanlinessRating { get; set; }   // Optional - rating of cleanliness (1-10)
+        public int? AmbianceRating { get; set; }      // Optional - rating of ambiance (1-10)
+
+        // Review content
+        public string? ReviewTitle { get; set; }
         public string Comment { get; set; } = null!;
         public List<IFormFile> Photos { get; set; } = new();
+
+        // Backward compatibility - maps to DishRating
+        public int Rating
+        {
+            get => DishRating;
+            set => DishRating = value;
+        }
     }
 }
