@@ -6,6 +6,8 @@ import logging
 import random
 import sys
 import os
+import re
+import unicodedata
 from faker import Faker
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,6 +20,42 @@ from utils.photo_pools import PhotoPools
 
 logger = logging.getLogger(__name__)
 fake = Faker('pl_PL')  # Polish locale for realistic data
+
+
+def slugify(text: str) -> str:
+    """
+    Convert Polish text to URL-safe slug (ASCII-only, lowercase, hyphenated)
+
+    Examples:
+        "Pizzeria Królewska" -> "pizzeria-krolewska"
+        "Sushi Bar Łódź" -> "sushi-bar-lodz"
+    """
+    # Manual mapping for Polish characters that NFKD doesn't handle
+    polish_chars = {
+        'ą': 'a', 'Ą': 'A',
+        'ć': 'c', 'Ć': 'C',
+        'ę': 'e', 'Ę': 'E',
+        'ł': 'l', 'Ł': 'L',
+        'ń': 'n', 'Ń': 'N',
+        'ó': 'o', 'Ó': 'O',
+        'ś': 's', 'Ś': 'S',
+        'ź': 'z', 'Ź': 'Z',
+        'ż': 'z', 'Ż': 'Z'
+    }
+    for polish, ascii_char in polish_chars.items():
+        text = text.replace(polish, ascii_char)
+
+    # Normalize remaining unicode characters
+    text = unicodedata.normalize('NFKD', text)
+    text = text.encode('ascii', 'ignore').decode('ascii')
+    # Convert to lowercase and replace spaces with hyphens
+    text = text.lower().replace(' ', '-')
+    # Remove any remaining non-alphanumeric characters except hyphens
+    text = re.sub(r'[^a-z0-9-]', '', text)
+    # Remove consecutive hyphens
+    text = re.sub(r'-+', '-', text)
+    # Strip leading/trailing hyphens
+    return text.strip('-')
 
 
 def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
@@ -93,7 +131,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 "latitude": round(random.uniform(49.0, 54.5), 7),  # FIXED: Added (Poland coords)
                 "longitude": round(random.uniform(14.0, 24.0), 7),  # FIXED: Added (Poland coords)
                 "phone": fake.phone_number(),  # FIXED: Added
-                "website": f"https://{name.lower().replace(' ', '-')}.pl",  # FIXED: Added
+                "website": f"https://{slugify(name)}.pl",  # FIXED: Added, URL-safe slugification
                 "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",  # FIXED: Added
                 "image_url": photo_pools.get_restaurant_photo(theme),  # FIXED: Added
                 "theme": theme,  # Keep for backward compatibility

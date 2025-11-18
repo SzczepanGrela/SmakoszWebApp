@@ -194,7 +194,7 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
                 "restriction_type": "gluten-free"  # FIXED: English name
             })
 
-        if ingredient_name == "jaja" or "jajko" in ingredient_lower:
+        if ingredient_name.lower() == "jaja" or "jajko" in ingredient_lower:
             restrictions.append({
                 "ingredient_id": ingredient_id,
                 "restriction_type": "vegan"  # FIXED: English name
