@@ -81,12 +81,24 @@ namespace SmakoszWebApp.Controllers
         [HttpPost]
         public IActionResult ApprovePhoto(int photoId)
         {
+            // ✅ FIX: Validate photoId
+            if (photoId <= 0)
+            {
+                return BadRequest("Invalid photo ID.");
+            }
+
             return Json(new { success = true, message = $"Zdjęcie {photoId} zostało zatwierdzone!" });
         }
 
         [HttpPost]
         public IActionResult RejectPhoto(int photoId)
         {
+            // ✅ FIX: Validate photoId
+            if (photoId <= 0)
+            {
+                return BadRequest("Invalid photo ID.");
+            }
+
             return Json(new { success = true, message = $"Zdjęcie {photoId} zostało odrzucone!" });
         }
     }

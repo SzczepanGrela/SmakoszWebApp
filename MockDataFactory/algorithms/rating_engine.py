@@ -208,8 +208,13 @@ def calculate_value_score(user_data: Dict, dish: Dict) -> float:
         value_score -= 3.0  # Za drogie!
     else:
         # W przedziale - liniowa interpolacja
-        ratio = actual_price / expected_price
-        value_score += (1 - ratio) * 2
+        # ✅ FIX: Prevent division by zero if expected_price is 0
+        if expected_price > 0:
+            ratio = actual_price / expected_price
+            value_score += (1 - ratio) * 2
+        else:
+            # If expected_price is 0, treat as neutral value
+            value_score = 5.0
 
     return max(1.0, min(10.0, value_score))
 
