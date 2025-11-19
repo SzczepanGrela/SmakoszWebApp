@@ -1,5 +1,7 @@
 ﻿// Controllers/SearchController.cs
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using SmakoszWebApp.ViewModels;
 
@@ -10,7 +12,22 @@ namespace SmakoszWebApp.Controllers
         // GET: /Search?query=...
         public IActionResult Index(string query)
         {
-            var results = GetMockDishes(); // Na razie zwracamy wszystkie dania
+            // ✅ FIX: Validate query parameter
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return View(new SearchResultsViewModel
+                {
+                    Query = "",
+                    Results = new List<DishViewModel>()
+                });
+            }
+
+            // ✅ FIX: Filter results by query (mock implementation)
+            var allDishes = GetMockDishes();
+            var results = allDishes
+                .Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                           d.RestaurantName.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             var viewModel = new SearchResultsViewModel
             {
