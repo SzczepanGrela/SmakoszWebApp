@@ -7,7 +7,7 @@ using SmakoszWebApp.ViewModels;
 
 namespace SmakoszWebApp.Controllers
 {
-    // Usuń [Authorize(Roles = "Admin")] dla mocka - każdy może wejść
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         public IActionResult Index()

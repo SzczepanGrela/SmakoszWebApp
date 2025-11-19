@@ -11,6 +11,12 @@ namespace SmakoszWebApp.Controllers
         // GET: /Restaurant/Index/1
         public IActionResult Index(int id)
         {
+            // Walidacja parametru id
+            if (id <= 0)
+            {
+                return BadRequest("Invalid restaurant ID. ID must be greater than 0.");
+            }
+
             var restaurant = GetMockRestaurants().FirstOrDefault(r => r.Id == id);
             if (restaurant == null)
             {
