@@ -6,6 +6,15 @@ Neural Collaborative Filtering for Smakosz dish recommendations
 import os
 from pathlib import Path
 
+# Load .env file
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenv not installed, using system env vars
+
 # PATHS
 
 BASE_DIR = Path(__file__).parent.absolute()
