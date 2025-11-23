@@ -21,6 +21,10 @@ from utils.photo_pools import PhotoPools
 logger = logging.getLogger(__name__)
 fake = Faker('pl_PL')  # Polish locale for realistic data
 
+# FIXED: Global set to track used restaurant names and prevent UNIQUE constraint violations
+_used_restaurant_names = set()
+_name_counter = {}
+
 def slugify(text: str) -> str:
     """
     Convert Polish text to URL-safe slug (ASCII-only, lowercase, hyphenated)
@@ -74,7 +78,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     restaurant_rules = loader.load_blueprint("02_restaurant_rules.json")
 
     # Pobierz miasta
-    cities = db.fetch_all("SELECT city_id, city_name FROM Cities")
+    cities = db.fetch_all("SELECT city_id, city_name FROM cities")
 
     date_gen = DateGenerator()
     photo_pools = PhotoPools()
@@ -145,7 +149,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
             restaurant_id_counter += 1
 
-    db.insert_bulk("Restaurants", restaurant_data)
+    db.insert_bulk("restaurants", restaurant_data)
     logger.info(f"✅ Wygenerowano {len(restaurant_data)} restauracji")
 
     # Dodaj tagi i zdjęcia
@@ -184,16 +188,59 @@ def _select_restaurant_theme(rules: dict) -> str:
     return random.choice(themes)
 
 def _generate_restaurant_name(theme: str, city: str) -> str:
-    """Generuje polską nazwę restauracji"""
+    """
+    Generuje UNIKALNĄ polską nazwę restauracji
+
+    FIXED: Dodano mechanizm zapewniający unikalność nazw (UNIQUE constraint w DB)
+    Format: "Bazowa Nazwa Miasto" lub "Bazowa Nazwa Miasto 2" przy kolizji
+    """
+    global _used_restaurant_names, _name_counter
+
+    base_name = _generate_base_name(theme)
+
+    # Pierwsza próba: nazwa + miasto
+    candidate = f"{base_name} {city}"
+
+    if candidate not in _used_restaurant_names:
+        _used_restaurant_names.add(candidate)
+        return candidate
+
+    # Kolizja - dodaj numeryczny suffix
+    counter_key = f"{base_name}_{city}"
+    if counter_key not in _name_counter:
+        _name_counter[counter_key] = 1
+
+    while True:
+        _name_counter[counter_key] += 1
+        candidate = f"{base_name} {city} {_name_counter[counter_key]}"
+        if candidate not in _used_restaurant_names:
+            _used_restaurant_names.add(candidate)
+            return candidate
+
+def _generate_base_name(theme: str) -> str:
+    """Generuje bazową nazwę restauracji (bez gwarancji unikalności)"""
     prefixes = ["Restauracja", "Bistro", "Gospoda", "Smaki", "Bar"]
-    suffixes = ["Pod Aniołem", "Starówka", "Centrum", "Parkowa", "Królewska"]
+    suffixes = ["Pod Aniołem", "Starówka", "Centrum", "Parkowa", "Królewska",
+                "Na Rogu", "U Babci", "Smaczna", "Domowa", "Zielona"]
 
     if theme == "Pizzeria":
-        return f"Pizzeria {random.choice(['Bella', 'Roma', 'Napoli', 'Milano'])}"
+        return f"Pizzeria {random.choice(['Bella', 'Roma', 'Napoli', 'Milano', 'Toscana', 'Palermo', 'Venezia', 'Firenze'])}"
     elif theme == "Sushi Bar":
-        return f"Sushi {random.choice(['Tokyo', 'Osaka', 'Sakura', 'Zen'])}"
+        return f"Sushi {random.choice(['Tokyo', 'Osaka', 'Sakura', 'Zen', 'Kyoto', 'Fuji', 'Samurai', 'Ninja'])}"
     elif theme == "Burger Bar":
-        return f"{random.choice(['The', 'Big', 'Best'])} Burger {random.choice(['House', 'Bar', 'Kitchen'])}"
+        return f"{random.choice(['The', 'Big', 'Best', 'Prime', 'Classic'])} Burger {random.choice(['House', 'Bar', 'Kitchen', 'Joint', 'Spot'])}"
+    elif theme == "Asian Fusion":
+        return f"{random.choice(['Asian', 'Oriental', 'Golden', 'Dragon'])} {random.choice(['Fusion', 'Kitchen', 'Garden', 'Palace'])}"
+    elif theme == "Steakhouse":
+        return f"{random.choice(['Prime', 'Black', 'Gold', 'Royal'])} {random.choice(['Steakhouse', 'Grill', 'Meat', 'Beef'])}"
+    elif theme == "Vegan Cafe":
+        return f"{random.choice(['Green', 'Fresh', 'Pure', 'Organic'])} {random.choice(['Cafe', 'Kitchen', 'Garden', 'Bistro'])}"
+    elif theme == "Mexican":
+        return f"{random.choice(['El', 'La', 'Casa'])} {random.choice(['Taco', 'Burrito', 'Fiesta', 'Mexico', 'Cantina'])}"
+    elif theme == "French Bistro":
+        return f"{random.choice(['Le', 'La', 'Petit'])} {random.choice(['Bistro', 'Cafe', 'Paris', 'Provence'])}"
+    elif theme == "Seafood":
+        return f"{random.choice(['Ocean', 'Sea', 'Blue', 'Harbor'])} {random.choice(['Catch', 'Fish', 'Grill', 'Kitchen'])}"
     else:
         return f"{random.choice(prefixes)} {random.choice(suffixes)}"
 
@@ -217,8 +264,8 @@ def _assign_restaurant_tags(db: DatabaseConnection):
     """Przypisuje tagi do restauracji"""
     logger.info("🏷️  Przypisywanie tagów do restauracji...")
 
-    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM Restaurants")
-    tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM Tags")  # FIXED: category -> tag_category
+    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM restaurants")
+    tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM tags")  # FIXED: category -> tag_category
 
     tag_assignments = []
 
@@ -234,14 +281,14 @@ def _assign_restaurant_tags(db: DatabaseConnection):
             })
 
     if tag_assignments:
-        db.insert_bulk("Restaurant_Tags", tag_assignments)
+        db.insert_bulk("restaurant_tags", tag_assignments)
         logger.info(f"✅ Przypisano {len(tag_assignments)} tagów do restauracji")
 
 def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools):
     """Dodaje zdjęcia restauracji"""
     logger.info("📸 Dodawanie zdjęć restauracji...")
 
-    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM Restaurants")
+    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM restaurants")
 
     photo_data = []
 
@@ -260,5 +307,5 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools):
                 # created_at is DEFAULT in schema, no need to specify
             })
 
-    db.insert_bulk("Photos", photo_data)
+    db.insert_bulk("photos", photo_data)
     logger.info(f"✅ Dodano {len(photo_data)} zdjęć restauracji")

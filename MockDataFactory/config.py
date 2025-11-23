@@ -4,28 +4,30 @@ Configuration - Konfiguracja połączenia i parametrów generacji
 
 import os
 
-# DATABASE CONFIGURATION
+# DATABASE CONFIGURATION (PostgreSQL)
 
 DATABASE_CONFIG = {
-    'server': os.getenv('DB_SERVER', 'localhost'),
-    'database': os.getenv('DB_NAME', 'MockDataDB'),
-    'driver': os.getenv('DB_DRIVER', 'ODBC Driver 17 for SQL Server'),
-    'trusted_connection': os.getenv('DB_TRUSTED', 'yes')
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': os.getenv('DB_PORT', '5432'),
+    'database': os.getenv('DB_NAME', 'mockdatadb'),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
-def get_connection_string():
+def get_connection_params():
     """
-    Zwraca ODBC connection string dla SQL Server
+    Zwraca parametry połączenia dla PostgreSQL
 
     Returns:
-        Connection string dla pyodbc
+        Dict z parametrami dla psycopg2.connect()
     """
-    return (
-        f"Driver={{{DATABASE_CONFIG['driver']}}};"
-        f"Server={DATABASE_CONFIG['server']};"
-        f"Database={DATABASE_CONFIG['database']};"
-        f"Trusted_Connection={DATABASE_CONFIG['trusted_connection']};"
-    )
+    return {
+        'host': DATABASE_CONFIG['host'],
+        'port': DATABASE_CONFIG['port'],
+        'dbname': DATABASE_CONFIG['database'],
+        'user': DATABASE_CONFIG['user'],
+        'password': DATABASE_CONFIG['password']
+    }
 
 # GENERATION PARAMETERS (ZOPTYMALIZOWANE!)
 
@@ -91,10 +93,10 @@ def print_config():
     print("=" * 60)
     print("📝 KONFIGURACJA MOCKDATAFACTORY")
     print("=" * 60)
-    print("\n🗄️  BAZA DANYCH:")
-    print(f"  Server: {DATABASE_CONFIG['server']}")
+    print("\n🗄️  BAZA DANYCH (PostgreSQL):")
+    print(f"  Host: {DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}")
     print(f"  Database: {DATABASE_CONFIG['database']}")
-    print(f"  Driver: {DATABASE_CONFIG['driver']}")
+    print(f"  User: {DATABASE_CONFIG['user']}")
 
     print("\n📊 PARAMETRY GENERACJI:")
     print(f"  Użytkownicy: {GENERATION_CONFIG['num_users']:,}")

@@ -104,7 +104,7 @@ def generate_reviews(db: DatabaseConnection):
                secret_cleanliness_preference, secret_preferred_ambiance,
                secret_mood_propensity, secret_cross_impact_factor,
                account_created_at
-        FROM Users
+        FROM users
     """)
 
     # Pobierz wszystkie restauracje
@@ -113,12 +113,27 @@ def generate_reviews(db: DatabaseConnection):
                secret_price_multiplier, secret_overall_food_quality,
                secret_service_quality, secret_cleanliness_score,
                secret_ambiance_type, secret_ambiance_quality
-        FROM Restaurants
+        FROM restaurants
     """)
 
     # Pobierz wszystkie miasta
-    cities = db.fetch_all("SELECT city_id FROM Cities")
+    cities = db.fetch_all("SELECT city_id FROM cities")
     city_ids = [c[0] for c in cities]
+
+    # FIXED: Validate that required data exists
+    if not users:
+        logger.error("❌ Brak użytkowników w bazie! Nie można wygenerować recenzji.")
+        return
+
+    if not all_restaurants:
+        logger.error("❌ Brak restauracji w bazie! Nie można wygenerować recenzji.")
+        return
+
+    if not city_ids:
+        logger.error("❌ Brak miast w bazie! Nie można wygenerować recenzji.")
+        return
+
+    logger.info(f"📊 Dane wejściowe: {len(users)} użytkowników, {len(all_restaurants)} restauracji, {len(city_ids)} miast")
 
     date_gen = DateGenerator()
     text_gen = ReviewTextGenerator()
@@ -198,15 +213,19 @@ def generate_reviews(db: DatabaseConnection):
                 continue
 
             restaurant_id = selected_restaurant_ids[0]
-            restaurant = next(r for r in city_restaurants if r['restaurant_id'] == restaurant_id)
+            # FIXED: Safe next() with default None to prevent StopIteration
+            restaurant = next((r for r in city_restaurants if r['restaurant_id'] == restaurant_id), None)
+            if not restaurant:
+                logger.warning(f"⚠️ Restauracja {restaurant_id} nie znaleziona w liście miasta")
+                continue
 
             # Pobierz dania restauracji
             dishes = db.fetch_all("""
                 SELECT dish_id, dish_name, archetype, public_price,
                        secret_base_price, secret_quality, secret_spiciness,
                        secret_richness, secret_texture_score, popularity_factor
-                FROM Dishes
-                WHERE restaurant_id = ?
+                FROM dishes
+                WHERE restaurant_id = %s
             """, (restaurant_id,))
 
             if not dishes:
@@ -218,11 +237,11 @@ def generate_reviews(db: DatabaseConnection):
             ingredients_by_dish = {}
 
             if dish_ids:
-                placeholders = ','.join(['?'] * len(dish_ids))
+                placeholders = ','.join(['%s'] * len(dish_ids))
                 all_ingredients = db.fetch_all(f"""
                     SELECT dil.dish_id, i.ingredient_name
-                    FROM Dish_Ingredients_Link dil
-                    JOIN Ingredients i ON dil.ingredient_id = i.ingredient_id
+                    FROM dish_ingredients_link dil
+                    JOIN ingredients i ON dil.ingredient_id = i.ingredient_id
                     WHERE dil.dish_id IN ({placeholders})
                 """, tuple(dish_ids))
 
@@ -285,13 +304,13 @@ def generate_reviews(db: DatabaseConnection):
                 'review_date': DateGenerator.to_sql_datetime(review_date)
             }
 
-            review_id = db.insert_single("Reviews", review_data)  # FIXED: Prawdziwe ID!
+            review_id = db.insert_single("reviews", review_data)  # FIXED: Prawdziwe ID!
             total_reviews += 1
 
             # 30% szans na zdjęcie użytkownika
             if random.random() < 0.30:
-                # FIXED: User_Photos zamiast Photos!
-                db.insert_single("User_Photos", {
+                # FIXED: user_photos zamiast photos!
+                db.insert_single("user_photos", {
                     'review_id': review_id,  # FIXED: Prawdziwe ID z bazy danych!
                     'uploaded_by_user_id': user_id,
                     'photo_url': photo_pools.get_user_photo_generic(),

@@ -30,11 +30,11 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     # Pobierz restauracje
     restaurants = db.fetch_all("""
         SELECT restaurant_id, menu_blueprint, secret_price_multiplier
-        FROM Restaurants
+        FROM restaurants
     """)
 
     # Pobierz wszystkie składniki
-    all_ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM Ingredients")
+    all_ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM ingredients")
     ingredient_map = {name: id for id, name in all_ingredients}
 
     photo_pools = PhotoPools()
@@ -82,7 +82,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
             }
 
             # FIXED: Insert pojedynczo i pobierz prawdziwe ID
-            dish_id = db.insert_single("Dishes", dish_data)
+            dish_id = db.insert_single("dishes", dish_data)
             total_dishes += 1
 
             # Przypisz składniki (teraz z prawdziwym dish_id)
@@ -96,12 +96,12 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
                     })
 
             if ingredient_links:
-                db.insert_bulk("Dish_Ingredients_Link", ingredient_links)
+                db.insert_bulk("dish_ingredients_link", ingredient_links)
                 total_ingredients_links += len(ingredient_links)
 
             # Dodaj zdjęcie (FIXED: entity_type + entity_id)
             photo_url = photo_pools.get_dish_photo(archetype)
-            db.insert_single("Photos", {
+            db.insert_single("photos", {
                 "entity_type": "dish",  # FIXED: proper column
                 "entity_id": dish_id,  # FIXED: was dish_id direct
                 "photo_url": photo_url,
@@ -117,30 +117,70 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     logger.info(f"✅ Dodano {total_photos} zdjęć dań")
 
 def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict) -> list:
-    """Wybiera dania odpowiednie dla danego typu menu"""
-    variants = dish_variants.get("variants", [])
+    """
+    Wybiera dania odpowiednie dla danego typu menu
 
-    # Filtruj według menu blueprint
+    FIXED: Handles nested JSON structure:
+    {"Pizza": {"base_price": {...}, "variants": {"Margherita": {"ingredients": [...]}}}}
+    """
+    # FIXED: Build flat variant list from nested structure
+    all_variants = []
+    for category_name, category_data in dish_variants.items():
+        if not isinstance(category_data, dict):
+            continue
+
+        # Get base price for this category
+        base_price_info = category_data.get("base_price", {"mean": 35.0, "stdev": 5.0})
+        base_price = base_price_info.get("mean", 35.0)
+
+        variants = category_data.get("variants", {})
+        for variant_name, variant_data in variants.items():
+            if not isinstance(variant_data, dict):
+                continue
+
+            # Calculate final price
+            price_mult_info = variant_data.get("price_multiplier", {"mean": 1.0})
+            price_multiplier = price_mult_info.get("mean", 1.0)
+            final_price = round(base_price * price_multiplier, 2)
+
+            # Get spiciness
+            spiciness_info = variant_data.get("spiciness", {"mean": 0})
+            spiciness = spiciness_info.get("mean", 0)
+
+            all_variants.append({
+                "name": variant_name,
+                "archetype": category_name,  # Category name becomes archetype
+                "price": final_price,
+                "ingredients": variant_data.get("ingredients", []),
+                "tags": ["spicy"] if spiciness > 2 else [],
+                "spiciness": spiciness
+            })
+
+    # Menu mappings (archetype -> menu types)
     menu_mappings = {
         "pizza_menu": ["Pizza"],
         "burger_menu": ["Burger"],
         "sushi_menu": ["Sushi"],
-        "asian_menu": ["Ramen", "Noodles", "Dim Sum", "Pho"],
+        "asian_menu": ["Ramen", "Noodles", "Dim Sum", "Pho", "Curry"],
         "steak_menu": ["Steak", "BBQ"],
         "vegan_menu": ["Vegan", "Salad"],
-        "mexican_menu": ["Tacos", "Quesadilla", "Nachos"],
-        "italian_menu": ["Pizza", "Pasta", "Risotto"],
-        "french_menu": ["Steak", "Soup"],
-        "seafood_menu": ["Seafood", "Sushi"],
-        "general_menu": ["Pizza", "Burger", "Pasta", "Salad"]
+        "mexican_menu": ["Tacos", "Quesadilla", "Nachos", "Kebab"],
+        "italian_menu": ["Pizza", "Pasta", "Risotto", "Gnocchi"],
+        "french_menu": ["Steak", "Soup", "Fondue"],
+        "seafood_menu": ["Seafood", "Sushi", "Oysters"],
+        "general_menu": ["Pizza", "Burger", "Pasta", "Salad", "Kebab"]
     }
 
     archetypes = menu_mappings.get(menu_blueprint, ["Pizza", "Burger", "Pasta"])
 
-    # Filtruj warianty
-    matching_dishes = [v for v in variants if v.get("archetype") in archetypes]
+    # Filter variants by archetype
+    matching_dishes = [v for v in all_variants if v.get("archetype") in archetypes]
 
-    # Wybierz 10-20 dań
+    # If no matches, use all variants as fallback
+    if not matching_dishes:
+        matching_dishes = all_variants
+
+    # Select 10-20 dishes
     num_dishes = random.randint(10, 20)
 
     if len(matching_dishes) > num_dishes:

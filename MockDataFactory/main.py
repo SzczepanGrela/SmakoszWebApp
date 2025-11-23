@@ -7,7 +7,7 @@ import logging
 import sys
 from datetime import datetime
 
-from config import get_connection_string, GENERATION_CONFIG
+from config import get_connection_params, GENERATION_CONFIG
 from utils.db_connection import DatabaseConnection
 from generators import (
     generate_cities,
@@ -40,8 +40,8 @@ def print_statistics(db: DatabaseConnection):
     logger.info("=" * 60)
 
     tables = [
-        "Cities", "Ingredients", "Tags", "Restaurants",
-        "Dishes", "Users", "Reviews", "Photos"
+        "cities", "ingredients", "tags", "restaurants",
+        "dishes", "users", "reviews", "photos"
     ]
 
     for table in tables:
@@ -53,9 +53,9 @@ def print_statistics(db: DatabaseConnection):
 
     # Oblicz metryki CF
     try:
-        num_users = db.fetch_one("SELECT COUNT(*) FROM Users")[0]
-        num_dishes = db.fetch_one("SELECT COUNT(*) FROM Dishes")[0]
-        num_reviews = db.fetch_one("SELECT COUNT(*) FROM Reviews")[0]
+        num_users = db.fetch_one("SELECT COUNT(*) FROM users")[0]
+        num_dishes = db.fetch_one("SELECT COUNT(*) FROM dishes")[0]
+        num_reviews = db.fetch_one("SELECT COUNT(*) FROM reviews")[0]
 
         if num_users > 0 and num_dishes > 0:
             sparsity = (1 - (num_reviews / (num_users * num_dishes))) * 100
@@ -85,7 +85,7 @@ def main():
     logger.info("")
 
     # Wczytaj konfigurację
-    connection_string = get_connection_string()
+    connection_params = get_connection_params()
     num_users = GENERATION_CONFIG['num_users']
 
     logger.info("=> KONFIGURACJA:")
@@ -97,7 +97,7 @@ def main():
 
     try:
         # Połącz z bazą danych
-        with DatabaseConnection(connection_string) as db:
+        with DatabaseConnection(connection_params) as db:
 
             # ========================================
             # PHASE 1: Core (miasta, składniki, tagi)
