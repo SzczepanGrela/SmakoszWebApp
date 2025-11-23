@@ -24,6 +24,9 @@ tensorboard>=2.15.0
 matplotlib>=3.7.0
 tqdm>=4.65.0
 
+# Hyperparameter Tuning
+optuna>=3.5.0
+
 # Configuration
 python-dotenv>=1.0.0
 pyyaml>=6.0.0
