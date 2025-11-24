@@ -158,10 +158,20 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     _assign_saved_dishes(db)
 
 def _assign_saved_dishes(db: DatabaseConnection):
-    """Przypisuje ulubione dania użytkownikom (~2 na użytkownika)"""
+    """
+    Przypisuje ulubione dania użytkownikom.
+
+    Pokrycie:
+    - 85% użytkowników ma zapisane dania (vs poprzednie ~75%)
+    - Zwykli użytkownicy: 3-10 ulubionych dań (średnio ~6.5)
+    - Power users (5%): 15-30 ulubionych dań (średnio ~22.5)
+
+    Oczekiwana liczba zapisów: ~175,000 dla 25k użytkowników
+    """
     logger.info("❤️  Przypisywanie ulubionych dań...")
 
-    users = db.fetch_all("SELECT user_id FROM users")
+    # Pobierz użytkowników z informacją czy są power users
+    users = db.fetch_all("SELECT user_id, is_power_user FROM users")
     all_dishes = db.fetch_all("SELECT dish_id FROM dishes")
 
     if not all_dishes:
@@ -169,20 +179,35 @@ def _assign_saved_dishes(db: DatabaseConnection):
         return
 
     saved_data = []
+    dish_list = [d[0] for d in all_dishes]
 
-    for (user_id,) in users:
-        # Każdy user ma 0-3 ulubione dania
-        num_saved = random.randint(0, 3)
+    for user_id, is_power_user in users:
+        # 15% użytkowników nie ma żadnych zapisanych dań
+        if random.random() < 0.15:
+            continue
 
-        if num_saved > 0:
-            sampled_dishes = random.sample(all_dishes, min(num_saved, len(all_dishes)))
+        if is_power_user:
+            # Power users: 15-30 ulubionych dań
+            num_saved = random.randint(15, 30)
+        else:
+            # Zwykli użytkownicy: 3-10 ulubionych dań
+            num_saved = random.randint(3, 10)
 
-            for (dish_id,) in sampled_dishes:
-                saved_data.append({
-                    "user_id": user_id,
-                    "dish_id": dish_id
-                })
+        # Upewnij się, że nie przekraczamy liczby dostępnych dań
+        num_saved = min(num_saved, len(dish_list))
+
+        sampled_dishes = random.sample(dish_list, num_saved)
+
+        for dish_id in sampled_dishes:
+            saved_data.append({
+                "user_id": user_id,
+                "dish_id": dish_id
+            })
 
     if saved_data:
         db.insert_bulk("saved_dishes", saved_data)
-        logger.info(f"✅ Przypisano {len(saved_data)} ulubionych dań")
+        users_with_saved = len(set(s["user_id"] for s in saved_data))
+        avg_per_user = len(saved_data) / users_with_saved if users_with_saved > 0 else 0
+        logger.info(f"✅ Przypisano {len(saved_data):,} ulubionych dań")
+        logger.info(f"  📊 Użytkownicy z ulubionymi: {users_with_saved:,} ({100*users_with_saved/len(users):.1f}%)")
+        logger.info(f"  📊 Średnio na użytkownika: {avg_per_user:.1f}")

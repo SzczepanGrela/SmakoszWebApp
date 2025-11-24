@@ -37,11 +37,22 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     all_ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM ingredients")
     ingredient_map = {name: id for id, name in all_ingredients}
 
+    # Pobierz wszystkie tagi do przypisania dish_tags
+    all_tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM tags")
+    tag_map = {name: tag_id for tag_id, name, _ in all_tags}
+    tag_by_category = {}
+    for tag_id, tag_name, tag_category in all_tags:
+        if tag_category not in tag_by_category:
+            tag_by_category[tag_category] = []
+        tag_by_category[tag_category].append((tag_id, tag_name))
+
     photo_pools = PhotoPools()
 
     total_dishes = 0
     total_ingredients_links = 0
     total_photos = 0
+    total_dish_tags = 0
+    dish_tags_buffer = []  # Buffer for bulk insert
 
     for restaurant_id, menu_blueprint, price_multiplier in restaurants:
         # Wybierz dania dla tego typu menu
@@ -109,12 +120,135 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
             })
             total_photos += 1
 
+            # Przypisz tagi do dania (dish_tags)
+            dish_tag_ids = _get_tags_for_dish(
+                archetype=archetype,
+                spiciness=secret_spiciness,
+                ingredients=ingredients,
+                tag_map=tag_map,
+                tag_by_category=tag_by_category
+            )
+            for tag_id in dish_tag_ids:
+                dish_tags_buffer.append({
+                    "dish_id": dish_id,
+                    "tag_id": tag_id
+                })
+
+            # Bulk insert dish_tags co 5000 rekordów
+            if len(dish_tags_buffer) >= 5000:
+                db.insert_bulk("dish_tags", dish_tags_buffer)
+                total_dish_tags += len(dish_tags_buffer)
+                dish_tags_buffer = []
+
         if (total_dishes % 1000) == 0:
             logger.info(f"  Wygenerowano {total_dishes} dań...")
+
+    # Insert remaining dish_tags
+    if dish_tags_buffer:
+        db.insert_bulk("dish_tags", dish_tags_buffer)
+        total_dish_tags += len(dish_tags_buffer)
 
     logger.info(f"✅ Wygenerowano {total_dishes} dań")
     logger.info(f"✅ Przypisano {total_ingredients_links} składników do dań")
     logger.info(f"✅ Dodano {total_photos} zdjęć dań")
+    logger.info(f"✅ Przypisano {total_dish_tags} tagów do dań")
+
+def _get_tags_for_dish(archetype: str, spiciness: float, ingredients: list,
+                       tag_map: dict, tag_by_category: dict) -> list:
+    """
+    Określa tagi dla dania na podstawie jego właściwości.
+
+    Args:
+        archetype: Typ dania (Pizza, Burger, Sushi, etc.)
+        spiciness: Poziom ostrości (0-10)
+        ingredients: Lista składników
+        tag_map: Mapowanie nazwa_tagu -> tag_id
+        tag_by_category: Mapowanie kategoria -> lista (tag_id, tag_name)
+
+    Returns:
+        Lista tag_id do przypisania
+    """
+    tag_ids = set()
+
+    # 1. Mapowanie archetype -> cuisine tag
+    archetype_cuisine_map = {
+        "Pizza": "Włoska",
+        "Pasta": "Włoska",
+        "Risotto": "Włoska",
+        "Gnocchi": "Włoska",
+        "Burger": "Amerykańska",
+        "Steak": "Amerykańska",
+        "BBQ": "Amerykańska",
+        "Sushi": "Japońska",
+        "Ramen": "Japońska",
+        "Pho": "Wietnamska",
+        "Noodles": "Azjatycka",
+        "Dim Sum": "Azjatycka",
+        "Curry": "Indyjska",
+        "Tacos": "Meksykańska",
+        "Quesadilla": "Meksykańska",
+        "Nachos": "Meksykańska",
+        "Kebab": "Bliskowschodnia",
+        "Salad": "Śródziemnomorska",
+        "Seafood": "Śródziemnomorska",
+        "Oysters": "Francuska",
+        "Fondue": "Francuska",
+        "Soup": "Polska",
+        "Vegan": "Śródziemnomorska",
+    }
+
+    cuisine_tag = archetype_cuisine_map.get(archetype)
+    if cuisine_tag and cuisine_tag in tag_map:
+        tag_ids.add(tag_map[cuisine_tag])
+
+    # 2. Mapowanie spiciness -> spice tag
+    if spiciness <= 1:
+        spice_tag = "Łagodne"
+    elif spiciness <= 3:
+        spice_tag = "Średnio ostre"
+    elif spiciness <= 6:
+        spice_tag = "Ostre"
+    else:
+        spice_tag = "Bardzo ostre"
+
+    if spice_tag in tag_map:
+        tag_ids.add(tag_map[spice_tag])
+
+    # 3. Tagi dietetyczne na podstawie składników
+    ingredients_lower = [i.lower() for i in ingredients]
+
+    # Wegańskie - jeśli nie ma mięsa, nabiału, jaj
+    meat_keywords = ['mięso', 'kurczak', 'wołowina', 'wieprzowina', 'boczek', 'szynka',
+                     'kiełbasa', 'beef', 'chicken', 'pork', 'bacon', 'ham', 'sausage',
+                     'ryba', 'fish', 'łosoś', 'salmon', 'tuńczyk', 'tuna', 'krewetki', 'shrimp']
+    dairy_keywords = ['ser', 'cheese', 'mleko', 'milk', 'śmietana', 'cream', 'masło', 'butter']
+    egg_keywords = ['jajko', 'egg', 'jaja']
+
+    has_meat = any(any(kw in ing for kw in meat_keywords) for ing in ingredients_lower)
+    has_dairy = any(any(kw in ing for kw in dairy_keywords) for ing in ingredients_lower)
+    has_eggs = any(any(kw in ing for kw in egg_keywords) for ing in ingredients_lower)
+
+    if not has_meat and not has_dairy and not has_eggs:
+        if "Wegańskie" in tag_map:
+            tag_ids.add(tag_map["Wegańskie"])
+    elif not has_meat:
+        if "Wegetariańskie" in tag_map:
+            tag_ids.add(tag_map["Wegetariańskie"])
+
+    # Bezglutenowe
+    gluten_keywords = ['mąka', 'flour', 'chleb', 'bread', 'makaron', 'pasta', 'pszenica', 'wheat']
+    has_gluten = any(any(kw in ing for kw in gluten_keywords) for ing in ingredients_lower)
+    if not has_gluten and "Bezglutenowe" in tag_map:
+        tag_ids.add(tag_map["Bezglutenowe"])
+
+    # 4. Losowo dodaj 1-2 dodatkowe tagi (occasion/feature/mood)
+    optional_categories = ['occasion', 'feature', 'mood']
+    for category in random.sample(optional_categories, k=random.randint(1, 2)):
+        if category in tag_by_category and tag_by_category[category]:
+            random_tag = random.choice(tag_by_category[category])
+            tag_ids.add(random_tag[0])  # tag_id
+
+    return list(tag_ids)
 
 def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict) -> list:
     """
