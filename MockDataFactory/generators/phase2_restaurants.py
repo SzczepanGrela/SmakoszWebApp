@@ -72,10 +72,11 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     - secret_ambiance_type ("Romantyczny", "Rodzinny", "Biznesowy")
     - secret_ambiance_quality (0.4-0.95)
     """
-    logger.info("🏪 Generowanie restauracji...")
+    logger.info(" Generowanie restauracji...")
 
     loader = BlueprintLoader(blueprints_dir)
     restaurant_rules = loader.load_blueprint("02_restaurant_rules.json")
+    city_config = loader.load_blueprint("01_city_rules.json").get("CITY_CONFIG", {})
 
     # Pobierz miasta
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
@@ -89,6 +90,10 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     for city_id, city_name in cities:
         # Liczba restauracji per miasto (z restaurant_rules)
         num_restaurants = _get_restaurant_count_for_city(city_name, restaurant_rules)
+        
+        # Get city coordinates
+        city_info = city_config.get(city_name, {})
+        base_coords = city_info.get("coords", {"lat": 52.0, "lon": 19.0})
 
         for _ in range(num_restaurants):
             # Wybierz typ restauracji
@@ -113,51 +118,70 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             # Menu blueprint
             menu_blueprint = _get_menu_blueprint(theme)
 
-            # Calculate public_price_range based on secret_price_multiplier
+            # Calculate price_level based on secret_price_multiplier
             if secret_price_multiplier < 0.9:
-                public_price_range = "$"
+                price_level = 1
             elif secret_price_multiplier < 1.1:
-                public_price_range = "$$"
+                price_level = 2
             elif secret_price_multiplier < 1.25:
-                public_price_range = "$$$"
+                price_level = 3
             else:
-                public_price_range = "$$$$"
+                price_level = 4
+                
+            # Coordinates (City center +/- ~5km)
+            lat = base_coords["lat"] + random.uniform(-0.05, 0.05)
+            lon = base_coords["lon"] + random.uniform(-0.05, 0.05)
+            
+            # Restaurant Status
+            rand_status = random.random()
+            if rand_status < 0.95:
+                status = 'active'
+            elif rand_status < 0.98:
+                status = 'renovation'
+            elif rand_status < 0.99:
+                status = 'suspended'
+            else:
+                status = 'closed_permanently'
 
-            # FIXED: Dodano brakujące pola (address, phone, website, description, image_url, public_price_range)
+            # FIXED: Updated column names
             restaurant_data.append({
                 "city_id": city_id,
                 "restaurant_name": name,
-                "public_cuisine_theme": theme,  # FIXED: proper column name
-                "public_price_range": public_price_range,  # FIXED: Added
-                "address": f"{fake.street_address()}, {city_name}",  # FIXED: Added
-                "latitude": round(random.uniform(49.0, 54.5), 7),  # FIXED: Added (Poland coords)
-                "longitude": round(random.uniform(14.0, 24.0), 7),  # FIXED: Added (Poland coords)
-                "phone": fake.phone_number(),  # FIXED: Added
-                "website": f"https://{slugify(name)}.pl",  # FIXED: Added, URL-safe slugification
-                "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",  # FIXED: Added
-                "image_url": photo_pools.get_restaurant_photo(theme),  # FIXED: Added
-                "theme": theme,  # Keep for backward compatibility
-                "created_at": DateGenerator.to_sql_datetime(created_date),  # FIXED: was created_date
+                "cuisine_type": theme,  # RENAMED
+                "price_level": price_level,
+                "address": f"{fake.street_address()}, {city_name}",
+                "latitude": round(lat, 6),
+                "longitude": round(lon, 6),
+                "phone": fake.phone_number(),
+                "website": f"https://{slugify(name)}.pl",
+                "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",
+                "image_url": photo_pools.get_restaurant_photo(theme),
+                "status": status, # NEW: Replaces is_active
+                "created_at": DateGenerator.to_sql_datetime(created_date),
                 "secret_price_multiplier": round(secret_price_multiplier, 3),
                 "secret_overall_food_quality": round(secret_overall_food_quality, 3),
                 "secret_service_quality": round(secret_service_quality, 3),
                 "secret_cleanliness_score": round(secret_cleanliness_score, 2),
                 "secret_ambiance_type": secret_ambiance_type,
                 "secret_ambiance_quality": round(secret_ambiance_quality, 3),
-                "menu_blueprint": menu_blueprint
+                "secret_menu_blueprint": menu_blueprint
             })
 
             restaurant_id_counter += 1
 
     db.insert_bulk("restaurants", restaurant_data)
-    logger.info(f"✅ Wygenerowano {len(restaurant_data)} restauracji")
+    logger.info(f" Wygenerowano {len(restaurant_data)} restauracji")
 
     # Dodaj tagi i zdjęcia
     _assign_restaurant_tags(db)
     _assign_restaurant_photos(db, photo_pools)
 
 def _get_restaurant_count_for_city(city_name: str, rules: dict) -> int:
-    """Zwraca liczbę restauracji dla miasta z rules"""
+    """
+    Zwraca liczbę restauracji dla miasta z zastosowaniem rozkładu Gaussa.
+    Baza: Wagi populacji z rules.
+    Wariancja: ~10-15% bazy.
+    """
     city_counts = {
         "Warszawa": 200,
         "Kraków": 150,
@@ -179,7 +203,15 @@ def _get_restaurant_count_for_city(city_name: str, rules: dict) -> int:
         "Łódź": 100
     }
 
-    return city_counts.get(city_name, 30)
+    base_count = city_counts.get(city_name, 30)
+
+    # Apply Gaussian noise (Variance)
+    # Mean = base_count, StdDev = 15% of base_count
+    sigma = base_count * 0.15
+    varied_count = int(random.gauss(base_count, sigma))
+
+    # Ensure valid minimum (at least 5 restaurants per city)
+    return max(5, varied_count)
 
 def _select_restaurant_theme(rules: dict) -> str:
     """Wybiera typ restauracji"""
@@ -262,9 +294,9 @@ def _get_menu_blueprint(theme: str) -> str:
 
 def _assign_restaurant_tags(db: DatabaseConnection):
     """Przypisuje tagi do restauracji"""
-    logger.info("🏷️  Przypisywanie tagów do restauracji...")
+    logger.info(" Przypisywanie tagów do restauracji...")
 
-    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM restaurants")
+    restaurants = db.fetch_all("SELECT restaurant_id, cuisine_type FROM restaurants")
     tags = db.fetch_all("SELECT tag_id, tag_name, tag_category FROM tags")  # FIXED: category -> tag_category
 
     tag_assignments = []
@@ -282,30 +314,120 @@ def _assign_restaurant_tags(db: DatabaseConnection):
 
     if tag_assignments:
         db.insert_bulk("restaurant_tags", tag_assignments)
-        logger.info(f"✅ Przypisano {len(tag_assignments)} tagów do restauracji")
+        logger.info(f" Przypisano {len(tag_assignments)} tagów do restauracji")
 
 def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools):
-    """Dodaje zdjęcia restauracji"""
-    logger.info("📸 Dodawanie zdjęć restauracji...")
+    """
+    Dodaje zdjęcia restauracji do tabeli photos
 
-    restaurants = db.fetch_all("SELECT restaurant_id, theme FROM restaurants")
+    FIXED: Synchronizacja z restaurants.image_url
+    - Primary photo (is_primary=TRUE) = TO SAMO zdjęcie co restaurants.image_url (synchronized!)
+    - Additional 1-2 photos (is_primary=FALSE) = dodatkowe zdjęcia do galerii
+    """
+    logger.info(" Dodawanie zdjęć restauracji...")
+
+    # FIXED: Fetch image_url from restaurants table (primary photo)
+    restaurants = db.fetch_all("SELECT restaurant_id, cuisine_type, image_url FROM restaurants")
 
     photo_data = []
 
-    for restaurant_id, theme in restaurants:
-        # 2-3 zdjęcia na restaurację
-        num_photos = random.randint(2, 3)
+    for restaurant_id, theme, primary_image_url in restaurants:
+        # FIXED: Add PRIMARY photo (same as restaurants.image_url for synchronization)
+        photo_data.append({
+            "entity_type": "restaurant",
+            "entity_id": restaurant_id,
+            "photo_url": primary_image_url,  # FIXED: Same URL as restaurants.image_url (synchronized!)
+            "is_primary": True
+        })
 
-        for i in range(num_photos):
-            url = photo_pools.get_restaurant_photo(theme)
-
+        # FIXED: Add 1-2 ADDITIONAL photos to gallery (non-primary)
+        num_additional_photos = random.randint(1, 2)
+        for _ in range(num_additional_photos):
+            additional_photo_url = photo_pools.get_restaurant_photo(theme)
             photo_data.append({
-                "entity_type": "restaurant",  # FIXED: proper column
-                "entity_id": restaurant_id,  # FIXED: was restaurant_id
-                "photo_url": url,
-                "is_primary": (i == 0)  # First photo is primary
-                # created_at is DEFAULT in schema, no need to specify
+                "entity_type": "restaurant",
+                "entity_id": restaurant_id,
+                "photo_url": additional_photo_url,
+                "is_primary": False  # Additional gallery photo
             })
 
     db.insert_bulk("photos", photo_data)
-    logger.info(f"✅ Dodano {len(photo_data)} zdjęć restauracji")
+    logger.info(f" Dodano {len(photo_data)} zdjęć restauracji")
+
+    # Generuj godziny otwarcia
+    _assign_opening_hours(db)
+
+def _assign_opening_hours(db: DatabaseConnection):
+    """Generuje godziny otwarcia dla restauracji"""
+    logger.info(" Generowanie godzin otwarcia...")
+
+    restaurants = db.fetch_all("SELECT restaurant_id, cuisine_type FROM restaurants")
+    hours_data = []
+
+    for restaurant_id, theme in restaurants:
+        schedule = _get_schedule_for_theme(theme)
+        
+        # 0=Sunday, 1=Monday, ..., 6=Saturday
+        for day in range(7):
+            is_weekend = day in [5, 6] # Fri(5)?? No, 0=Sun, 1=Mon, 5=Fri, 6=Sat
+            # Correction: 0=Sun, 6=Sat. Weekend is usually Fri-Sat night or Sat-Sun day.
+            # Let's assume 5=Fri, 6=Sat for late hours logic.
+            
+            open_time, close_time = schedule['weekday']
+            
+            if day in [5, 6]: # Fri, Sat
+                open_time, close_time = schedule['weekend']
+            elif day == 0: # Sun
+                open_time, close_time = schedule.get('sunday', schedule['weekday'])
+
+            # Random variation +/- 30 mins
+            # Simulating simplified times for bulk insert
+            
+            hours_data.append({
+                "restaurant_id": restaurant_id,
+                "day_of_week": day,
+                "open_time": open_time,
+                "close_time": close_time,
+                "is_closed": False
+            })
+
+    db.insert_bulk("restaurant_opening_hours", hours_data)
+    logger.info(f" Dodano {len(hours_data)} rekordów godzin otwarcia")
+
+def _get_schedule_for_theme(theme: str) -> dict:
+    """Zwraca szablon godzin dla typu kuchni"""
+    # Format: 'HH:MM'
+    
+    # Default
+    schedule = {
+        'weekday': ('12:00', '22:00'),
+        'weekend': ('12:00', '23:00'),
+        'sunday':  ('12:00', '21:00')
+    }
+
+    if theme in ['Pizzeria', 'Italian', 'Mexican', 'Burger Bar']:
+        schedule = {
+            'weekday': ('11:00', '22:00'),
+            'weekend': ('11:00', '23:30'),
+            'sunday':  ('12:00', '22:00')
+        }
+    elif theme in ['Sushi Bar', 'Asian Fusion', 'Seafood']:
+        schedule = {
+            'weekday': ('12:00', '22:00'),
+            'weekend': ('12:00', '23:00'),
+            'sunday':  ('13:00', '21:30')
+        }
+    elif theme in ['Vegan Cafe', 'French Bistro']:
+        schedule = {
+            'weekday': ('09:00', '20:00'),
+            'weekend': ('10:00', '21:00'),
+            'sunday':  ('10:00', '18:00')
+        }
+    elif theme in ['Steakhouse']:
+        schedule = {
+            'weekday': ('16:00', '23:00'),
+            'weekend': ('14:00', '00:00'),
+            'sunday':  ('14:00', '22:00')
+        }
+
+    return schedule

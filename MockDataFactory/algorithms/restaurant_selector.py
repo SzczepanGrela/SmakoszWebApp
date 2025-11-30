@@ -68,14 +68,21 @@ def select_restaurants_for_user(user: Dict[str, Any],
 
     selected = []
     enjoyed_themes = user.get('secret_enjoyed_archetypes', {})
+    random_chance = user.get('secret_chance_dine_random', 0.1)
 
     for _ in range(count):
-        # Czy wybieramy z TOP?
-        if random.random() < top_visit_rate and top_restaurants:
+        # 1. Czy wybieramy całkowicie losowo (eksploracja)?
+        if random.random() < random_chance:
+            if all_restaurants: # Pick from ALL available in city, ignoring popularity/preference
+                restaurant = random.choice(city_restaurants)
+            else:
+                restaurant = None
+        # 2. Czy wybieramy z TOP (Anchor Items)?
+        elif random.random() < top_visit_rate and top_restaurants:
             # Wybierz z TOP, z preferencją dla enjoyed themes
             restaurant = _select_with_theme_preference(top_restaurants, enjoyed_themes)
+        # 3. Fallback: Wybierz z pozostałych (ale wciąż z preferencją tematyczną)
         elif other_restaurants:
-            # Wybierz losowo z pozostałych
             restaurant = _select_with_theme_preference(other_restaurants, enjoyed_themes)
         else:
             # Jeśli brak innych, wybierz z TOP
@@ -93,7 +100,7 @@ def _select_with_theme_preference(restaurants: List[Dict],
 
     Args:
         restaurants: Lista restauracji do wyboru
-        enjoyed_themes: Słownik {theme: affinity}
+        enjoyed_themes: Słownik {public_cuisine_theme: affinity}
 
     Returns:
         Wybrana restauracja
@@ -104,7 +111,7 @@ def _select_with_theme_preference(restaurants: List[Dict],
     # Oblicz wagi dla każdej restauracji
     weights = []
     for restaurant in restaurants:
-        theme = restaurant.get('theme', 'Unknown')
+        theme = restaurant.get('cuisine_type', 'Unknown')
         affinity = enjoyed_themes.get(theme, 0.5)
 
         # Waga = affinity + popularity

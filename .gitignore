@@ -373,3 +373,9 @@ FodyWeavers.xsd
 .claude/
 
 MockDataFactory/config/db_config.ini
+/venv/
+
+# PyCharm IDE
+.idea/
+/ROADMAP_FULL_V2.md
+/ROADMAP_FULL.md

@@ -77,6 +77,31 @@ GENERATION_CONFIG = {
     'dish_photos_per': 1,  # 1 zdjęcie na danie
 }
 
+# PHOTO CONFIGURATION (Pixabay API)
+
+# Load Pixabay API key from environment
+PIXABAY_API_KEY = os.getenv('PIXABAY_API_KEY', '')
+PIXABAY_ENABLED = bool(PIXABAY_API_KEY)
+
+PHOTO_CONFIG = {
+    # Pixabay API settings
+    'pixabay_api_key': PIXABAY_API_KEY,
+    'pixabay_enabled': PIXABAY_ENABLED,
+
+    # Cache settings
+    'cache_file': 'data/photo_cache.json',
+    'images_per_query': 200,  # Fetch 200 URLs per query (MAX allowed by Pixabay - 10x variety!)
+
+    # API request settings
+    'max_retries': 3,
+    'timeout_seconds': 10,
+    'rate_limit_per_hour': 4900,  # Slightly under 5000 for safety margin
+
+    # Fallback settings
+    'fallback_enabled': True,  # Use Lorem Picsum if Pixabay fails
+    'fallback_base_url': 'https://picsum.photos',
+}
+
 # OCZEKIWANE METRYKI CF
 
 EXPECTED_METRICS = {

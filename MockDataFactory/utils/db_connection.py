@@ -95,6 +95,26 @@ class DatabaseConnection:
                 id_column = 'pending_photo_id'
             elif table_lower == 'pending_comments':
                 id_column = 'pending_comment_id'
+            elif table_lower == 'restaurant_opening_hours':
+                id_column = 'hours_id'
+            elif table_lower == 'search_history':
+                id_column = 'search_id'
+            elif table_lower == 'data_correction_requests':
+                id_column = 'request_id'
+            elif table_lower == 'email_logs':
+                id_column = 'email_log_id'
+            elif table_lower == 'auth_tokens':
+                id_column = 'token_id'
+            elif table_lower == 'security_logs':
+                id_column = 'log_id'
+            elif table_lower == 'ai_review_photos':
+                id_column = 'queue_id'
+            elif table_lower == 'admin_review_photos':
+                id_column = 'queue_id'
+            elif table_lower == 'ai_review_comments':
+                id_column = 'queue_id'
+            elif table_lower == 'admin_review_comments':
+                id_column = 'queue_id'
             else:
                 # Fallback: singular_id
                 id_column = table_lower.rstrip('s') + '_id'
@@ -130,7 +150,8 @@ class DatabaseConnection:
             sql_query = f"INSERT INTO {table} ({columns_str}) VALUES %s"
             execute_values(self.cursor, sql_query, values)
             self.commit()
-            self.logger.info(f"Wstawiono {len(data_list)} wierszy do {table}")
+            if len(data_list) >= 1000:
+                self.logger.info(f"Wstawiono {len(data_list)} wierszy do {table}")
         except psycopg2.Error as e:
             self.logger.error(f"Blad bulk insert: {e}")
             self.rollback()
@@ -159,7 +180,8 @@ class DatabaseConnection:
             sql_query = f"INSERT INTO {table} ({columns_str}) VALUES %s RETURNING {id_column}"
             result = execute_values(self.cursor, sql_query, values, fetch=True)
             self.commit()
-            self.logger.info(f"Wstawiono {len(data_list)} wierszy do {table}")
+            if len(data_list) >= 1000:
+                self.logger.info(f"Wstawiono {len(data_list)} wierszy do {table}")
             return [row[0] for row in result]
         except psycopg2.Error as e:
             self.logger.error(f"Blad bulk insert: {e}")

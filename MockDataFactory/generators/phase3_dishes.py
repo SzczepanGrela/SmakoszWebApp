@@ -16,20 +16,112 @@ from utils.photo_pools import PhotoPools
 
 logger = logging.getLogger(__name__)
 
+def generate_dish_description(dish_name: str, archetype: str, ingredients: list, quality: float, spiciness: float) -> str:
+    """
+    Generuje apetyczny opis dania po polsku (max 500 znaków)
+
+    Args:
+        dish_name: Nazwa dania
+        archetype: Archetyp dania (Pizza, Burger, etc.)
+        ingredients: Lista składników
+        quality: Jakość dania (0.0-1.0)
+        spiciness: Ostrość (0-10)
+
+    Returns:
+        Opis dania po polsku
+    """
+    # Quality adjectives
+    if quality >= 0.8:
+        quality_adj = random.choice(['wyśmienite', 'wyjątkowe', 'premium', 'perfekcyjne'])
+    elif quality >= 0.6:
+        quality_adj = random.choice(['pyszne', 'smaczne', 'aromatyczne', 'smakowite'])
+    else:
+        quality_adj = random.choice(['dobre', 'klasyczne', 'tradycyjne', 'domowe'])
+
+    # Base templates by archetype
+    archetype_intros = {
+        'Pizza': f'{quality_adj.capitalize()} pizza {dish_name}',
+        'Burger': f'{quality_adj.capitalize()} burger {dish_name}',
+        'Sushi': f'{quality_adj.capitalize()} sushi {dish_name}',
+        'Pasta': f'{quality_adj.capitalize()} makaron {dish_name}',
+        'Deser': f'{quality_adj.capitalize()} deser {dish_name}',
+        'Zupa': f'{quality_adj.capitalize()} zupa {dish_name}',
+        'Sałatka': f'{quality_adj.capitalize()} sałatka {dish_name}'
+    }
+    base = archetype_intros.get(archetype, f'{quality_adj.capitalize()} danie {dish_name}')
+
+    # Spice level
+    spice = ''
+    if spiciness >= 7:
+        spice = ', bardzo ostre'
+    elif spiciness >= 5:
+        spice = ', ostre'
+    elif spiciness >= 3:
+        spice = ', średnio ostre'
+
+    # Key ingredients (max 4)
+    key_ingredients = ', '.join(ingredients[:4]) if ingredients else 'świeże składniki'
+
+    description = f"{base}. {quality_adj.capitalize()} danie{spice}. Składniki: {key_ingredients}."
+    return description[:500]
+
+def generate_dish_calories(archetype: str, price: float, richness: float) -> int:
+    """
+    Generuje realistyczną wartość kaloryczną dania
+
+    Args:
+        archetype: Archetyp dania (Pizza, Burger, etc.)
+        price: Cena dania
+        richness: Bogactwo dania (0.0-1.0)
+
+    Returns:
+        Kalorie (zaokrąglone do 10)
+    """
+    # Base calorie ranges by archetype (Updated for realism)
+    archetype_calories = {
+        'Pizza': (800, 1400),
+        'Burger': (600, 1100),
+        'Sushi': (300, 600), # Per portion/roll set
+        'Pasta': (500, 900),
+        'Deser': (300, 700),
+        'Zupa': (200, 450),
+        'Sałatka': (250, 600),
+        'Steak': (600, 1000),
+        'Ryba': (350, 700),
+        'Kurczak': (400, 800),
+        'Kebab': (700, 1200),
+        'Ramen': (500, 900),
+        'Tacos': (400, 800)
+    }
+
+    min_cal, max_cal = archetype_calories.get(archetype, (400, 800))
+    base_calories = random.uniform(min_cal, max_cal)
+
+    # Price adjustment (expensive = slightly larger/richer portions, but not always)
+    if price > 60:
+        base_calories *= 1.1
+
+    # Richness multiplier
+    richness_multiplier = 0.8 + (richness * 0.4)
+    calories = base_calories * richness_multiplier
+
+    # Round to nearest 10
+    return round(calories / 10) * 10
+
 def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     """
     Generuje ~20,000 dań z secret attributes
 
     FIXED: Now uses proper dish_id from database after INSERT
     """
-    logger.info("🍕 Generowanie dań...")
+    logger.info(" Generowanie dań...")
 
     loader = BlueprintLoader(blueprints_dir)
     dish_variants = loader.load_blueprint("dish_variants.json")
 
     # Pobierz restauracje
     restaurants = db.fetch_all("""
-        SELECT restaurant_id, menu_blueprint, secret_price_multiplier
+        SELECT restaurant_id, secret_menu_blueprint, secret_price_multiplier
         FROM restaurants
     """)
 
@@ -72,24 +164,94 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
 
             # Secret attributes
             secret_base_price = base_price
-            public_price = round(base_price * price_multiplier, 2)
+            
+            # Price with Gaussian noise
+            # base * multiplier * gaussian(1.0, 0.1)
+            final_price = base_price * price_multiplier * random.gauss(1.0, 0.1)
+            price = round(max(10.0, final_price), 2) # Ensure min price 10 PLN
+            
             secret_quality = sample_beta(5, 2, 0.3, 0.95)
             secret_spiciness = random.uniform(0, 10) if "spicy" in variant.get("tags", []) else random.uniform(0, 3)
             secret_richness = random.uniform(0.0, 1.0)
             secret_texture_score = sample_beta(4, 2, 0.0, 1.0)
 
+            # Extract ingredients early (needed for description)
+            ingredients = variant.get("ingredients", [])
+
+            # Generate public fields
+            description = generate_dish_description(
+                dish_name=dish_name,
+                archetype=archetype,
+                ingredients=ingredients,
+                quality=secret_quality,
+                spiciness=secret_spiciness
+            )
+
+            # FIXED: Generate primary photo ONCE (will be used in both dishes.image_url and photos table)
+            primary_photo_url = photo_pools.get_dish_photo(archetype)
+
+            calories = generate_dish_calories(
+                archetype=archetype,
+                price=price,
+                richness=secret_richness
+            )
+
+            # Map archetype to menu_section
+            menu_section_map = {
+                'Pizza': 'Dania Główne',
+                'Burger': 'Dania Główne',
+                'Pasta': 'Dania Główne',
+                'Steak': 'Dania Główne',
+                'Sushi': 'Sushi & Sashimi',
+                'Ramen': 'Dania Główne',
+                'Curry': 'Dania Główne',
+                'Seafood': 'Owoce Morza',
+                'Fish': 'Owoce Morza',
+                'Salad': 'Przystawki i Sałatki',
+                'Soup': 'Zupy',
+                'Dessert': 'Desery',
+                'Ice Cream': 'Desery',
+                'Tacos': 'Dania Główne',
+                'Kebab': 'Dania Główne',
+                'Dim Sum': 'Przystawki',
+                'Noodles': 'Dania Główne',
+                'Vegan': 'Dania Roślinne'
+            }
+            menu_section = menu_section_map.get(archetype, 'Dania Główne')
+
+            # Calculate tags EARLY to determine is_vegan flag
+            dish_tag_ids = _get_tags_for_dish(
+                archetype=archetype,
+                spiciness=secret_spiciness,
+                ingredients=ingredients,
+                tag_map=tag_map,
+                tag_by_category=tag_by_category
+            )
+            
+            # Determine flags
+            is_spicy = secret_spiciness > 2.0
+            is_vegan = False
+            if "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids:
+                is_vegan = True
+
             # Insert dania i pobierz prawdziwe ID
             dish_data = {
                 "restaurant_id": restaurant_id,
                 "dish_name": dish_name,
-                "archetype": archetype,  # NEW column in schema
-                "public_price": public_price,
+                "secret_archetype": archetype,  # NEW column in schema
+                "price": price, # RENAMED from public_price
+                "description": description,
+                "menu_section": menu_section, # NEW: Mapped section
+                "is_vegan": is_vegan, # NEW: Denormalized flag
+                "is_spicy": is_spicy, # NEW: Denormalized flag
                 "secret_base_price": round(secret_base_price, 2),
                 "secret_quality": round(secret_quality, 3),
                 "secret_spiciness": round(secret_spiciness, 2),
                 "secret_richness": round(secret_richness, 3),  # NEW column
                 "secret_texture_score": round(secret_texture_score, 3),  # NEW column
-                "popularity_factor": round(popularity_scores[i], 4)  # NEW column
+                "secret_popularity_factor": round(popularity_scores[i], 4),  # NEW column
+                "image_url": primary_photo_url,  # FIXED: Use Pixabay (same as primary in photos table)
+                "calories": calories
             }
 
             # FIXED: Insert pojedynczo i pobierz prawdziwe ID
@@ -97,7 +259,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
             total_dishes += 1
 
             # Przypisz składniki (teraz z prawdziwym dish_id)
-            ingredients = variant.get("ingredients", [])
             ingredient_links = []
             for ingredient_name in ingredients:
                 if ingredient_name in ingredient_map:
@@ -110,24 +271,28 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
                 db.insert_bulk("dish_ingredients_link", ingredient_links)
                 total_ingredients_links += len(ingredient_links)
 
-            # Dodaj zdjęcie (FIXED: entity_type + entity_id)
-            photo_url = photo_pools.get_dish_photo(archetype)
+            # FIXED: Add PRIMARY photo (same as dishes.image_url for synchronization)
             db.insert_single("photos", {
-                "entity_type": "dish",  # FIXED: proper column
-                "entity_id": dish_id,  # FIXED: was dish_id direct
-                "photo_url": photo_url,
+                "entity_type": "dish",
+                "entity_id": dish_id,
+                "photo_url": primary_photo_url,  # FIXED: Same URL as dishes.image_url (synchronized!)
                 "is_primary": True
             })
             total_photos += 1
 
-            # Przypisz tagi do dania (dish_tags)
-            dish_tag_ids = _get_tags_for_dish(
-                archetype=archetype,
-                spiciness=secret_spiciness,
-                ingredients=ingredients,
-                tag_map=tag_map,
-                tag_by_category=tag_by_category
-            )
+            # FIXED: Add 1-2 ADDITIONAL photos to gallery (non-primary)
+            num_additional_photos = random.randint(1, 2)
+            for _ in range(num_additional_photos):
+                additional_photo_url = photo_pools.get_dish_photo(archetype)
+                db.insert_single("photos", {
+                    "entity_type": "dish",
+                    "entity_id": dish_id,
+                    "photo_url": additional_photo_url,
+                    "is_primary": False  # Additional gallery photo
+                })
+                total_photos += 1
+
+            # Przypisz tagi do dania (dish_tags) - using pre-calculated list
             for tag_id in dish_tag_ids:
                 dish_tags_buffer.append({
                     "dish_id": dish_id,
@@ -140,7 +305,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
                 total_dish_tags += len(dish_tags_buffer)
                 dish_tags_buffer = []
 
-        if (total_dishes % 1000) == 0:
+        if (total_dishes % 5000) == 0:
             logger.info(f"  Wygenerowano {total_dishes} dań...")
 
     # Insert remaining dish_tags
@@ -148,10 +313,10 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
         db.insert_bulk("dish_tags", dish_tags_buffer)
         total_dish_tags += len(dish_tags_buffer)
 
-    logger.info(f"✅ Wygenerowano {total_dishes} dań")
-    logger.info(f"✅ Przypisano {total_ingredients_links} składników do dań")
-    logger.info(f"✅ Dodano {total_photos} zdjęć dań")
-    logger.info(f"✅ Przypisano {total_dish_tags} tagów do dań")
+    logger.info(f" Wygenerowano {total_dishes} dań")
+    logger.info(f" Przypisano {total_ingredients_links} składników do dań")
+    logger.info(f" Dodano {total_photos} zdjęć dań")
+    logger.info(f" Przypisano {total_dish_tags} tagów do dań")
 
 def _get_tags_for_dish(archetype: str, spiciness: float, ingredients: list,
                        tag_map: dict, tag_by_category: dict) -> list:
@@ -290,22 +455,29 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict) -> list:
                 "spiciness": spiciness
             })
 
-    # Menu mappings (archetype -> menu types)
-    menu_mappings = {
-        "pizza_menu": ["Pizza"],
-        "burger_menu": ["Burger"],
-        "sushi_menu": ["Sushi"],
-        "asian_menu": ["Ramen", "Noodles", "Dim Sum", "Pho", "Curry"],
-        "steak_menu": ["Steak", "BBQ"],
-        "vegan_menu": ["Vegan", "Salad"],
-        "mexican_menu": ["Tacos", "Quesadilla", "Nachos", "Kebab"],
-        "italian_menu": ["Pizza", "Pasta", "Risotto", "Gnocchi"],
-        "french_menu": ["Steak", "Soup", "Fondue"],
-        "seafood_menu": ["Seafood", "Sushi", "Oysters"],
-        "general_menu": ["Pizza", "Burger", "Pasta", "Salad", "Kebab"]
+    # Menu mappings (archetype -> menu types) and Base Sizes (Mean)
+    # Sushi & Asian places usually have larger menus than Burger joints
+    menu_configs = {
+        "pizza_menu":     {"archetypes": ["Pizza", "Pasta", "Salad", "Deser"], "mean": 25, "sigma": 5},
+        "burger_menu":    {"archetypes": ["Burger", "Steak", "Salad"], "mean": 15, "sigma": 3},
+        "sushi_menu":     {"archetypes": ["Sushi", "Soup", "Salad"], "mean": 40, "sigma": 8},
+        "asian_menu":     {"archetypes": ["Ramen", "Noodles", "Dim Sum", "Pho", "Curry", "Sushi"], "mean": 35, "sigma": 7},
+        "steak_menu":     {"archetypes": ["Steak", "BBQ", "Burger", "Salad"], "mean": 20, "sigma": 4},
+        "vegan_menu":     {"archetypes": ["Vegan", "Salad", "Soup", "Smoothie Bowl"], "mean": 22, "sigma": 5},
+        "mexican_menu":   {"archetypes": ["Tacos", "Quesadilla", "Nachos", "Burrito"], "mean": 28, "sigma": 6},
+        "italian_menu":   {"archetypes": ["Pizza", "Pasta", "Risotto", "Gnocchi", "Deser"], "mean": 30, "sigma": 6},
+        "french_menu":    {"archetypes": ["Steak", "Soup", "Fondue", "Deser"], "mean": 20, "sigma": 4},
+        "seafood_menu":   {"archetypes": ["Seafood", "Sushi", "Oysters", "Fish"], "mean": 25, "sigma": 5},
+        "general_menu":   {"archetypes": ["Pizza", "Burger", "Pasta", "Salad", "Kebab"], "mean": 20, "sigma": 5}
     }
 
-    archetypes = menu_mappings.get(menu_blueprint, ["Pizza", "Burger", "Pasta"])
+    config = menu_configs.get(menu_blueprint, menu_configs["general_menu"])
+    archetypes = config["archetypes"]
+    
+    # Calculate target menu size using Gaussian distribution
+    target_count = int(random.gauss(config["mean"], config["sigma"]))
+    # Hard limits to prevent empty or massive menus
+    target_count = max(8, min(target_count, 80))
 
     # Filter variants by archetype
     matching_dishes = [v for v in all_variants if v.get("archetype") in archetypes]
@@ -314,10 +486,8 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict) -> list:
     if not matching_dishes:
         matching_dishes = all_variants
 
-    # Select 10-20 dishes
-    num_dishes = random.randint(10, 20)
-
-    if len(matching_dishes) > num_dishes:
-        return random.sample(matching_dishes, num_dishes)
+    # Select dishes
+    if len(matching_dishes) > target_count:
+        return random.sample(matching_dishes, target_count)
     else:
         return matching_dishes

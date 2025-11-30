@@ -126,7 +126,7 @@ def calculate_food_score(user_data: Dict, dish: Dict, restaurant: Dict) -> float
 
     # 6. TYP KUCHNI / ARCHETYPE (15%)
     enjoyed_archetypes = user_data.get('secret_enjoyed_archetypes', {})
-    dish_archetype = dish.get('archetype', 'Unknown')
+    dish_archetype = dish.get('secret_archetype', 'Unknown')
 
     archetype_affinity = enjoyed_archetypes.get(dish_archetype, 0.5)
     score += (archetype_affinity - 0.5) * 2.0
@@ -156,7 +156,7 @@ def calculate_cleanliness_score(user_data: Dict, restaurant: Dict) -> float:
     base_cleanliness = restaurant.get('secret_cleanliness_score', 7.0)
 
     # Oczekiwania użytkownika (zależne od typu restauracji)
-    restaurant_theme = restaurant.get('theme', 'Casual')
+    restaurant_theme = restaurant.get('cuisine_type', 'Casual')
     cleanliness_expectations = user_data.get('secret_cleanliness_preference', {})
     user_expectation = cleanliness_expectations.get(restaurant_theme, 7.0)
 
@@ -189,11 +189,12 @@ def calculate_ambiance_score(user_data: Dict, restaurant: Dict) -> float:
 def calculate_value_score(user_data: Dict, dish: Dict) -> float:
     """Kalkulacja oceny wartości za pieniądze (10% wpływu)"""
     # FIXED: Use separate columns instead of dict
-    expected_price = user_data.get('secret_price_preference_range', 35.0)
-    actual_price = dish.get('public_price', 35.0)
+    # Convert to float to handle Decimal/str types from PostgreSQL
+    expected_price = float(user_data.get('secret_price_preference_range', 35.0))
+    actual_price = float(dish.get('price', 35.0))
 
-    tolerance_above = user_data.get('secret_price_tolerance_above', 2.0)
-    tolerance_below = user_data.get('secret_price_tolerance_below', 0.5)
+    tolerance_above = float(user_data.get('secret_price_tolerance_above', 2.0))
+    tolerance_below = float(user_data.get('secret_price_tolerance_below', 0.5))
 
     value_score = 5.0  # Neutralny start
 
