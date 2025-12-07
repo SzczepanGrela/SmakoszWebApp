@@ -4,12 +4,7 @@ Phase 1 Core - Generowanie podstawowych danych (miasta, składniki, tagi)
 
 import logging
 from typing import Dict, Any, List
-import sys
-import os
 import random
-
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.db_connection import DatabaseConnection
 from utils.blueprint_loader import BlueprintLoader

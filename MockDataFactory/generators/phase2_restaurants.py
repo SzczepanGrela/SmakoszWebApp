@@ -4,26 +4,68 @@ Phase 2 - Generowanie restauracji (~1200)
 
 import logging
 import random
-import sys
-import os
+import json
 import re
 import unicodedata
-from faker import Faker
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from typing import Dict
 
 from utils.db_connection import DatabaseConnection
 from utils.blueprint_loader import BlueprintLoader
 from utils.statistical import sample_beta, sample_normal
 from utils.date_generator import DateGenerator
 from utils.photo_pools import PhotoPools
+from utils.faker_instance import fake
 
 logger = logging.getLogger(__name__)
-fake = Faker('pl_PL')  # Polish locale for realistic data
 
 # FIXED: Global set to track used restaurant names and prevent UNIQUE constraint violations
 _used_restaurant_names = set()
 _name_counter = {}
+
+def generate_restaurant_archetype_modifiers(menu_blueprint: str) -> Dict[str, Dict[str, float]]:
+    modifiers = {}
+
+    PRIMARY_ARCHETYPES = {
+        "Italian Restaurant": ["Pizza", "Pasta", "Salad"],
+        "Fast Food": ["Burger", "Fries", "Chicken"],
+        "Ice Cream Shop": ["Ice Cream", "Dessert"],
+        "Asian Fusion": ["Sushi", "Asian", "Soup"],
+        "Steakhouse": ["Steak", "Salad", "Seafood"],
+        "Pizzeria": ["Pizza"],
+        "Sushi Bar": ["Sushi", "Asian"],
+        "Vegan Cafe": ["Vegan", "Salad", "Soup"],
+        "Breakfast Diner": ["Breakfast"],
+        "Bakery": ["Dessert", "Breakfast", "Beverage"],
+        "Seafood Restaurant": ["Seafood", "Salad"],
+        "Mexican Restaurant": ["Mexican"],
+        "Indian Restaurant": ["Indian"],
+        "Chinese Restaurant": ["Chinese"],
+        "Japanese Restaurant": ["Japanese", "Sushi"],
+        "Thai Restaurant": ["Thai"],
+        "American Diner": ["American", "Burger"],
+        "Mediterranean Restaurant": ["Mediterranean", "Seafood"],
+        "French Bistro": ["French"]
+    }
+
+    relevant_archetypes = PRIMARY_ARCHETYPES.get(menu_blueprint, [])
+
+    AVAILABLE_DIMS = [
+        "physics_richness", "flavor_saltiness", "flavor_spiciness",
+        "texture_crispy", "physics_freshness"
+    ]
+
+    for archetype in relevant_archetypes:
+        num_mods = random.randint(1, 3)
+        selected = random.sample(AVAILABLE_DIMS, min(num_mods, len(AVAILABLE_DIMS)))
+
+        arch_mods = {}
+        for dim in selected:
+            offset = round(random.uniform(-0.15, 0.15), 3)
+            arch_mods[dim] = offset
+
+        modifiers[archetype] = arch_mods
+
+    return modifiers
 
 def slugify(text: str) -> str:
     """
@@ -66,13 +108,31 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
     Secret Attributes:
     - secret_price_multiplier (0.8-1.3)
-    - secret_overall_food_quality (0.4-0.95, beta distribution)
-    - secret_service_quality (0.3-0.95)
-    - secret_cleanliness_score (3.0-9.5)
+    - secret_overall_food_quality (0.0-1.0, Gaussian based on price_level)
+    - secret_service_quality (0.0-1.0, Gaussian based on price_level)
+    - secret_cleanliness_score (0.0-1.0, Gaussian based on price_level)
     - secret_ambiance_type ("Romantyczny", "Rodzinny", "Biznesowy")
     - secret_ambiance_quality (0.4-0.95)
+    - secret_archetype_modifiers (JSONB)
     """
     logger.info(" Generowanie restauracji...")
+
+    # Cleanup old data
+    logger.info("🧹 Czyszczenie starych danych Phase 2 (restaurants, restaurant_opening_hours, restaurant_tags)...")
+    try:
+        # Use execute_query directly instead of manual cursor management
+        db.execute_query("TRUNCATE TABLE restaurants RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE restaurant_opening_hours RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE restaurant_tags RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE photos RESTART IDENTITY CASCADE") # Clean photos too as they are linked
+        
+        db.commit()
+        logger.info("✅ Wyczyszczono stare restauracje i powiązane tabele.")
+        
+    except Exception as e:
+        logger.error(f"❌ Błąd podczas cleanup Phase 2: {e}")
+        db.rollback()
+        raise e
 
     loader = BlueprintLoader(blueprints_dir)
     restaurant_rules = loader.load_blueprint("02_restaurant_rules.json")
@@ -105,20 +165,10 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             # Data otwarcia
             created_date = date_gen.generate_restaurant_created_date()
 
-            # Secret attributes
+            # Secret attributes - STEP 1: Determine price multiplier and level
             secret_price_multiplier = random.uniform(0.8, 1.3)
-            secret_overall_food_quality = sample_beta(5, 2, 0.4, 0.95)
-            secret_service_quality = sample_beta(4, 3, 0.3, 0.95)
-            secret_cleanliness_score = sample_normal(7.5, 1.5, 3.0, 9.5)
 
-            ambiance_types = ["Romantyczny", "Rodzinny", "Biznesowy", "Casual", "Energiczny", "Spokojny"]
-            secret_ambiance_type = random.choice(ambiance_types)
-            secret_ambiance_quality = sample_beta(4, 3, 0.4, 0.95)
-
-            # Menu blueprint
-            menu_blueprint = _get_menu_blueprint(theme)
-
-            # Calculate price_level based on secret_price_multiplier
+            # Calculate price_level based on secret_price_multiplier (MOVED UP)
             if secret_price_multiplier < 0.9:
                 price_level = 1
             elif secret_price_multiplier < 1.1:
@@ -127,6 +177,61 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 price_level = 3
             else:
                 price_level = 4
+
+            # ========== STEP 2: BIMODAL QUALITY DISTRIBUTION (Polarized) ==========
+            # PURPOSE: Eliminate "average" quality trap - restaurants are either good or bad
+            # This creates distinct signals for ML model training (high variance)
+            #
+            # OLD APPROACH: Gaussian centered on price_level means -> clustering around 6-7/10
+            # NEW APPROACH: Bimodal mix -> 30% are terrible (3/10), 70% are great (8/10)
+
+            # STEP 2a: Determine restaurant quality tier (bimodal distribution)
+            # 30% chance: Low Quality (Kitchen Nightmares - Gordon Ramsay would shut it down)
+            # 70% chance: High Quality (Hidden Gems - Michelin potential)
+            is_low_quality = random.random() < 0.30
+
+            if is_low_quality:
+                # BAD RESTAURANT (30%): Mean 0.3, StdDev 0.1
+                # Result: food quality 0.1-0.5 (1-5 on 10-point scale)
+                quality_tier = 'low'
+                base_food_quality = max(0.1, min(0.5, random.gauss(0.3, 0.1)))
+            else:
+                # GOOD RESTAURANT (70%): Mean 0.8, StdDev 0.1
+                # Result: food quality 0.6-1.0 (6-10 on 10-point scale)
+                quality_tier = 'high'
+                base_food_quality = max(0.6, min(1.0, random.gauss(0.8, 0.1)))
+
+            # STEP 2b: Generate CORRELATED attributes (bad restaurants are bad at everything)
+            # Correlation coefficient: ~0.8 (strong positive correlation)
+            # If food is bad (0.3), service and cleanliness will also be bad (0.2-0.4)
+            # If food is great (0.8), service and cleanliness will also be great (0.7-0.9)
+
+            if quality_tier == 'low':
+                # Low quality restaurant: all attributes suffer together
+                # Add small variance (±0.08) but keep them consistently low
+                secret_overall_food_quality = base_food_quality
+                secret_service_quality = max(0.1, min(0.5, base_food_quality + random.gauss(0, 0.08)))
+                secret_cleanliness_score = max(0.1, min(0.5, base_food_quality + random.gauss(0, 0.08)))
+            else:
+                # High quality restaurant: all attributes excel together
+                # Add small variance (±0.08) but keep them consistently high
+                secret_overall_food_quality = base_food_quality
+                secret_service_quality = max(0.6, min(1.0, base_food_quality + random.gauss(0, 0.08)))
+                secret_cleanliness_score = max(0.6, min(1.0, base_food_quality + random.gauss(0, 0.08)))
+
+            # Final clamp to valid range [0.0, 1.0]
+            secret_overall_food_quality = max(0.0, min(1.0, secret_overall_food_quality))
+            secret_service_quality = max(0.0, min(1.0, secret_service_quality))
+            secret_cleanliness_score = max(0.0, min(1.0, secret_cleanliness_score))
+            # =====================================================================
+
+            # Other attributes
+            ambiance_types = ["Romantyczny", "Rodzinny", "Biznesowy", "Casual", "Energiczny", "Spokojny"]
+            secret_ambiance_type = random.choice(ambiance_types)
+            secret_ambiance_quality = sample_beta(4, 3, 0.4, 0.95)
+
+            # Menu blueprint
+            menu_blueprint = _get_menu_blueprint(theme)
                 
             # Coordinates (City center +/- ~5km)
             lat = base_coords["lat"] + random.uniform(-0.05, 0.05)
@@ -155,7 +260,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 "phone": fake.phone_number(),
                 "website": f"https://{slugify(name)}.pl",
                 "description": f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników.",
-                "image_url": photo_pools.get_restaurant_photo(theme),
+                "image_url": photo_pools.get_restaurant_photo(theme, restaurant_id_counter),
                 "status": status, # NEW: Replaces is_active
                 "created_at": DateGenerator.to_sql_datetime(created_date),
                 "secret_price_multiplier": round(secret_price_multiplier, 3),
@@ -164,7 +269,8 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 "secret_cleanliness_score": round(secret_cleanliness_score, 2),
                 "secret_ambiance_type": secret_ambiance_type,
                 "secret_ambiance_quality": round(secret_ambiance_quality, 3),
-                "secret_menu_blueprint": menu_blueprint
+                "secret_menu_blueprint": menu_blueprint,
+                "secret_archetype_modifiers": json.dumps(generate_restaurant_archetype_modifiers(menu_blueprint)), # NEW
             })
 
             restaurant_id_counter += 1
@@ -279,18 +385,18 @@ def _generate_base_name(theme: str) -> str:
 def _get_menu_blueprint(theme: str) -> str:
     """Zwraca blueprint menu dla typu restauracji"""
     blueprints = {
-        "Pizzeria": "pizza_menu",
-        "Burger Bar": "burger_menu",
-        "Sushi Bar": "sushi_menu",
-        "Asian Fusion": "asian_menu",
-        "Steakhouse": "steak_menu",
-        "Vegan Cafe": "vegan_menu",
-        "Mexican": "mexican_menu",
-        "Italian": "italian_menu",
-        "French Bistro": "french_menu",
-        "Seafood": "seafood_menu"
+        "Pizzeria": "Pizzeria",
+        "Burger Bar": "Fast Food",
+        "Sushi Bar": "Sushi Bar",
+        "Asian Fusion": "Asian Fusion",
+        "Steakhouse": "Steakhouse",
+        "Vegan Cafe": "Vegan Cafe",
+        "Mexican": "Mexican Restaurant",
+        "Italian": "Italian Restaurant",
+        "French Bistro": "French Bistro",
+        "Seafood": "Seafood Restaurant"
     }
-    return blueprints.get(theme, "general_menu")
+    return blueprints.get(theme, "General")
 
 def _assign_restaurant_tags(db: DatabaseConnection):
     """Przypisuje tagi do restauracji"""
@@ -343,12 +449,13 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools):
         # FIXED: Add 1-2 ADDITIONAL photos to gallery (non-primary)
         num_additional_photos = random.randint(1, 2)
         for _ in range(num_additional_photos):
-            additional_photo_url = photo_pools.get_restaurant_photo(theme)
+            # additional_photo_url is generated but not assigned to a variable before use, fixed here
+            additional_photo_url = photo_pools.get_restaurant_photo(theme, restaurant_id)
             photo_data.append({
                 "entity_type": "restaurant",
                 "entity_id": restaurant_id,
                 "photo_url": additional_photo_url,
-                "is_primary": False  # Additional gallery photo
+                "is_primary": False
             })
 
     db.insert_bulk("photos", photo_data)
@@ -395,39 +502,51 @@ def _assign_opening_hours(db: DatabaseConnection):
     logger.info(f" Dodano {len(hours_data)} rekordów godzin otwarcia")
 
 def _get_schedule_for_theme(theme: str) -> dict:
-    """Zwraca szablon godzin dla typu kuchni"""
-    # Format: 'HH:MM'
+    """
+    Zwraca losowy harmonogram godzin dla typu kuchni w ramach realistycznych zakresów.
+    """
     
-    # Default
-    schedule = {
-        'weekday': ('12:00', '22:00'),
-        'weekend': ('12:00', '23:00'),
-        'sunday':  ('12:00', '21:00')
-    }
+    def random_time(start_hour_range, end_hour_range):
+        """Helper: returns random time string 'HH:MM'"""
+        h = random.randint(start_hour_range, end_hour_range)
+        m = random.choice(['00', '30'])
+        return f"{h:02d}:{m}"
 
+    # Default ranges
+    open_range = (11, 13)
+    close_range = (21, 23)
+    
     if theme in ['Pizzeria', 'Italian', 'Mexican', 'Burger Bar']:
-        schedule = {
-            'weekday': ('11:00', '22:00'),
-            'weekend': ('11:00', '23:30'),
-            'sunday':  ('12:00', '22:00')
-        }
+        open_range = (11, 12)
+        close_range = (22, 23)
     elif theme in ['Sushi Bar', 'Asian Fusion', 'Seafood']:
-        schedule = {
-            'weekday': ('12:00', '22:00'),
-            'weekend': ('12:00', '23:00'),
-            'sunday':  ('13:00', '21:30')
-        }
-    elif theme in ['Vegan Cafe', 'French Bistro']:
-        schedule = {
-            'weekday': ('09:00', '20:00'),
-            'weekend': ('10:00', '21:00'),
-            'sunday':  ('10:00', '18:00')
-        }
-    elif theme in ['Steakhouse']:
-        schedule = {
-            'weekday': ('16:00', '23:00'),
-            'weekend': ('14:00', '00:00'),
-            'sunday':  ('14:00', '22:00')
-        }
+        open_range = (12, 14)
+        close_range = (22, 23)
+    elif theme in ['Vegan Cafe', 'French Bistro', 'Breakfast Diner', 'Bakery']:
+        open_range = (7, 10)
+        close_range = (18, 21)
+    elif theme in ['Steakhouse', 'Fine Dining']:
+        open_range = (16, 17) # Often open for dinner only
+        close_range = (22, 23)
+    elif theme in ['Kebab', 'Fast Food']:
+        open_range = (10, 11)
+        close_range = (23, 24) # Late night
 
-    return schedule
+    # Generate specific times for this restaurant instance
+    weekday_open = random_time(open_range[0], open_range[1])
+    weekday_close = random_time(close_range[0], close_range[1])
+    
+    # Weekends usually open same time or earlier, close later
+    weekend_open = weekday_open 
+    weekend_close_h = int(weekday_close.split(':')[0])
+    weekend_close = f"{min(23, weekend_close_h + 1):02d}:00" if weekend_close_h < 23 else "23:59"
+
+    # Sunday
+    sunday_close_h = int(weekday_close.split(':')[0])
+    sunday_close = f"{max(18, sunday_close_h - 1):02d}:00"
+
+    return {
+        'weekday': (weekday_open, weekday_close),
+        'weekend': (weekend_open, weekend_close),
+        'sunday':  (weekday_open, sunday_close)
+    }

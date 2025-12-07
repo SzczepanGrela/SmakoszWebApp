@@ -18,9 +18,10 @@ from generators import (
     generate_restaurants,
     generate_dishes,
     generate_users,
-    generate_reviews
+    generate_user_variant_preferences,
+    generate_reviews,
+    generate_social_graph
 )
-from generators.phase6_social import generate_social_interactions
 
 # NOTE: update_last_login is now handled automatically in Phase 5 (generate_reviews)
 # from update_last_login import update_last_login_for_users
@@ -97,6 +98,7 @@ def cleanup_database(db: DatabaseConnection):
         'pending_user_photos',
         'user_photos',
         'saved_dishes',
+        'user_variant_preferences',
         'reviews',
         'users',
         'photos',
@@ -135,7 +137,7 @@ def print_statistics(db: DatabaseConnection):
 
     tables = [
         "cities", "ingredients", "tags", "restaurants",
-        "dishes", "users", "reviews", "photos"
+        "dishes", "users", "user_variant_preferences", "reviews", "photos"
     ]
 
     for table in tables:
@@ -260,6 +262,18 @@ def main():
             logger.info("")
 
             # ========================================
+            # PHASE 4b: User-Variant Preferences Materialization
+            # ========================================
+            logger.info("=" * 60)
+            logger.info("=> PHASE 4b: Pre-calculating user preferences")
+            logger.info("=" * 60)
+
+            generate_user_variant_preferences(db)
+
+            logger.info(" PHASE 4b zakończona")
+            logger.info("")
+
+            # ========================================
             # PHASE 5: Reviews (NAJDŁUŻSZE!)
             # ========================================
             logger.info("=" * 60)
@@ -275,10 +289,10 @@ def main():
             # PHASE 6: Social Graph (Likes, Follows, Notifications)
             # ========================================
             logger.info("=" * 60)
-            logger.info("=> PHASE 6: Generowanie interakcji społecznościowych")
+            logger.info("=> PHASE 6: Generowanie grafu społecznościowego")
             logger.info("=" * 60)
 
-            generate_social_interactions(db)
+            generate_social_graph(db)
 
             logger.info(" PHASE 6 zakończona")
             logger.info("")

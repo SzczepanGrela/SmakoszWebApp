@@ -14,7 +14,9 @@ try:
 except ImportError:
     pass  # python-dotenv not installed, using system env vars
 
+# ============================================ 
 # DATABASE CONFIGURATION (PostgreSQL)
+# ============================================ 
 
 DATABASE_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
@@ -39,26 +41,28 @@ def get_connection_params():
         'password': DATABASE_CONFIG['password']
     }
 
-# GENERATION PARAMETERS (ZOPTYMALIZOWANE!)
+# ============================================ 
+# GENERATION PARAMETERS (ZOPTYMALIZOWANE!) 
+# ============================================ 
 
 GENERATION_CONFIG = {
     # Podstawowe liczby
-    'num_users': 25000,  # +108% vs pierwotne 12000 (ZOPTYMALIZOWANE!)
+    'num_users': 25000,
     'num_restaurants': 1200,
     'num_dishes': 20000,
 
     # Parametry recenzji
-    'avg_reviews_per_user': 35,  # +25% vs pierwotne 28 (ZOPTYMALIZOWANE!)
+    'avg_reviews_per_user': 35,
     'power_user_percentage': 0.05,  # 5% użytkowników
     'power_user_review_count': 100,  # ~100 recenzji dla power users
 
     # Parametry rozkładu
     'zipf_alpha': 1.5,  # Parametr dla popularności (Zipf distribution)
 
-    # Parametry zachowań (ZOPTYMALIZOWANE!)
-    'default_mood_propensity': 0.3,  # 0.3 średnio (było 0.6)
-    'default_cross_impact_factor': 0.02,  # 0.02 średnio (było 0.05)
-    'default_travel_propensity': 0.20,  # 0.20 średnio (było 0.15)
+    # Parametry zachowań
+    'default_mood_propensity': 0.3,
+    'default_cross_impact_factor': 0.02,
+    'default_travel_propensity': 0.20,
 
     # Parametry anchor items (dla CF)
     'anchor_top_percentage': 0.20,  # TOP 20% restauracji
@@ -77,7 +81,9 @@ GENERATION_CONFIG = {
     'dish_photos_per': 1,  # 1 zdjęcie na danie
 }
 
+# ============================================ 
 # PHOTO CONFIGURATION (Pixabay API)
+# ============================================ 
 
 # Load Pixabay API key from environment
 PIXABAY_API_KEY = os.getenv('PIXABAY_API_KEY', '')
@@ -92,6 +98,9 @@ PHOTO_CONFIG = {
     'cache_file': 'data/photo_cache.json',
     'images_per_query': 200,  # Fetch 200 URLs per query (MAX allowed by Pixabay - 10x variety!)
 
+    # Local photo index (configurable via .env)
+    'local_photo_index': os.getenv('LOCAL_PHOTO_INDEX', 'data/photo_index.json'),
+
     # API request settings
     'max_retries': 3,
     'timeout_seconds': 10,
@@ -102,21 +111,56 @@ PHOTO_CONFIG = {
     'fallback_base_url': 'https://picsum.photos',
 }
 
+# ============================================ 
 # OCZEKIWANE METRYKI CF
+# ============================================ 
 
 EXPECTED_METRICS = {
     'sparsity': 99.825,  # % (1 - reviews / (users × dishes))
     'coverage': 95,  # % dań z >10 recenzjami
-    'avg_reviews_per_user': 35,  # Średnia recenzji/użytkownik
+    'avg_reviews_per_user': 43,  # Średnia recenzji/użytkownik
     'avg_reviews_per_dish': 43.75,  # Średnia recenzji/danie
-    'total_reviews': 875000,  # Całkowita liczba recenzji
+    'total_reviews': 1075000,  # Całkowita liczba recenzji
 
     # Metryki jakości
-    'expected_rmse': (0.9, 1.2),  # Oczekiwany zakres RMSE
-    'user_user_similarity': (0.6, 0.7),  # Korelacja między podobnymi użytkownikami
+    'expected_rmse': (0.8, 1.1),  # Oczekiwany zakres RMSE
+    'user_user_similarity': (0.65, 0.75),  # Korelacja między podobnymi użytkownikami
+    'effective_dimensions': 14,  # NOWE
 }
 
+# ============================================ 
+# DERIVED PREFERENCES CONFIGURATION
+# ============================================ 
+
+DERIVED_PREFERENCES_CONFIG = {
+    'num_dimensions': 14,
+    'dimension_names': [
+        'flavor_sweetness', 'flavor_bitterness', 'flavor_spiciness',
+        'flavor_umami', 'flavor_sourness', 'flavor_saltiness',
+        'texture_crispy', 'texture_creamy', 'texture_chewy',
+        'physics_richness', 'physics_temperature', 'physics_freshness',
+        'context_price_sensitivity', 'context_portion_preference'
+    ],
+
+    'dish_individual_variance': 0.05,
+    'restaurant_bias_range': (-0.15, 0.15),
+    'restaurant_bias_dimensions': (1, 3),
+
+    'default_weight': 1.0,
+    'max_affinity_impact': 4.0,
+
+    'blueprint_path': 'blueprints/variant_characteristics.json',
+}
+
+# ============================================ 
+# LOCALE CONFIGURATION
+# ============================================ 
+
+LOCALE = 'pl_PL'  # Locale dla Faker (polskie dane)
+
+# ============================================ 
 # BLUEPRINTS DIRECTORY
+# ============================================ 
 
 BLUEPRINTS_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

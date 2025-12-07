@@ -1,20 +1,7 @@
-# MockDataFactory Requirements
-# Python >= 3.8
-
-# Database (PostgreSQL)
-psycopg2-binary>=2.9.9
-
-# Scientific computing
-numpy>=1.24.0
-
-# Fake data generation
-Faker>=18.0.0
-
-# Date/time utilities
-python-dateutil>=2.8.2
-
-# Environment configuration
-python-dotenv>=1.0.0
-
-# HTTP Client (Pixabay API)
-requests>=2.31.0
+python-dotenv
+numpy
+Faker
+psycopg2-binary
+requests
+Pillow
+scipy>=1.10.0

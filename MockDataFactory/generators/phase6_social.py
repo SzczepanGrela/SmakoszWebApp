@@ -9,32 +9,38 @@ from datetime import timedelta
 from utils.db_connection import DatabaseConnection
 from utils.statistical import zipf_distribution
 from utils.date_generator import DateGenerator
+from utils.blueprint_loader import BlueprintLoader
 
 logger = logging.getLogger(__name__)
 
-def generate_social_interactions(db: DatabaseConnection):
+def generate_social_graph(db: DatabaseConnection):
     """
-    Generuje warstwę społecznościową:
-    1. Follows (Zipf distribution for influencers)
-    2. Likes for reviews (Zipf distribution for viral reviews)
-    3. Notifications (for likes and follows)
+    Generuje graf społecznościowy (Phase 6)
     """
-    logger.info(" Generowanie interakcji społecznościowych (Social Graph)...")
+    logger.info(" Generowanie grafu społecznościowego (Social Graph)...")
+
+    # Load dynamic archetypes for search history
+    loader = BlueprintLoader("blueprints")
+    variant_blueprints = loader.load_blueprint("variant_characteristics.json")
+    archetypes = list(variant_blueprints.keys())
 
     # 1. USER FOLLOWS
     # ---------------------------------------------------------
     logger.info("  Generowanie obserwacji (Follows)...")
     
-    # Fetch user_id, role, home_city_id AND secret_is_influencer
-    users = db.fetch_all("SELECT user_id, role, home_city_id, secret_is_influencer FROM users")
+    # Fetch user_id, username, role, home_city_id AND secret_is_influencer
+    users = db.fetch_all("SELECT user_id, username, role, home_city_id, secret_is_influencer FROM users")
     user_ids = [u[0] for u in users]
     
+    # Map user_id -> username for notifications
+    username_map = {u[0]: u[1] for u in users}
+    
     # Identify influencers (REAL ones from Phase 4)
-    real_influencers = [u[0] for u in users if u[3] is True]
+    real_influencers = [u[0] for u in users if u[4] is True]
     
     # Group users by city for local graph generation
     users_by_city = {}
-    for u_id, _, city_id, _ in users:
+    for u_id, _, _, city_id, _ in users:
         if city_id not in users_by_city:
             users_by_city[city_id] = []
         users_by_city[city_id].append(u_id)
@@ -58,11 +64,11 @@ def generate_social_interactions(db: DatabaseConnection):
     follows_data = []
     notifications_data = []
     
-    for follower_id, role, city_id, _ in users:
+    for follower_id, follower_username, role, city_id, _ in users:
         # How many people this user follows? (Log-normal: most follow few, some follow many)
-        # Mean 8, sigma 5
-        num_following = int(random.gauss(8, 5))
-        num_following = max(0, min(num_following, 50))
+        # INCREASED: Mean 25, sigma 10 to boost popularity numbers
+        num_following = int(random.gauss(25, 10))
+        num_following = max(0, min(num_following, 150))
         
         if num_following == 0:
             continue
@@ -111,7 +117,7 @@ def generate_social_interactions(db: DatabaseConnection):
                     'user_id': followed_id,
                     'type': 'follow',
                     'title': 'Nowy obserwujący',
-                    'message': 'Użytkownik zaczął Cię obserwować.',
+                    'message': f'{follower_username} zaczął Cię obserwować.',
                     'priority': 2, # Normal priority
                     'reference_id': follower_id,
                     'reference_type': 'user', # NEW: Reference type
@@ -218,7 +224,7 @@ def generate_social_interactions(db: DatabaseConnection):
     # Pobierz miasta i archetypy do generowania zapytań
     cities = db.fetch_all("SELECT city_name FROM cities")
     city_names = [c[0] for c in cities]
-    archetypes = ["Pizza", "Burger", "Sushi", "Pasta", "Kebab", "Ramen", "Steak", "Wegańskie", "Tanio", "Randka"]
+    # archetypes is already loaded at start of function
     
     search_data = []
     
