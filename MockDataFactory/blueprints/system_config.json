@@ -1,0 +1,184 @@
+{
+  "SYSTEM_CONFIG": {
+    "job_heartbeat_timeout_sec": {
+      "value": "300",
+      "description": "Czas w sekundach, po którym worker jest uznawany za martwy.",
+      "is_public": false
+    },
+    "job_max_retries": {
+      "value": "3",
+      "description": "Maksymalna liczba ponownych prób wykonania zadania w tle.",
+      "is_public": false
+    },
+    "worker_default_offline_threshold_sec": {
+      "value": "60",
+      "description": "Czas w sekundach, po którym węzeł w system.nodes jest oznaczany jako offline.",
+      "is_public": false
+    },
+    "client_image_mime_types": {
+      "value": "image/jpeg,image/png,image/webp",
+      "description": "Dozwolone typy MIME dla przesyłanych zdjęć.",
+      "is_public": true
+    },
+    "client_upload_max_size_mb": {
+      "value": "5",
+      "description": "Maksymalny rozmiar przesyłanego pliku w MB.",
+      "is_public": true
+    },
+    "jwt_access_ttl_sec": {
+      "value": "900",
+      "description": "Czas życia tokena dostępu (Access Token) w sekundach (15 min).",
+      "is_public": false
+    },
+    "jwt_refresh_ttl_days": {
+      "value": "7",
+      "description": "Czas życia tokena odświeżania (Refresh Token) w dniach.",
+      "is_public": false
+    },
+    "jwt_refresh_ttl_days_remember_me": {
+      "value": "30",
+      "description": "Czas życia tokena odświeżania przy opcji 'Zapamiętaj mnie'.",
+      "is_public": false
+    },
+    "retention_days_system_jobs": {
+      "value": "30",
+      "description": "Liczba dni przechowywania zakończonych zadań w system.jobs.",
+      "is_public": false
+    },
+    "retention_days_system_logs": {
+      "value": "90",
+      "description": "Liczba dni przechowywania logów systemowych.",
+      "is_public": false
+    },
+    "retention_days_reviews": {
+      "value": "180",
+      "description": "Liczba dni przechowywania recenzji w koszu (soft deleted).",
+      "is_public": false
+    },
+    "retention_days_notifications": {
+      "value": "30",
+      "description": "Liczba dni przechowywania historii powiadomień użytkownika.",
+      "is_public": false
+    },
+    "verification_code_max_attempts": {
+      "value": "5",
+      "description": "Maksymalna liczba prób wprowadzenia kodu weryfikacyjnego przed jego unieważnieniem.",
+      "is_public": false
+    },
+    "verification_code_ttl_minutes": {
+      "value": "15",
+      "description": "TTL kodów OTP (register, reset_password, 2fa) w minutach.",
+      "is_public": false
+    },
+    "moderation_toxic_auto_approve": {
+      "value": "0.3",
+      "description": "HerBERT: score poniżej = auto-approve",
+      "is_public": false
+    },
+    "moderation_toxic_auto_reject": {
+      "value": "0.8",
+      "description": "HerBERT: score powyżej = auto-reject",
+      "is_public": false
+    },
+    "moderation_model_version": {
+      "value": "",
+      "description": "Aktualna wersja modelu HerBERT (pusta wartość = brak wybranego modelu)",
+      "is_public": false
+    },
+    "ncf_model_version": {
+      "value": "",
+      "description": "Aktualna wersja modelu rekomendacji NCF (pusta wartość = brak wybranego modelu)",
+      "is_public": false
+    },
+    "moderation_nsfw_auto_reject": {
+      "value": "0.8",
+      "description": "NSFW > 0.8: auto-reject",
+      "is_public": false
+    },
+    "moderation_nsfw_needs_review": {
+      "value": "0.5",
+      "description": "NSFW 0.5-0.8: needs_review",
+      "is_public": false
+    },
+    "moderation_on_topic_min": {
+      "value": "0.3",
+      "description": "On-topic < 0.3: auto-reject",
+      "is_public": false
+    },
+    "moderation_on_topic_needs_review": {
+      "value": "0.4",
+      "description": "On-topic < 0.4: needs_review",
+      "is_public": false
+    },
+    "user_grace_period_days": {
+      "value": "30",
+      "description": "Dni do fizycznego usunięcia po soft delete",
+      "is_public": false
+    },
+    "trending_window_days": {
+      "value": "7",
+      "description": "Okno czasowe Bayesian Average",
+      "is_public": false
+    },
+    "pagination_default_size": {
+      "value": "20",
+      "description": "Domyślny rozmiar strony API",
+      "is_public": true
+    },
+    "pagination_max_size": {
+      "value": "100",
+      "description": "Maksymalny rozmiar strony API",
+      "is_public": true
+    },
+    "security_max_failed_logins": {
+      "value": "5",
+      "description": "Próg nieudanych logowań z jednego IP przed automatycznym banem.",
+      "is_public": false
+    },
+    "security_ip_ban_duration_min": {
+      "value": "60",
+      "description": "Czas trwania automatycznego banu IP (minuty) po przekroczeniu progu.",
+      "is_public": false
+    },
+    "data_correction_sla_days": {
+      "value": "7",
+      "description": "Liczba dni SLA dla właściciela restauracji na reakcję na zgłoszenie korekty danych.",
+      "is_public": false
+    },
+    "review_min_length": {
+      "value": "10",
+      "description": "Minimalna długość treści recenzji (znaki).",
+      "is_public": true
+    },
+    "review_max_length": {
+      "value": "2000",
+      "description": "Maksymalna długość treści recenzji (znaki).",
+      "is_public": true
+    },
+    "username_min_length": {
+      "value": "3",
+      "description": "Minimalna długość nazwy użytkownika.",
+      "is_public": true
+    },
+    "username_max_length": {
+      "value": "30",
+      "description": "Maksymalna długość nazwy użytkownika.",
+      "is_public": true
+    },
+    "password_min_length": {
+      "value": "8",
+      "description": "Minimalna długość hasła.",
+      "is_public": false
+    },
+    "session_max_concurrent": {
+      "value": "5",
+      "description": "Maksymalna liczba jednoczesnych aktywnych sesji (refresh tokenów) per użytkownik.",
+      "is_public": false
+    },
+    "upload_max_photos_per_review": {
+      "value": "5",
+      "description": "Maksymalna liczba zdjęć, które użytkownik może dodać do jednej recenzji.",
+      "is_public": true
+    }
+  }
+}

@@ -1,0 +1,76 @@
+"""
+Generation Configuration
+
+This module contains all parameters related to data generation:
+- Entity counts (users, restaurants, dishes)
+- Performance settings (workers, connections)
+- Algorithmic parameters (Zipf alpha, anchor rates)
+- DERIVED preferences configuration
+- Expected metrics for validation
+"""
+
+GENERATION_CONFIG = {
+    "num_users": 50000,
+    "num_restaurants": 2000,
+    "num_dishes": 20000,
+    "worker_cpu_usage_percent": 0.75,
+    "max_db_connections_limit": 16,
+    "avg_reviews_per_user": 40,
+    "power_user_percentage": 0.5,
+    "power_user_review_count": 100,
+    "zipf_alpha": 1.0,
+    "default_mood_propensity": 0.3,
+    "default_cross_impact_factor": 0.02,
+    "default_travel_propensity": 0.20,
+    "anchor_top_percentage": 0.20,
+    "anchor_visit_rate": 0.40,
+    "power_user_anchor_top_percentage": 0.30,
+    "power_user_anchor_visit_rate": 0.80,
+    "moderation_photo_rate": 0.02,
+    "moderation_comment_rate": 0.03,
+    "moderation_report_rate": 0.01,
+    "user_photo_rate": 0.40,
+    "custom_avatar_percentage": 0.4,  # Percentage of users with custom avatars (vs UI Avatars fallback)
+    "restaurant_photos_per": (2, 3),
+    "dish_photos_per": 1,
+    "dishes_per_restaurant": {"mean": 15, "std": 5, "min": 5},
+}
+
+REVIEW_LOCALITY = {"own_city": 0.85, "nearby_city": 0.10, "random_city": 0.05}
+
+EXPECTED_METRICS = {
+    "sparsity": 99.825,
+    "coverage": 95,
+    "avg_reviews_per_user": 43,
+    "avg_reviews_per_dish": 43.75,
+    "total_reviews": 1075000,
+    "expected_rmse": (0.8, 1.1),
+    "user_user_similarity": (0.65, 0.75),
+    "effective_dimensions": 14,
+}
+
+DERIVED_PREFERENCES_CONFIG = {
+    "num_dimensions": 14,
+    "dimension_names": [
+        "flavor_sweetness",
+        "flavor_bitterness",
+        "flavor_spiciness",
+        "flavor_umami",
+        "flavor_sourness",
+        "flavor_saltiness",
+        "texture_crispy",
+        "texture_creamy",
+        "texture_chewy",
+        "physics_richness",
+        "physics_temperature",
+        "physics_freshness",
+        "context_price_sensitivity",
+        "context_portion_preference",
+    ],
+    "dish_individual_variance": 0.05,
+    "restaurant_bias_range": (-0.15, 0.15),
+    "restaurant_bias_dimensions": (1, 3),
+    "default_weight": 1.0,
+    "max_affinity_impact": 4.0,
+    "blueprint_path": "blueprints/vectors.json",
+}

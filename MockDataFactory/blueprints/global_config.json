@@ -1,0 +1,67 @@
+{
+  "RATING_SCALE": {
+    "min": 1,
+    "max": 10
+  },
+  "DIETARY_KEYWORDS": {
+    "meat": ["mięso", "wołowina", "wieprzowina", "kurczak", "ryba", "krewetki", "łosoś", "szynka", "bekon", "kiełbasa", "salami", "chorizo", "stek", "anchois", "tuńczyk", "kebab", "gyros"],
+    "dairy": ["mleko", "ser", "śmietana", "masło", "jogurt", "mozzarella", "parmezan", "cheddar", "gorgonzola", "feta", "twaróg", "kefir", "sos serowy"],
+    "eggs": ["jaja", "jajko", "majonez"],
+    "gluten": ["mąka", "chleb", "makaron", "pszenica", "bułka", "ciasto", "bagietka", "spód", "panierka", "grzanki", "kuskus", "tortilla", "pita", "naleśnik"]
+  },
+  "RESTAURANT_TIER_PROBABILITIES": {
+    "Kebab": {"Budget": 0.8, "Casual": 0.2, "Fine Dining": 0.0},
+    "Fast Food": {"Budget": 0.9, "Casual": 0.1, "Fine Dining": 0.0},
+    "Burgerownia": {"Budget": 0.4, "Casual": 0.6, "Fine Dining": 0.0},
+    "Steakhouse": {"Budget": 0.0, "Casual": 0.4, "Fine Dining": 0.6},
+    "Wykwintna Restauracja": {"Budget": 0.0, "Casual": 0.1, "Fine Dining": 0.9},
+    "Sushi Bar": {"Budget": 0.1, "Casual": 0.6, "Fine Dining": 0.3},
+    "Włoska Trattoria": {"Budget": 0.1, "Casual": 0.7, "Fine Dining": 0.2},
+    "Francuskie Bistro": {"Budget": 0.0, "Casual": 0.6, "Fine Dining": 0.4},
+    "Pizzeria": {"Budget": 0.3, "Casual": 0.7, "Fine Dining": 0.0},
+    "__default__": {"Budget": 0.2, "Casual": 0.7, "Fine Dining": 0.1}
+  },
+  "DISH_SECTION_MAPPING": {
+    "Pizza": ["Pizze", "Dania Główne"],
+    "Burger": ["Burgery", "Dania Główne"],
+    "Pasta": ["Makarony", "Pasta", "Dania Główne"],
+    "Steak": ["Steki", "Dania Główne"],
+    "Sushi": ["Sushi", "Zestawy Sushi", "Nigiri", "Maki"],
+    "Ramen": ["Zupy", "Ramen", "Dania Główne"],
+    "Soup": ["Zupy", "Przystawki"],
+    "Salad": ["Sałatki", "Przystawki"],
+    "Deser": ["Desery", "Słodkie"],
+    "Ice Cream": ["Lody", "Desery"],
+    "Kebab": ["Kebab", "Dania Główne"],
+    "Seafood": ["Owoce Morza", "Dania Główne"],
+    "Vegan": ["Dania Wegańskie", "Dania Główne"],
+    "Sandwich": ["Kanapki", "Śniadania"],
+    "Coffee": ["Kawa", "Napoje"],
+    "Tea": ["Herbata", "Napoje"]
+  },
+  "SCORING_WEIGHTS": {
+    "ingredient_love_bonus": 1.5,
+    "ingredient_hate_penalty": 2.0,
+    "ingredient_minor_penalty": 0.5,
+    "ingredient_score_cap_min": -3.0,
+    "ingredient_score_cap_max": 2.0,
+    "service_failure_penalty_multiplier": 12.0,
+    "service_exceed_bonus_multiplier": 5.0,
+    "cleanliness_failure_penalty_multiplier": 15.0
+  },
+  "AVATAR_SEARCH_TERMS": [
+    "human portrait photography",
+    "cyberpunk character portrait",
+    "anime character digital art",
+    "pixel art face icon",
+    "cute cat close up",
+    "cute dog close up",
+    "3d character render face",
+    "neon abstract profile",
+    "vintage portrait photo",
+    "fantasy character portrait",
+    "cool sunglasses person",
+    "hoodie person mystery",
+    "gamer headset portrait"
+  ]
+}

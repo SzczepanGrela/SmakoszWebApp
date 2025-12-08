@@ -1,124 +1,83 @@
 """
-Restaurant Selector - Wybór restauracji przez użytkownika
+Restaurant Selector - Selects restaurants for users based on popularity and preferences.
 """
 
 import random
-from typing import List, Dict, Any
+from typing import Any
 
-from utils.statistical import zipf_distribution
+from utils.distributions import zipf_distribution
 
-def select_restaurants_for_user(user: Dict[str, Any],
-                                 all_restaurants: List[Dict[str, Any]],
-                                 city_id: int,
-                                 count: int) -> List[int]:
+def select_restaurants_for_user(
+    user: dict[str, Any], all_restaurants: list[dict[str, Any]], city_id: int, count: int
+) -> list[int]:
     """
-    Wybiera restauracje które użytkownik odwiedzi
-
-    Zasady:
-    - 40% z TOP 20% najpopularniejszych w mieście (anchor items dla CF)
-    - 60% losowo z reszty
-    - Power users: 80% z TOP 30%
-    - Preferencja dla enjoyed_themes
-
-    Args:
-        user: Dane użytkownika
-        all_restaurants: Lista wszystkich restauracji
-        city_id: ID miasta
-        count: Liczba restauracji do wyboru
-
-    Returns:
-        Lista restaurant_id
+    Selects restaurants for user based on anchor items strategy and theme preferences.
+    Regular users: 40% from TOP 20%. Power users: 80% from TOP 30%.
     """
-    # Filtruj restauracje w danym mieście
-    city_restaurants = [r for r in all_restaurants if r['city_id'] == city_id]
-
+    city_restaurants = [r for r in all_restaurants if r["city_id"] == city_id]
     if not city_restaurants:
         return []
 
-    # Sortuj według popularności (Zipf distribution)
     zipf_probs = zipf_distribution(len(city_restaurants), alpha=1.5)
+    for i, res in enumerate(city_restaurants):
+        res["popularity"] = zipf_probs[i]
 
-    # Przypisz prawdopodobieństwa
-    for i, restaurant in enumerate(city_restaurants):
-        restaurant['popularity'] = zipf_probs[i]
+    city_restaurants.sort(key=lambda x: x["popularity"], reverse=True)
 
-    # Sortuj według popularności
-    city_restaurants.sort(key=lambda x: x['popularity'], reverse=True)
-
-    # Określ czy user jest power userem
-    is_power_user = user.get('secret_total_review_count', 35) >= 100
+    is_power_user = user.get("secret_total_review_count", 35) >= 100
 
     if is_power_user:
-        # Power users: 80% wizyt w TOP 30%
         top_percentage = 0.30
         top_visit_rate = 0.80
     else:
-        # Zwykli users: 40% wizyt w TOP 20%
         top_percentage = 0.20
         top_visit_rate = 0.40
 
-    # Wyznacz TOP restauracje
     top_count = max(1, int(len(city_restaurants) * top_percentage))
     top_restaurants = city_restaurants[:top_count]
     other_restaurants = city_restaurants[top_count:]
 
     selected = []
-    enjoyed_themes = user.get('secret_enjoyed_archetypes', {})
-    random_chance = user.get('secret_chance_dine_random', 0.1)
+    enjoyed_themes = user.get("secret_enjoyed_archetypes", {})
+    random_chance = user.get("secret_chance_dine_random", 0.1)
 
     for _ in range(count):
-        # 1. Czy wybieramy całkowicie losowo (eksploracja)?
+        restaurant: dict[str, Any] | None = None
         if random.random() < random_chance:
-            if all_restaurants: # Pick from ALL available in city, ignoring popularity/preference
+            if all_restaurants:
                 restaurant = random.choice(city_restaurants)
             else:
                 restaurant = None
-        # 2. Czy wybieramy z TOP (Anchor Items)?
         elif random.random() < top_visit_rate and top_restaurants:
-            # Wybierz z TOP, z preferencją dla enjoyed themes
             restaurant = _select_with_theme_preference(top_restaurants, enjoyed_themes)
-        # 3. Fallback: Wybierz z pozostałych (ale wciąż z preferencją tematyczną)
         elif other_restaurants:
             restaurant = _select_with_theme_preference(other_restaurants, enjoyed_themes)
         else:
-            # Jeśli brak innych, wybierz z TOP
             restaurant = _select_with_theme_preference(top_restaurants, enjoyed_themes)
 
-        if restaurant and restaurant['restaurant_id'] not in selected:
-            selected.append(restaurant['restaurant_id'])
+        if restaurant and restaurant["restaurant_id"] not in selected:
+            selected.append(restaurant["restaurant_id"])
 
     return selected[:count]
 
-def _select_with_theme_preference(restaurants: List[Dict],
-                                  enjoyed_themes: Dict[str, float]) -> Dict:
+def _select_with_theme_preference(restaurants: list[dict], enjoyed_themes: dict[str, float]) -> dict[str, Any] | None:
     """
-    Wybiera restaurację z preferencją dla lubianych motywów
-
-    Args:
-        restaurants: Lista restauracji do wyboru
-        enjoyed_themes: Słownik {public_cuisine_theme: affinity}
-
-    Returns:
-        Wybrana restauracja
+    Selects restaurant with weighted preference for enjoyed themes.
+    Combines theme affinity with popularity score.
     """
     if not restaurants:
         return None
 
-    # Oblicz wagi dla każdej restauracji
     weights = []
     for restaurant in restaurants:
-        theme = restaurant.get('cuisine_type', 'Unknown')
+        theme = restaurant.get("cuisine_type", "Unknown")
         affinity = enjoyed_themes.get(theme, 0.5)
-
-        # Waga = affinity + popularity
-        weight = affinity + restaurant.get('popularity', 0.1)
+        weight = affinity + restaurant.get("popularity", 0.1)
         weights.append(weight)
 
-    # Wybierz z wagami
     total_weight = sum(weights)
     if total_weight == 0:
         return random.choice(restaurants)
 
     normalized_weights = [w / total_weight for w in weights]
-
     return random.choices(restaurants, weights=normalized_weights, k=1)[0]

@@ -5,3 +5,17 @@ psycopg2-binary
 requests
 Pillow
 scipy>=1.10.0
+tqdm
+blurhash>=1.1.4
+
+# Code Quality Tools
+ruff>=0.1.0
+mypy>=1.7.0
+
+# Cloud Storage
+boto3>=1.34.0
+
+# Data Analysis & Visualization
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
