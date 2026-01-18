@@ -365,3 +365,6 @@ FodyWeavers.xsd
 /PODSUMOWANIE_PROJEKTU.md
 /ROADMAP.md
 
+
+
+MockDataFactory/config/db_config.ini
