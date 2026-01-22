@@ -1,0 +1,27 @@
+{
+  "USER_DEFAULT_PARAMETERS": {
+    "behavioral": {
+      "review_count": {"mean": 35, "stdev": 12},
+      "travel_propensity": {"mean": 0.15, "stdev": 0.05},
+      "chance_dine_random": {"mean": 0.10, "stdev": 0.05},
+      "chance_pick_random_dish": {"mean": 0.05, "stdev": 0.03},
+      "chance_to_update_rating": {"mean": 0.2, "stdev": 0.1}
+    },
+    "rating_modifiers": {
+      "cross_impact_factor": {"mean": 0.05, "stdev": 0.02},
+      "mood_propensity": {"mean": 0.6, "stdev": 0.1}
+    },
+    "price_preferences": {
+      "range_min": {"mean": 0.8, "stdev": 0.1},
+      "range_max": {"mean": 1.2, "stdev": 0.1},
+      "tolerance_above": {"mean": 2.0, "stdev": 0.5},
+      "tolerance_below": {"mean": 0.5, "stdev": 0.2}
+    },
+    "cleanliness_preferences": {
+      "default": {"mean": 5.0, "stdev": 1.0},
+      "Kebab": {"mean": 3.0, "stdev": 1.0},
+      "Taco Stand": {"mean": 3.5, "stdev": 1.0},
+      "Fine Dining": {"mean": 9.0, "stdev": 0.5}
+    }
+  }
+}

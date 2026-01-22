@@ -1,3 +1,14 @@
-pyodbc
-numpy
-Faker
+# MockDataFactory Requirements
+# Python >= 3.8
+
+# Database
+pyodbc>=4.0.35
+
+# Scientific computing
+numpy>=1.24.0
+
+# Fake data generation
+Faker>=18.0.0
+
+# Date/time utilities
+python-dateutil>=2.8.2
