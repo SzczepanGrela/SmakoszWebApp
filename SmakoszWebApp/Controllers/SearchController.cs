@@ -1,4 +1,5 @@
 ﻿// Controllers/SearchController.cs
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using SmakoszWebApp.ViewModels;
 
