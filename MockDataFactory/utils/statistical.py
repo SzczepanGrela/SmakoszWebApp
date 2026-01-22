@@ -69,8 +69,16 @@ def weighted_choice(items: List[Any], weights: List[float]) -> Any:
     if len(items) != len(weights):
         raise ValueError("Liczba items i weights musi być równa!")
 
+    if not items:
+        raise ValueError("Cannot choose from empty list")
+
     # Normalizacja wag
     total_weight = sum(weights)
+
+    # FIXED: Jeśli wszystkie wagi są 0, użyj równego prawdopodobieństwa
+    if total_weight == 0:
+        return random.choice(items)
+
     normalized_weights = [w / total_weight for w in weights]
 
     return random.choices(items, weights=normalized_weights, k=1)[0]
@@ -93,6 +101,10 @@ def zipf_distribution(n: int, alpha: float = 1.5) -> List[float]:
         - Częstotliwość wizyt w restauracjach
         - Aktywność użytkowników (power users vs casual users)
     """
+    # FIXED: Obsłuż edge case n <= 0
+    if n <= 0:
+        return []
+
     # Oblicz surowe wartości Zipfa
     ranks = np.arange(1, n + 1)
     values = 1.0 / (ranks ** alpha)

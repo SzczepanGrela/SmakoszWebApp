@@ -13,10 +13,13 @@ namespace SmakoszWebApp.Controllers
     {
         public IActionResult Index()
         {
+            // ✅ FIX: Safely handle potentially null User.Identity.Name
+            var userName = User.Identity?.Name ?? "Anonymous";
+
             var viewModel = new ProfileViewModel
             {
                 // Pobieramy email zalogowanego użytkownika
-                UserName = User.Identity?.Name,
+                UserName = userName,
                 UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U",
                 TotalReviews = 15,
                 TotalPhotos = 5,
@@ -29,7 +32,8 @@ namespace SmakoszWebApp.Controllers
         // Metoda pomocnicza do generowania danych tymczasowych
         private List<ReviewViewModel> GetMockReviews(int count, int skip = 0)
         {
-            var userName = User.Identity?.Name;
+            // ✅ FIX: Safely handle potentially null User.Identity.Name
+            var userName = User.Identity?.Name ?? "Anonymous";
             var allReviews = new List<ReviewViewModel>
             {
                 new ReviewViewModel { Id = 1, UserName = userName, UserAvatarUrl = "https://placehold.co/150x150/ff6f61/white?text=U", Rating = 4.8, Comment = "Fantastyczna pizza z ostrymi pepperoni! Ciasto idealne, składniki świeże.", Date = DateTime.Now.AddDays(-2), DatePosted = DateTime.Now.AddDays(-2), DishName = "Pizza Diavola", RestaurantName = "Pizzeria Roma", DishId = 1 },
