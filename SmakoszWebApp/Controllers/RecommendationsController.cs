@@ -1,4 +1,5 @@
 ﻿// Controllers/RecommendationsController.cs
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmakoszWebApp.ViewModels;
@@ -56,6 +57,12 @@ namespace SmakoszWebApp.Controllers
         [HttpPost]
         public IActionResult SaveForLater(int dishId)
         {
+            // ✅ FIX: Validate dishId
+            if (dishId <= 0)
+            {
+                return BadRequest("Invalid dish ID.");
+            }
+
             // Mock - w rzeczywistości zapisałoby do bazy
             return Json(new { success = true, message = "Danie zostało zapisane na później!" });
         }
@@ -63,6 +70,12 @@ namespace SmakoszWebApp.Controllers
         [HttpPost]
         public IActionResult AddToFavorites(int dishId)
         {
+            // ✅ FIX: Validate dishId
+            if (dishId <= 0)
+            {
+                return BadRequest("Invalid dish ID.");
+            }
+
             // Mock - w rzeczywistości zapisałoby do bazy
             return Json(new { success = true, message = "Danie zostało dodane do ulubionych!" });
         }
