@@ -160,7 +160,7 @@ class DateGenerator:
     @staticmethod
     def to_sql_datetime(dt: datetime) -> str:
         """
-        Konwertuje datetime na format SQL Server
+        Konwertuje datetime na format SQL (PostgreSQL/SQL Server kompatybilny)
 
         Args:
             dt: Obiekt datetime
