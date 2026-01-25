@@ -135,23 +135,26 @@ class PhotoPools:
 
     def _generate_unsplash_url(self, query: str, width: int = 800, height: int = 600) -> str:
         """
-        Generuje URL Unsplash z podanym query
+        Generuje URL zdjęcia placeholder
+
+        FIXED: Unsplash Source API (source.unsplash.com) zostało wycofane w 2022.
+        Używamy teraz Lorem Picsum jako alternatywy (nie wymaga klucza API).
 
         Args:
-            query: Fraza wyszukiwania (np. 'pizza', 'italian,restaurant')
+            query: Fraza wyszukiwania (używana jako seed dla zróżnicowania)
             width: Szerokość obrazu
             height: Wysokość obrazu
 
         Returns:
-            URL Unsplash
+            URL Lorem Picsum
         """
-        # Dodaj losową liczbę dla różnorodności (seed)
+        # Generuj deterministyczny seed z query dla powtarzalności
         seed = random.randint(1, 10000)
+        query_clean = query.replace(' ', '_').replace(',', '_')
 
-        # Unsplash Source API
-        # Format: https://source.unsplash.com/{width}x{height}/?{query}&sig={seed}
-        query_clean = query.replace(' ', ',')
-        url = f"https://source.unsplash.com/{width}x{height}/?{query_clean}&sig={seed}"
+        # Lorem Picsum - darmowe placeholder zdjęcia wysokiej jakości
+        # Format: https://picsum.photos/seed/{seed}/{width}/{height}
+        url = f"https://picsum.photos/seed/{query_clean}_{seed}/{width}/{height}"
 
         return url
 

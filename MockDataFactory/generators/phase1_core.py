@@ -28,15 +28,24 @@ def generate_cities(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     loader = BlueprintLoader(blueprints_dir)
     city_rules = loader.load_blueprint("01_city_rules.json")
 
-    cities = city_rules.get("cities", [])
+    # FIXED: Parse CITY_CONFIG structure instead of expecting "cities" list
+    city_config = city_rules.get("CITY_CONFIG", {})
+
+    if not city_config:
+        logger.error("❌ Brak CITY_CONFIG w 01_city_rules.json!")
+        raise ValueError("01_city_rules.json must contain CITY_CONFIG key")
 
     city_data = []
-    for city in cities:
+    for city_name in city_config.keys():
         city_data.append({
-            "city_name": city["city_name"]
+            "city_name": city_name
         })
 
-    db.insert_bulk("Cities", city_data)
+    if not city_data:
+        logger.error("❌ Brak miast do wygenerowania!")
+        raise ValueError("No cities found in CITY_CONFIG")
+
+    db.insert_bulk("cities", city_data)
     logger.info(f"✅ Wygenerowano {len(city_data)} miast")
 
 def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
@@ -52,11 +61,20 @@ def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprin
     loader = BlueprintLoader(blueprints_dir)
     dish_variants = loader.load_blueprint("dish_variants.json")
 
-    # Ekstraktuj unikalne składniki
+    # FIXED: Extract ingredients from nested structure
+    # Structure: {"Pizza": {"variants": {"Margherita": {"ingredients": [...]}}}}
     all_ingredients = set()
-    for variant in dish_variants.get("variants", []):
-        ingredients = variant.get("ingredients", [])
-        all_ingredients.update(ingredients)
+    for category_name, category_data in dish_variants.items():
+        if not isinstance(category_data, dict):
+            continue
+        variants = category_data.get("variants", {})
+        for variant_name, variant_data in variants.items():
+            if isinstance(variant_data, dict):
+                ingredients = variant_data.get("ingredients", [])
+                all_ingredients.update(ingredients)
+
+    if not all_ingredients:
+        logger.warning("⚠️ Nie znaleziono składników w dish_variants.json")
 
     # Oznacz alergeny
     allergens = {
@@ -73,7 +91,7 @@ def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprin
             "is_allergen": is_allergen
         })
 
-    db.insert_bulk("Ingredients", ingredient_data)
+    db.insert_bulk("ingredients", ingredient_data)
     logger.info(f"✅ Wygenerowano {len(ingredient_data)} składników ({sum(1 for i in ingredient_data if i['is_allergen'])} alergenów)")
 
 def generate_tags(db: DatabaseConnection):
@@ -143,7 +161,7 @@ def generate_tags(db: DatabaseConnection):
         {"tag_name": "Fusion", "tag_category": "feature"},
     ]
 
-    db.insert_bulk("Tags", tags)
+    db.insert_bulk("tags", tags)
     logger.info(f"✅ Wygenerowano {len(tags)} tagów")
 
 def generate_ingredient_restrictions(db: DatabaseConnection):
@@ -156,7 +174,7 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
     logger.info("🔗 Generowanie powiązań składnik-restrykcja...")
 
     # Pobierz wszystkie składniki
-    ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM Ingredients")
+    ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM ingredients")
 
     restrictions = []
 
@@ -197,7 +215,7 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
             })
 
     if restrictions:
-        db.insert_bulk("Ingredient_Restrictions", restrictions)
+        db.insert_bulk("ingredient_restrictions", restrictions)
         logger.info(f"✅ Wygenerowano {len(restrictions)} powiązań składnik-restrykcja")
     else:
         logger.warning("⚠️  Brak powiązań składnik-restrykcja do wygenerowania")

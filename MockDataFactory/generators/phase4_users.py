@@ -39,14 +39,14 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     logger.info("👥 Generowanie użytkowników...")
 
     # Pobierz miasta
-    cities = db.fetch_all("SELECT city_id, city_name FROM Cities")
+    cities = db.fetch_all("SELECT city_id, city_name FROM cities")
 
     if not cities:
         logger.error("❌ Brak miast w bazie! Najpierw uruchom Phase 1 (generate_cities)")
         raise ValueError("Cannot generate users without cities in database")
 
     # Pobierz wszystkie składniki
-    all_ingredients = db.fetch_all("SELECT ingredient_name FROM Ingredients")
+    all_ingredients = db.fetch_all("SELECT ingredient_name FROM ingredients")
     ingredient_names = [name for (name,) in all_ingredients]
 
     # Archetypy dań
@@ -150,7 +150,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
         if (i + 1) % 5000 == 0:
             logger.info(f"  Wygenerowano {i + 1}/{num_users} użytkowników...")
 
-    db.insert_bulk("Users", user_data)
+    db.insert_bulk("users", user_data)
     logger.info(f"✅ Wygenerowano {len(user_data)} użytkowników")
     logger.info(f"  🌟 Power users: ~{int(num_users * 0.05)} (~5%)")
 
@@ -161,8 +161,8 @@ def _assign_saved_dishes(db: DatabaseConnection):
     """Przypisuje ulubione dania użytkownikom (~2 na użytkownika)"""
     logger.info("❤️  Przypisywanie ulubionych dań...")
 
-    users = db.fetch_all("SELECT user_id FROM Users")
-    all_dishes = db.fetch_all("SELECT dish_id FROM Dishes")
+    users = db.fetch_all("SELECT user_id FROM users")
+    all_dishes = db.fetch_all("SELECT dish_id FROM dishes")
 
     if not all_dishes:
         logger.warning("⚠️  Brak dań - pomijam Saved_Dishes")
@@ -184,5 +184,5 @@ def _assign_saved_dishes(db: DatabaseConnection):
                 })
 
     if saved_data:
-        db.insert_bulk("Saved_Dishes", saved_data)
+        db.insert_bulk("saved_dishes", saved_data)
         logger.info(f"✅ Przypisano {len(saved_data)} ulubionych dań")
