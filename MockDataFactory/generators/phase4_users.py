@@ -170,8 +170,8 @@ def _assign_saved_dishes(db: DatabaseConnection):
     """
     logger.info("❤️  Przypisywanie ulubionych dań...")
 
-    # Pobierz użytkowników z informacją czy są power users
-    users = db.fetch_all("SELECT user_id, is_power_user FROM users")
+    # Pobierz użytkowników z secret_total_review_count (power users mają > 80)
+    users = db.fetch_all("SELECT user_id, secret_total_review_count FROM users")
     all_dishes = db.fetch_all("SELECT dish_id FROM dishes")
 
     if not all_dishes:
@@ -181,7 +181,10 @@ def _assign_saved_dishes(db: DatabaseConnection):
     saved_data = []
     dish_list = [d[0] for d in all_dishes]
 
-    for user_id, is_power_user in users:
+    for user_id, review_count in users:
+        # Power user detection: secret_total_review_count > 80 (power users mają 80-120)
+        is_power_user = review_count is not None and review_count > 80
+
         # 15% użytkowników nie ma żadnych zapisanych dań
         if random.random() < 0.15:
             continue
