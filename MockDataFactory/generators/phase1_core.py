@@ -6,6 +6,7 @@ import logging
 from typing import Dict, Any, List
 import sys
 import os
+import random
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -23,7 +24,7 @@ def generate_cities(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
         db: Połączenie z bazą danych
         blueprints_dir: Ścieżka do folderu z blueprintami
     """
-    logger.info("📍 Generowanie miast...")
+    logger.info(" Generowanie miast...")
 
     loader = BlueprintLoader(blueprints_dir)
     city_rules = loader.load_blueprint("01_city_rules.json")
@@ -32,7 +33,7 @@ def generate_cities(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     city_config = city_rules.get("CITY_CONFIG", {})
 
     if not city_config:
-        logger.error("❌ Brak CITY_CONFIG w 01_city_rules.json!")
+        logger.error(" Brak CITY_CONFIG w 01_city_rules.json!")
         raise ValueError("01_city_rules.json must contain CITY_CONFIG key")
 
     city_data = []
@@ -42,11 +43,11 @@ def generate_cities(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
         })
 
     if not city_data:
-        logger.error("❌ Brak miast do wygenerowania!")
+        logger.error(" Brak miast do wygenerowania!")
         raise ValueError("No cities found in CITY_CONFIG")
 
     db.insert_bulk("cities", city_data)
-    logger.info(f"✅ Wygenerowano {len(city_data)} miast")
+    logger.info(f" Wygenerowano {len(city_data)} miast")
 
 def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprints"):
     """
@@ -56,7 +57,7 @@ def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprin
         db: Połączenie z bazą danych
         blueprints_dir: Ścieżka do folderu z blueprintami
     """
-    logger.info("🥗 Generowanie składników...")
+    logger.info(" Generowanie składników...")
 
     loader = BlueprintLoader(blueprints_dir)
     dish_variants = loader.load_blueprint("dish_variants.json")
@@ -92,7 +93,85 @@ def generate_ingredients(db: DatabaseConnection, blueprints_dir: str = "blueprin
         })
 
     db.insert_bulk("ingredients", ingredient_data)
-    logger.info(f"✅ Wygenerowano {len(ingredient_data)} składników ({sum(1 for i in ingredient_data if i['is_allergen'])} alergenów)")
+    logger.info(f" Wygenerowano {len(ingredient_data)} składników ({sum(1 for i in ingredient_data if i['is_allergen'])} alergenów)")
+
+def generate_tag_color(tag_category: str, tag_name: str) -> str:
+    """
+    Generuje kolor tagu według kategorii i nazwy
+    Zwraca hex color (#RRGGBB)
+    """
+    color_schemes = {
+        'dietary': {
+            'Wegetariańskie': '#2ecc71',
+            'Wegańskie': '#27ae60',
+            'Bezglutenowe': '#16a085',
+            'Bez laktozy': '#1abc9c',
+            'Keto': '#95a5a6',
+            'Paleo': '#7f8c8d',
+            'Niskokaloryczne': '#3498db',
+            '__default__': '#2ecc71'
+        },
+        'spice': {
+            'Łagodne': '#95a5a6',
+            'Średnio ostre': '#f39c12',
+            'Ostre': '#e67e22',
+            'Bardzo ostre': '#e74c3c',
+            '__default__': '#f39c12'
+        },
+        'cuisine': {
+            'Włoska': '#e74c3c',
+            'Azjatycka': '#f39c12',
+            'Meksykańska': '#27ae60',
+            'Amerykańska': '#3498db',
+            'Francuska': '#9b59b6',
+            'Polska': '#e74c3c',
+            'Grecka': '#3498db',
+            'Indyjska': '#f39c12',
+            'Japońska': '#e74c3c',
+            'Tajska': '#27ae60',
+            'Wietnamska': '#f39c12',
+            'Bliskowschodnia': '#e67e22',
+            'Śródziemnomorska': '#3498db',
+            '__default__': '#3498db'
+        },
+        'mood': {
+            'Romantyczne': '#e91e63',
+            'Rodzinne': '#2ecc71',
+            'Biznesowe': '#34495e',
+            'Casual': '#95a5a6',
+            'Fine dining': '#8e44ad',
+            'Fast casual': '#f39c12',
+            '__default__': '#9b59b6'
+        },
+        'occasion': {
+            'Śniadanie': '#f39c12',
+            'Brunch': '#e67e22',
+            'Lunch': '#3498db',
+            'Obiad': '#e74c3c',
+            'Kolacja': '#8e44ad',
+            'Przekąska': '#95a5a6',
+            'Deser': '#e91e63',
+            '__default__': '#f39c12'
+        },
+        'feature': {
+            'Sezonowe': '#27ae60',
+            'Lokalne składniki': '#16a085',
+            'Farm to table': '#2ecc71',
+            'Organiczne': '#1abc9c',
+            'Comfort food': '#e67e22',
+            'Street food': '#f39c12',
+            'Fusion': '#9b59b6',
+            '__default__': '#1abc9c'
+        }
+    }
+
+    if tag_category in color_schemes:
+        scheme = color_schemes[tag_category]
+        if tag_name in scheme:
+            return scheme[tag_name]
+        return scheme['__default__']
+
+    return '#95a5a6'  # Fallback gray
 
 def generate_tags(db: DatabaseConnection):
     """
@@ -101,7 +180,7 @@ def generate_tags(db: DatabaseConnection):
     Args:
         db: Połączenie z bazą danych
     """
-    logger.info("🏷️  Generowanie tagów...")
+    logger.info(" Generowanie tagów...")
 
     tags = [
         # Dietary tags
@@ -161,8 +240,12 @@ def generate_tags(db: DatabaseConnection):
         {"tag_name": "Fusion", "tag_category": "feature"},
     ]
 
+    # Add display_color to each tag
+    for tag in tags:
+        tag["display_color"] = generate_tag_color(tag["tag_category"], tag["tag_name"])
+
     db.insert_bulk("tags", tags)
-    logger.info(f"✅ Wygenerowano {len(tags)} tagów")
+    logger.info(f" Wygenerowano {len(tags)} tagów")
 
 def generate_ingredient_restrictions(db: DatabaseConnection):
     """
@@ -171,7 +254,7 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
     Args:
         db: Połączenie z bazą danych
     """
-    logger.info("🔗 Generowanie powiązań składnik-restrykcja...")
+    logger.info(" Generowanie powiązań składnik-restrykcja...")
 
     # Pobierz wszystkie składniki
     ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM ingredients")
@@ -216,6 +299,6 @@ def generate_ingredient_restrictions(db: DatabaseConnection):
 
     if restrictions:
         db.insert_bulk("ingredient_restrictions", restrictions)
-        logger.info(f"✅ Wygenerowano {len(restrictions)} powiązań składnik-restrykcja")
+        logger.info(f" Wygenerowano {len(restrictions)} powiązań składnik-restrykcja")
     else:
         logger.warning("⚠️  Brak powiązań składnik-restrykcja do wygenerowania")

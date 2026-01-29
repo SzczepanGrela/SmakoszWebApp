@@ -42,14 +42,14 @@ class BlueprintLoader:
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-            self.logger.info(f"✅ Wczytano blueprint: {filename}")
+            self.logger.info(f" Wczytano blueprint: {filename}")
             return data
 
         except json.JSONDecodeError as e:
-            self.logger.error(f"❌ Błąd parsowania JSON w {filename}: {e}")
+            self.logger.error(f" Błąd parsowania JSON w {filename}: {e}")
             raise
         except Exception as e:
-            self.logger.error(f"❌ Błąd wczytywania {filename}: {e}")
+            self.logger.error(f" Błąd wczytywania {filename}: {e}")
             raise
 
     def load_all_blueprints(self) -> Dict[str, Dict[str, Any]]:
@@ -65,7 +65,7 @@ class BlueprintLoader:
             filename = filepath.name
             blueprints[filename] = self.load_blueprint(filename)
 
-        self.logger.info(f"✅ Wczytano {len(blueprints)} blueprintów")
+        self.logger.info(f" Wczytano {len(blueprints)} blueprintów")
         return blueprints
 
     def get_blueprint_path(self, filename: str) -> Path:
@@ -86,4 +86,4 @@ class BlueprintLoader:
         if missing_keys:
             raise ValueError(f"Blueprint {name} brakuje kluczy: {missing_keys}")
 
-        self.logger.info(f"✅ Walidacja {name} - OK")
+        self.logger.info(f" Walidacja {name} - OK")

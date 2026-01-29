@@ -1,0 +1,41 @@
+# VIRTUAL ENVIRONMENT
+venv/
+env/
+ENV/
+.venv/
+
+# ENVIRONMENT & SECRETS
+.env
+.env.local
+*.env
+!.env.template
+
+# PHOTO CACHE
+data/photo_cache.json
+
+# PYTHON
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# LOGS
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DATABASE DUMPS
+dump_*.sql
+backup_*.sql
+*.db
+*.sqlite3

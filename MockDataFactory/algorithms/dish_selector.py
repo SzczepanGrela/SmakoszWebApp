@@ -29,8 +29,9 @@ def select_dish_from_menu(user: Dict[str, Any],
     if not restaurant_dishes:
         return None
 
-    # 5% szans na całkowicie losowy wybór (eksploracja)
-    if random.random() < 0.05:
+    # Szansa na całkowicie losowy wybór (eksploracja)
+    random_chance = user.get('secret_chance_pick_random_dish', 0.05)
+    if random.random() < random_chance:
         return random.choice(restaurant_dishes)
 
     # Preferencje użytkownika
@@ -44,7 +45,7 @@ def select_dish_from_menu(user: Dict[str, Any],
         score = 0.0
 
         # 1. Affinity do archetypu (duży wpływ)
-        archetype = dish.get('archetype', 'Unknown')
+        archetype = dish.get('secret_archetype', 'Unknown')
         archetype_affinity = enjoyed_archetypes.get(archetype, 0.5)
         score += archetype_affinity * 10
 
@@ -61,7 +62,7 @@ def select_dish_from_menu(user: Dict[str, Any],
         score -= disliked_count * 2
 
         # 3. Popularność dania (z Zipf distribution)
-        popularity = dish.get('popularity_factor', 0.1)
+        popularity = dish.get('secret_popularity_factor', 0.1)
         score += popularity
 
         # 4. Losowy szum (małe odchylenie)
