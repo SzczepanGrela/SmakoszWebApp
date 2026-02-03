@@ -5,21 +5,91 @@ Phase 4 - Generowanie użytkowników (~25,000)
 import logging
 import random
 import json
-import sys
-import os
 from datetime import date, timedelta, datetime
 import numpy as np
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scipy.stats import beta as beta_dist
 
 from utils.db_connection import DatabaseConnection
 from utils.statistical import sample_normal, sample_beta
 from utils.date_generator import DateGenerator
 from utils.blueprint_loader import BlueprintLoader
-from faker import Faker
+from utils.faker_instance import fake
 
 logger = logging.getLogger(__name__)
-fake = Faker('pl_PL')
+
+def generate_user_characteristics_vector():
+    """
+    Generuje 14-wymiarowy wektor preferencji użytkownika z tolerancjami.
+    
+    UPDATED: Widened tolerances (0.1-0.7) to create more diverse and orthogonal user profiles.
+    """
+    vector = {}
+
+    # FLAVOR (6)
+    vector['flavor_sweetness'] = {
+        'value': round(beta_dist.rvs(2.5, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['flavor_bitterness'] = {
+        'value': round(beta_dist.rvs(1.5, 3.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['flavor_spiciness'] = {
+        'value': round(beta_dist.rvs(2.0, 2.5), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['flavor_umami'] = {
+        'value': round(beta_dist.rvs(3.0, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['flavor_sourness'] = {
+        'value': round(beta_dist.rvs(2.0, 2.5), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['flavor_saltiness'] = {
+        'value': round(beta_dist.rvs(2.5, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+
+    # TEXTURE (3)
+    vector['texture_crispy'] = {
+        'value': round(beta_dist.rvs(3.0, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['texture_creamy'] = {
+        'value': round(beta_dist.rvs(2.5, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['texture_chewy'] = {
+        'value': round(beta_dist.rvs(2.0, 2.5), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+
+    # PHYSICS (3)
+    vector['physics_richness'] = {
+        'value': round(beta_dist.rvs(2.0, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['physics_temperature'] = {
+        'value': round(beta_dist.rvs(2.5, 2.5), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['physics_freshness'] = {
+        'value': round(beta_dist.rvs(3.5, 1.5), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+
+    # CONTEXT (2)
+    vector['context_price_sensitivity'] = {
+        'value': round(beta_dist.rvs(2.0, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+    vector['context_portion_preference'] = {
+        'value': round(beta_dist.rvs(2.5, 2.0), 3),
+        'tolerance': round(random.uniform(0.1, 0.7), 3)
+    }
+
+    return vector
 
 def generate_full_name() -> str:
     """Generuje polskie imię i nazwisko"""
@@ -169,12 +239,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
 
     Secret Attributes (ZOPTYMALIZOWANE):
     - secret_total_review_count (25-150, z 5% power users ~100)
-    - secret_enjoyed_archetypes ({"Pizza": 0.9, "Burger": 0.2})
+    - secret_characteristics_vector (JSONB - 14 dimensions) - NOWE
     - secret_ingredient_preferences ({"pomidor": 0.85, "orzechy": 0.1})
-    - secret_price_preference_range ({"mean": 35, "tolerance_above": 2.0})
-    - secret_spice_preference (0-10)
-    - secret_richness_preference (0.0-1.0)
-    - secret_texture_preference (0.0-1.0)
     - secret_cleanliness_preference (city-dependent)
     - secret_preferred_ambiance ("Spokojny", "Energiczny", "Romantyczny")
     - secret_mood_propensity (0.3 ± 0.05) - ZOPTYMALIZOWANE!
@@ -182,6 +248,22 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     - travel_propensity (0.20 ± 0.05) - ZOPTYMALIZOWANE!
     """
     logger.info(" Generowanie użytkowników...")
+
+    # Cleanup old data
+    logger.info("🧹 Czyszczenie starych danych Phase 4 (users, saved_dishes)...")
+    try:
+        # Use execute_query directly instead of manual cursor management
+        db.execute_query("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE saved_dishes RESTART IDENTITY CASCADE")
+        # user_variant_preferences is Phase 4b, handled there (or via CASCADE from users)
+        
+        db.commit()
+        logger.info("✅ Wyczyszczono starych użytkowników i powiązane tabele.")
+        
+    except Exception as e:
+        logger.error(f"❌ Błąd podczas cleanup Phase 4: {e}")
+        db.rollback()
+        raise e
 
     # Pobierz miasta
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
@@ -194,15 +276,16 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     all_ingredients = db.fetch_all("SELECT ingredient_name FROM ingredients")
     ingredient_names = [name for (name,) in all_ingredients]
 
-    # Archetypy dań
-    archetypes = ["Pizza", "Burger", "Sushi", "Pasta", "Ramen", "Steak", "Salad",
-                  "Soup", "Dessert", "Tacos", "Kebab", "Pierogi", "Seafood", "BBQ"]
+    # Load Archetypes for preferences
+    loader = BlueprintLoader("blueprints")
+    variant_blueprints = loader.load_blueprint("variant_characteristics.json")
+    all_archetypes = list(variant_blueprints.keys())
 
     date_gen = DateGenerator()
 
     # RBAC: Role allocation constants
-    TOTAL_ADMINS = 5       # 5 administrators (predef test accounts)
-    TOTAL_MODERATORS = 10  # 10 moderators (predef test accounts)
+    TOTAL_ADMINS = 1       # 1 administrator (predef test account)
+    TOTAL_MODERATORS = 3   # 3 moderators (predef test accounts)
 
     # WEIGHTED GAUSSIAN DISTRIBUTION: Alokuj użytkowników do miast
     user_city_assignments = allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints")
@@ -216,6 +299,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
     user_data = []
 
     for i in range(num_users):
+        # ... (RBAC logic skipped for brevity, assuming context remains) ...
         # RBAC: Role assignment logic
         if i < TOTAL_ADMINS:
             role = 'admin'
@@ -258,17 +342,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
         secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)  # 0.3 średnio (było 0.6)
         secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)  # 0.02 średnio (było 0.05)
 
-        # Preferencje archetyp (2-4 ulubione)
-        enjoyed_archetypes = {}
-        num_enjoyed = random.randint(2, 4)
-        enjoyed_list = random.sample(archetypes, num_enjoyed)
-
-        for archetype in archetypes:
-            if archetype in enjoyed_list:
-                enjoyed_archetypes[archetype] = round(random.uniform(0.7, 0.95), 2)  # Uwielbia
-            else:
-                enjoyed_archetypes[archetype] = round(random.uniform(0.1, 0.6), 2)  # Neutralny/nie lubi
-
         # Preferencje składnikowe (losowo 20-30 składników)
         ingredient_preferences = {}
         sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
@@ -276,19 +349,22 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
         for ingredient in sampled_ingredients:
             ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
 
-        # Preferencje cenowe
-        mean_price = sample_normal(35.0, 10.0, 15.0, 80.0)
-        price_preference_range = {
-            "mean": round(mean_price, 2),
-            "tolerance_above": round(random.uniform(1.5, 2.5), 2),
-            "tolerance_below": round(random.uniform(0.4, 0.7), 2)
-        }
-
-        # Inne preferencje
-        secret_spice_preference = round(random.uniform(0, 10), 1)
-        secret_richness_preference = round(random.uniform(0.0, 1.0), 2)
-        secret_texture_preference = round(random.uniform(0.0, 1.0), 2)
-
+        # GENERATE ENJOYED ARCHETYPES (Affinity to cuisines/types)
+        # Pick 3-7 favorites (affinity 0.7-1.0)
+        num_favorites = random.randint(3, 7)
+        favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
+        
+        # Pick 1-3 dislikes (affinity 0.1-0.3)
+        remaining = [a for a in all_archetypes if a not in favorites]
+        num_dislikes = random.randint(1, 3)
+        dislikes = random.sample(remaining, min(num_dislikes, len(remaining)))
+        
+        enjoyed_archetypes = {}
+        for arch in favorites:
+            enjoyed_archetypes[arch] = round(random.uniform(0.7, 1.0), 2)
+        for arch in dislikes:
+            enjoyed_archetypes[arch] = round(random.uniform(0.1, 0.3), 2)
+            
         # Czystość (zależy od miasta)
         cleanliness_expectations = {
             "Fine dining": round(random.uniform(8.0, 9.5), 1),
@@ -307,29 +383,48 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
         date_of_birth = generate_date_of_birth()
 
         # Determine logical flags
-        # Admins/Mods and ALL initial mock users are verified for testing convenience.
         is_verified = True 
         newsletter = random.random() < 0.40
         
         # Status flags
-        # 0.2% banned
         is_banned = random.random() < 0.002
-        
-        # 5% inactive (deleted/frozen)
+
         is_active = True
         is_deleted = False
         deleted_at = None
-        
+
         if random.random() < 0.05:
             is_active = False
             is_deleted = True
-            # Deleted random time after joining
             days_active = random.randint(1, 300)
             deletion_date = join_date + timedelta(days=days_active)
-            # Ensure deletion date is not in future (compare datetime with datetime)
             if deletion_date > datetime.now():
                 deletion_date = datetime.now()
             deleted_at = DateGenerator.to_sql_datetime(deletion_date)
+
+        # ========== RATING PERSONALITY (Baseline Bias) ==========
+        # Generate user's inherent rating tendency (independent of actual quality)
+        # This creates variance in review ratings for the same restaurant
+        #
+        # Distribution (optimized for ML training):
+        # - 15% Critics: Harsh raters (baseline ~4.0) - "Everything is mediocre"
+        # - 60% Realists: Neutral raters (baseline ~6.0) - "Fair is fair"
+        # - 25% Fans: Enthusiastic raters (baseline ~8.0) - "I love everything!"
+
+        personality_roll = random.random()
+
+        if personality_roll < 0.15:
+            # CRITIC (15%): Baseline 4.0 ± 0.5
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(4.0, 0.5)))
+        elif personality_roll < 0.75:  # 0.15 + 0.60 = 0.75
+            # REALIST (60%): Baseline 6.0 ± 0.5
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.0, 0.5)))
+        else:
+            # FAN (25%): Baseline 8.0 ± 0.5
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.0, 0.5)))
+
+        secret_rating_baseline = round(secret_rating_baseline, 2)
+        # =========================================================
 
         user_data.append({
             "username": username,
@@ -350,22 +445,18 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
             "avatar_url": avatar_url,
             "date_of_birth": date_of_birth.isoformat(),  # Convert date to ISO format string
             "secret_total_review_count": secret_total_review_count,
-            "secret_travel_propensity": round(travel_propensity, 3),  # FIXED: was travel_propensity
+            "secret_travel_propensity": round(travel_propensity, 3),
+            "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes), # NEW: Generated affinities
             "secret_chance_dine_random": 0.1,  # Default value
             "secret_chance_pick_random_dish": 0.05,  # Default value
             "secret_cross_impact_factor": round(secret_cross_impact_factor, 3),
             "secret_mood_propensity": round(secret_mood_propensity, 3),
             "secret_is_influencer": is_influencer, # NEW
-            "secret_price_preference_range": str(round(price_preference_range['mean'], 2)),  # Simplified for schema
-            "secret_price_tolerance_above": price_preference_range['tolerance_above'],
-            "secret_price_tolerance_below": price_preference_range['tolerance_below'],
-            "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes),  # FIXED: was str()
-            "secret_ingredient_preferences": json.dumps(ingredient_preferences),  # FIXED: was str()
-            "secret_cleanliness_preference": json.dumps(cleanliness_expectations),  # FIXED: was str()
+            "secret_rating_baseline": secret_rating_baseline, # NEW: Rating personality (Critic/Realist/Fan)
+            "secret_characteristics_vector": json.dumps(generate_user_characteristics_vector()), # NEW
+            "secret_ingredient_preferences": json.dumps(ingredient_preferences),
+            "secret_cleanliness_preference": json.dumps(cleanliness_expectations),
             "secret_preferred_ambiance": secret_preferred_ambiance,
-            "secret_spice_preference": secret_spice_preference,  # NEW column
-            "secret_richness_preference": secret_richness_preference,  # NEW column
-            "secret_texture_preference": secret_texture_preference  # NEW column
         })
 
         if (i + 1) % 5000 == 0:

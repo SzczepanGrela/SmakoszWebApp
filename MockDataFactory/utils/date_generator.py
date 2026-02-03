@@ -102,40 +102,37 @@ class DateGenerator:
 
         return self.generate_random_date(earliest_date, latest_date)
 
-    def generate_dates_with_spacing(self, count: int,
-                                    start_date: datetime = None,
-                                    min_days: int = 3,
-                                    max_days: int = 14) -> List[datetime]:
+    def generate_dates_with_spacing(self, count: int, start_date: datetime, min_days: int = 1, max_days: int = 30) -> List[datetime]:
         """
-        Generuje sekwencję dat z minimalnym odstępem (dla recenzji użytkownika)
-
-        Args:
-            count: Liczba dat do wygenerowania
-            start_date: Data początkowa (domyślnie min_date)
-            min_days: Minimalny odstęp między datami
-            max_days: Maksymalny odstęp między datami
-
-        Returns:
-            Lista dat posortowana chronologicznie
+        Generuje posortowaną listę dat recenzji z zachowaniem odstępów.
+        Uwzględnia "czas inkubacji" (lurking period) przed pierwszą recenzją.
         """
-        if start_date is None:
-            start_date = self.min_date
+        if count <= 0:
+            return []
 
         dates = []
-        current_date = start_date
+        
+        # Czas inkubacji: większość userów czeka chwilę zanim napisze pierwszą recenzję
+        # Rozkład wykładniczy: dużo małych wartości, mało dużych
+        incubation_days = int(random.expovariate(1/14)) # Średnio 14 dni
+        incubation_days = min(incubation_days, 180) # Max pół roku
+        
+        current_date = start_date + timedelta(days=incubation_days)
+        
+        # Zabezpieczenie przed wyjściem w przyszłość na starcie
+        if current_date > datetime.now():
+            current_date = datetime.now() - timedelta(days=count) # Fallback: start 'count' days ago
 
         for _ in range(count):
-            # Losowy odstęp
-            spacing = random.randint(min_days, max_days)
-            current_date = current_date + timedelta(days=spacing)
-
-            # Sprawdź czy nie przekroczyliśmy max_date
-            if current_date > self.max_date:
+            dates.append(current_date)
+            # Losowy odstęp do następnej recenzji
+            gap = random.randint(min_days, max_days)
+            current_date += timedelta(days=gap)
+            
+            # Jeśli przekroczymy "dzisiaj", przerywamy (nie generujemy recenzji z przyszłości)
+            # W realnym scenariuszu user po prostu napisałby mniej recenzji niż 'count'
+            if current_date > datetime.now():
                 break
-
-            # Dodaj godzinę biznesową
-            dated = self.generate_business_hours_datetime(current_date)
-            dates.append(dated)
 
         return dates
 

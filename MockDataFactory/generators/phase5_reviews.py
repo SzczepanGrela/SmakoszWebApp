@@ -5,82 +5,18 @@ Phase 5 - Generowanie recenzji (~875,000) - NAJBARDZIEJ KRYTYCZNE!
 import logging
 import random
 import json
-import sys
-import os
 from datetime import timedelta
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.db_connection import DatabaseConnection
 from utils.date_generator import DateGenerator
 from utils.text_generator import ReviewTextGenerator
 from utils.photo_pools import PhotoPools
+from utils.helpers import safe_json_loads, safe_divide, safe_float
 from algorithms.rating_engine import calculate_review_ratings
 from algorithms.restaurant_selector import select_restaurants_for_user
 from algorithms.dish_selector import select_dish_from_menu
 
 logger = logging.getLogger(__name__)
-
-def safe_json_loads(value, default=None):
-    """
-    Bezpieczne parsowanie JSON z obsługą NULL i pustych wartości
-
-    Args:
-        value: Wartość do sparsowania (str, dict, lub None)
-        default: Wartość domyślna jeśli value jest None/puste
-
-    Returns:
-        Sparsowany obiekt lub default
-    """
-    if value is None or value == '':
-        return default if default is not None else {}
-
-    # FIXED: PostgreSQL może zwracać JSON jako już sparsowany dict
-    if isinstance(value, dict):
-        return value
-
-    try:
-        return json.loads(value)
-    except (json.JSONDecodeError, TypeError) as e:
-        logger.warning(f"JSON parse error: {e}, value: {value}")
-        return default if default is not None else {}
-
-def safe_divide(numerator, denominator, default=1.0):
-    """
-    Bezpieczne dzielenie z zabezpieczeniem przed zerem
-
-    Args:
-        numerator: Licznik
-        denominator: Mianownik
-        default: Wartość domyślna jeśli dzielenie niemożliwe
-
-    Returns:
-        Wynik dzielenia lub default
-    """
-    if denominator is None or denominator == 0:
-        return default
-    try:
-        return numerator / denominator
-    except (TypeError, ZeroDivisionError):
-        return default
-
-def safe_float(value, default=0.0):
-    """
-    Bezpieczna konwersja do float
-
-    Args:
-        value: Wartość do konwersji
-        default: Wartość domyślna jeśli konwersja niemożliwa
-
-    Returns:
-        Float lub default
-    """
-    if value is None or value == '':
-        return default
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return default
 
 def generate_review_title(dish_rating: int, dish_name: str) -> str:
     """
@@ -156,16 +92,38 @@ def generate_reviews(db: DatabaseConnection):
     """
     logger.info(" Generowanie recenzji...")
 
+    # Cleanup old data
+    logger.info("🧹 Czyszczenie starych danych Phase 5 (reviews, user_photos, pending_comments)...")
+    try:
+        # Use execute_query directly instead of manual cursor management
+        # This handles connection and cursor internally
+        db.execute_query("TRUNCATE TABLE reviews RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE user_photos RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE pending_comments RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE pending_user_photos RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE ai_review_photos RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE ai_review_comments RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE admin_review_photos RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE admin_review_comments RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE review_likes RESTART IDENTITY CASCADE")
+        
+        db.commit()
+        logger.info("✅ Wyczyszczono stare recenzje i powiązane tabele.")
+        
+    except Exception as e:
+        logger.error(f"❌ Błąd podczas cleanup Phase 5: {e}")
+        db.rollback()
+        raise e
+
     # Pobierz wszystkich users
     users = db.fetch_all("""
         SELECT user_id, home_city_id, secret_total_review_count, secret_travel_propensity,
                secret_enjoyed_archetypes, secret_ingredient_preferences,
-               secret_price_preference_range, secret_price_tolerance_above, secret_price_tolerance_below,
-               secret_spice_preference, secret_richness_preference, secret_texture_preference,
                secret_cleanliness_preference, secret_preferred_ambiance,
                secret_mood_propensity, secret_cross_impact_factor,
                secret_chance_dine_random, secret_chance_pick_random_dish,
-               account_created_at
+               account_created_at, secret_characteristics_vector,
+               secret_rating_baseline
         FROM users
     """)
 
@@ -196,6 +154,10 @@ def generate_reviews(db: DatabaseConnection):
         return
 
     logger.info(f" Dane wejściowe: {len(users)} użytkowników, {len(all_restaurants)} restauracji, {len(city_ids)} miast")
+    
+    if users:
+        logger.info(f"DEBUG USER ROW [0]: {users[0]}")
+        logger.info(f"DEBUG USER ROW LEN: {len(users[0])}")
 
     date_gen = DateGenerator()
     text_gen = ReviewTextGenerator()
@@ -204,7 +166,6 @@ def generate_reviews(db: DatabaseConnection):
     total_reviews = 0
     skipped_reviews_temporal = 0  # Counter for reviews skipped due to temporal validation
     log_interval = 50000  # Log every 50000 reviews
-
     # Track review dates per user for last_login_at calculation
     user_review_dates = {}
 
@@ -213,28 +174,68 @@ def generate_reviews(db: DatabaseConnection):
         home_city_id = user[1]
         num_reviews = user[2]
         travel_prop = user[3]
+        
+        # --- ROBUSTNESS FIX START ---
+        # Check for index shift or type mismatch
+        # Indices shifted due to new column:
+        # 12: account_created_at
+        # 13: secret_characteristics_vector
+        # 14: secret_rating_baseline
+        raw_join_date = user[12]
+        raw_vector = user[13]
+        try:
+            raw_baseline = user[14]
+        except IndexError:
+            raw_baseline = 6.0 # Fallback
+        
+        final_join_date = None
+        final_pref_vector = {}
+        
+        from datetime import datetime
+        # Detect shift logic (kept for safety, though fixed query should be stable)
+        if isinstance(raw_vector, datetime):
+            logger.warning(f"DATA SHIFT DETECTED for User {user_id} (idx {idx}). Adjusting...")
+            final_join_date = raw_vector
+            final_pref_vector = {}
+        else:
+            # Normal case
+            final_join_date = raw_join_date
+            final_pref_vector = safe_json_loads(raw_vector, {})
 
+        # Final validation
+        if not isinstance(final_join_date, datetime):
+            logger.warning(f"Invalid join_date for User {user_id}. Fallback to 2020-01-01.")
+            final_join_date = datetime(2020, 1, 1)
+        # --- ROBUSTNESS FIX END ---
+
+        pref_vector = final_pref_vector
+        
         # Parse JSON strings (FIXED: używa safe_json_loads zamiast hacka z .replace())
         user_data = {
             'user_id': user_id,
             'city_id': home_city_id,
             'secret_total_review_count': num_reviews,
             'travel_propensity': travel_prop,
-            'secret_enjoyed_archetypes': safe_json_loads(user[4], {}),
+            'secret_enjoyed_archetypes': safe_json_loads(user[4], {}), # Now fetched from DB!
             'secret_ingredient_preferences': safe_json_loads(user[5], {}),
-            'secret_price_preference_range': safe_float(user[6], 35.0),  # FIXED: safe conversion
-            'secret_price_tolerance_above': user[7] if user[7] else 2.0,  # Separate column
-            'secret_price_tolerance_below': user[8] if user[8] else 0.5,  # Separate column
-            'secret_spice_preference': user[9],
-            'secret_richness_preference': user[10],
-            'secret_texture_preference': user[11],
-            'secret_cleanliness_preference': safe_json_loads(user[12], {}),
-            'secret_preferred_ambiance': user[13],
-            'secret_mood_propensity': user[14],
-            'secret_cross_impact_factor': user[15],
-            'secret_chance_dine_random': user[16] if user[16] is not None else 0.1,
-            'secret_chance_pick_random_dish': user[17] if user[17] is not None else 0.05,
-            'join_date': user[18]
+            # Removed columns handling - using defaults:
+            'secret_price_preference_range': 35.0,
+            'secret_price_tolerance_above': 2.0,
+            'secret_price_tolerance_below': 0.5,
+            # Extract individual preferences from vector if available, else defaults
+            'secret_spice_preference': pref_vector.get('flavor_spiciness', 0.5),
+            'secret_richness_preference': pref_vector.get('physics_richness', 0.5),
+            'secret_texture_preference': pref_vector.get('texture_crispy', 0.5), # heuristic
+            
+            'secret_cleanliness_preference': safe_json_loads(user[6], {}),
+            'secret_preferred_ambiance': user[7],
+            'secret_mood_propensity': user[8],
+            'secret_cross_impact_factor': user[9],
+            'secret_chance_dine_random': user[10] if user[10] is not None else 0.1,
+            'secret_chance_pick_random_dish': user[11] if user[11] is not None else 0.05,
+            'join_date': final_join_date,
+            'secret_characteristics_vector': pref_vector,
+            'secret_rating_baseline': raw_baseline
         }
 
         # Generuj daty recenzji
@@ -252,8 +253,9 @@ def generate_reviews(db: DatabaseConnection):
             else:
                 city_id = home_city_id
 
-            # Filtruj restauracje w tym mieście
-            city_restaurants = [
+            # OPTIMIZATION: Filter restaurants that existed at review_date
+            # This prevents discarding reviews and ensures valid selection
+            available_restaurants = [
                 {
                     'restaurant_id': r[0],
                     'city_id': r[1],
@@ -266,91 +268,275 @@ def generate_reviews(db: DatabaseConnection):
                     'secret_ambiance_type': r[8],
                     'secret_ambiance_quality': r[9]
                 }
-                for r in all_restaurants if r[1] == city_id
+                for r in all_restaurants 
+                if r[1] == city_id and r[3] <= review_date
             ]
 
-            if not city_restaurants:
-                continue
+            if not available_restaurants:
+                # No restaurants available in this city at this date (too early in timeline)
+                # Try fallback to home city if we were traveling
+                if city_id != home_city_id:
+                    available_restaurants = [
+                        {
+                            'restaurant_id': r[0],
+                            'city_id': r[1],
+                            'cuisine_type': r[2],
+                            'created_at': r[3],
+                            'secret_price_multiplier': r[4],
+                            'secret_overall_food_quality': r[5],
+                            'secret_service_quality': r[6],
+                            'secret_cleanliness_score': r[7],
+                            'secret_ambiance_type': r[8],
+                            'secret_ambiance_quality': r[9]
+                        }
+                        for r in all_restaurants 
+                        if r[1] == home_city_id and r[3] <= review_date
+                    ]
+                
+                if not available_restaurants:
+                    skipped_reviews_temporal += 1
+                    continue
 
             # Wybierz restaurację (używa restaurant_selector.py)
             selected_restaurant_ids = select_restaurants_for_user(
-                user_data, city_restaurants, city_id, count=1
+                user_data, available_restaurants, city_id if city_id in [r['city_id'] for r in available_restaurants] else home_city_id, count=1
             )
 
             if not selected_restaurant_ids:
                 continue
 
             restaurant_id = selected_restaurant_ids[0]
-            # FIXED: Safe next() with default None to prevent StopIteration
-            restaurant = next((r for r in city_restaurants if r['restaurant_id'] == restaurant_id), None)
-            if not restaurant:
-                logger.warning(f"⚠️ Restauracja {restaurant_id} nie znaleziona w liście miasta")
+            # Get full restaurant object
+            restaurant = next((r for r in available_restaurants if r['restaurant_id'] == restaurant_id), None)
+            
+            # No need for temporal check here anymore - filtered above
+
+    # Track review dates per user for last_login_at calculation
+    user_review_dates = {}
+
+    for idx, user in enumerate(users):
+        user_id = user[0]
+        home_city_id = user[1]
+        num_reviews = user[2]
+        travel_prop = user[3]
+        
+        # Track reviewed dishes to prevent duplicates (user_id, dish_id)
+        reviewed_dishes = set()
+        
+        # Extract JSONB preference vector early (Index 13)
+        pref_vector = safe_json_loads(user[13], {})
+
+        # Extract Baseline (Index 14) - Added in Schema Update
+        try:
+            raw_baseline = user[14]
+        except IndexError:
+            raw_baseline = 6.0
+
+        # Parse JSON strings (FIXED: używa safe_json_loads zamiast hacka z .replace())
+        user_data = {
+            'user_id': user_id,
+            'city_id': home_city_id,
+            'secret_total_review_count': num_reviews,
+            'travel_propensity': travel_prop,
+            'secret_enjoyed_archetypes': safe_json_loads(user[4], {}),
+            'secret_ingredient_preferences': safe_json_loads(user[5], {}),
+            # Removed columns handling - using defaults:
+            'secret_price_preference_range': 35.0,
+            'secret_price_tolerance_above': 2.0,
+            'secret_price_tolerance_below': 0.5,
+            # Extract individual preferences from vector if available, else defaults
+            'secret_spice_preference': pref_vector.get('flavor_spiciness', 0.5),
+            'secret_richness_preference': pref_vector.get('physics_richness', 0.5),
+            'secret_texture_preference': pref_vector.get('texture_crispy', 0.5), # heuristic
+            
+            'secret_cleanliness_preference': safe_json_loads(user[6], {}),
+            'secret_preferred_ambiance': user[7],
+            'secret_mood_propensity': user[8],
+            'secret_cross_impact_factor': user[9],
+            'secret_chance_dine_random': user[10] if user[10] is not None else 0.1,
+            'secret_chance_pick_random_dish': user[11] if user[11] is not None else 0.05,
+            'join_date': user[12],
+            'secret_characteristics_vector': pref_vector,
+            'secret_rating_baseline': raw_baseline # NEW: Critical for Rating Engine V5
+        }
+
+        # Generuj daty recenzji
+        review_dates = date_gen.generate_dates_with_spacing(
+            count=num_reviews,
+            start_date=user_data['join_date'],
+            min_days=3,
+            max_days=14
+        )
+
+        for review_date in review_dates:
+            # Wybierz miasto (80% home, 20% travel)
+            if random.random() < travel_prop:
+                city_id = random.choice(city_ids)
+            else:
+                city_id = home_city_id
+
+            # OPTIMIZATION: Filter restaurants that existed at review_date
+            available_restaurants = [
+                {
+                    'restaurant_id': r[0],
+                    'city_id': r[1],
+                    'cuisine_type': r[2],
+                    'created_at': r[3],
+                    'secret_price_multiplier': r[4],
+                    'secret_overall_food_quality': r[5],
+                    'secret_service_quality': r[6],
+                    'secret_cleanliness_score': r[7],
+                    'secret_ambiance_type': r[8],
+                    'secret_ambiance_quality': r[9]
+                }
+                for r in all_restaurants 
+                if r[1] == city_id and r[3] <= review_date
+            ]
+
+            if not available_restaurants:
+                # FALLBACK: TRAVEL MODE
+                # If no restaurants in chosen city, try ALL cities (Force Travel)
+                available_restaurants = [
+                    {
+                        'restaurant_id': r[0],
+                        'city_id': r[1],
+                        'cuisine_type': r[2],
+                        'created_at': r[3],
+                        'secret_price_multiplier': r[4],
+                        'secret_overall_food_quality': r[5],
+                        'secret_service_quality': r[6],
+                        'secret_cleanliness_score': r[7],
+                        'secret_ambiance_type': r[8],
+                        'secret_ambiance_quality': r[9]
+                    }
+                    for r in all_restaurants 
+                    if r[3] <= review_date
+                ]
+                
+                if available_restaurants:
+                    # Pick a random city from available restaurants to simulate travel
+                    random_res = random.choice(available_restaurants)
+                    city_id = random_res['city_id']
+                    # Filter again for this new city to keep context valid
+                    available_restaurants = [r for r in available_restaurants if r['city_id'] == city_id]
+                else:
+                    skipped_reviews_temporal += 1
+                    continue
+
+            # Wybierz restaurację (używa restaurant_selector.py)
+            selected_restaurant_ids = select_restaurants_for_user(
+                user_data, available_restaurants, city_id, count=3 # Pick top 3 candidates to find unreviewed dish
+            )
+
+            if not selected_restaurant_ids:
                 continue
 
-            # TEMPORAL VALIDATION: Review date must be >= restaurant created_at
-            # This ensures users can't review restaurants that didn't exist yet
-            if review_date < restaurant['created_at']:
-                skipped_reviews_temporal += 1
-                continue  # Skip this review - restaurant didn't exist at review_date
+            selected_dish = None
+            restaurant = None
+            restaurant_id = None
 
-            # Pobierz dania restauracji
-            dishes = db.fetch_all("""
-                SELECT dish_id, dish_name, secret_archetype, price,
-                       secret_base_price, secret_quality, secret_spiciness,
-                       secret_richness, secret_texture_score, secret_popularity_factor
-                FROM dishes
-                WHERE restaurant_id = %s
-            """, (restaurant_id,))
+            # Try to find a restaurant with an unreviewed dish
+            for r_id in selected_restaurant_ids:
+                candidate_restaurant = next((r for r in available_restaurants if r['restaurant_id'] == r_id), None)
+                if not candidate_restaurant: continue
 
-            if not dishes:
-                continue
+                # Pobierz dania restauracji
+                dishes = db.fetch_all("""
+                    SELECT dish_id, dish_name, secret_archetype, price,
+                           secret_base_price, secret_quality, secret_popularity_factor,
+                           secret_characteristics_vector, secret_weights_vector, secret_variant_name
+                    FROM dishes
+                    WHERE restaurant_id = %s
+                """, (r_id,))
 
-            # Konwertuj do dict i załaduj składniki
-            # FIXED N+1 PROBLEM: Pobierz WSZYSTKIE składniki dla WSZYSTKICH dań naraz
-            dish_ids = [d[0] for d in dishes]
-            ingredients_by_dish = {}
+                if not dishes: continue
 
-            if dish_ids:
-                placeholders = ','.join(['%s'] * len(dish_ids))
-                all_ingredients = db.fetch_all(f"""
-                    SELECT dil.dish_id, i.ingredient_name
-                    FROM dish_ingredients_link dil
-                    JOIN ingredients i ON dil.ingredient_id = i.ingredient_id
-                    WHERE dil.dish_id IN ({placeholders})
-                """, tuple(dish_ids))
+                # Filter out already reviewed dishes
+                unreviewed_dishes_raw = [d for d in dishes if d[0] not in reviewed_dishes]
+                
+                if not unreviewed_dishes_raw:
+                    continue # Try next restaurant
 
-                # Grupuj składniki per dish_id
-                for dish_id, ingredient_name in all_ingredients:
-                    if dish_id not in ingredients_by_dish:
-                        ingredients_by_dish[dish_id] = []
-                    ingredients_by_dish[dish_id].append(ingredient_name)
+                # Found a valid restaurant!
+                restaurant = candidate_restaurant
+                restaurant_id = r_id
+                
+                # Process dishes for selection
+                # (Copy-paste logic from before, but now inside loop)
+                dish_ids = [d[0] for d in unreviewed_dishes_raw]
+                
+                # Batch load ingredients for these dishes
+                ingredients_by_dish = {}
+                if dish_ids:
+                    placeholders = ','.join(['%s'] * len(dish_ids))
+                    all_ingredients = db.fetch_all(f"""
+                        SELECT dil.dish_id, i.ingredient_name
+                        FROM dish_ingredients_link dil
+                        JOIN ingredients i ON dil.ingredient_id = i.ingredient_id
+                        WHERE dil.dish_id IN ({placeholders})
+                    """, tuple(dish_ids))
+                    for d_id, i_name in all_ingredients:
+                        if d_id not in ingredients_by_dish: ingredients_by_dish[d_id] = []
+                        ingredients_by_dish[d_id].append(i_name)
 
-            # Teraz buduj dish_dicts używając zgrupowanych składników
-            dish_dicts = []
-            for d in dishes:
-                dish_id = d[0]
-                dish_dicts.append({
-                    'dish_id': dish_id,
-                    'dish_name': d[1],
-                    'secret_archetype': d[2],
-                    'price': d[3],
-                    'secret_base_price': d[4],
-                    'secret_quality': d[5],
-                    'secret_spiciness': d[6],
-                    'secret_richness': d[7],
-                    'secret_texture_score': d[8],
-                    'secret_popularity_factor': d[9],
-                    'ingredients': ingredients_by_dish.get(dish_id, [])  # FIXED: Batch loaded
-                })
+                dish_dicts = []
+                for d in unreviewed_dishes_raw:
+                    d_id = d[0]
+                    char_vector = safe_json_loads(d[7])
+                    dish_dicts.append({
+                        'dish_id': d_id,
+                        'dish_name': d[1],
+                        'secret_archetype': d[2],
+                        'price': d[3],
+                        'secret_base_price': d[4],
+                        'secret_quality': d[5],
+                        'secret_popularity_factor': d[6],
+                        'secret_characteristics_vector': char_vector,
+                        'secret_weights_vector': safe_json_loads(d[8]),
+                        'secret_variant_name': d[9],
+                        'ingredients': ingredients_by_dish.get(d_id, [])
+                    })
 
-            # Wybierz danie (używa dish_selector.py)
-            selected_dish = select_dish_from_menu(user_data, dish_dicts)
+                selected_dish = select_dish_from_menu(user_data, dish_dicts)
+                if selected_dish:
+                    break # Found dish, exit loop
 
             if not selected_dish:
+                # User has reviewed EVERYTHING in selected restaurants or no dishes available
+                # Skip this review slot (or could force re-review, but uniqueness is preferred)
                 continue
 
+            # Mark as reviewed
+            reviewed_dishes.add(selected_dish['dish_id'])
+
+            # ... continue with calculation ...
+            variant_name = selected_dish.get('secret_variant_name')
+            # ... (rest of the code remains same, just ensure indentation matches)
+
+            # ===== OPTIMIZATION: Fetch pre-calculated preference vector =====
+            # If user_variant_preferences table has this combination, use it for 3-5x speedup
+            user_variant_preference_vector = None
+            variant_name = selected_dish.get('secret_variant_name')
+
+            if variant_name:
+                try:
+                    pref_result = db.fetch_one("""
+                        SELECT preference_vector
+                        FROM user_variant_preferences
+                        WHERE user_id = %s AND variant_name = %s
+                    """, (user_id, variant_name))
+
+                    if pref_result:
+                        user_variant_preference_vector = safe_json_loads(pref_result[0], None)
+                except Exception as e:
+                    # Fallback to on-the-fly calculation if table doesn't exist or query fails
+                    # This ensures backward compatibility
+                    pass
+
             # OBLICZ OCENY (używa rating_engine.py) ← NAJWAŻNIEJSZE!
-            ratings = calculate_review_ratings(user_data, selected_dish, restaurant)
+            # Pass pre-calculated preference vector for optimization (if available)
+            ratings = calculate_review_ratings(user_data, selected_dish, restaurant,
+                                               user_variant_preference_vector=user_variant_preference_vector)
 
             # FIXED: 60% recenzji ma komentarz, 40% bez komentarza
             has_comment = random.random() < 0.60

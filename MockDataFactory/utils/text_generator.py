@@ -54,7 +54,7 @@ class ReviewTextGenerator:
         'high': ['Świeże składniki, widać dbałość o szczegóły', 'Wszystko na najwyższym poziomie',
                  'Jakość premium', 'Widać doświadczenie kucharza'],
         'medium': ['w normie', 'przeciętne', 'standardowe', 'nic szczególnego'],
-        'low': ['niskiej jakości', 'nie pierwsze świeżości', 'tandetne', 'wątpliwej jakości']
+        'low': ['niskiej jakości', 'nie pierwszej świeżości', 'tandetne', 'wątpliwej jakości']
     }
 
     TEXTURE_COMMENTS = {

@@ -36,7 +36,61 @@
           "ser",
           "szynka",
           "ananas"
-        ]
+        ],
+        "pixabay_term": "hawaiian pizza"
+      },
+      "Chorizo": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "spiciness": {
+          "mean": 2,
+          "stdev": 0.5
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "chorizo",
+          "cebula"
+        ],
+        "pixabay_term": "chorizo pizza"
+      },
+      "Pepperoni": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.1
+        },
+        "spiciness": {
+          "mean": 2,
+          "stdev": 0.5
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "chorizo"
+        ],
+        "pixabay_term": "pepperoni pizza"
+      },
+      "BBQ Chicken": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.1
+        },
+        "spiciness": {
+          "mean": 1,
+          "stdev": 0.5
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_bbq",
+          "ser",
+          "kurczak",
+          "cebula"
+        ],
+        "pixabay_term": "bbq chicken pizza"
       },
       "Chorizo": {
         "price_multiplier": {
@@ -253,7 +307,8 @@
           "sałata",
           "pomidor",
           "cebula"
-        ]
+        ],
+        "pixabay_term": "cheeseburger"
       },
       "Burger z Bekonem": {
         "price_multiplier": {
@@ -271,7 +326,8 @@
           "ser",
           "sałata",
           "pomidor"
-        ]
+        ],
+        "pixabay_term": "bacon burger"
       },
       "Burger Pikantny": {
         "price_multiplier": {
@@ -340,7 +396,8 @@
           "ser",
           "sałata",
           "cebula"
-        ]
+        ],
+        "pixabay_term": "burger"
       },
       "Double Cheeseburger": {
         "price_multiplier": {
@@ -1906,7 +1963,8 @@
           "ryż",
           "śmietana",
           "bulion"
-        ]
+        ],
+        "pixabay_term": "tomato soup"
       },
       "Ogórkowa": {
         "price_multiplier": {
@@ -1922,7 +1980,8 @@
           "ziemniaki",
           "śmietana",
           "koper"
-        ]
+        ],
+        "pixabay_term": "pickle soup"
       },
       "Rosół": {
         "price_multiplier": {
@@ -1937,7 +1996,8 @@
           "rosół_drobiowy",
           "makaron",
           "warzywa"
-        ]
+        ],
+        "pixabay_term": "chicken soup"
       },
       "Barszcz": {
         "price_multiplier": {
@@ -1968,7 +2028,8 @@
           "kiełbasa",
           "jajko",
           "ziemniaki"
-        ]
+        ],
+        "pixabay_term": "soup sour rye"
       },
       "Chłodnik": {
         "price_multiplier": {

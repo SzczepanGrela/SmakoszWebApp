@@ -51,7 +51,7 @@ MODEL_CONFIG = {
     'dropout': 0.2,                # Dropout rate
 
     # Output
-    'output_range': (1.0, 10.0),   # Rating scale
+    'output_range': (0.0, 1.0),    # Normalized rating scale [0, 1]
 
     # NCF variant
     'use_gmf': True,               # Use GMF branch
@@ -83,6 +83,11 @@ TRAINING_CONFIG = {
     # Checkpointing
     'save_every_n_epochs': 5,
     'keep_n_checkpoints': 3,
+
+    # Ranking evaluation
+    'eval_ranking_every_n_epochs': 5,  # Evaluate ranking metrics every N epochs
+    'ranking_k': 5,                     # Top-K for HR@K and NDCG@K
+    'ranking_threshold': 0.7,           # Normalized rating threshold for positive items
 }
 
 # DEVICE CONFIG (AMD ROCm)

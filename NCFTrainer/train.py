@@ -43,6 +43,52 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# RANKING METRICS
+
+def hit_ratio_at_k(ranked_list: np.ndarray, positive_item: int, k: int = 5) -> float:
+    """
+    Calculate Hit Ratio @ K
+
+    Hit occurs if the positive item is in the top-K recommendations.
+
+    Args:
+        ranked_list: Array of item indices sorted by predicted score (descending)
+        positive_item: Index of the ground-truth positive item
+        k: Number of top recommendations to consider
+
+    Returns:
+        1.0 if positive item is in top-K, else 0.0
+    """
+    return 1.0 if positive_item in ranked_list[:k] else 0.0
+
+def ndcg_at_k(ranked_list: np.ndarray, positive_item: int, k: int = 5) -> float:
+    """
+    Calculate Normalized Discounted Cumulative Gain @ K
+
+    NDCG measures the position of the positive item in the ranking,
+    giving higher weight to items ranked higher.
+
+    Args:
+        ranked_list: Array of item indices sorted by predicted score (descending)
+        positive_item: Index of the ground-truth positive item
+        k: Number of top recommendations to consider
+
+    Returns:
+        NDCG score between 0.0 and 1.0
+    """
+    # Find position of positive item (0-indexed)
+    try:
+        position = np.where(ranked_list[:k] == positive_item)[0][0]
+        # DCG formula: 1 / log2(position + 2)
+        # +2 because positions are 0-indexed and log2(1) = 0
+        dcg = 1.0 / np.log2(position + 2)
+        # IDCG (ideal DCG) is when positive item is at position 0
+        idcg = 1.0 / np.log2(2)  # = 1.0
+        return dcg / idcg
+    except IndexError:
+        # Positive item not in top-K
+        return 0.0
+
 class Trainer:
     """NCF Model Trainer"""
 
@@ -53,7 +99,9 @@ class Trainer:
                  test_loader,
                  data_manager: CFDataManager,
                  device: str = 'cuda',
-                 config: dict = None):
+                 config: dict = None,
+                 val_dataset=None,
+                 test_dataset=None):
 
         self.model = model.to(device)
         self.train_loader = train_loader
@@ -62,6 +110,10 @@ class Trainer:
         self.data_manager = data_manager
         self.device = device
         self.config = config or TRAINING_CONFIG
+
+        # Store datasets for ranking evaluation
+        self.val_dataset = val_dataset
+        self.test_dataset = test_dataset
 
         # Loss function
         self.criterion = nn.MSELoss()
@@ -107,6 +159,8 @@ class Trainer:
             'train_loss': [], 'val_loss': [], 'test_loss': [],
             'train_rmse': [], 'val_rmse': [], 'test_rmse': [],
             'train_mae': [], 'val_mae': [], 'test_mae': [],
+            'val_hr@5': [], 'test_hr@5': [],
+            'val_ndcg@5': [], 'test_ndcg@5': [],
             'lr': []
         }
 
@@ -158,40 +212,132 @@ class Trainer:
 
     @torch.no_grad()
     def evaluate(self, loader, name: str = "val") -> dict:
-        """Evaluate model on a dataset"""
+        """
+        Evaluate model on a dataset using running averages
+
+        Memory-efficient implementation that doesn't store individual predictions.
+        Computes metrics (RMSE, MAE) using accumulated sums instead of collecting all values.
+        """
         self.model.eval()
 
-        total_loss = 0
-        total_mae = 0
-        n_batches = 0
-        all_predictions = []
-        all_ratings = []
+        total_loss = 0.0
+        total_mae = 0.0
+        total_samples = 0
 
         for user_ids, item_ids, ratings in loader:
             user_ids = user_ids.to(self.device)
             item_ids = item_ids.to(self.device)
             ratings = ratings.to(self.device)
 
+            batch_size = ratings.size(0)
             predictions = self.model(user_ids, item_ids)
-            loss = self.criterion(predictions, ratings)
 
-            total_loss += loss.item()
-            total_mae += torch.abs(predictions - ratings).mean().item()
-            n_batches += 1
+            # Accumulate batch metrics weighted by batch size
+            batch_loss = self.criterion(predictions, ratings)
+            batch_mae = torch.abs(predictions - ratings).sum()
 
-            all_predictions.extend(predictions.cpu().numpy())
-            all_ratings.extend(ratings.cpu().numpy())
+            total_loss += batch_loss.item() * batch_size
+            total_mae += batch_mae.item()
+            total_samples += batch_size
 
-        avg_loss = total_loss / n_batches
-        avg_mae = total_mae / n_batches
+        # Calculate averages
+        avg_loss = total_loss / total_samples
+        avg_mae = total_mae / total_samples
         avg_rmse = np.sqrt(avg_loss)
 
         return {
             'loss': avg_loss,
             'rmse': avg_rmse,
-            'mae': avg_mae,
-            'predictions': np.array(all_predictions),
-            'ratings': np.array(all_ratings)
+            'mae': avg_mae
+        }
+
+    @torch.no_grad()
+    def evaluate_ranking(self, dataset: 'RatingsDataset', k: int = 5,
+                        n_negative: int = 99, rating_threshold: float = 0.7) -> dict:
+        """
+        Evaluate ranking metrics (HitRatio@K, NDCG@K)
+
+        Simulates a ranking scenario for each user:
+        - Takes ground-truth positive items (high ratings >= threshold)
+        - Samples n_negative items the user hasn't interacted with
+        - Ranks all items by predicted score
+        - Calculates HitRatio and NDCG
+
+        Args:
+            dataset: RatingsDataset to evaluate
+            k: Top-K for metrics (default 5)
+            n_negative: Number of negative samples per positive (default 99)
+            rating_threshold: Normalized rating threshold for positive items (default 0.7)
+
+        Returns:
+            Dict with 'hit_ratio' and 'ndcg' metrics
+        """
+        self.model.eval()
+
+        # Group ratings by user
+        user_items = {}  # user_idx -> list of (item_idx, rating)
+
+        for i in range(len(dataset)):
+            user_idx = dataset.user_ids[i].item()
+            item_idx = dataset.item_ids[i].item()
+            rating = dataset.ratings[i].item()
+
+            if user_idx not in user_items:
+                user_items[user_idx] = []
+            user_items[user_idx].append((item_idx, rating))
+
+        total_hr = 0.0
+        total_ndcg = 0.0
+        n_tests = 0
+
+        rng = np.random.RandomState(42)
+
+        for user_idx, items in user_items.items():
+            # Get positive items (high ratings)
+            positive_items = [item_idx for item_idx, rating in items if rating >= rating_threshold]
+
+            if len(positive_items) == 0:
+                continue
+
+            # For each positive item, create a ranking test
+            for pos_item in positive_items:
+                # Sample negative items
+                neg_items = self.data_manager.sample_negative_items(
+                    user_idx, n_samples=n_negative, rng=rng
+                )
+
+                # Combine positive and negative items
+                test_items = np.concatenate([[pos_item], neg_items])
+
+                # Predict scores for all test items
+                user_tensor = torch.full((len(test_items),), user_idx, dtype=torch.long).to(self.device)
+                item_tensor = torch.LongTensor(test_items).to(self.device)
+
+                scores = self.model(user_tensor, item_tensor).cpu().numpy()
+
+                # Rank items by score (descending)
+                ranked_indices = np.argsort(-scores)
+                ranked_items = test_items[ranked_indices]
+
+                # Calculate metrics
+                hr = hit_ratio_at_k(ranked_items, pos_item, k=k)
+                ndcg = ndcg_at_k(ranked_items, pos_item, k=k)
+
+                total_hr += hr
+                total_ndcg += ndcg
+                n_tests += 1
+
+        if n_tests == 0:
+            logger.warning(f"No test cases generated for ranking evaluation (threshold={rating_threshold})")
+            return {'hit_ratio': 0.0, 'ndcg': 0.0, 'n_tests': 0}
+
+        avg_hr = total_hr / n_tests
+        avg_ndcg = total_ndcg / n_tests
+
+        return {
+            'hit_ratio': avg_hr,
+            'ndcg': avg_ndcg,
+            'n_tests': n_tests
         }
 
     def train(self, epochs: int = None):
@@ -212,6 +358,29 @@ class Trainer:
             self.history['val_loss'].append(val_metrics['loss'])
             self.history['val_rmse'].append(val_metrics['rmse'])
             self.history['val_mae'].append(val_metrics['mae'])
+
+            # Ranking metrics (evaluate every N epochs to save time)
+            eval_ranking_interval = self.config.get('eval_ranking_every_n_epochs', 5)
+            if self.val_dataset is not None and (epoch + 1) % eval_ranking_interval == 0:
+                logger.info("  Evaluating ranking metrics...")
+                ranking_metrics = self.evaluate_ranking(self.val_dataset, k=5)
+                self.history['val_hr@5'].append(ranking_metrics['hit_ratio'])
+                self.history['val_ndcg@5'].append(ranking_metrics['ndcg'])
+
+                # Log ranking metrics to TensorBoard
+                self.writer.add_scalar('Ranking/val_hr@5', ranking_metrics['hit_ratio'], epoch)
+                self.writer.add_scalar('Ranking/val_ndcg@5', ranking_metrics['ndcg'], epoch)
+
+                logger.info(
+                    f"  Ranking: HR@5={ranking_metrics['hit_ratio']:.4f}, "
+                    f"NDCG@5={ranking_metrics['ndcg']:.4f} "
+                    f"({ranking_metrics['n_tests']} tests)"
+                )
+            else:
+                # Append None for epochs without ranking evaluation
+                if (epoch + 1) % eval_ranking_interval != 0:
+                    self.history['val_hr@5'].append(None)
+                    self.history['val_ndcg@5'].append(None)
 
             # Learning rate
             current_lr = self.optimizer.param_groups[0]['lr']
@@ -256,14 +425,27 @@ class Trainer:
                 self.save_checkpoint(epoch)
 
         # Final evaluation on test set
+        logger.info("\nFinal Test Evaluation:")
         test_metrics = self.evaluate(self.test_loader, "test")
         self.history['test_loss'].append(test_metrics['loss'])
         self.history['test_rmse'].append(test_metrics['rmse'])
         self.history['test_mae'].append(test_metrics['mae'])
 
-        logger.info(f"\nFinal Test Results:")
         logger.info(f"  RMSE: {test_metrics['rmse']:.4f}")
         logger.info(f"  MAE: {test_metrics['mae']:.4f}")
+
+        # Ranking metrics on test set
+        if self.test_dataset is not None:
+            logger.info("  Evaluating ranking metrics on test set...")
+            test_ranking = self.evaluate_ranking(self.test_dataset, k=5)
+            self.history['test_hr@5'].append(test_ranking['hit_ratio'])
+            self.history['test_ndcg@5'].append(test_ranking['ndcg'])
+            test_metrics['hit_ratio'] = test_ranking['hit_ratio']
+            test_metrics['ndcg'] = test_ranking['ndcg']
+
+            logger.info(f"  HR@5: {test_ranking['hit_ratio']:.4f}")
+            logger.info(f"  NDCG@5: {test_ranking['ndcg']:.4f}")
+            logger.info(f"  ({test_ranking['n_tests']} ranking tests)")
 
         self.writer.close()
 
@@ -392,6 +574,10 @@ def main():
         random_seed=TRAINING_CONFIG['random_seed']
     )
 
+    # Get datasets for ranking evaluation (already created by load_data_from_db)
+    val_ds = data_manager.val_dataset
+    test_ds = data_manager.test_dataset
+
     # Create model
     logger.info("Creating NCF model...")
     model = create_ncf_model(
@@ -408,7 +594,9 @@ def main():
         test_loader=test_loader,
         data_manager=data_manager,
         device=device,
-        config=TRAINING_CONFIG
+        config=TRAINING_CONFIG,
+        val_dataset=val_ds,
+        test_dataset=test_ds
     )
 
     # Train

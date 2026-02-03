@@ -9,6 +9,12 @@
 -- DROP EXISTING TABLES (for clean rebuild)
 -- ========================================
 -- New tables added to DROP list
+DROP TABLE IF EXISTS user_variant_preferences CASCADE;
+DROP TABLE IF EXISTS auth_tokens CASCADE;
+DROP TABLE IF EXISTS security_logs CASCADE;
+DROP TABLE IF EXISTS email_logs CASCADE;
+DROP TABLE IF EXISTS search_history CASCADE;
+DROP TABLE IF EXISTS data_correction_requests CASCADE;
 DROP TABLE IF EXISTS user_follows CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS review_likes CASCADE;
@@ -86,6 +92,7 @@ CREATE TABLE restaurants (
     secret_cleanliness_score DOUBLE PRECISION,
     secret_ambiance_type VARCHAR(100),
     secret_ambiance_quality DOUBLE PRECISION,
+    secret_archetype_modifiers JSONB DEFAULT '{}',
 
     -- Additional attributes for menu generation (SECRET - only for generation)
     secret_menu_blueprint VARCHAR(100),
@@ -159,13 +166,13 @@ CREATE TABLE dishes (
 
     -- Secret Simulation Attributes
     secret_base_price NUMERIC(10, 2),
+    secret_characteristics_vector JSONB NOT NULL DEFAULT '{}',
+    secret_weights_vector JSONB DEFAULT NULL,
     secret_quality DOUBLE PRECISION,
-    secret_spiciness DOUBLE PRECISION,
 
     -- Additional attributes for CF model
     secret_archetype VARCHAR(100),
-    secret_richness DOUBLE PRECISION,
-    secret_texture_score DOUBLE PRECISION,
+    secret_variant_name VARCHAR(100),  -- NEW: Abstract variant key (e.g., 'Margherita')
     secret_popularity_factor DOUBLE PRECISION,
 
     -- Calculated average (updated by scheduled function)
@@ -276,23 +283,17 @@ CREATE TABLE users (
     -- Secret Simulation Attributes (for CF model)
     secret_total_review_count INT,
     secret_travel_propensity DOUBLE PRECISION,
+    secret_enjoyed_archetypes JSONB, -- NEW: Stores affinity for archetypes e.g., {"Pizza": 0.9, "Sushi": 0.2}
     secret_chance_dine_random DOUBLE PRECISION,
     secret_chance_pick_random_dish DOUBLE PRECISION,
     secret_cross_impact_factor DOUBLE PRECISION,
     secret_mood_propensity DOUBLE PRECISION,
     secret_is_influencer BOOLEAN DEFAULT FALSE, -- NEW: Determines popularity in social graph
-    secret_price_preference_range VARCHAR(50),
-    secret_price_tolerance_above DOUBLE PRECISION,
-    secret_price_tolerance_below DOUBLE PRECISION,
-    secret_enjoyed_archetypes JSONB,
+    secret_rating_baseline DOUBLE PRECISION DEFAULT 6.0, -- NEW: User's baseline rating tendency (Critic=4.0, Realist=6.0, Fan=7.5)
+    secret_characteristics_vector JSONB NOT NULL DEFAULT '{}',
     secret_ingredient_preferences JSONB,
     secret_cleanliness_preference JSONB,
     secret_preferred_ambiance VARCHAR(100),
-
-    -- Additional preferences for CF model
-    secret_spice_preference DOUBLE PRECISION,
-    secret_richness_preference DOUBLE PRECISION,
-    secret_texture_preference DOUBLE PRECISION,
 
     -- RBAC: Role validation constraint
     CONSTRAINT chk_user_role CHECK (role IN ('user', 'admin', 'moderator'))
@@ -304,7 +305,36 @@ CREATE INDEX idx_users_role ON users(role);  -- RBAC: For role-based queries
 CREATE INDEX idx_users_influencer ON users(secret_is_influencer) WHERE secret_is_influencer = TRUE; -- Optimize for Phase 6
 
 -- GIN index for JSONB field (for efficient querying)
-CREATE INDEX idx_users_archetypes_gin ON users USING GIN (secret_enjoyed_archetypes);
+CREATE INDEX idx_users_characteristics_gin ON users USING GIN (secret_characteristics_vector);
+
+-- ========================================
+-- 10a. USER_VARIANT_PREFERENCES (New - Materialized Preferences)
+-- ========================================
+-- This table stores pre-calculated contextual preference vectors
+-- for each user-variant combination. This optimization allows:
+-- 1. Fast lookup during review generation (no recalculation needed)
+-- 2. Consistent preference application across all dishes of a variant
+-- 3. Potential for A/B testing different preference algorithms
+CREATE TABLE user_variant_preferences (
+    preference_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    variant_name VARCHAR(100) NOT NULL,    -- Abstract variant key (e.g., 'Margherita')
+    archetype_name VARCHAR(50) NOT NULL,   -- For easier querying/grouping (e.g., 'Pizza')
+    preference_vector JSONB NOT NULL,      -- Calculated contextual target vector for this user/variant
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Prevent duplicate entries for same user-variant combination
+    CONSTRAINT uq_user_variant UNIQUE (user_id, variant_name)
+);
+
+-- Composite index for fast lookups during review generation
+CREATE INDEX idx_user_variant_preferences_lookup ON user_variant_preferences(user_id, variant_name);
+
+-- Index for archetype-level analysis
+CREATE INDEX idx_user_variant_preferences_archetype ON user_variant_preferences(archetype_name);
+
+-- GIN index for JSONB preference vector (for advanced queries)
+CREATE INDEX idx_user_variant_preferences_vector_gin ON user_variant_preferences USING GIN (preference_vector);
 
 -- ========================================
 -- 11a. AUTH TOKENS (New - Security)

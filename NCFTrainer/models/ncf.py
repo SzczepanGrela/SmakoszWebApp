@@ -85,7 +85,7 @@ class NCF(nn.Module):
     Neural Collaborative Filtering
 
     Combines GMF and MLP branches for hybrid recommendations.
-    Predicts rating on scale [min_rating, max_rating].
+    Predicts normalized rating in range [0, 1] (raw logits).
     """
 
     def __init__(self,
@@ -95,7 +95,6 @@ class NCF(nn.Module):
                  mlp_embedding_dim: int = 32,
                  mlp_layers: List[int] = None,
                  dropout: float = 0.2,
-                 output_range: Tuple[float, float] = (1.0, 10.0),
                  use_gmf: bool = True,
                  use_mlp: bool = True):
         super().__init__()
@@ -105,7 +104,6 @@ class NCF(nn.Module):
 
         self.use_gmf = use_gmf
         self.use_mlp = use_mlp
-        self.output_range = output_range
 
         # GMF branch
         if use_gmf:
@@ -147,12 +145,8 @@ class NCF(nn.Module):
         # Concatenate branches
         x = torch.cat(outputs, dim=-1)
 
-        # Predict rating
+        # Predict normalized rating (raw logits in [0, 1] range)
         rating = self.prediction(x).squeeze(-1)
-
-        # Scale to output range using sigmoid
-        min_rating, max_rating = self.output_range
-        rating = torch.sigmoid(rating) * (max_rating - min_rating) + min_rating
 
         return rating
 
@@ -201,7 +195,6 @@ def create_ncf_model(n_users: int,
         mlp_embedding_dim=config.get('mlp_embedding_dim', 32),
         mlp_layers=config.get('mlp_layers', [128, 64, 32]),
         dropout=config.get('dropout', 0.2),
-        output_range=config.get('output_range', (1.0, 10.0)),
         use_gmf=config.get('use_gmf', True),
         use_mlp=config.get('use_mlp', True)
     )
@@ -227,7 +220,6 @@ if __name__ == "__main__":
         'mlp_embedding_dim': 32,
         'mlp_layers': [128, 64, 32],
         'dropout': 0.2,
-        'output_range': (1.0, 10.0),
         'use_gmf': True,
         'use_mlp': True
     }
