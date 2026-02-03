@@ -1,0 +1,88 @@
+{
+  "rejection_reasons": [
+    {
+      "reason_code": "PHOTO_NSFW",
+      "category": "photo",
+      "admin_label": "NSFW Content",
+      "user_message_template": "Zdjęcie zawiera treści nieodpowiednie dla wszystkich widzów.",
+      "is_active": true
+    },
+    {
+      "reason_code": "PHOTO_OFFENSIVE",
+      "category": "photo",
+      "admin_label": "Offensive Content",
+      "user_message_template": "Zdjęcie zawiera treści obraźliwe lub niestosowne.",
+      "is_active": true
+    },
+    {
+      "reason_code": "PHOTO_LOW_QUALITY",
+      "category": "photo",
+      "admin_label": "Low Quality",
+      "user_message_template": "Zdjęcie jest zbyt niskiej jakości (rozmazane, ciemne).",
+      "is_active": true
+    },
+    {
+      "reason_code": "PHOTO_IRRELEVANT",
+      "category": "photo",
+      "admin_label": "Not Relevant",
+      "user_message_template": "Zdjęcie nie dotyczy restauracji lub dania.",
+      "is_active": true
+    },
+    {
+      "reason_code": "PHOTO_SPAM",
+      "category": "photo",
+      "admin_label": "Spam/Advertisement",
+      "user_message_template": "Zdjęcie zawiera reklamę lub spam.",
+      "is_active": true
+    },
+    {
+      "reason_code": "PHOTO_COPYRIGHT",
+      "category": "photo",
+      "admin_label": "Copyright Violation",
+      "user_message_template": "Zdjęcie narusza prawa autorskie.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_PROFANITY",
+      "category": "text",
+      "admin_label": "Profanity",
+      "user_message_template": "Komentarz zawiera wulgaryzmy.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_HATE_SPEECH",
+      "category": "text",
+      "admin_label": "Hate Speech",
+      "user_message_template": "Komentarz zawiera mowę nienawiści.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_SPAM",
+      "category": "text",
+      "admin_label": "Spam",
+      "user_message_template": "Komentarz jest spamem lub reklamą.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_OFF_TOPIC",
+      "category": "text",
+      "admin_label": "Off-Topic",
+      "user_message_template": "Komentarz nie dotyczy restauracji lub dania.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_HARASSMENT",
+      "category": "text",
+      "admin_label": "Harassment",
+      "user_message_template": "Komentarz jest formą nękania.",
+      "is_active": true
+    },
+    {
+      "reason_code": "TEXT_PERSONAL_INFO",
+      "category": "text",
+      "admin_label": "Personal Information",
+      "user_message_template": "Komentarz ujawnia prywatne dane osobowe.",
+      "is_active": true
+    }
+  ]
+}

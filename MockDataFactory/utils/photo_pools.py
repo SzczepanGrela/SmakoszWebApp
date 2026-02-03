@@ -1,87 +1,326 @@
-"""
-Photo Pools - Zarządzanie lokalnymi zdjęciami (Warianty + Restauracje)
-"""
-
 import json
 import logging
+import os
 import random
 from pathlib import Path
-from typing import Dict, List, Set
-import sys
-import os
+from typing import Any
 
-# Import config - note: uses sys.path.append because utils can't use relative imports for config
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import PHOTO_CONFIG
 
 logger = logging.getLogger(__name__)
-INDEX_FILE = Path(PHOTO_CONFIG['local_photo_index'])
+INDEX_FILE = Path(str(PHOTO_CONFIG["local_photo_index"]))
 
 class PhotoPools:
-    def __init__(self):
+    """
+    Photo pool manager for dish and restaurant images.
+
+    Manages photo assignment with usage tracking to avoid repetition
+    within the same restaurant context.
+    """
+
+    def __init__(self) -> None:
+        """Initialize photo pools with index and usage tracking."""
         self.index = self._load_index()
-        # { restaurant_id: { 'dishes': set(), 'interior': set() } }
-        self.usage_history: Dict[int, Dict[str, Set[str]]] = {}
-        logger.info(f"✓ PhotoPools: Initialized (Variant Aware).")
+        self.usage_history: dict[int, dict[str, set[str]]] = {}
+        # Cache the R2 domain to avoid repeated env lookups
+        self.r2_domain = os.getenv("R2_PUBLIC_DOMAIN")
+        if self.r2_domain:
+            self.r2_domain = self.r2_domain.rstrip("/")
+            logger.info(f"PhotoPools: Using R2 Public Domain: {self.r2_domain}")
+        else:
+            logger.info("PhotoPools: Using local paths (/images/mock/)")
 
-    def _load_index(self) -> Dict:
+    def _load_index(self) -> dict[str, Any]:
+        """
+        Load photo index from JSON file.
+
+        Returns:
+            dict: Photo index with structure:
+                {
+                    "dishes": {category: {variant: [photo_paths]}},
+                    "restaurants": {theme: [photo_paths]}
+                }
+        """
         if not INDEX_FILE.exists():
-            return {"dishes": {}, "restaurants": {}}
-        try:
-            with open(INDEX_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
+            # Log as DEBUG to avoid spamming console in multiprocessing environments
+            # when running without local assets (using placeholders).
+            logger.debug(f"Photo index file not found: {INDEX_FILE}. Using placeholders.")
             return {"dishes": {}, "restaurants": {}}
 
-    def _get_used(self, res_id: int, type_key: str) -> Set[str]:
+        try:
+            with open(INDEX_FILE, encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError, OSError) as e:
+            logger.error(f"Failed to load photo index from {INDEX_FILE}: {e}")
+            return {"dishes": {}, "restaurants": {}}
+
+    def _get_used(self, res_id: int, type_key: str) -> set[str]:
+        """
+        Get or create the set of used photos for a restaurant.
+
+        Args:
+            res_id: Restaurant ID
+            type_key: Type of photo ("dishes" or "interior")
+
+        Returns:
+            set: Set of photo paths already used for this restaurant
+        """
         if res_id not in self.usage_history:
-            self.usage_history[res_id] = {'dishes': set(), 'interior': set()}
+            self.usage_history[res_id] = {"dishes": set(), "interior": set()}
         return self.usage_history[res_id][type_key]
 
-    def get_dish_photo(self, category: str, variant: str, restaurant_id: int) -> str:
-        """
-        Pobiera zdjęcie dla KONKRETNEGO wariantu (np. Pizza -> Margherita).
-        Fallback: Inny wariant z tej samej kategorii -> Losowe zdjęcie z kategorii -> Placeholder.
-        """
-        cat_data = self.index.get("dishes", {}).get(category, {})
+    def _format_url(self, path: str) -> str:
+        """Helper to format URL based on configuration (R2 vs Local).
         
-        # 1. Try specific variant
-        photos = cat_data.get(variant, [])
+        R2 Path Architecture (v2):
+        - Mock data: smakosz/images/mock/{dishes,restaurants,avatars}/...
+        - Ingredients: smakosz/images/ingredients/...
+        """
+        if self.r2_domain:
+            # Check if this is an ingredient path
+            if path.startswith("ingredients/"):
+                return f"{self.r2_domain}/smakosz/images/{path}"
+            else:
+                return f"{self.r2_domain}/smakosz/images/mock/{path}"
+        return f"/images/mock/{path}"
+
+    def _extract_photo_data(self, photo_entry: str | dict) -> tuple[str, str | None, int | None, int | None]:
+        """
+        Extract path, blurhash, width, and height from photo entry (backward compatible).
+
+        Args:
+            photo_entry: Either a string (old format) or dict with {path, blurhash, width, height} (new format)
+
+        Returns:
+            tuple[str, str | None, int | None, int | None]: (path, blurhash, width, height)
+        """
+        if isinstance(photo_entry, dict):
+            return (
+                photo_entry.get("path", ""),
+                photo_entry.get("blurhash"),
+                photo_entry.get("width"),
+                photo_entry.get("height")
+            )
+        elif isinstance(photo_entry, str):
+            # Old format: just a path string
+            return (photo_entry, None, None, None)
+        else:
+            logger.warning(f"Unknown photo entry format: {type(photo_entry)}")
+            return ("", None, None, None)
+
+    def get_dish_photo(self, category: str, variant: str, restaurant_id: int) -> dict[str, str | int | None]:
+        """
+        Get photo metadata for a dish, avoiding repetition within the same restaurant.
+
+        Args:
+            category: Dish category/archetype (e.g., "Pizza", "Burger")
+            variant: Specific dish variant (e.g., "Margherita", "Cheeseburger")
+            restaurant_id: Restaurant ID for usage tracking
+
+        Returns:
+            dict: {"url": str, "blurhash": str | None, "width": int | None, "height": int | None}
+        """
+        # Try direct lookup first, then slugified (to match snake_case folders)
+        cat_data = self.index.get("dishes", {}).get(category)
+        if cat_data is None:
+             from tools.utils import slugify
+             cat_data = self.index.get("dishes", {}).get(slugify(category), {})
         
-        # 2. Fallback: Flatten all photos from this category
+        photos = cat_data.get(variant)
+        if photos is None:
+             from tools.utils import slugify
+             photos = cat_data.get(slugify(variant), [])
+
         if not photos:
             photos = [p for sublist in cat_data.values() for p in sublist]
-            
-        if not photos:
-            return "/images/mock/placeholder.webp"
 
-        # Uniqueness check
-        used = self._get_used(restaurant_id, 'dishes')
-        unused = [p for p in photos if p not in used]
-        
+        if not photos:
+            # Dynamic fallback using placehold.co
+            text = f"{category} {variant}".replace(" ", "+")
+            return {"url": f"https://placehold.co/600x400?text={text}", "blurhash": None, "width": 600, "height": 400}
+
+        used = self._get_used(restaurant_id, "dishes")
+
+        # Extract paths for usage tracking (works with both old and new format)
+        photo_paths = []
+        for p in photos:
+            path, _, _, _ = self._extract_photo_data(p)
+            if path:
+                photo_paths.append((p, path))
+
+        # Filter by unused paths
+        unused = [p for p, path in photo_paths if path not in used]
+
         if unused:
             selected = random.choice(unused)
         else:
-            selected = random.choice(photos)
-            
-        used.add(selected)
-        return f"/images/mock/{selected}"
+            selected = random.choice([p for p, _ in photo_paths]) if photo_paths else photos[0]
 
-    def get_restaurant_photo(self, theme: str, restaurant_id: int) -> str:
-        photos = self.index.get("restaurants", {}).get(theme, [])
+        # Track usage by path and extract all metadata
+        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
+        used.add(selected_path)
+
+        return {
+            "url": self._format_url(selected_path),
+            "blurhash": selected_hash,
+            "width": width,
+            "height": height
+        }
+
+    def get_restaurant_photo(self, theme: str, restaurant_id: int) -> dict[str, str | int | None]:
+        """
+        Get photo metadata for a restaurant interior, avoiding repetition.
+
+        Args:
+            theme: Restaurant theme (e.g., "Pizzeria", "Sushi Bar")
+            restaurant_id: Restaurant ID for usage tracking
+
+        Returns:
+            dict: {"url": str, "blurhash": str | None, "width": int | None, "height": int | None}
+        """
+        photos = self.index.get("restaurants", {}).get(theme)
+        if photos is None:
+             from tools.utils import slugify
+             photos = self.index.get("restaurants", {}).get(slugify(theme), [])
         if not photos:
-            return "/images/mock/restaurant_placeholder.webp"
-            
-        used = self._get_used(restaurant_id, 'interior')
-        unused = [p for p in photos if p not in used]
-        
+            # Dynamic fallback using placehold.co
+            text = f"{theme} Interior".replace(" ", "+")
+            return {"url": f"https://placehold.co/800x600?text={text}", "blurhash": None, "width": 800, "height": 600}
+
+        used = self._get_used(restaurant_id, "interior")
+
+        # Extract paths for usage tracking (works with both old and new format)
+        photo_paths = []
+        for p in photos:
+            path, _, _, _ = self._extract_photo_data(p)
+            if path:
+                photo_paths.append((p, path))
+
+        # Filter by unused paths
+        unused = [p for p, path in photo_paths if path not in used]
+
         if unused:
             selected = random.choice(unused)
         else:
-            selected = random.choice(photos)
-            
-        used.add(selected)
-        return f"/images/mock/{selected}"
+            selected = random.choice([p for p, _ in photo_paths]) if photo_paths else photos[0]
+
+        # Track usage by path and extract all metadata
+        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
+        used.add(selected_path)
+
+        return {
+            "url": self._format_url(selected_path),
+            "blurhash": selected_hash,
+            "width": width,
+            "height": height
+        }
+
+    def get_review_photo(self, archetype: str, variant: str) -> dict[str, str | int | None]:
+        """
+        Get photo metadata for a user review (dish photo).
+        Does not track usage history as multiple users can upload similar photos.
+
+        Args:
+            archetype: Dish archetype
+            variant: Dish variant
+
+        Returns:
+            dict: {"url": str, "blurhash": str | None, "width": int | None, "height": int | None}
+        """
+        # Try direct lookup first, then slugified
+        cat_data = self.index.get("dishes", {}).get(archetype)
+        if cat_data is None:
+             from tools.utils import slugify
+             cat_data = self.index.get("dishes", {}).get(slugify(archetype), {})
+
+        photos = cat_data.get(variant)
+        if photos is None:
+             from tools.utils import slugify
+             photos = cat_data.get(slugify(variant), [])
+
+        if not photos:
+            # Fallback to any photo from category
+            photos = [p for sublist in cat_data.values() for p in sublist]
+
+        if not photos:
+            # Dynamic fallback using placehold.co
+            text = f"Review: {variant}".replace(" ", "+")
+            return {"url": f"https://placehold.co/400x300?text={text}", "blurhash": None, "width": 400, "height": 300}
+
+        selected = random.choice(photos)
+        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
+        return {
+            "url": self._format_url(selected_path),
+            "blurhash": selected_hash,
+            "width": width,
+            "height": height
+        }
 
     def get_user_photo_generic(self) -> str:
+        """
+        Get a generic user photo URL (UI Avatars service).
+
+        Returns:
+            str: UI Avatars URL with random background color
+        """
         return "https://ui-avatars.com/api/?name=User&background=random"
+
+    def get_user_avatar(self) -> dict[str, str | int | None]:
+        """
+        Get custom user avatar metadata from the avatar pool.
+
+        Randomly selects from the pre-downloaded avatar image pool (300x300 squares).
+        Falls back to placehold.co if no avatars are available in the index.
+
+        Returns:
+            dict: {"url": str, "blurhash": str | None, "width": int | None, "height": int | None}
+        """
+        avatars: list = self.index.get("avatars", [])
+
+        # Fallback: If no avatars downloaded, use placeholder
+        if not avatars:
+            logger.debug("No avatars in index - using placehold.co fallback")
+            avatar_styles = [
+                "https://placehold.co/300x300/3498db/ffffff?text=Real+User",
+                "https://placehold.co/300x300/e74c3c/ffffff?text=Custom+Avatar",
+                "https://placehold.co/300x300/2ecc71/ffffff?text=Uploaded+Photo",
+                "https://placehold.co/300x300/f39c12/ffffff?text=User+Photo",
+                "https://placehold.co/300x300/9b59b6/ffffff?text=Profile+Pic",
+            ]
+            return {"url": random.choice(avatar_styles), "blurhash": None, "width": 300, "height": 300}
+
+        # Select random avatar from pool and format with R2/local domain
+        selected = random.choice(avatars)
+        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
+        return {
+            "url": self._format_url(selected_path),
+            "blurhash": selected_hash,
+            "width": width,
+            "height": height
+        }
+
+    def get_ingredient_photo(self, ingredient_name: str) -> dict[str, str | int | None]:
+        """
+        Get photo metadata for an ingredient icon.
+
+        Args:
+            ingredient_name: Name of the ingredient (e.g., "Tomato")
+
+        Returns:
+            dict: {"url": str | None, "blurhash": str | None, "width": int | None, "height": int | None}
+        """
+        ing_index = self.index.get("ingredients", {})
+        photo_entry = ing_index.get(ingredient_name)
+
+        if photo_entry:
+            path, blurhash_val, width, height = self._extract_photo_data(photo_entry)
+            if path:
+                return {
+                    "url": self._format_url(path),
+                    "blurhash": blurhash_val,
+                    "width": width,
+                    "height": height
+                }
+
+        return {"url": None, "blurhash": None, "width": None, "height": None}
+

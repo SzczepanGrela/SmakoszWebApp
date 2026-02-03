@@ -23,6 +23,7 @@ __pycache__/
 # LOGS
 *.log
 logs/
+mockdata_generation.log
 
 # IDE
 .vscode/
@@ -39,3 +40,9 @@ dump_*.sql
 backup_*.sql
 *.db
 *.sqlite3
+
+# TYPE CHECKING CACHE
+.mypy_cache/
+
+# LINTER CACHE
+.ruff_cache/

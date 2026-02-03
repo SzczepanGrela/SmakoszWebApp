@@ -1,0 +1,130 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mockdatafactory"
+version = "1.0.0"
+description = "Sophisticated test data generator for restaurant recommendation system"
+requires-python = ">=3.10"
+
+[tool.ruff]
+# Set line length limit
+line-length = 120
+
+# Target Python version
+target-version = "py310"
+
+# Exclude directories from linting
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.egg-info",
+    "dist",
+    "build",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade (modernize Python code)
+    "B",   # flake8-bugbear (find likely bugs)
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+]
+
+# Disable specific rules that may be too strict
+ignore = [
+    "E501",   # Line too long (handled by line-length setting)
+    "B008",   # Do not perform function call in argument defaults
+    "B904",   # Within an except clause, raise exceptions with from
+    "SIM108", # Use ternary operator instead of if-else
+    "SIM105", # Use contextlib.suppress instead of try-except-pass
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+# Group imports by section
+known-first-party = ["generators", "algorithms", "utils", "data_access", "config"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow unused imports in __init__.py files
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+# Python version to target
+python_version = "3.10"
+
+# Import discovery
+ignore_missing_imports = true
+follow_imports = "silent"
+
+# Strictness settings
+check_untyped_defs = true
+disallow_untyped_defs = false  # Set to true for stricter typing
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+
+# Error reporting
+warn_return_any = false
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+# Miscellaneous
+strict_equality = true
+no_implicit_optional = true
+
+# Output
+show_error_context = true
+show_column_numbers = true
+show_error_codes = true
+pretty = true
+
+# Paths to check
+files = [
+    "generators",
+    "algorithms",
+    "utils",
+    "data_access",
+    "config.py",
+    "main.py",
+]
+
+# Exclude patterns
+exclude = [
+    "venv",
+    ".venv",
+    "tests",
+    "tools",
+]
+
+[[tool.mypy.overrides]]
+# Less strict checking for specific modules
+module = [
+    "generators.*",
+    "algorithms.*",
+]
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+# Add project root to Python path
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

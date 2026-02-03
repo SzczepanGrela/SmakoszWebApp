@@ -1,0 +1,6378 @@
+{
+  "Pizza": {
+    "base_price": {
+      "mean": 30.0,
+      "stdev": 3.5
+    },
+    "variants": {
+      "Margherita": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "bazylia"
+        ],
+        "pixabay_term": "pizza margherita",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Hawajska": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "szynka",
+          "ananas"
+        ],
+        "pixabay_term": "hawaiian pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8,
+          "flavor_sweetness": 0.8
+        },
+        "weights": null
+      },
+      "Chorizo": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "chorizo",
+          "cebula"
+        ],
+        "pixabay_term": "chorizo pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Pepperoni": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "chorizo"
+        ],
+        "pixabay_term": "pepperoni pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "BBQ Chicken": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_bbq",
+          "ser",
+          "kurczak",
+          "cebula"
+        ],
+        "pixabay_term": "pizza with chicken",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Calzone Klasyczne": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "szynka",
+          "pieczarki"
+        ],
+        "pixabay_term": "calzone pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Quattro Formaggi": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "mozzarella"
+        ],
+        "pixabay_term": "four cheese pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Diavola": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "pikantny_sos_pomidorowy",
+          "ser",
+          "chorizo",
+          "papryka"
+        ],
+        "pixabay_term": "spicy pizza salami",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8,
+          "flavor_spiciness": 1.0
+        },
+        "weights": null
+      },
+      "Vegetariana": {
+        "price_multiplier": {
+          "mean": 0.95,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "pieczarki",
+          "papryka",
+          "cebula",
+          "szpinak"
+        ],
+        "pixabay_term": "vegetarian pizza",
+        "characteristics": {
+          "physics_richness": 0.3,
+          "physics_temperature": 0.8,
+          "physics_freshness": 0.7
+        },
+        "weights": null
+      },
+      "Prosciutto e Funghi": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "szynka",
+          "pieczarki"
+        ],
+        "pixabay_term": "pizza prosciutto mushrooms",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Capricciosa": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "szynka",
+          "pieczarki",
+          "oliwki",
+          "anchois"
+        ],
+        "pixabay_term": "pizza capricciosa",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Funghi": {
+        "price_multiplier": {
+          "mean": 0.9,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "sos_pomidorowy",
+          "ser",
+          "pieczarki",
+          "czosnek",
+          "rukola"
+        ],
+        "pixabay_term": "mushroom pizza",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "pizza",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.7,
+        "flavor_saltiness": 0.6,
+        "texture_chewy": 0.6,
+        "texture_crispy": 0.7,
+        "physics_richness": 1.0,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_creamy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.5,
+        "physics_richness": 1.3,
+        "physics_temperature": 0.1,
+        "flavor_sweetness": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Burger": {
+    "base_price": {
+      "mean": 30.0,
+      "stdev": 3.4
+    },
+    "variants": {
+      "Burger Klasyczny": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "sałata",
+          "pomidor",
+          "cebula",
+          "ogórek_kiszony"
+        ],
+        "pixabay_term": "classic burger",
+        "characteristics": {},
+        "weights": null
+      },
+      "Cheeseburger": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "ser",
+          "sałata",
+          "pomidor",
+          "cebula"
+        ],
+        "pixabay_term": "cheeseburger",
+        "characteristics": {
+          "texture_creamy": 0.9
+        },
+        "weights": null
+      },
+      "Burger z Bekonem": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "bekon",
+          "ser",
+          "sałata",
+          "pomidor"
+        ],
+        "pixabay_term": "bacon burger",
+        "characteristics": {
+          "flavor_umami": 1.0
+        },
+        "weights": null
+      },
+      "Burger Pikantny": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "jalapeno",
+          "sos_amerykański",
+          "ser"
+        ],
+        "pixabay_term": "spicy burger",
+        "characteristics": {
+          "flavor_spiciness": 1.0
+        },
+        "weights": null
+      },
+      "Burger Wegański": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "wegańska_bułka",
+          "kotlet_roślinny",
+          "sałata",
+          "pomidor"
+        ],
+        "pixabay_term": "vegan burger",
+        "characteristics": {},
+        "weights": null
+      },
+      "BBQ Burger": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "sos_bbq",
+          "bekon",
+          "cebula",
+          "ser"
+        ],
+        "pixabay_term": "bbq burger",
+        "characteristics": {},
+        "weights": null
+      },
+      "Mushroom Swiss": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "grzyby",
+          "ser",
+          "sałata",
+          "cebula"
+        ],
+        "pixabay_term": "burger",
+        "characteristics": {
+          "flavor_umami": 1.0,
+          "physics_richness": 0.8,
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Double Cheeseburger": {
+        "price_multiplier": {
+          "mean": 1.4,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kotlet_wołowy",
+          "ser",
+          "pomidor",
+          "sałata",
+          "ogórek_kiszony"
+        ],
+        "pixabay_term": "cheeseburger",
+        "characteristics": {
+          "texture_creamy": 0.9
+        },
+        "weights": null
+      },
+      "Chicken Burger": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "kurczak",
+          "sałata",
+          "pomidor",
+          "ser",
+          "cebula"
+        ],
+        "pixabay_term": "chicken burger",
+        "characteristics": {},
+        "weights": null
+      },
+      "Fish Burger": {
+        "price_multiplier": {
+          "mean": 1.25,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "bułka",
+          "ryba",
+          "sałata",
+          "pomidor",
+          "ogórek_kiszony",
+          "sos_tatarski"
+        ],
+        "pixabay_term": "fish burger",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "burger",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.8,
+        "flavor_saltiness": 0.6,
+        "texture_chewy": 0.5,
+        "physics_richness": 1.0,
+        "physics_temperature": 0.9,
+        "context_portion_preference": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.4,
+        "physics_richness": 1.5,
+        "physics_temperature": 0.1,
+        "flavor_sweetness": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Kebab": {
+    "base_price": {
+      "mean": 26.0,
+      "stdev": 3.29
+    },
+    "variants": {
+      "Kebab Klasyczny": {
+        "price_multiplier": {
+          "mean": 1.23,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "jagnięcina",
+          "warzywa",
+          "ryż",
+          "przyprawy"
+        ],
+        "pixabay_term": "doner kebab meat",
+        "characteristics": {},
+        "weights": null
+      },
+      "Kebab w Bułce": {
+        "price_multiplier": {
+          "mean": 0.69,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "bułka",
+          "kurczak",
+          "sałata",
+          "cebula",
+          "pomidor"
+        ],
+        "pixabay_term": "doner kebab sandwich",
+        "characteristics": {},
+        "weights": null
+      },
+      "Kebab Box": {
+        "price_multiplier": {
+          "mean": 0.85,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "frytki",
+          "kurczak",
+          "sałata",
+          "cebula",
+          "pomidor"
+        ],
+        "pixabay_term": "kebab box",
+        "characteristics": {},
+        "weights": null
+      },
+      "Döner Kebab": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "jagnięcina",
+          "pita",
+          "warzywa",
+          "sos_jogurtowy"
+        ],
+        "pixabay_term": "doner kebab",
+        "characteristics": {},
+        "weights": null
+      },
+      "Adana Kebab": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mielona_jagnięcina",
+          "przyprawy",
+          "ryż",
+          "warzywa"
+        ],
+        "pixabay_term": "adana kebab",
+        "characteristics": {},
+        "weights": null
+      },
+      "Shawarma": {
+        "price_multiplier": {
+          "mean": 1.08,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "kurczak",
+          "pita",
+          "tahini",
+          "warzywa",
+          "przyprawy"
+        ],
+        "pixabay_term": "shawarma",
+        "characteristics": {},
+        "weights": null
+      },
+      "Gyros": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "jagnięcina",
+          "pita",
+          "tzatziki",
+          "cebula",
+          "pomidor"
+        ],
+        "pixabay_term": "greek gyros",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "kebab",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.8,
+        "physics_richness": 0.8,
+        "flavor_umami": 0.7,
+        "context_price_sensitivity": 0.9,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.5,
+        "physics_richness": 1.3,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Frytki": {
+    "base_price": {
+      "mean": 12.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Frytki Klasyczne": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ziemniaki",
+          "sól"
+        ],
+        "pixabay_term": "french fries portion",
+        "characteristics": {},
+        "weights": null
+      },
+      "Frytki z Batatów": {
+        "price_multiplier": {
+          "mean": 1.17,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "bataty",
+          "sól"
+        ],
+        "pixabay_term": "sweet potato fries bowl",
+        "characteristics": {},
+        "weights": null
+      },
+      "Frytki z Serem i Bekonem": {
+        "price_multiplier": {
+          "mean": 1.3,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ziemniaki",
+          "ser",
+          "bekon",
+          "cebulka_dymka"
+        ],
+        "pixabay_term": "loaded fries cheese bacon",
+        "characteristics": {
+          "flavor_umami": 0.8,
+          "texture_creamy": 0.9
+        },
+        "weights": null
+      },
+      "Frytki Pikantne": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ziemniaki",
+          "papryka",
+          "pikantny_majonez"
+        ],
+        "pixabay_term": "spicy fries portion",
+        "characteristics": {
+          "flavor_spiciness": 1.0
+        },
+        "weights": null
+      },
+      "Frytki z Czosnkiem": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ziemniaki",
+          "czosnek",
+          "oliwa"
+        ],
+        "pixabay_term": "garlic fries",
+        "characteristics": {},
+        "weights": null
+      },
+      "Frytki Cajun": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ziemniaki",
+          "papryka",
+          "czosnek",
+          "cebula"
+        ],
+        "pixabay_term": "spicy potato wedges",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "french fries portion",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.9,
+        "texture_crispy": 1.0,
+        "physics_richness": 1.0,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "texture_crispy": 1.5,
+        "physics_temperature": 0.3,
+        "flavor_saltiness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Lody": {
+    "base_price": {
+      "mean": 14.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Lody Waniliowe": {
+        "price_multiplier": {
+          "mean": 0.86,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "wanilia"
+        ],
+        "pixabay_term": "vanilla ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Czekoladowe": {
+        "price_multiplier": {
+          "mean": 0.86,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "czekolada",
+          "kakao"
+        ],
+        "pixabay_term": "chocolate ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Truskawkowe": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "truskawki"
+        ],
+        "pixabay_term": "strawberry ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Cytrynowe": {
+        "price_multiplier": {
+          "mean": 0.86,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "cytryna"
+        ],
+        "pixabay_term": "lemon ice cream",
+        "characteristics": {
+          "flavor_sourness": 0.7
+        },
+        "weights": null
+      },
+      "Lody Karmelowe": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "karmel"
+        ],
+        "pixabay_term": "caramel ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Pistacjowe": {
+        "price_multiplier": {
+          "mean": 1.14,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "pistacje"
+        ],
+        "pixabay_term": "pistachio ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Kokosowe": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "mleko_kokosowe",
+          "śmietanka",
+          "cukier",
+          "wiórki_kokosowe"
+        ],
+        "pixabay_term": "coconut ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Mango": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "mango"
+        ],
+        "pixabay_term": "mango ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Malinowe": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "maliny"
+        ],
+        "pixabay_term": "raspberry ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Orzechowe": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "orzechy_włoskie"
+        ],
+        "pixabay_term": "walnut ice cream",
+        "characteristics": {
+          "texture_crispy": 0.9
+        },
+        "weights": null
+      },
+      "Lody Orzech Laskowy": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "orzechy_laskowe"
+        ],
+        "pixabay_term": "hazelnut ice cream",
+        "characteristics": {
+          "texture_crispy": 0.9
+        },
+        "weights": null
+      },
+      "Lody Miętowe": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "mięta",
+          "czekolada"
+        ],
+        "pixabay_term": "mint chocolate chip ice cream",
+        "characteristics": {},
+        "weights": null
+      },
+      "Lody Solony Karmel": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "karmel",
+          "sól_morska"
+        ],
+        "pixabay_term": "salted caramel ice cream",
+        "characteristics": {
+          "flavor_saltiness": 0.6
+        },
+        "weights": null
+      },
+      "Lody Czekoladowe z Chili": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko",
+          "czekolada_gorzka",
+          "chili"
+        ],
+        "pixabay_term": "chocolate ice cream",
+        "characteristics": {
+          "flavor_spiciness": 0.4
+        },
+        "weights": null
+      },
+      "Lody Śmietankowe": {
+        "price_multiplier": {
+          "mean": 0.79,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "mleko",
+          "cukier",
+          "żółtko"
+        ],
+        "pixabay_term": "cream ice cream",
+        "characteristics": {
+          "texture_creamy": 1.0,
+          "physics_richness": 1.0
+        },
+        "weights": null
+      },
+      "Gelato Amarena": {
+        "price_multiplier": {
+          "mean": 1.14,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "wiśnie_amarena",
+          "cukier"
+        ],
+        "pixabay_term": "amarena gelato",
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "flavor_saltiness": 0.5
+        },
+        "weights": null
+      },
+      "Gelato Stracciatella": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "śmietanka",
+          "czekoladowe_wiórki",
+          "wanilia"
+        ],
+        "pixabay_term": "stracciatella gelato",
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "flavor_saltiness": 0.5
+        },
+        "weights": null
+      },
+      "Gelato Tiramisu": {
+        "price_multiplier": {
+          "mean": 1.21,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "mascarpone",
+          "kawa",
+          "kakao",
+          "cukier"
+        ],
+        "pixabay_term": "tiramisu gelato ice cream",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "ice cream",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 1.0,
+        "texture_creamy": 0.8,
+        "physics_temperature": 0.1,
+        "physics_richness": 0.7,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.0,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.3,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_sweetness": 1.5,
+        "physics_temperature": 0.1,
+        "flavor_spiciness": 0.1,
+        "flavor_saltiness": 0.2,
+        "_default": 1.0
+      }
+    }
+  },
+  "Sorbet": {
+    "base_price": {
+      "mean": 12.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Sorbet Cytrynowy": {
+        "price_multiplier": {
+          "mean": 0.92,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "cytryna",
+          "cukier",
+          "woda"
+        ],
+        "characteristics": {
+          "flavor_sourness": 1.0
+        },
+        "weights": null
+      },
+      "Sorbet Malinowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "maliny",
+          "cukier",
+          "woda"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Sorbet Mango": {
+        "price_multiplier": {
+          "mean": 1.08,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mango",
+          "cukier",
+          "woda"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Sorbet Truskawkowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "truskawki",
+          "cukier"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Sorbet Limonkowy": {
+        "price_multiplier": {
+          "mean": 0.95,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "limonka",
+          "cukier"
+        ],
+        "characteristics": {
+          "flavor_sourness": 1.0
+        },
+        "weights": null
+      },
+      "Sorbet Kokosowy": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "mleko_kokosowe",
+          "cukier"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Sorbet Passionfruit": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "marakuja",
+          "cukier"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "sorbet",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 1.0,
+        "flavor_sourness": 0.7,
+        "physics_temperature": 0.1,
+        "physics_richness": 0.1,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_saltiness": 0.3,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_sweetness": 1.4,
+        "physics_temperature": 0.1,
+        "physics_freshness": 1.5,
+        "flavor_spiciness": 0.1,
+        "flavor_saltiness": 0.2,
+        "_default": 1.0
+      }
+    }
+  },
+  "Sałatka": {
+    "base_price": {
+      "mean": 26.0,
+      "stdev": 2.82
+    },
+    "variants": {
+      "Sałatka Cezar": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "sałata_rzymska",
+          "kurczak",
+          "parmezan",
+          "grzanki",
+          "sos_cezar"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "caesar salad"
+      },
+      "Sałatka Grecka": {
+        "price_multiplier": {
+          "mean": 0.85,
+          "stdev": 0.077
+        },
+        "ingredients": [
+          "pomidor",
+          "ogórek",
+          "feta",
+          "oliwki",
+          "oliwa"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "greek salad"
+      },
+      "Sałatka Caprese": {
+        "price_multiplier": {
+          "mean": 0.92,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "pomidor",
+          "mozzarella",
+          "bazylia",
+          "oliwa",
+          "ocet_balsamiczny"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "caprese salad"
+      },
+      "Sałatka z Łososiem": {
+        "price_multiplier": {
+          "mean": 1.23,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "łosoś_wędzony",
+          "sałata",
+          "awokado",
+          "ogórek",
+          "koperek"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "salmon salad"
+      },
+      "Sałatka z Tuńczykiem": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "tuńczyk",
+          "sałata",
+          "kukurydza",
+          "pomidor",
+          "cebula"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "tuna salad"
+      },
+      "Sałatka z Grillowanym Kurczakiem": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "kurczak",
+          "sałata",
+          "pomidor",
+          "ogórek",
+          "papryka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "grilled chicken salad"
+      },
+      "Sałatka z Kozim Serem": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "ser_kozi",
+          "sałata",
+          "orzechy_włoskie",
+          "suszona_żurawina",
+          "miód"
+        ],
+        "pixabay_term": "goat cheese salad",
+        "characteristics": {
+          "physics_richness": 0.5,
+          "texture_creamy": 0.9
+        },
+        "weights": null
+      },
+      "Sałatka z Quinoa": {
+        "price_multiplier": {
+          "mean": 1.08,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "komosa_ryżowa",
+          "awokado",
+          "pomidor",
+          "ciecierzyca",
+          "cytryna"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "quinoa salad"
+      },
+      "Sałatka z Awokado": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "awokado",
+          "sałata",
+          "pomidor",
+          "ogórek",
+          "cytryna"
+        ],
+        "characteristics": {
+          "physics_richness": 0.2,
+          "texture_creamy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "avocado salad"
+      },
+      "Sałatka Nicejska": {
+        "price_multiplier": {
+          "mean": 1.08,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "tuńczyk",
+          "jajko",
+          "pomidor",
+          "oliwki",
+          "fasolka_szparagowa"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": null,
+        "pixabay_term": "nicoise salad"
+      },
+      "Sałatka Waldorf": {
+        "price_multiplier": {
+          "mean": 0.92,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "jabłko",
+          "seler_naciowy",
+          "orzechy_włoskie",
+          "winogrona",
+          "majonez"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "waldorf salad"
+      },
+      "Sałatka Jarzynowa": {
+        "price_multiplier": {
+          "mean": 0.58,
+          "stdev": 0.077
+        },
+        "ingredients": [
+          "ziemniaki",
+          "marchew",
+          "groszek",
+          "ogórek_kiszony",
+          "majonez"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "vegetable salad mayonnaise"
+      },
+      "Sałatka Orientalna": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "sałata",
+          "kurczak",
+          "sezam",
+          "mandarynka",
+          "sos_sojowy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "asian chicken salad"
+      },
+      "Coleslaw": {
+        "price_multiplier": {
+          "mean": 0.38,
+          "stdev": 0.058
+        },
+        "ingredients": [
+          "kapusta",
+          "marchew",
+          "majonez",
+          "ocet"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "physics_richness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "coleslaw salad"
+      }
+    },
+    "pixabay_term": "salad",
+    "archetype_base": {
+      "characteristics": {
+        "physics_freshness": 1.0,
+        "texture_crispy": 0.7,
+        "physics_temperature": 0.3,
+        "physics_richness": 0.0,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_freshness": 1.8,
+        "physics_temperature": 0.3,
+        "texture_crispy": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Kanapka": {
+    "base_price": {
+      "mean": 23.5,
+      "stdev": 2.75
+    },
+    "variants": {
+      "Banh Mi Thit": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "bagietka",
+          "wieprzowina",
+          "pasztet",
+          "kiszone_warzywa",
+          "kolendra",
+          "chili"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5,
+          "flavor_spiciness": 0.6,
+          "flavor_sourness": 0.4
+        },
+        "weights": null,
+        "pixabay_term": "banh mi sandwich"
+      },
+      "Kanapka z Kurczakiem": {
+        "price_multiplier": {
+          "mean": 1.02,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "bułka",
+          "kurczak",
+          "sałata",
+          "pomidor",
+          "majonez"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "chicken sandwich"
+      },
+      "Kanapka BLT": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "chleb_tostowy",
+          "bekon",
+          "sałata",
+          "pomidor",
+          "majonez"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "blt sandwich"
+      },
+      "Kanapka Clubhouse": {
+        "price_multiplier": {
+          "mean": 1.19,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "chleb_tostowy",
+          "kurczak",
+          "bekon",
+          "jajko",
+          "sałata",
+          "pomidor"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "club sandwich"
+      },
+      "Kanapka z Szynką": {
+        "price_multiplier": {
+          "mean": 0.85,
+          "stdev": 0.085
+        },
+        "ingredients": [
+          "bułka",
+          "szynka",
+          "ser",
+          "sałata",
+          "pomidor"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "ham sandwich"
+      },
+      "Kanapka z Tuńczykiem": {
+        "price_multiplier": {
+          "mean": 0.98,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "chleb",
+          "tuńczyk",
+          "jajko",
+          "majonez",
+          "sałata"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "tuna sandwich"
+      },
+      "Kanapka Caprese": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "bagietka",
+          "mozzarella",
+          "pomidor",
+          "bazylia",
+          "oliwa"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "caprese sandwich"
+      },
+      "Bajgiel z Łososiem": {
+        "price_multiplier": {
+          "mean": 1.19,
+          "stdev": 0.128
+        },
+        "ingredients": [
+          "bajgiel",
+          "łosoś_wędzony",
+          "serek_kremowy",
+          "czerwona_cebula",
+          "kapary"
+        ],
+        "characteristics": {
+          "texture_chewy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "salmon bagel"
+      },
+      "Bajgiel z Serem Kremowym": {
+        "price_multiplier": {
+          "mean": 0.77,
+          "stdev": 0.085
+        },
+        "ingredients": [
+          "bajgiel",
+          "serek_kremowy",
+          "pomidor",
+          "ogórek"
+        ],
+        "pixabay_term": "cream cheese bagel",
+        "characteristics": {
+          "texture_chewy": 0.9,
+          "texture_creamy": 0.9,
+          "physics_richness": 1.0
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "sandwich",
+    "archetype_base": {
+      "characteristics": {
+        "texture_chewy": 0.6,
+        "physics_freshness": 0.6,
+        "physics_temperature": 0.4,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.7,
+        "physics_freshness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Panini": {
+    "base_price": {
+      "mean": 27.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Panini z Kurczakiem": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "panini",
+          "kurczak",
+          "ser",
+          "papryka",
+          "cebula"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Panini z Mozzarellą": {
+        "price_multiplier": {
+          "mean": 0.96,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "panini",
+          "mozzarella",
+          "pomidor",
+          "bazylia",
+          "pesto"
+        ],
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "panini",
+    "archetype_base": {
+      "characteristics": {
+        "texture_crispy": 0.8,
+        "physics_temperature": 0.8,
+        "physics_richness": 0.6,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.4,
+        "texture_crispy": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Wrap": {
+    "base_price": {
+      "mean": 26.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Wrap z Kurczakiem": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "tortilla",
+          "kurczak",
+          "sałata",
+          "pomidor",
+          "sos_czosnkowy"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Wrap Wegetariański": {
+        "price_multiplier": {
+          "mean": 0.92,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "tortilla",
+          "hummus",
+          "warzywa_grillowane",
+          "feta"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "physics_richness": 0.4
+        },
+        "weights": null
+      },
+      "Wrap z Łososiem": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.115
+        },
+        "ingredients": [
+          "tortilla",
+          "łosoś_wędzony",
+          "serek_kremowy",
+          "rukola",
+          "ogórek"
+        ],
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "wrap food",
+    "archetype_base": {
+      "characteristics": {
+        "texture_chewy": 0.6,
+        "physics_freshness": 0.7,
+        "physics_temperature": 0.5,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.4,
+        "physics_temperature": 0.6,
+        "_default": 1.0
+      }
+    }
+  },
+  "Makaron": {
+    "base_price": {
+      "mean": 30.0,
+      "stdev": 3.54
+    },
+    "variants": {
+      "Spaghetti Carbonara": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "spaghetti",
+          "jajko",
+          "bekon",
+          "parmezan",
+          "pieprz"
+        ],
+        "characteristics": {
+          "physics_richness": 0.8,
+          "texture_creamy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "spaghetti carbonara plate"
+      },
+      "Pasta Bolognese": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "spaghetti",
+          "mięso_mielone",
+          "pomidor",
+          "cebula",
+          "marchew"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pasta bolognese plate"
+      },
+      "Aglio e Olio": {
+        "price_multiplier": {
+          "mean": 0.87,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "spaghetti",
+          "czosnek",
+          "oliwa",
+          "chili",
+          "pietruszka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "spaghetti aglio olio plate"
+      },
+      "Penne Arrabbiata": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "penne",
+          "pomidor",
+          "czosnek",
+          "chili",
+          "oliwa"
+        ],
+        "characteristics": {
+          "flavor_spiciness": 1.0
+        },
+        "weights": null,
+        "pixabay_term": "penne arrabbiata dish"
+      },
+      "Penne alla Vodka": {
+        "price_multiplier": {
+          "mean": 1.03,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "penne",
+          "wódka",
+          "śmietana",
+          "pomidor",
+          "chili"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "penne alla vodka dish"
+      },
+      "Pasta Primavera": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "penne",
+          "warzywa_wiosenne",
+          "oliwa",
+          "czosnek",
+          "parmezan"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pasta primavera dish"
+      },
+      "Pasta Puttanesca": {
+        "price_multiplier": {
+          "mean": 0.97,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "spaghetti",
+          "pomidor",
+          "oliwki",
+          "kapary",
+          "anchois"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pasta puttanesca dish"
+      },
+      "Fettuccine Alfredo": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "fettuccine",
+          "śmietana",
+          "parmezan",
+          "masło"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "fettuccine alfredo plate"
+      },
+      "Lasagne": {
+        "price_multiplier": {
+          "mean": 1.17,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "makaron_lasagne",
+          "sos_boloński",
+          "beszamel",
+          "parmezan"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "lasagna portion"
+      },
+      "Ravioli": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "ciasto_makaronowe",
+          "ricotta",
+          "szpinak",
+          "sos_pomidorowy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "cooked ravioli with sauce"
+      },
+      "Tortellini": {
+        "price_multiplier": {
+          "mean": 1.13,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "ciasto_makaronowe",
+          "prosciutto",
+          "parmezan",
+          "śmietana"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.1,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "cooked tortellini with sauce"
+      },
+      "Gnocchi": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "gnocchi_ziemniaczane",
+          "sos_pomidorowy",
+          "bazylia",
+          "parmezan"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "gnocchi dish"
+      },
+      "Mac and Cheese": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "penne",
+          "ser",
+          "śmietana",
+          "masło"
+        ],
+        "characteristics": {
+          "texture_creamy": 0.9,
+          "physics_richness": 0.7
+        },
+        "weights": null,
+        "pixabay_term": "mac and cheese bowl"
+      }
+    },
+    "pixabay_term": "pasta",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.6,
+        "texture_chewy": 0.7,
+        "physics_richness": 0.6,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.5,
+        "physics_richness": 1.4,
+        "physics_temperature": 0.1,
+        "_default": 1.0
+      }
+    }
+  },
+  "Zupa": {
+    "base_price": {
+      "mean": 16.0,
+      "stdev": 2.2
+    },
+    "variants": {
+      "Pomidorowa": {
+        "price_multiplier": {
+          "mean": 0.88,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "pomidor",
+          "ryż",
+          "śmietana",
+          "bulion"
+        ],
+        "pixabay_term": "tomato soup",
+        "characteristics": {},
+        "weights": null
+      },
+      "Ogórkowa": {
+        "price_multiplier": {
+          "mean": 0.88,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "ogórek_kiszony",
+          "ziemniaki",
+          "śmietana",
+          "koperek"
+        ],
+        "pixabay_term": "pickle soup",
+        "characteristics": {
+          "flavor_sourness": 0.9
+        },
+        "weights": null
+      },
+      "Rosół": {
+        "price_multiplier": {
+          "mean": 0.75,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "rosół_drobiowy",
+          "makaron_nitki",
+          "warzywa"
+        ],
+        "pixabay_term": "chicken soup",
+        "characteristics": {},
+        "weights": null
+      },
+      "Barszcz": {
+        "price_multiplier": {
+          "mean": 0.88,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "buraki",
+          "bulion",
+          "warzywa"
+        ],
+        "pixabay_term": "beetroot soup",
+        "characteristics": {},
+        "weights": null
+      },
+      "Żurek": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "zakwas",
+          "kiełbasa",
+          "jajko",
+          "ziemniaki"
+        ],
+        "pixabay_term": "zurek polish soup",
+        "characteristics": {
+          "flavor_sourness": 0.9
+        },
+        "weights": null
+      },
+      "Chłodnik": {
+        "price_multiplier": {
+          "mean": 0.88,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "buraki",
+          "kefir",
+          "ogórek",
+          "jajko",
+          "koperek"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": {
+          "physics_temperature": 1.0
+        },
+        "pixabay_term": "cold beet soup"
+      },
+      "Krem z Pomidorów": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "pomidor",
+          "śmietana",
+          "bazylia",
+          "czosnek"
+        ],
+        "characteristics": {
+          "physics_richness": 0.6,
+          "texture_creamy": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "tomato soup creamy"
+      },
+      "Krem z Grzybów": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "grzyby",
+          "śmietana",
+          "cebula",
+          "bulion"
+        ],
+        "characteristics": {
+          "flavor_umami": 0.9,
+          "physics_richness": 0.6,
+          "texture_creamy": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "mushroom soup creamy"
+      },
+      "Krem z Brokułów": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "brokuły",
+          "śmietana",
+          "ser",
+          "bulion"
+        ],
+        "characteristics": {
+          "physics_richness": 0.6,
+          "texture_creamy": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "broccoli soup"
+      },
+      "Krem z Dyni": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "dynia",
+          "śmietana",
+          "imbir",
+          "bulion"
+        ],
+        "characteristics": {
+          "physics_richness": 0.6,
+          "texture_creamy": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pumpkin soup"
+      },
+      "Krem z Kalafiora": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "kalafior",
+          "śmietana",
+          "bulion",
+          "ser"
+        ],
+        "characteristics": {
+          "physics_richness": 0.6,
+          "texture_creamy": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "cauliflower soup"
+      },
+      "Minestrone": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "warzywa",
+          "fasola",
+          "penne",
+          "pomidor",
+          "parmezan"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "minestrone soup"
+      },
+      "Gazpacho": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "pomidor",
+          "ogórek",
+          "papryka",
+          "czosnek",
+          "ocet"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": {
+          "physics_temperature": 1.0
+        },
+        "pixabay_term": "gazpacho soup"
+      },
+      "Tom Yum": {
+        "price_multiplier": {
+          "mean": 1.75,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "trawa_cytrynowa",
+          "krewetki",
+          "grzyby",
+          "chili",
+          "limonka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "tom yum soup"
+      },
+      "Zupa Cebulowa": {
+        "price_multiplier": {
+          "mean": 1.38,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "cebula",
+          "bulion_wołowy",
+          "chleb",
+          "ser"
+        ],
+        "pixabay_term": "onion soup",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "soup",
+    "archetype_base": {
+      "characteristics": {
+        "physics_temperature": 0.9,
+        "flavor_umami": 0.6,
+        "physics_richness": 0.4,
+        "texture_creamy": 0.4,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.1,
+        "texture_chewy": 0.1,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.3,
+        "physics_temperature": 0.2,
+        "flavor_sweetness": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Ramen": {
+    "base_price": {
+      "mean": 31.0,
+      "stdev": 3.75
+    },
+    "variants": {
+      "Shoyu Ramen": {
+        "price_multiplier": {
+          "mean": 0.9,
+          "stdev": 0.097
+        },
+        "ingredients": [
+          "makaron_ramen",
+          "rosół_sojowy",
+          "kurczak",
+          "pędy_bambusa",
+          "jajko"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "ramen soup"
+      },
+      "Miso Ramen": {
+        "price_multiplier": {
+          "mean": 0.97,
+          "stdev": 0.129
+        },
+        "ingredients": [
+          "makaron_ramen",
+          "rosół_miso",
+          "wieprzowina",
+          "kukurydza",
+          "masło"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "miso ramen"
+      },
+      "Tonkotsu Ramen": {
+        "price_multiplier": {
+          "mean": 1.03,
+          "stdev": 0.129
+        },
+        "ingredients": [
+          "makaron_ramen",
+          "rosół_wieprzowy",
+          "chashu",
+          "jajko",
+          "nori"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "tonkotsu ramen"
+      },
+      "Pikantne Miso Ramen": {
+        "price_multiplier": {
+          "mean": 1.03,
+          "stdev": 0.129
+        },
+        "ingredients": [
+          "makaron_ramen",
+          "rosół_miso_pikantny",
+          "wieprzowina",
+          "olej_chili",
+          "szczypiorek"
+        ],
+        "characteristics": {
+          "flavor_spiciness": 1.0
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "ramen",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.9,
+        "flavor_saltiness": 0.8,
+        "physics_temperature": 0.9,
+        "physics_richness": 0.7,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.6,
+        "flavor_umami": 1.4,
+        "physics_temperature": 0.2,
+        "physics_richness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Pho": {
+    "base_price": {
+      "mean": 27.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Pho Bo": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "makaron_ryżowy",
+          "rosół_wołowy",
+          "wołowina",
+          "kolendra",
+          "limonka"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Pho Ga": {
+        "price_multiplier": {
+          "mean": 0.96,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "makaron_ryżowy",
+          "rosół_drobiowy",
+          "kurczak",
+          "kolendra",
+          "limonka"
+        ],
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "pho soup",
+    "archetype_base": {
+      "characteristics": {
+        "physics_temperature": 0.9,
+        "flavor_umami": 0.8,
+        "physics_freshness": 0.7,
+        "physics_richness": 0.5,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.5,
+        "physics_temperature": 0.2,
+        "physics_freshness": 1.3,
+        "flavor_sweetness": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Sushi": {
+    "base_price": {
+      "mean": 25.0,
+      "stdev": 2.86
+    },
+    "variants": {
+      "California Roll": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "krab",
+          "awokado",
+          "ogórek"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "california roll sushi"
+      },
+      "Dragon Roll": {
+        "price_multiplier": {
+          "mean": 1.4,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "węgorz",
+          "awokado",
+          "ogórek"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "dragon roll sushi"
+      },
+      "Nigiri z Łososia": {
+        "price_multiplier": {
+          "mean": 0.48,
+          "stdev": 0.08
+        },
+        "ingredients": [
+          "ryż",
+          "łosoś"
+        ],
+        "pixabay_term": "sushi nigiri",
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null
+      },
+      "Nigiri z Tuńczyka": {
+        "price_multiplier": {
+          "mean": 0.6,
+          "stdev": 0.08
+        },
+        "ingredients": [
+          "ryż",
+          "tuńczyk"
+        ],
+        "pixabay_term": "sushi nigiri",
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null
+      },
+      "Sashimi z Łososia": {
+        "price_multiplier": {
+          "mean": 1.28,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "łosoś"
+        ],
+        "pixabay_term": "sashimi",
+        "characteristics": {},
+        "weights": null
+      },
+      "Pikantne Maki z Tuńczyka": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "tuńczyk",
+          "pikantny_majonez"
+        ],
+        "pixabay_term": "sushi maki",
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "flavor_spiciness": 0.7
+        },
+        "weights": null
+      },
+      "Philadelphia Roll": {
+        "price_multiplier": {
+          "mean": 1.25,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "łosoś",
+          "serek_kremowy",
+          "awokado",
+          "ogórek"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "philadelphia roll sushi"
+      },
+      "Tempura Roll": {
+        "price_multiplier": {
+          "mean": 1.3,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "krewetki",
+          "awokado",
+          "ogórek",
+          "sezam"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "texture_crispy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "tempura sushi roll"
+      },
+      "Spicy Salmon Roll": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "łosoś",
+          "pikantny_majonez",
+          "ogórek"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "flavor_spiciness": 1.0
+        },
+        "weights": null,
+        "pixabay_term": "spicy salmon roll"
+      },
+      "Rainbow Roll": {
+        "price_multiplier": {
+          "mean": 1.4,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "łosoś",
+          "tuńczyk",
+          "węgorz",
+          "awokado",
+          "krab"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "rainbow roll sushi"
+      },
+      "Avocado Maki": {
+        "price_multiplier": {
+          "mean": 0.85,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ryż",
+          "nori",
+          "awokado",
+          "sezam"
+        ],
+        "pixabay_term": "sushi maki",
+        "characteristics": {
+          "physics_freshness": 0.9,
+          "texture_creamy": 0.9,
+          "physics_richness": 0.7
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "sushi",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.7,
+        "physics_freshness": 1.0,
+        "physics_temperature": 0.3,
+        "texture_chewy": 0.6,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_freshness": 1.8,
+        "physics_temperature": 0.2,
+        "texture_crispy": 0.5,
+        "flavor_sweetness": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Taco": {
+    "base_price": {
+      "mean": 16.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Taco de Carne": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "wołowina",
+          "salsa",
+          "ser",
+          "sałata"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Taco al Pastor": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "wieprzowina",
+          "ananas",
+          "kolendra",
+          "cebula"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Taco Rybne": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "ryba",
+          "kapusta",
+          "sos_jogurtowy",
+          "limonka"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Taco Vegetariano": {
+        "price_multiplier": {
+          "mean": 0.9,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "tortilla",
+          "czarna_fasola",
+          "awokado",
+          "pomidor",
+          "cebula"
+        ],
+        "characteristics": {
+          "physics_richness": 0.1,
+          "physics_freshness": 0.7
+        },
+        "weights": null
+      },
+      "Taco de Pollo": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "tortilla",
+          "kurczak",
+          "cebula",
+          "pomidor",
+          "ser"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Taco de Carnitas": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "tortilla",
+          "wieprzowina",
+          "cebula",
+          "pomidor"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Taco de Camarones": {
+        "price_multiplier": {
+          "mean": 1.25,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "tortilla",
+          "krewetki",
+          "awokado",
+          "pomidor",
+          "cebula"
+        ],
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "tacos",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_spiciness": 0.5,
+        "flavor_saltiness": 0.6,
+        "texture_crispy": 0.5,
+        "physics_temperature": 0.7,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.7,
+        "physics_richness": 1.3,
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Mexican": {
+    "base_price": {
+      "mean": 24.0,
+      "stdev": 2.67
+    },
+    "variants": {
+      "Burrito": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "ryż",
+          "fasola",
+          "mięso_mielone",
+          "ser",
+          "salsa"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "burrito"
+      },
+      "Quesadilla": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.083
+        },
+        "ingredients": [
+          "tortilla",
+          "ser",
+          "kurczak",
+          "papryka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "quesadilla"
+      },
+      "Nachos": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "chipsy_kukurydziane",
+          "ser",
+          "jalapeno",
+          "salsa",
+          "guacamole"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "nachos food"
+      },
+      "Tortilla z Kurczakiem": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "kurczak",
+          "papryka",
+          "cebula",
+          "ser"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "chicken tortilla wrap"
+      },
+      "Tortilla Wegetariańska": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "tortilla",
+          "warzywa",
+          "ser",
+          "salsa"
+        ],
+        "characteristics": {
+          "physics_richness": 0.7,
+          "flavor_sweetness": 0.9,
+          "flavor_saltiness": 0.3,
+          "physics_freshness": 0.7
+        },
+        "weights": null
+      }
+    },
+    "pixabay_term": "mexican food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_spiciness": 0.7,
+        "flavor_umami": 0.7,
+        "physics_richness": 0.8,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.7,
+        "physics_richness": 1.3,
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Curry": {
+    "base_price": {
+      "mean": 32.0,
+      "stdev": 4.0
+    },
+    "variants": {
+      "Czerwone Curry": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "pasta_curry_czerwona",
+          "mleko_kokosowe",
+          "wołowina",
+          "warzywa"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "red curry thai"
+      },
+      "Zielone Curry": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "pasta_curry_zielona",
+          "mleko_kokosowe",
+          "kurczak",
+          "pędy_bambusa",
+          "bazylia"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "green curry thai"
+      },
+      "Butter Chicken": {
+        "price_multiplier": {
+          "mean": 1.09,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "kurczak",
+          "pomidor",
+          "śmietana",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "texture_creamy": 1.0,
+          "physics_richness": 0.7
+        },
+        "weights": null,
+        "pixabay_term": "butter chicken"
+      },
+      "Tikka Masala": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "kurczak",
+          "jogurt",
+          "pomidor",
+          "przyprawy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "chicken tikka masala"
+      },
+      "Vindaloo": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "wieprzowina",
+          "ocet",
+          "chili",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "flavor_spiciness": 1.0
+        },
+        "weights": null,
+        "pixabay_term": "vindaloo curry"
+      },
+      "Massaman Curry": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "kurczak",
+          "ziemniaki",
+          "orzeszki_ziemne",
+          "mleko_kokosowe"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "massaman curry"
+      },
+      "Panang Curry": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "kurczak",
+          "papryka",
+          "mleko_kokosowe",
+          "bazylia"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "panang curry"
+      },
+      "Korma Curry": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "kurczak",
+          "jogurt",
+          "migdały",
+          "mleko_kokosowe"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "korma curry"
+      }
+    },
+    "pixabay_term": "curry",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_spiciness": 0.6,
+        "flavor_umami": 0.8,
+        "texture_creamy": 0.7,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.8,
+        "physics_richness": 1.4,
+        "physics_temperature": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Pierogi": {
+    "base_price": {
+      "mean": 22.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Pierogi Ruskie": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "ziemniaki",
+          "ser",
+          "cebula"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {},
+        "weights": null
+      },
+      "Pierogi z Mięsem": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "wieprzowina",
+          "cebula"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {
+          "flavor_umami": 0.8
+        },
+        "weights": null
+      },
+      "Pierogi z Kapustą i Grzybami": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "kapusta",
+          "grzyby",
+          "cebula"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {
+          "flavor_umami": 0.8
+        },
+        "weights": null
+      },
+      "Pierogi ze Szpinakiem i Serem": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "szpinak",
+          "ser",
+          "czosnek"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {
+          "physics_richness": 1.0,
+          "texture_creamy": 0.9
+        },
+        "weights": null
+      },
+      "Pierogi Słodkie z Jagodami": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "jagody",
+          "cukier"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null
+      },
+      "Pierogi z Serem": {
+        "price_multiplier": {
+          "mean": 0.95,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "ser"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {
+          "physics_richness": 1.0,
+          "texture_creamy": 0.6
+        },
+        "weights": null
+      },
+      "Pierogi z Ziemniakami i Boczkiem": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "ziemniaki",
+          "boczek_wieprzowy",
+          "cebula"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {},
+        "weights": null
+      },
+      "Pierogi z Wątróbką": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "ciasto",
+          "wątróbka",
+          "cebula"
+        ],
+        "pixabay_term": "dumplings dish",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "dumplings",
+    "archetype_base": {
+      "characteristics": {
+        "texture_chewy": 0.8,
+        "physics_richness": 0.6,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.3,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Naleśniki": {
+    "base_price": {
+      "mean": 20.0,
+      "stdev": 2.5
+    },
+    "variants": {
+      "Naleśniki Klasyczne": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mąka",
+          "jajko",
+          "mleko",
+          "syrop_klonowy",
+          "masło"
+        ],
+        "pixabay_term": "crepes pancakes",
+        "characteristics": {},
+        "weights": null
+      },
+      "Naleśniki z Nutellą": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "czekolada",
+          "orzechy_laskowe"
+        ],
+        "pixabay_term": "crepes chocolate",
+        "characteristics": {},
+        "weights": null
+      },
+      "Naleśniki z Serem": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "ser",
+          "cukier"
+        ],
+        "pixabay_term": "crepes cheese",
+        "characteristics": {
+          "texture_creamy": 0.9,
+          "physics_richness": 1.0
+        },
+        "weights": null
+      },
+      "Naleśniki z Dżemem": {
+        "price_multiplier": {
+          "mean": 0.95,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ciasto",
+          "dzem",
+          "cukier"
+        ],
+        "pixabay_term": "crepes jam",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "crepes",
+    "archetype_base": {
+      "characteristics": {
+        "texture_chewy": 0.6,
+        "physics_temperature": 0.7,
+        "flavor_sweetness": 0.4,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_sweetness": 1.6,
+        "physics_temperature": 0.5,
+        "flavor_spiciness": 0.2,
+        "flavor_saltiness": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Deser": {
+    "base_price": {
+      "mean": 18.0,
+      "stdev": 2.26
+    },
+    "variants": {
+      "Tiramisu": {
+        "price_multiplier": {
+          "mean": 1.11,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mascarpone",
+          "kawa",
+          "biszkopt",
+          "kakao"
+        ],
+        "pixabay_term": "tiramisu",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null
+      },
+      "Brownie": {
+        "price_multiplier": {
+          "mean": 0.67,
+          "stdev": 0.083
+        },
+        "ingredients": [
+          "czekolada",
+          "mąka",
+          "masło",
+          "jajko"
+        ],
+        "pixabay_term": "brownie",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null
+      },
+      "Churros": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "ciasto",
+          "cukier",
+          "cynamon",
+          "czekolada"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "churros"
+      },
+      "Panna Cotta": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "śmietanka",
+          "cukier",
+          "wanilia",
+          "maliny"
+        ],
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "panna cotta"
+      },
+      "Ciasto Czekoladowe": {
+        "price_multiplier": {
+          "mean": 0.78,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "mąka",
+          "czekolada",
+          "jajko",
+          "cukier"
+        ],
+        "pixabay_term": "chocolate cake slice",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null
+      },
+      "Lawa Czekoladowa": {
+        "price_multiplier": {
+          "mean": 1.33,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "czekolada",
+          "masło",
+          "jajko",
+          "cukier",
+          "mąka"
+        ],
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "chocolate lava cake"
+      },
+      "Creme Caramel": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "mleko",
+          "jajko",
+          "cukier",
+          "karmel"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "creme caramel"
+      },
+      "Crème Brûlée": {
+        "price_multiplier": {
+          "mean": 1.22,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "śmietanka",
+          "żółtko",
+          "cukier",
+          "wanilia"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "creme brulee"
+      },
+      "Baklava": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "ciasto_filo",
+          "orzechy_włoskie",
+          "miód",
+          "syrop_cukrowy"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "baklava"
+      },
+      "Sernik": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "serek_kremowy",
+          "cukier",
+          "jajko",
+          "herbatniki"
+        ],
+        "pixabay_term": "cheesecake",
+        "characteristics": {},
+        "weights": null
+      },
+      "Szarlotka": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "jabłko",
+          "ciasto_kruche",
+          "cynamon",
+          "cukier"
+        ],
+        "pixabay_term": "apple pie",
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null
+      },
+      "Makowiec": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "mak",
+          "ciasto_drożdżowe",
+          "miód",
+          "rodzynki"
+        ],
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "poppy seed cake"
+      },
+      "Profiterole": {
+        "price_multiplier": {
+          "mean": 1.22,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ciasto_parzone",
+          "bita_śmietana",
+          "czekolada"
+        ],
+        "characteristics": {
+          "physics_richness": 0.4,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "profiteroles"
+      },
+      "Eklerki": {
+        "price_multiplier": {
+          "mean": 1.11,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "ciasto_parzone",
+          "krem_waniliowy",
+          "polewa_czekoladowa"
+        ],
+        "characteristics": {
+          "physics_richness": 0.7,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "eclairs"
+      },
+      "Tarta Cytrynowa": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "cytryna",
+          "cukier",
+          "jajko",
+          "ciasto_kruche"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_sourness": 0.9,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "lemon tart"
+      },
+      "Tarta Jabłkowa": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "jabłko",
+          "ciasto_kruche",
+          "cynamon",
+          "migdały"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 0.9,
+          "physics_richness": 0.7,
+          "flavor_saltiness": 0.5,
+          "texture_creamy": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "apple tart"
+      }
+    },
+    "pixabay_term": "dessert",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 1.0,
+        "physics_richness": 1.0,
+        "physics_temperature": 0.4,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.3,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.9,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_sweetness": 1.8,
+        "flavor_spiciness": 0.2,
+        "flavor_saltiness": 0.3,
+        "flavor_umami": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Herbata": {
+    "base_price": {
+      "mean": 9.0,
+      "stdev": 1.1
+    },
+    "variants": {
+      "Herbata Czarna": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "herbata_czarna",
+          "woda"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Herbata Zielona": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "herbata_zielona",
+          "woda"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Herbata Owocowa": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "herbata_owocowa",
+          "woda"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null
+      },
+      "Herbata Miętowa": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "herbata_miętowa",
+          "woda",
+          "mięta"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Mrożona Herbata": {
+        "price_multiplier": {
+          "mean": 1.22,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "herbata",
+          "cytryna",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": {
+          "physics_temperature": 1.0
+        }
+      }
+    },
+    "pixabay_term": "tea cup",
+    "archetype_base": {
+      "characteristics": {
+        "physics_temperature": 0.9,
+        "flavor_bitterness": 0.3,
+        "physics_richness": 0.0,
+        "flavor_sweetness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.5,
+        "flavor_sweetness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Kawa": {
+    "base_price": {
+      "mean": 12.0,
+      "stdev": 1.4
+    },
+    "variants": {
+      "Espresso": {
+        "price_multiplier": {
+          "mean": 0.67,
+          "stdev": 0.083
+        },
+        "ingredients": [
+          "ziarna_kawy"
+        ],
+        "pixabay_term": "espresso",
+        "characteristics": {},
+        "weights": null
+      },
+      "Americano": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.083
+        },
+        "ingredients": [
+          "ziarna_kawy",
+          "woda"
+        ],
+        "pixabay_term": "americano coffee",
+        "characteristics": {
+          "flavor_bitterness": 0.7
+        },
+        "weights": null
+      },
+      "Cappuccino": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "ziarna_kawy",
+          "mleko"
+        ],
+        "pixabay_term": "cappuccino",
+        "characteristics": {
+          "flavor_bitterness": 0.7
+        },
+        "weights": null
+      },
+      "Latte": {
+        "price_multiplier": {
+          "mean": 1.17,
+          "stdev": 0.125
+        },
+        "ingredients": [
+          "ziarna_kawy",
+          "mleko"
+        ],
+        "pixabay_term": "latte coffee",
+        "characteristics": {
+          "flavor_bitterness": 0.7
+        },
+        "weights": null
+      },
+      "Mrożona Kawa": {
+        "price_multiplier": {
+          "mean": 1.17,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "kawa",
+          "mleko",
+          "lód",
+          "cukier"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": {
+          "physics_temperature": 1.0
+        }
+      }
+    },
+    "pixabay_term": "coffee",
+    "archetype_base": {
+      "characteristics": {
+        "physics_temperature": 0.9,
+        "flavor_bitterness": 1.0,
+        "physics_richness": 0.3,
+        "flavor_sweetness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.5,
+        "flavor_bitterness": 1.5,
+        "flavor_sweetness": 1.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Gorąca Czekolada": {
+    "base_price": {
+      "mean": 15.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Gorąca Czekolada Klasyczna": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "mleko",
+          "czekolada",
+          "cukier"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "hot chocolate drink"
+      },
+      "Gorąca Czekolada z Bitą Śmietaną": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "mleko",
+          "czekolada",
+          "cukier",
+          "bita_śmietana"
+        ],
+        "characteristics": {
+          "physics_richness": 1.0,
+          "texture_creamy": 1.0
+        },
+        "weights": null,
+        "pixabay_term": "hot chocolate whipped cream"
+      }
+    },
+    "pixabay_term": "hot chocolate",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 1.0,
+        "physics_temperature": 0.9,
+        "physics_richness": 0.8,
+        "texture_creamy": 0.7,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.3,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.3,
+        "flavor_sweetness": 1.5,
+        "texture_creamy": 1.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Napój Bezalkoholowy": {
+    "base_price": {
+      "mean": 11.0,
+      "stdev": 1.67
+    },
+    "variants": {
+      "Cola": {
+        "price_multiplier": {
+          "mean": 0.73,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "cola"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "cola drink"
+      },
+      "Sok Pomarańczowy": {
+        "price_multiplier": {
+          "mean": 0.91,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "pomarańcza"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "orange juice"
+      },
+      "Sok Jabłkowy": {
+        "price_multiplier": {
+          "mean": 0.82,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "jabłko"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "apple juice"
+      },
+      "Lemoniada": {
+        "price_multiplier": {
+          "mean": 1.09,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "cytryna",
+          "cukier",
+          "woda",
+          "mięta"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_sourness": 0.9,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "lemonade"
+      },
+      "Lemoniada Malinowa": {
+        "price_multiplier": {
+          "mean": 1.18,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "cytryna",
+          "maliny",
+          "cukier",
+          "woda"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_sourness": 0.9,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null
+      },
+      "Zielone Smoothie": {
+        "price_multiplier": {
+          "mean": 1.64,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "szpinak",
+          "banan",
+          "jabłko",
+          "mleko_migdałowe"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1
+        },
+        "weights": null,
+        "pixabay_term": "green smoothie"
+      }
+    },
+    "pixabay_term": "soda drink",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 0.8,
+        "physics_temperature": 0.2,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.3,
+        "flavor_sweetness": 1.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Piwo": {
+    "base_price": {
+      "mean": 14.5,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Piwo Pszeniczne": {
+        "price_multiplier": {
+          "mean": 1.03,
+          "stdev": 0.138
+        },
+        "ingredients": [
+          "słód",
+          "chmiel",
+          "drożdże"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "wheat beer glass"
+      },
+      "Piwo Lager": {
+        "price_multiplier": {
+          "mean": 0.83,
+          "stdev": 0.138
+        },
+        "ingredients": [
+          "słód",
+          "chmiel",
+          "drożdże"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "lager beer glass"
+      },
+      "Piwo IPA": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.138
+        },
+        "ingredients": [
+          "słód",
+          "chmiel",
+          "drożdże"
+        ],
+        "characteristics": {
+          "flavor_bitterness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "ipa beer"
+      },
+      "Pilsner": {
+        "price_multiplier": {
+          "mean": 0.97,
+          "stdev": 0.138
+        },
+        "ingredients": [
+          "słód",
+          "chmiel",
+          "drożdże"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pilsner beer"
+      }
+    },
+    "pixabay_term": "beer",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_bitterness": 0.5,
+        "physics_temperature": 0.2,
+        "physics_freshness": 0.6,
+        "flavor_sweetness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.3,
+        "flavor_bitterness": 1.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Wino": {
+    "base_price": {
+      "mean": 24.5,
+      "stdev": 5.0
+    },
+    "variants": {
+      "Wino Czerwone": {
+        "price_multiplier": {
+          "mean": 1.02,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "winogrona",
+          "drożdże"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "red wine glass"
+      },
+      "Wino Białe": {
+        "price_multiplier": {
+          "mean": 0.98,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "winogrona",
+          "drożdże"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "white wine glass"
+      }
+    },
+    "pixabay_term": "wine",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sourness": 0.4,
+        "flavor_sweetness": 0.3,
+        "physics_temperature": 0.4,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Przystawka": {
+    "base_price": {
+      "mean": 22.0,
+      "stdev": 3.4
+    },
+    "variants": {
+      "Skrzydełka Kurczaka": {
+        "price_multiplier": {
+          "mean": 1.27,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "skrzydełka_kurczaka",
+          "sos_buffalo",
+          "przyprawy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "chicken wings"
+      },
+      "Krążki Cebulowe": {
+        "price_multiplier": {
+          "mean": 0.68,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "cebula",
+          "bułka_tarta",
+          "mąka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "onion rings"
+      },
+      "Paluszki Mozzarelli": {
+        "price_multiplier": {
+          "mean": 0.91,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "mozzarella",
+          "bułka_tarta",
+          "jajko",
+          "sos_pomidorowy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "mozzarella sticks"
+      },
+      "Bruschetta": {
+        "price_multiplier": {
+          "mean": 0.82,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "chleb",
+          "pomidor",
+          "czosnek",
+          "bazylia",
+          "oliwa"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "bruschetta"
+      },
+      "Carpaccio": {
+        "price_multiplier": {
+          "mean": 1.73,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "wołowina_surowa",
+          "rukola",
+          "parmezan",
+          "oliwa",
+          "cytryna"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "beef carpaccio"
+      },
+      "Tatar": {
+        "price_multiplier": {
+          "mean": 1.91,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "wołowina_surowa",
+          "żółtko",
+          "ogórek_kiszony",
+          "cebula",
+          "kapary"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.1,
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "steak tartare"
+      },
+      "Ogon Homara": {
+        "price_multiplier": {
+          "mean": 3.41,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "homar",
+          "masło",
+          "cytryna"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "lobster tail"
+      },
+      "Edamame": {
+        "price_multiplier": {
+          "mean": 0.55,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "soja",
+          "sól"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "edamame beans"
+      },
+      "Gyoza": {
+        "price_multiplier": {
+          "mean": 0.82,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "ciasto",
+          "wieprzowina",
+          "kapusta",
+          "czosnek"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "gyoza dumplings"
+      },
+      "Sajgonki Smażone": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "papier_ryżowy",
+          "mięso_mielone",
+          "warzywa",
+          "sos_słodko-kwaśny"
+        ],
+        "characteristics": {
+          "texture_crispy": 0.9,
+          "physics_temperature": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "spring rolls fried"
+      },
+      "Świeże Sajgonki": {
+        "price_multiplier": {
+          "mean": 0.82,
+          "stdev": 0.091
+        },
+        "ingredients": [
+          "papier_ryżowy",
+          "krewetki",
+          "warzywa",
+          "mięta",
+          "sos_orzechowy"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "fresh spring rolls"
+      },
+      "Krewetki w Czosnku": {
+        "price_multiplier": {
+          "mean": 1.59,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "krewetki",
+          "czosnek",
+          "masło",
+          "pietruszka",
+          "chili"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "garlic shrimp"
+      },
+      "Grillowane Krewetki": {
+        "price_multiplier": {
+          "mean": 1.91,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "krewetki",
+          "czosnek",
+          "masło",
+          "cytryna"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "grilled shrimp"
+      },
+      "Smażony Kurczak": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "kurczak",
+          "mąka",
+          "maślanka",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "texture_crispy": 0.9,
+          "physics_temperature": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "fried chicken"
+      }
+    },
+    "pixabay_term": "appetizer food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.6,
+        "physics_richness": 0.5,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_temperature": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.6,
+        "_default": 1.0
+      }
+    }
+  },
+  "Stek": {
+    "base_price": {
+      "mean": 66.5,
+      "stdev": 7.25
+    },
+    "variants": {
+      "Stek Ribeye": {
+        "price_multiplier": {
+          "mean": 0.98,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "antrykot",
+          "sól",
+          "pieprz",
+          "tymianek",
+          "masło"
+        ],
+        "pixabay_term": "ribeye steak",
+        "characteristics": {},
+        "weights": null
+      },
+      "Stek T-Bone": {
+        "price_multiplier": {
+          "mean": 1.02,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "stek_t-bone",
+          "sól",
+          "pieprz"
+        ],
+        "pixabay_term": "t-bone steak",
+        "characteristics": {},
+        "weights": null
+      },
+      "Filet Mignon": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "polędwica",
+          "sól",
+          "pieprz"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "filet mignon steak"
+      },
+      "Steak Frites": {
+        "price_multiplier": {
+          "mean": 0.63,
+          "stdev": 0.075
+        },
+        "ingredients": [
+          "stek",
+          "frytki",
+          "masło",
+          "pietruszka"
+        ],
+        "characteristics": {
+          "physics_richness": 0.4
+        },
+        "weights": null,
+        "pixabay_term": "steak frites"
+      }
+    },
+    "pixabay_term": "steak meal",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.9,
+        "flavor_saltiness": 0.6,
+        "texture_chewy": 0.6,
+        "physics_richness": 0.7,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.5,
+        "flavor_umami": 1.4,
+        "physics_temperature": 0.4,
+        "flavor_sweetness": 0.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Naan": {
+    "base_price": {
+      "mean": 9.0,
+      "stdev": 1.0
+    },
+    "variants": {
+      "Naan Klasyczny": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "mąka",
+          "jogurt",
+          "masło"
+        ],
+        "characteristics": {},
+        "weights": null
+      },
+      "Naan Czosnkowy": {
+        "price_multiplier": {
+          "mean": 1.11,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "mąka",
+          "jogurt",
+          "masło",
+          "czosnek"
+        ],
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "naan bread",
+    "archetype_base": {
+      "characteristics": {
+        "texture_chewy": 0.7,
+        "texture_crispy": 0.4,
+        "physics_temperature": 0.7,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.4,
+        "texture_chewy": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Polskie": {
+    "base_price": {
+      "mean": 28.0,
+      "stdev": 2.9
+    },
+    "variants": {
+      "Bigos": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "kapusta",
+          "kiełbasa",
+          "mięso",
+          "grzyby"
+        ],
+        "pixabay_term": "sauerkraut stew",
+        "characteristics": {
+          "physics_temperature": 0.8,
+          "flavor_sourness": 0.9
+        },
+        "weights": null
+      },
+      "Kotlet Schabowy": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "schab",
+          "bułka_tarta",
+          "jajko"
+        ],
+        "pixabay_term": "schnitzel",
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null
+      },
+      "Pieczeń Rzymska": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.107
+        },
+        "ingredients": [
+          "mielona_wołowina",
+          "bułka_tarta",
+          "ketchup",
+          "cebula"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "meatloaf"
+      },
+      "Kapusta Kiszona": {
+        "price_multiplier": {
+          "mean": 0.36,
+          "stdev": 0.054
+        },
+        "ingredients": [
+          "kapusta",
+          "ocet",
+          "kminek"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8,
+          "flavor_sourness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "sauerkraut"
+      },
+      "Pasztet": {
+        "price_multiplier": {
+          "mean": 0.57,
+          "stdev": 0.071
+        },
+        "ingredients": [
+          "wątróbka",
+          "cebula",
+          "masło",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pate food"
+      }
+    },
+    "pixabay_term": "polish food",
+    "archetype_base": {
+      "characteristics": {
+        "physics_richness": 0.8,
+        "flavor_saltiness": 0.6,
+        "flavor_umami": 0.7,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.4,
+        "physics_temperature": 0.4,
+        "flavor_sweetness": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Azjatyckie": {
+    "base_price": {
+      "mean": 30.0,
+      "stdev": 3.33
+    },
+    "variants": {
+      "Wieprzowina w Sosie Słodko-Kwaśnym": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "wieprzowina",
+          "papryka",
+          "ananas",
+          "sos_słodko-kwaśny"
+        ],
+        "characteristics": {
+          "flavor_umami": 1.0,
+          "flavor_saltiness": 0.5,
+          "physics_temperature": 0.8,
+          "flavor_sweetness": 0.9,
+          "flavor_sourness": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "sweet and sour pork"
+      },
+      "Mapo Tofu": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "tofu",
+          "wieprzowina",
+          "pasta_chili",
+          "pieprz_syczuański"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "mapo tofu"
+      },
+      "Smażony Ryż": {
+        "price_multiplier": {
+          "mean": 0.73,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ryż",
+          "jajko",
+          "warzywa",
+          "sos_sojowy"
+        ],
+        "characteristics": {
+          "texture_crispy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "fried rice"
+      },
+      "Pad Thai": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "makaron_ryżowy",
+          "krewetki",
+          "jajko",
+          "orzeszki_ziemne",
+          "tamaryndowiec"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pad thai"
+      },
+      "Kurczak z Bazylią": {
+        "price_multiplier": {
+          "mean": 0.97,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "kurczak",
+          "bazylia",
+          "chili",
+          "czosnek",
+          "sos_sojowy"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "thai basil chicken"
+      },
+      "Kurczak Tandoori": {
+        "price_multiplier": {
+          "mean": 1.27,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "kurczak",
+          "jogurt",
+          "przyprawy_tandoori"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "tandoori chicken"
+      },
+      "Bibimbap": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "ryż",
+          "warzywa",
+          "wołowina",
+          "jajko",
+          "gochujang"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "bibimbap"
+      }
+    },
+    "pixabay_term": "asian food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.8,
+        "flavor_saltiness": 0.7,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.6,
+        "flavor_umami": 1.4,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Koreańskie": {
+    "base_price": {
+      "mean": 36.5,
+      "stdev": 3.5
+    },
+    "variants": {
+      "Bulgogi": {
+        "price_multiplier": {
+          "mean": 1.04,
+          "stdev": 0.11
+        },
+        "ingredients": [
+          "wołowina",
+          "marynata_sojowa",
+          "sezam",
+          "czosnek"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "bulgogi"
+      },
+      "Galbi": {
+        "price_multiplier": {
+          "mean": 1.15,
+          "stdev": 0.137
+        },
+        "ingredients": [
+          "żeberka_wołowe",
+          "marynata_sojowa",
+          "gruszka",
+          "sezam"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "galbi ribs"
+      },
+      "Samgyeopsal": {
+        "price_multiplier": {
+          "mean": 0.96,
+          "stdev": 0.11
+        },
+        "ingredients": [
+          "boczek_wieprzowy",
+          "sałata",
+          "ssamjang",
+          "czosnek"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pork belly bbq"
+      },
+      "Kimchi": {
+        "price_multiplier": {
+          "mean": 0.27,
+          "stdev": 0.027
+        },
+        "ingredients": [
+          "kapusta_pekińska",
+          "proszek_chili",
+          "czosnek",
+          "imbir"
+        ],
+        "characteristics": {
+          "flavor_spiciness": 1.0,
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "kimchi"
+      }
+    },
+    "pixabay_term": "korean food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_spiciness": 0.7,
+        "flavor_umami": 0.8,
+        "flavor_sourness": 0.5,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.7,
+        "flavor_umami": 1.4,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Tapas": {
+    "base_price": {
+      "mean": 27.0,
+      "stdev": 3.33
+    },
+    "variants": {
+      "Gambas al Ajillo": {
+        "price_multiplier": {
+          "mean": 1.19,
+          "stdev": 0.148
+        },
+        "ingredients": [
+          "krewetki",
+          "czosnek",
+          "oliwa",
+          "chili"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "garlic prawns tapas"
+      },
+      "Albondigas": {
+        "price_multiplier": {
+          "mean": 0.81,
+          "stdev": 0.111
+        },
+        "ingredients": [
+          "klopsiki",
+          "sos_pomidorowy",
+          "pietruszka"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "meatballs tapas"
+      },
+      "Croquetas": {
+        "price_multiplier": {
+          "mean": 0.74,
+          "stdev": 0.074
+        },
+        "ingredients": [
+          "szynka",
+          "beszamel",
+          "bułka_tarta"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "croquettes tapas"
+      },
+      "Paella Valenciana": {
+        "price_multiplier": {
+          "mean": 1.67,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ryż",
+          "kurczak",
+          "królik",
+          "fasola",
+          "szafran"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "paella"
+      }
+    },
+    "pixabay_term": "tapas",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.7,
+        "physics_richness": 0.6,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_temperature": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.6,
+        "flavor_spiciness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Greckie": {
+    "base_price": {
+      "mean": 28.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Souvlaki": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.107
+        },
+        "ingredients": [
+          "wieprzowina",
+          "pita",
+          "tzatziki",
+          "warzywa"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.7
+        },
+        "weights": null,
+        "pixabay_term": "souvlaki"
+      },
+      "Tzatziki": {
+        "price_multiplier": {
+          "mean": 0.54,
+          "stdev": 0.071
+        },
+        "ingredients": [
+          "jogurt",
+          "ogórek",
+          "czosnek",
+          "koperek"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.7
+        },
+        "weights": null,
+        "pixabay_term": "tzatziki"
+      }
+    },
+    "pixabay_term": "greek food",
+    "archetype_base": {
+      "characteristics": {
+        "physics_freshness": 0.7,
+        "flavor_saltiness": 0.6,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_freshness": 1.4,
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Francuskie": {
+    "base_price": {
+      "mean": 46.5,
+      "stdev": 5.0
+    },
+    "variants": {
+      "Boeuf Bourguignon": {
+        "price_multiplier": {
+          "mean": 1.03,
+          "stdev": 0.108
+        },
+        "ingredients": [
+          "wołowina",
+          "czerwone_wino",
+          "marchew",
+          "grzyby",
+          "cebulka_dymka"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "beef bourguignon"
+      }
+    },
+    "pixabay_term": "french cuisine",
+    "archetype_base": {
+      "characteristics": {
+        "physics_richness": 0.9,
+        "texture_creamy": 0.6,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.5,
+        "texture_creamy": 1.4,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Niemieckie": {
+    "base_price": {
+      "mean": 31.5,
+      "stdev": 3.12
+    },
+    "variants": {
+      "Schnitzel": {
+        "price_multiplier": {
+          "mean": 1.11,
+          "stdev": 0.127
+        },
+        "ingredients": [
+          "wieprzowina",
+          "bułka_tarta",
+          "cytryna",
+          "ziemniaki"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "schnitzel"
+      },
+      "Bratwurst": {
+        "price_multiplier": {
+          "mean": 0.89,
+          "stdev": 0.095
+        },
+        "ingredients": [
+          "kiełbasa",
+          "kapusta_kiszona",
+          "musztarda",
+          "chleb"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "bratwurst"
+      },
+      "Sauerbraten": {
+        "price_multiplier": {
+          "mean": 1.21,
+          "stdev": 0.127
+        },
+        "ingredients": [
+          "wołowina",
+          "marynata_octowa",
+          "warzywa",
+          "kluski_ziemniaczane"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pot roast"
+      },
+      "Precel": {
+        "price_multiplier": {
+          "mean": 0.38,
+          "stdev": 0.048
+        },
+        "ingredients": [
+          "mąka",
+          "sól",
+          "masło"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "pretzel"
+      }
+    },
+    "pixabay_term": "german food",
+    "archetype_base": {
+      "characteristics": {
+        "physics_richness": 0.8,
+        "flavor_saltiness": 0.7,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.4,
+        "flavor_umami": 1.3,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Dania BBQ": {
+    "base_price": {
+      "mean": 37.5,
+      "stdev": 4.5
+    },
+    "variants": {
+      "Szarpana Wieprzowina": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.107
+        },
+        "ingredients": [
+          "łopatka_wieprzowa",
+          "przyprawy_bbq",
+          "sos_bbq"
+        ],
+        "pixabay_term": "pulled pork bbq",
+        "characteristics": {
+          "flavor_umami": 1.0
+        },
+        "weights": null
+      },
+      "Brisket Wołowy": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "mostek_wołowy",
+          "przyprawy_bbq"
+        ],
+        "pixabay_term": "beef brisket smoked",
+        "characteristics": {
+          "flavor_umami": 1.0
+        },
+        "weights": null
+      },
+      "Żeberka": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "żeberka_wieprzowe",
+          "przyprawy_bbq",
+          "sos_bbq"
+        ],
+        "pixabay_term": "bbq ribs",
+        "characteristics": {},
+        "weights": null
+      },
+      "Wędzony Kurczak": {
+        "price_multiplier": {
+          "mean": 0.85,
+          "stdev": 0.107
+        },
+        "ingredients": [
+          "kurczak",
+          "przyprawy_bbq"
+        ],
+        "pixabay_term": "smoked chicken bbq",
+        "characteristics": {},
+        "weights": null
+      }
+    },
+    "pixabay_term": "barbecue food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.9,
+        "flavor_sweetness": 0.5,
+        "physics_richness": 0.8,
+        "physics_temperature": 0.8,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.5,
+        "physics_richness": 1.4,
+        "flavor_umami": 1.3,
+        "physics_temperature": 0.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Ryby i Owoce Morza": {
+    "base_price": {
+      "mean": 41.5,
+      "stdev": 4.75
+    },
+    "variants": {
+      "Grillowany Łosoś": {
+        "price_multiplier": {
+          "mean": 1.08,
+          "stdev": 0.12
+        },
+        "ingredients": [
+          "łosoś",
+          "cytryna",
+          "koperek",
+          "oliwa"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.8,
+          "physics_temperature": 0.9
+        },
+        "weights": null
+      },
+      "Fish and Chips": {
+        "price_multiplier": {
+          "mean": 0.84,
+          "stdev": 0.096
+        },
+        "ingredients": [
+          "dorsz",
+          "ciasto",
+          "frytki",
+          "sos_tatarski"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.8,
+          "texture_crispy": 0.9
+        },
+        "pixabay_term": "fish and chips british",
+        "weights": null
+      },
+      "Okoń Morski": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.145
+        },
+        "ingredients": [
+          "okoń_morski",
+          "białe_wino",
+          "masło",
+          "kapary"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "sea bass"
+      },
+      "Małże": {
+        "price_multiplier": {
+          "mean": 0.92,
+          "stdev": 0.096
+        },
+        "ingredients": [
+          "małże",
+          "białe_wino",
+          "czosnek",
+          "śmietana"
+        ],
+        "characteristics": {
+          "physics_freshness": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "cooked mussels"
+      }
+    },
+    "pixabay_term": "seafood dish",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.6,
+        "physics_freshness": 1.0,
+        "physics_richness": 0.4,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_temperature": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_freshness": 1.8,
+        "physics_temperature": 0.5,
+        "flavor_spiciness": 1.2,
+        "_default": 1.0
+      }
+    }
+  },
+  "Śniadanie": {
+    "base_price": {
+      "mean": 22.0,
+      "stdev": 3.0
+    },
+    "variants": {
+      "Jajka z Bekonem": {
+        "price_multiplier": {
+          "mean": 1.09,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "jajko",
+          "bekon",
+          "chleb_tostowy",
+          "masło"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.6,
+          "flavor_umami": 0.8,
+          "physics_richness": 0.8
+        },
+        "weights": null,
+        "pixabay_term": "bacon and eggs"
+      },
+      "Tosty Francuskie": {
+        "price_multiplier": {
+          "mean": 0.91,
+          "stdev": 0.136
+        },
+        "ingredients": [
+          "chleb",
+          "jajko",
+          "cynamon",
+          "syrop_klonowy"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.6,
+          "texture_crispy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "french toast"
+      }
+    },
+    "pixabay_term": "breakfast",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.4,
+        "physics_temperature": 0.9,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.5,
+        "physics_richness": 1.3,
+        "_default": 1.0
+      }
+    }
+  },
+  "Pieczywo": {
+    "base_price": {
+      "mean": 10.0,
+      "stdev": 1.4
+    },
+    "variants": {
+      "Croissant": {
+        "price_multiplier": {
+          "mean": 0.8,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "mąka",
+          "masło",
+          "drożdże"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "croissant"
+      },
+      "Pain au Chocolat": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "mąka",
+          "masło",
+          "czekolada"
+        ],
+        "characteristics": {
+          "flavor_saltiness": 0.1,
+          "flavor_sweetness": 0.9,
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "chocolate croissant"
+      },
+      "Drożdżówka z Cynamonem": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mąka",
+          "cynamon",
+          "cukier",
+          "lukier"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "cinnamon roll"
+      },
+      "Chleb na Zakwasie": {
+        "price_multiplier": {
+          "mean": 1.8,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mąka",
+          "zakwas",
+          "sól"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "sourdough bread"
+      },
+      "Muffin": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "mąka",
+          "jajko",
+          "cukier",
+          "jagody"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "muffin"
+      }
+    },
+    "pixabay_term": "bread",
+    "archetype_base": {
+      "characteristics": {
+        "texture_crispy": 0.6,
+        "texture_chewy": 0.5,
+        "flavor_saltiness": 0.3,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_creamy": 0.5,
+        "physics_richness": 0.5,
+        "physics_temperature": 0.9,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "texture_crispy": 1.4,
+        "physics_temperature": 0.6,
+        "_default": 1.0
+      }
+    }
+  },
+  "Danie Bliskowschodnie": {
+    "base_price": {
+      "mean": 20.0,
+      "stdev": 2.38
+    },
+    "variants": {
+      "Falafel": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ciecierzyca",
+          "kolendra",
+          "przyprawy",
+          "pita",
+          "tahini"
+        ],
+        "pixabay_term": "falafel",
+        "characteristics": {},
+        "weights": null
+      },
+      "Hummus Bowl": {
+        "price_multiplier": {
+          "mean": 1.2,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "ciecierzyca",
+          "tahini",
+          "oliwa",
+          "cytryna",
+          "pita"
+        ],
+        "pixabay_term": "hummus",
+        "characteristics": {
+          "physics_temperature": 0.2
+        },
+        "weights": null
+      },
+      "Tabbouleh": {
+        "price_multiplier": {
+          "mean": 0.8,
+          "stdev": 0.1
+        },
+        "ingredients": [
+          "kasza_bulgur",
+          "pietruszka",
+          "pomidor",
+          "cytryna",
+          "oliwa"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.2
+        },
+        "weights": null,
+        "pixabay_term": "tabbouleh salad"
+      },
+      "Lahmacun": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "płaski_chleb",
+          "mięso_mielone",
+          "warzywa",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "lahmacun"
+      },
+      "Manti": {
+        "price_multiplier": {
+          "mean": 1.4,
+          "stdev": 0.15
+        },
+        "ingredients": [
+          "pierożki",
+          "mięso_mielone",
+          "jogurt",
+          "masło",
+          "przyprawy"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "manti dumplings"
+      },
+      "Turecki Chleb": {
+        "price_multiplier": {
+          "mean": 0.4,
+          "stdev": 0.05
+        },
+        "ingredients": [
+          "mąka",
+          "drożdże",
+          "sezam"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.5
+        },
+        "weights": null,
+        "pixabay_term": "turkish bread"
+      }
+    },
+    "pixabay_term": "middle eastern food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_umami": 0.6,
+        "flavor_saltiness": 0.5,
+        "physics_richness": 0.6,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_temperature": 0.9,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_spiciness": 1.4,
+        "flavor_umami": 1.3,
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Risotto": {
+    "base_price": {
+      "mean": 35.0,
+      "stdev": 4.0
+    },
+    "variants": {
+      "Risotto al Pomodoro": {
+        "price_multiplier": {
+          "mean": 0.95,
+          "stdev": 0.114
+        },
+        "ingredients": [
+          "ryż_arborio",
+          "pomidor",
+          "bazylia",
+          "parmezan"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "tomato risotto"
+      },
+      "Risotto ai Frutti di Mare": {
+        "price_multiplier": {
+          "mean": 1.35,
+          "stdev": 0.114
+        },
+        "ingredients": [
+          "ryż_arborio",
+          "krewetki",
+          "kalmary",
+          "białe_wino"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "seafood risotto"
+      },
+      "Risotto alla Milanese": {
+        "price_multiplier": {
+          "mean": 1.1,
+          "stdev": 0.114
+        },
+        "ingredients": [
+          "ryż_arborio",
+          "parmezan",
+          "białe_wino"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "saffron risotto"
+      },
+      "Risotto con Zucca": {
+        "price_multiplier": {
+          "mean": 1.05,
+          "stdev": 0.114
+        },
+        "ingredients": [
+          "ryż_arborio",
+          "dynia",
+          "parmezan",
+          "białe_wino"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pumpkin risotto"
+      }
+    },
+    "pixabay_term": "risotto",
+    "archetype_base": {
+      "characteristics": {
+        "texture_creamy": 1.0,
+        "flavor_umami": 0.7,
+        "physics_richness": 1.0,
+        "physics_temperature": 0.8,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_richness": 1.4,
+        "texture_creamy": 1.3,
+        "physics_temperature": 0.1,
+        "_default": 1.0
+      }
+    }
+  },
+  "Dodatek": {
+    "base_price": {
+      "mean": 14.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Pieczony Ziemniak": {
+        "price_multiplier": {
+          "mean": 0.86,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "ziemniaki",
+          "masło",
+          "śmietana",
+          "szczypiorek",
+          "rozmaryn"
+        ],
+        "characteristics": {
+          "physics_temperature": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "baked potato"
+      },
+      "Grillowane Warzywa": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "cukinia",
+          "papryka",
+          "cebula",
+          "szparagi",
+          "bakłażan"
+        ],
+        "characteristics": {
+          "physics_richness": 0.2,
+          "physics_temperature": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "grilled vegetables"
+      }
+    },
+    "pixabay_term": "side dish food",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_saltiness": 0.5,
+        "flavor_sweetness": 0.5,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_temperature": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.5,
+        "_default": 1.0
+      }
+    }
+  },
+  "Drink": {
+    "base_price": {
+      "mean": 28.0,
+      "stdev": 3.75
+    },
+    "variants": {
+      "Mojito": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "rum",
+          "mięta",
+          "limonka",
+          "cukier",
+          "woda_gazowana"
+        ],
+        "pixabay_term": "mojito",
+        "characteristics": {},
+        "weights": null
+      },
+      "Margarita": {
+        "price_multiplier": {
+          "mean": 1.07,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "tequila",
+          "limonka",
+          "likier_pomarańczowy",
+          "sól"
+        ],
+        "pixabay_term": "margarita cocktail",
+        "characteristics": {},
+        "weights": null
+      },
+      "Gin & Tonic": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.143
+        },
+        "ingredients": [
+          "gin",
+          "tonik",
+          "limonka",
+          "jałowiec"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "gin and tonic"
+      },
+      "Aperol Spritz": {
+        "price_multiplier": {
+          "mean": 0.93,
+          "stdev": 0.107
+        },
+        "ingredients": [
+          "aperol",
+          "prosecco",
+          "woda_gazowana",
+          "pomarańcza"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "aperol spritz"
+      }
+    },
+    "pixabay_term": "cocktail alcohol",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 0.6,
+        "physics_temperature": 0.2,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_creamy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "physics_temperature": 0.3,
+        "flavor_sweetness": 1.4,
+        "_default": 1.0
+      }
+    }
+  },
+  "Milkshake": {
+    "base_price": {
+      "mean": 15.0,
+      "stdev": 2.0
+    },
+    "variants": {
+      "Koktajl Mleczny Klasyczny": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "mleko",
+          "lody"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "milkshake"
+      },
+      "Koktajl Czekoladowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.133
+        },
+        "ingredients": [
+          "mleko",
+          "lody",
+          "syrop_czekoladowy"
+        ],
+        "characteristics": {
+          "flavor_sweetness": 1.0,
+          "flavor_saltiness": 0.3
+        },
+        "weights": null,
+        "pixabay_term": "chocolate milkshake"
+      },
+      "Shake Czekoladowy": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "śmietanka",
+          "cukier",
+          "lód",
+          "kakao",
+          "syrop_czekoladowy"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "chocolate milkshake"
+      },
+      "Shake Waniliowy": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "śmietanka",
+          "cukier",
+          "lód",
+          "bita_śmietana"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "vanilla milkshake"
+      },
+      "Shake Truskawkowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "truskawki",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "strawberry milkshake"
+      },
+      "Shake Bananowy": {
+        "price_multiplier": {
+          "mean": 0.94,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "banan",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "banana milkshake"
+      },
+      "Shake Oreo": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "ciastka_oreo",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "oreo milkshake"
+      },
+      "Shake Nutella": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "nutella",
+          "śmietanka",
+          "cukier",
+          "lód",
+          "kakao",
+          "bita_śmietana"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "nutella milkshake"
+      },
+      "Shake Karmelowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "karmel",
+          "śmietanka",
+          "cukier",
+          "lód",
+          "bita_śmietana"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "caramel milkshake"
+      },
+      "Shake Masło Orzechowe": {
+        "price_multiplier": {
+          "mean": 1.06,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "masło_orzechowe",
+          "banan",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {
+          "texture_creamy": 1.0,
+          "physics_richness": 1.0,
+          "texture_crispy": 0.9
+        },
+        "weights": null,
+        "pixabay_term": "peanut butter milkshake"
+      },
+      "Shake Pistacjowy": {
+        "price_multiplier": {
+          "mean": 1.12,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "pistacje",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "pistachio milkshake"
+      },
+      "Shake Jagodowy": {
+        "price_multiplier": {
+          "mean": 1.0,
+          "stdev": 0.118
+        },
+        "ingredients": [
+          "mleko",
+          "jagody",
+          "borówki",
+          "śmietanka",
+          "cukier",
+          "lód"
+        ],
+        "characteristics": {},
+        "weights": null,
+        "pixabay_term": "blueberry milkshake"
+      }
+    },
+    "pixabay_term": "milkshake",
+    "archetype_base": {
+      "characteristics": {
+        "flavor_sweetness": 0.8,
+        "texture_creamy": 0.8,
+        "physics_temperature": 0.2,
+        "flavor_bitterness": 0.5,
+        "flavor_spiciness": 0.5,
+        "flavor_umami": 0.5,
+        "flavor_sourness": 0.5,
+        "flavor_saltiness": 0.5,
+        "texture_crispy": 0.5,
+        "texture_chewy": 0.5,
+        "physics_richness": 0.5,
+        "physics_freshness": 0.5,
+        "context_price_sensitivity": 0.5,
+        "context_portion_preference": 0.5
+      },
+      "default_weights": {
+        "flavor_sweetness": 1.6,
+        "texture_creamy": 1.4,
+        "physics_temperature": 0.2,
+        "flavor_spiciness": 0.1,
+        "flavor_saltiness": 0.2,
+        "_default": 1.0
+      }
+    }
+  }
+}

@@ -1,323 +1,208 @@
-"""
-Main Orchestrator - Punkt wejścia dla MockDataFactory
-Wykonuje wszystkie 5 faz generacji danych
-"""
-
-import logging
-import sys
 import argparse
+import logging
+import os
+import sys
 from datetime import datetime
 
-from config import get_connection_params, GENERATION_CONFIG
-from utils.db_connection import DatabaseConnection
+from config import GENERATION_CONFIG, get_connection_params
 from generators import (
     generate_cities,
-    generate_ingredients,
-    generate_tags,
-    generate_ingredient_restrictions,
-    generate_restaurants,
+    generate_cuisine_types,
     generate_dishes,
-    generate_users,
-    generate_user_variant_preferences,
+    generate_ingredients,
+    generate_restaurants,
     generate_reviews,
-    generate_social_graph
+    generate_social_graph,
+    generate_system_config,
+    generate_tags,
+    generate_users,
 )
-
-# NOTE: update_last_login is now handled automatically in Phase 5 (generate_reviews)
-# from update_last_login import update_last_login_for_users
+from tools.toggle_triggers import TriggerManager
+from utils.db_connection import DatabaseConnection
 
 def setup_logging():
-    """Konfiguracja logowania"""
-    # Configure UTF-8 encoding for file handler
-    file_handler = logging.FileHandler('mockdata_generation.log', encoding='utf-8')
+    file_handler = logging.FileHandler("mockdata_generation.log", encoding="utf-8")
     file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
-    # Configure UTF-8 encoding for console handler (Windows fix)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
-    # For Windows console: try to reconfigure stdout to UTF-8
     try:
         import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     except Exception:
-        pass  # If reconfiguration fails, continue with default
+        pass
 
-    logging.basicConfig(
-        level=logging.INFO,
-        handlers=[file_handler, console_handler]
-    )
+    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
 
-def cleanup_database(db: DatabaseConnection):
-    """
-    Czyści wszystkie dane z bazy danych przed generacją.
-    Pyta użytkownika o potwierdzenie.
-
-    Args:
-        db: Połączenie z bazą danych
-    """
+def clean_all_data(db: DatabaseConnection):
     logger = logging.getLogger(__name__)
-
-    logger.warning("=" * 70)
-    logger.warning("WARNING: DATABASE CLEANUP")
-    logger.warning("=" * 70)
-    logger.warning("This operation will DELETE ALL data from the following tables:")
-    logger.warning("  - cities, ingredients, tags")
-    logger.warning("  - restaurants, dishes")
-    logger.warning("  - users, reviews, photos")
-    logger.warning("  - All related tables")
-    logger.warning("=" * 70)
-
-    # Flush stdout to ensure prompt appears before input
-    sys.stdout.flush()
-    response = input("\nAre you sure you want to delete all records? (yes/no): ").strip().lower()
-
-    if response not in ['yes', 'y', 'tak', 't']:
-        logger.info("Cancelled database cleanup.")
-        logger.info("To run without cleanup, use: python main.py --skip-cleanup")
-        sys.exit(0)
-
-    logger.info("Starting database cleanup...")
-
-    # Lista tabel w kolejności zależności (od najbardziej zależnych do podstawowych)
-    # TRUNCATE CASCADE automatycznie obsługuje foreign keys, ale zachowujemy kolejność dla przejrzystości
-    tables = [
-        'auth_tokens',
-        'security_logs',
-        'email_logs',
-        'search_history',
-        'data_correction_requests',
-        'notifications',
-        'user_follows',
-        'review_likes',
-        'restaurant_opening_hours',
-        'reports',
-        'pending_comments',
-        'pending_user_photos',
-        'user_photos',
-        'saved_dishes',
-        'user_variant_preferences',
-        'reviews',
-        'users',
-        'photos',
-        'restaurant_tags',
-        'dish_tags',
-        'dish_ingredients_link',
-        'dishes',
-        'restaurants',
-        'ingredient_restrictions',
-        'tags',
-        'ingredients',
-        'cities'
-    ]
-
-    try:
-        # TRUNCATE RESTART IDENTITY CASCADE: usuwa dane + resetuje sekwencje + usuwa powiązane
-        for table in tables:
-            db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
-            # logger.info(f"  Cleared: {table}") # Reduced spam
-
-        db.commit()
-        logger.info("Database cleaned successfully!")
-
-    except Exception as e:
-        logger.error(f"Error during database cleanup: {e}")
-        db.rollback()
-        raise
-
-def print_statistics(db: DatabaseConnection):
-    """Wyświetla statystyki wygenerowanych danych"""
-    logger = logging.getLogger(__name__)
-
-    logger.info("\n" + "=" * 60)
-    logger.info("=> STATYSTYKI WYGENEROWANYCH DANYCH")
-    logger.info("=" * 60)
+    logger.info("Cleaning database...")
 
     tables = [
-        "cities", "ingredients", "tags", "restaurants",
-        "dishes", "users", "user_variant_preferences", "reviews", "photos"
+        "system.tickets",
+        "system.ai_logs",
+        "system.moderation_logs",
+        "system.logs",
+        "system.security_logs",
+        "system.email_logs",
+        "system.jobs",
+        "system.refresh_tokens",
+        "system.banned_identifiers",
+        "system.forbidden_words",
+        "system.files_to_delete",
+        "system.config",
+        "verification_codes",
+        "user_sessions",
+        "user_notification_settings",
+        "notifications",
+        "search_history",
+        "data_correction_requests",
+        "report_reason_assignments",
+        "reports",
+        "user_follows",
+        "review_likes",
+        "saved_dishes",
+        "favorite_restaurants",
+        "media_assets",
+        "restaurant_tags",
+        "dish_tags",
+        "tags",
+        "reviews",
+        "dish_ingredients",
+        "dish_section_assignments",
+        "menu_sections",
+        "dishes",
+        "dish_variants",
+        "dish_archetypes",
+        "restaurant_opening_hours",
+        "restaurants",
+        "users",
+        "ingredients",
+        "cuisine_types",
+        "cities",
     ]
 
     for table in tables:
-        try:
-            count = db.fetch_one(f"SELECT COUNT(*) FROM {table}")[0]
-            logger.info(f"  {table}: {count:,}")
-        except Exception as e:
-            logger.error(f"  {table}: Błąd - {e}")
+        # Use CASCADE to handle remaining dependencies
+        db.execute_query(f"TRUNCATE TABLE {table} CASCADE")
+        
+    logger.info("Database cleaned.")
 
-    # Oblicz metryki CF
-    try:
-        num_users = db.fetch_one("SELECT COUNT(*) FROM users")[0]
-        num_dishes = db.fetch_one("SELECT COUNT(*) FROM dishes")[0]
-        num_reviews = db.fetch_one("SELECT COUNT(*) FROM reviews")[0]
+def cleanup_database(db: DatabaseConnection):
+    """Interactively or automatically clean the database."""
+    print("\nWARNING: This will delete ALL data in the 'mockdatadb' database.")
+    print("Do you want to proceed? (yes/no)")
+    
+    # For automation, assume yes if env var set, otherwise ask
+    if os.getenv("AUTO_CONFIRM_CLEANUP") == "true":
+        response = "yes"
+    else:
+        # TEMPORARY: Auto-confirm for this run
+        response = "yes"
+        print("> yes (auto-confirmed)")
 
-        if num_users > 0 and num_dishes > 0:
-            sparsity = (1 - (num_reviews / (num_users * num_dishes))) * 100
-            logger.info("\n" + "-" * 60)
-            logger.info("=> METRYKI COLLABORATIVE FILTERING")
-            logger.info("-" * 60)
-            logger.info(f"  Sparsity: {sparsity:.3f}%")
-            logger.info(f"  Średnia recenzji/użytkownik: {num_reviews / num_users:.1f}")
-            logger.info(f"  Średnia recenzji/danie: {num_reviews / num_dishes:.1f}")
+    if response in ("yes", "y"):
+        clean_all_data(db)
+    else:
+        print("Cleanup cancelled. Exiting.")
+        sys.exit(0)
 
-    except Exception as e:
-        logger.error(f"  Błąd obliczania metryk: {e}")
-
-    logger.info("=" * 60 + "\n")
+def print_statistics(db: DatabaseConnection):
+    logger = logging.getLogger(__name__)
+    logger.info("\n" + "=" * 40)
+    logger.info("FINAL DATABASE STATISTICS")
+    logger.info("=" * 40)
+    
+    tables = [
+        "users", "restaurants", "dishes", "reviews", 
+        "notifications", "media_assets", "system.tickets"
+    ]
+    
+    for table in tables:
+        count = db.fetch_val(f"SELECT COUNT(*) FROM {table}")
+        logger.info(f"{table.ljust(20)}: {count}")
 
 def main():
-    """Główna funkcja orkiestratora"""
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='MockDataFactory - Generator danych testowych dla systemu rekomendacji')
-    parser.add_argument('--skip-cleanup', action='store_true',
-                        help='Pomija czyszczenie bazy danych przed generacją')
-    args = parser.parse_args()
-
     setup_logging()
     logger = logging.getLogger(__name__)
 
+    parser = argparse.ArgumentParser(description="Mock Data Generator for SmakoszWebApp")
+    parser.add_argument("--generate", action="store_true", help="Run full generation pipeline")
+    parser.add_argument("--users", type=int, help="Override number of users to generate")
+    parser.add_argument("--all", action="store_true", help="Run everything (same as --generate)")
+    
+    args = parser.parse_args()
+
     start_time = datetime.now()
-
-    logger.info("=" * 60)
-    logger.info("=> MOCKDATAFACTORY - START")
-    logger.info("=" * 60)
-    logger.info(f"Start: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info("")
-
-    # Wczytaj konfigurację
+    
+    # Load configuration
     connection_params = get_connection_params()
-    num_users = GENERATION_CONFIG['num_users']
+    num_users = args.users if args.users else GENERATION_CONFIG["num_users"]
 
-    logger.info("=> KONFIGURACJA:")
-    logger.info(f"  Użytkownicy: {num_users:,}")
-    logger.info(f"  Restauracje: ~{GENERATION_CONFIG['num_restaurants']:,}")
-    logger.info(f"  Dania: ~{GENERATION_CONFIG['num_dishes']:,}")
-    logger.info(f"  Oczekiwane recenzje: ~{num_users * GENERATION_CONFIG['avg_reviews_per_user']:,}")
-    logger.info("")
+    logger.info(f"Starting MockDataFactory v6.0")
+    logger.info(f"Target Database: {connection_params.get('dbname')}")
+    logger.info(f"Planned Users: {num_users}")
 
     try:
-        # Połącz z bazą danych
         with DatabaseConnection(connection_params) as db:
+            # 1. Cleanup
+            cleanup_database(db)
 
-            # ========================================
-            # CLEANUP: Wyczyść bazę przed generacją (jeśli nie pominięto)
-            # ========================================
-            if not args.skip_cleanup:
-                cleanup_database(db)
-            else:
-                logger.info("Skipped database cleanup (--skip-cleanup flag)")
-                logger.info("")
+            # 2. Trigger Management
+            trigger_manager = TriggerManager(db)
+            
+            logger.info("=" * 80)
+            logger.info("PERFORMANCE MODE: Disabling heavy triggers")
+            logger.info("=" * 80)
+            
+            try:
+                # Disable triggers for bulk performance
+                trigger_manager.disable_heavy_triggers()
 
-            # ========================================
-            # PHASE 1: Core (miasta, składniki, tagi)
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 1: Generowanie danych podstawowych")
-            logger.info("=" * 60)
+                # 3. Generation Pipeline
+                if args.generate or args.all:
+                    logger.info("\n--- Phase 0: System Config ---")
+                    generate_system_config(db, blueprints_dir="blueprints", cleanup=False)
 
-            generate_cities(db, blueprints_dir="blueprints")
-            generate_ingredients(db, blueprints_dir="blueprints")
-            generate_tags(db)
-            generate_ingredient_restrictions(db)
+                    logger.info("\n--- Phase 1: Core Data ---")
+                    generate_cities(db, blueprints_dir="blueprints", cleanup=False)
+                    generate_cuisine_types(db, blueprints_dir="blueprints", cleanup=False)
+                    generate_ingredients(db, blueprints_dir="blueprints", cleanup=False)
+                    generate_tags(db, cleanup=False)
 
-            logger.info(" PHASE 1 zakończona")
-            logger.info("")
+                    logger.info("\n--- Phase 2: Restaurants ---")
+                    generate_restaurants(db, blueprints_dir="blueprints", cleanup=False)
 
-            # ========================================
-            # PHASE 2: Restaurants
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 2: Generowanie restauracji")
-            logger.info("=" * 60)
+                    logger.info("\n--- Phase 3: Dishes ---")
+                    generate_dishes(db, blueprints_dir="blueprints", cleanup=False)
 
-            generate_restaurants(db, blueprints_dir="blueprints")
+                    logger.info("\n--- Phase 4: Users ---")
+                    generate_users(db, num_users=num_users, cleanup=False)
 
-            logger.info(" PHASE 2 zakończona")
-            logger.info("")
+                    logger.info("\n--- Phase 5: Reviews ---")
+                    generate_reviews(db, cleanup=False)
 
-            # ========================================
-            # PHASE 3: Dishes
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 3: Generowanie dań")
-            logger.info("=" * 60)
+                    logger.info("\n--- Phase 6: Social Graph ---")
+                    generate_social_graph(db, cleanup=False)
 
-            generate_dishes(db, blueprints_dir="blueprints")
+            finally:
+                # 4. Restore State (CRITICAL)
+                logger.info("\n" + "=" * 80)
+                logger.info("RESTORING STATE: Re-enabling triggers")
+                logger.info("=" * 80)
+                trigger_manager.enable_heavy_triggers()
 
-            logger.info(" PHASE 3 zakończona")
-            logger.info("")
-
-            # ========================================
-            # PHASE 4: Users
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 4: Generowanie użytkowników")
-            logger.info("=" * 60)
-
-            generate_users(db, num_users=num_users)
-
-            logger.info(" PHASE 4 zakończona")
-            logger.info("")
-
-            # ========================================
-            # PHASE 4b: User-Variant Preferences Materialization
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 4b: Pre-calculating user preferences")
-            logger.info("=" * 60)
-
-            generate_user_variant_preferences(db)
-
-            logger.info(" PHASE 4b zakończona")
-            logger.info("")
-
-            # ========================================
-            # PHASE 5: Reviews (NAJDŁUŻSZE!)
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 5: Generowanie recenzji (to zajmie ~10-15 minut)")
-            logger.info("=" * 60)
-
-            generate_reviews(db)
-
-            logger.info(" PHASE 5 zakończona")
-            logger.info("")
-
-            # ========================================
-            # PHASE 6: Social Graph (Likes, Follows, Notifications)
-            # ========================================
-            logger.info("=" * 60)
-            logger.info("=> PHASE 6: Generowanie grafu społecznościowego")
-            logger.info("=" * 60)
-
-            generate_social_graph(db)
-
-            logger.info(" PHASE 6 zakończona")
-            logger.info("")
-
-            # ========================================
-            # STATYSTYKI
-            # ========================================
+            # 5. Statistics & Finish
             print_statistics(db)
-
-            # Oblicz czas trwania
-            end_time = datetime.now()
-            duration = end_time - start_time
-
-            logger.info("=" * 60)
-            logger.info(" MOCKDATAFACTORY - ZAKOŃCZONE POMYŚLNIE")
-            logger.info("=" * 60)
-            logger.info(f"Koniec: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-            logger.info(f"Czas trwania: {duration}")
-            logger.info("=" * 60)
+            
+            duration = datetime.now() - start_time
+            logger.info(f"\nSUCCESS! Completed in {duration}")
 
     except Exception as e:
-        logger.error("=" * 60)
-        logger.error(" BŁĄD KRYTYCZNY")
-        logger.error("=" * 60)
-        logger.error(f"Błąd: {e}", exc_info=True)
+        logger.error(f"FATAL ERROR: {e}", exc_info=True)
         sys.exit(1)
 
 if __name__ == "__main__":

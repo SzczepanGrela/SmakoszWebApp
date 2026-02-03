@@ -1,73 +1,47 @@
-"""
-Date Generator - Generowanie dat z ograniczeniami i spójnością czasową
-"""
-
 import random
 from datetime import datetime, timedelta
-from typing import List
+from typing import Any
+
 import numpy as np
 
 class DateGenerator:
-    """
-    Generuje daty z różnymi strategiami i ograniczeniami
-    """
-
     def __init__(self):
-        # Zakres dat dla generacji
         self.min_date = datetime(2020, 1, 1)
         self.max_date = datetime(2024, 12, 31)
 
-    def generate_random_date(self, start: datetime = None, end: datetime = None) -> datetime:
-        """
-        Generuje losową datę w podanym zakresie
+    @staticmethod
+    def ensure_naive(dt: Any) -> datetime:
+        """Ensure a datetime object is naive (no timezone)."""
+        if dt is None:
+            return None
+        if not isinstance(dt, datetime):
+            if hasattr(dt, "year") and hasattr(dt, "month") and hasattr(dt, "day") and not hasattr(dt, "hour"):
+                return datetime.combine(dt, datetime.min.time())
+            return dt
+        if dt.tzinfo is not None:
+            return dt.replace(tzinfo=None)
+        return dt
 
-        Args:
-            start: Data początkowa (domyślnie min_date)
-            end: Data końcowa (domyślnie max_date)
-
-        Returns:
-            Losowa data
-        """
-        if start is None:
-            start = self.min_date
-        if end is None:
-            end = self.max_date
+    def generate_random_date(self, start: datetime | None = None, end: datetime | None = None) -> datetime:
+        start = self.ensure_naive(start) if start is not None else self.min_date
+        end = self.ensure_naive(end) if end is not None else self.max_date
 
         delta = end - start
         random_days = random.randint(0, delta.days)
 
         return start + timedelta(days=random_days)
 
-    def generate_business_hours_datetime(self, date: datetime = None) -> datetime:
-        """
-        Generuje datę z godziną w godzinach pracy (10:00-22:00)
+    def generate_business_hours_datetime(self, date: datetime | None = None) -> datetime:
+        date = self.ensure_naive(date) if date is not None else self.generate_random_date()
 
-        Args:
-            date: Data bazowa (jeśli None, losowa)
-
-        Returns:
-            Datetime z godziną w przedziale 10-22
-        """
-        if date is None:
-            date = self.generate_random_date()
-
-        # Godziny 10-22
         hour = random.randint(10, 22)
         minute = random.randint(0, 59)
 
         return date.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
     def generate_restaurant_created_date(self) -> datetime:
-        """
-        Generuje datę otwarcia restauracji (beta distribution - więcej nowych)
-
-        Returns:
-            Data otwarcia restauracji
-        """
-        # Beta distribution (alpha=2, beta=5) daje więcej nowych restauracji
         beta_value = np.random.beta(2, 5)
 
-        # Mapuj [0,1] na zakres dat
         delta = self.max_date - self.min_date
         days_offset = int(beta_value * delta.days)
 
@@ -75,78 +49,90 @@ class DateGenerator:
 
         return created_date.replace(hour=10, minute=0, second=0, microsecond=0)
 
-    def generate_review_date(self, restaurant_created: datetime,
-                            user_first_review: datetime = None) -> datetime:
-        """
-        Generuje datę recenzji spójną z datą otwarcia restauracji
-
-        Args:
-            restaurant_created: Data otwarcia restauracji
-            user_first_review: Pierwsza recenzja użytkownika (opcjonalnie)
-
-        Returns:
-            Data recenzji (PO otwarciu restauracji)
-        """
-        # Recenzja musi być PO otwarciu restauracji
+    def generate_review_date(self, restaurant_created: datetime, user_first_review: datetime | None = None) -> datetime:
+        restaurant_created = self.ensure_naive(restaurant_created)
+        user_first_review = self.ensure_naive(user_first_review)
+        
         earliest_date = restaurant_created + timedelta(days=1)
 
         if user_first_review and user_first_review > earliest_date:
             earliest_date = user_first_review
 
-        # Recenzja do dzisiaj
         latest_date = self.max_date
 
         if earliest_date >= latest_date:
-            # Restauracja bardzo nowa - recenzja kilka dni później
             return earliest_date + timedelta(days=random.randint(1, 7))
 
         return self.generate_random_date(earliest_date, latest_date)
 
-    def generate_dates_with_spacing(self, count: int, start_date: datetime, min_days: int = 1, max_days: int = 30) -> List[datetime]:
-        """
-        Generuje posortowaną listę dat recenzji z zachowaniem odstępów.
-        Uwzględnia "czas inkubacji" (lurking period) przed pierwszą recenzją.
-        """
+    def generate_dates_with_spacing(
+        self, count: int, start_date: datetime, min_days: int = 1, max_days: int = 30
+    ) -> list[datetime]:
         if count <= 0:
             return []
 
+        start_date = self.ensure_naive(start_date)
         dates = []
-        
-        # Czas inkubacji: większość userów czeka chwilę zanim napisze pierwszą recenzję
-        # Rozkład wykładniczy: dużo małych wartości, mało dużych
-        incubation_days = int(random.expovariate(1/14)) # Średnio 14 dni
-        incubation_days = min(incubation_days, 180) # Max pół roku
-        
+
+        incubation_days = int(random.expovariate(1 / 14))
+        incubation_days = min(incubation_days, 180)
+
         current_date = start_date + timedelta(days=incubation_days)
-        
-        # Zabezpieczenie przed wyjściem w przyszłość na starcie
-        if current_date > datetime.now():
-            current_date = datetime.now() - timedelta(days=count) # Fallback: start 'count' days ago
+        now_naive = datetime.now().replace(tzinfo=None)
+
+        if current_date > now_naive:
+            current_date = now_naive - timedelta(days=count)
 
         for _ in range(count):
             dates.append(current_date)
-            # Losowy odstęp do następnej recenzji
             gap = random.randint(min_days, max_days)
-            current_date += timedelta(days=gap)
-            
-            # Jeśli przekroczymy "dzisiaj", przerywamy (nie generujemy recenzji z przyszłości)
-            # W realnym scenariuszu user po prostu napisałby mniej recenzji niż 'count'
-            if current_date > datetime.now():
+            current_date += timedelta(gap)
+
+            if current_date > now_naive:
                 break
 
         return dates
 
-    def generate_user_join_date(self) -> datetime:
+    def generate_dates_skewed_to_end(
+        self, count: int, start_date: datetime, end_date: datetime
+    ) -> list[datetime]:
         """
-        Generuje datę dołączenia użytkownika (rozkład beta - więcej nowych)
+        Generate dates distributed between start_date and end_date,
+        heavily skewed towards end_date (recent times) using Beta distribution.
+        """
+        if count <= 0:
+            return []
+            
+        start_date = self.ensure_naive(start_date)
+        end_date = self.ensure_naive(end_date)
+            
+        total_seconds = (end_date - start_date).total_seconds()
+        if total_seconds <= 0:
+            return [start_date] * count
+            
+        dates = set()
+        attempts = 0
+        max_attempts = count * 3
+        
+        while len(dates) < count and attempts < max_attempts:
+            ratio = random.betavariate(5, 1) 
+            
+            offset_seconds = int(total_seconds * ratio)
+            gen_date = start_date + timedelta(seconds=offset_seconds)
+            gen_date = gen_date.replace(second=0, microsecond=0)
+            
+            dates.add(gen_date)
+            attempts += 1
+            
+        result = sorted(list(dates))
+        while len(result) < count:
+            result.append(end_date)
+            
+        return result
 
-        Returns:
-            Data rejestracji użytkownika
-        """
-        # Beta distribution (alpha=2, beta=4) - więcej nowych użytkowników
+    def generate_user_join_date(self) -> datetime:
         beta_value = np.random.beta(2, 4)
 
-        # Mapuj na zakres dat
         delta = self.max_date - self.min_date
         days_offset = int(beta_value * delta.days)
 
@@ -156,13 +142,9 @@ class DateGenerator:
 
     @staticmethod
     def to_sql_datetime(dt: datetime) -> str:
-        """
-        Konwertuje datetime na format SQL (PostgreSQL/SQL Server kompatybilny)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        Args:
-            dt: Obiekt datetime
-
-        Returns:
-            String w formacie SQL datetime
-        """
-        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    @staticmethod
+    def to_sql_date(dt: datetime) -> str:
+        """Convert datetime to SQL DATE format (YYYY-MM-DD)."""
+        return dt.strftime("%Y-%m-%d")

@@ -1,394 +1,362 @@
-"""
-Phase 4 - Generowanie użytkowników (~25,000)
-"""
-
-import logging
-import random
+import base64
+import hashlib
 import json
-from datetime import date, timedelta, datetime
-import numpy as np
-from scipy.stats import beta as beta_dist
+import logging
+import os
+import random
+import time
+import uuid  # Added for ASP.NET Identity Security Stamp
+from datetime import datetime, timedelta
 
-from utils.db_connection import DatabaseConnection
-from utils.statistical import sample_normal, sample_beta
-from utils.date_generator import DateGenerator
+from scipy.stats import beta as beta_dist
+from tqdm import tqdm
+
+from config import GENERATION_CONFIG, get_connection_params
+from data_access import UserDAO
 from utils.blueprint_loader import BlueprintLoader
+from utils.date_generator import DateGenerator
+from utils.db_connection import DatabaseConnection
+from utils.distributions import sample_normal
 from utils.faker_instance import fake
+from utils.photo_pools import PhotoPools
+from utils.text_generator import slugify
+from utils.user_helpers import (
+    generate_date_of_birth,
+    generate_full_name,
+    generate_phone,
+    generate_user_characteristics_vector,
+)
 
 logger = logging.getLogger(__name__)
 
-def generate_user_characteristics_vector():
+def generate_aspnet_identity_v3_hash(password: str) -> str:
     """
-    Generuje 14-wymiarowy wektor preferencji użytkownika z tolerancjami.
-    
-    UPDATED: Widened tolerances (0.1-0.7) to create more diverse and orthogonal user profiles.
-    """
-    vector = {}
+    Generate an ASP.NET Core Identity v3 compatible password hash.
 
-    # FLAVOR (6)
-    vector['flavor_sweetness'] = {
-        'value': round(beta_dist.rvs(2.5, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['flavor_bitterness'] = {
-        'value': round(beta_dist.rvs(1.5, 3.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['flavor_spiciness'] = {
-        'value': round(beta_dist.rvs(2.0, 2.5), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['flavor_umami'] = {
-        'value': round(beta_dist.rvs(3.0, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['flavor_sourness'] = {
-        'value': round(beta_dist.rvs(2.0, 2.5), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['flavor_saltiness'] = {
-        'value': round(beta_dist.rvs(2.5, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
+    Uses PBKDF2-HMAC-SHA256 with 100,000 iterations, matching the format
+    expected by ASP.NET Core Identity PasswordHasher<TUser>.
 
-    # TEXTURE (3)
-    vector['texture_crispy'] = {
-        'value': round(beta_dist.rvs(3.0, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['texture_creamy'] = {
-        'value': round(beta_dist.rvs(2.5, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['texture_chewy'] = {
-        'value': round(beta_dist.rvs(2.0, 2.5), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
+    Binary Structure:
+        - Byte 0: 0x01 (Format marker - Version 3)
+        - Byte 1: 0x01 (PRF algorithm: HMAC-SHA256)
+        - Bytes 2-5: 100000 (Iteration count, Big Endian, 4 bytes)
+        - Bytes 6-9: 16 (Salt length in bytes, Big Endian, 4 bytes)
+        - Bytes 10-25: salt (16 bytes)
+        - Bytes 26-57: subkey (32 bytes from PBKDF2)
 
-    # PHYSICS (3)
-    vector['physics_richness'] = {
-        'value': round(beta_dist.rvs(2.0, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['physics_temperature'] = {
-        'value': round(beta_dist.rvs(2.5, 2.5), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['physics_freshness'] = {
-        'value': round(beta_dist.rvs(3.5, 1.5), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-
-    # CONTEXT (2)
-    vector['context_price_sensitivity'] = {
-        'value': round(beta_dist.rvs(2.0, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-    vector['context_portion_preference'] = {
-        'value': round(beta_dist.rvs(2.5, 2.0), 3),
-        'tolerance': round(random.uniform(0.1, 0.7), 3)
-    }
-
-    return vector
-
-def generate_full_name() -> str:
-    """Generuje polskie imię i nazwisko"""
-    return fake.name()
-
-def generate_phone() -> str:
-    """Generuje polski numer telefonu (format: +48 XXX XXX XXX, max 20 znaków)"""
-    return f"+48 {random.randint(500, 999)} {random.randint(100, 999)} {random.randint(100, 999)}"
-
-def generate_avatar_url(full_name: str, user_id: int) -> str:
-    """
-    Generuje deterministyczny avatar URL z inicjałami i rotacją kolorów
+    Total: 58 bytes -> Base64 encoded to ~77 characters
 
     Args:
-        full_name: Imię i nazwisko
-        user_id: ID użytkownika (dla determinizmu kolorów)
+        password: The plaintext password to hash
 
     Returns:
-        URL avatara z UI Avatars API (max 500 znaków dla VARCHAR(500))
+        Base64-encoded hash string compatible with ASP.NET Core Identity
+
+    Example:
+        >>> hash_str = generate_aspnet_identity_v3_hash("Password123!")
+        >>> len(hash_str)  # Approximately 77 characters
+        77
     """
-    names = full_name.split()[:2]  # Max 2 słowa dla bezpieczeństwa
+    # Step 1: Generate random 16-byte salt
+    salt = os.urandom(16)
 
-    # Rotacja 6 kolorów
-    colors = ['3498db', 'e74c3c', '2ecc71', 'f39c12', '9b59b6', '1abc9c']
-    color = colors[user_id % len(colors)]
+    # Step 2: Derive 32-byte key using PBKDF2-HMAC-SHA256 with 100,000 iterations
+    subkey = hashlib.pbkdf2_hmac(
+        hash_name='sha256',
+        password=password.encode('utf-8'),
+        salt=salt,
+        iterations=100000,
+        dklen=32  # Derive 32-byte key
+    )
 
-    url = f"https://ui-avatars.com/api/?name={'+'.join(names)}&background={color}&color=fff&size=200"
-    return url[:500]  # Safety truncation dla VARCHAR(500)
+    # Step 3: Construct binary format matching ASP.NET Core Identity v3
+    # Format version (1 byte): 0x01
+    version = b'\x01'
 
-def generate_date_of_birth() -> date:
-    """
-    Generuje realistyczną datę urodzenia (wiek 18-70, większość 25-45)
-    Używa rozkładu beta dla realistycznej dystrybucji wieku
+    # PRF algorithm (1 byte): 0x01 = HMAC-SHA256
+    prf_algorithm = b'\x01'
 
-    Returns:
-        Data urodzenia
-    """
-    # Beta distribution dla wieku (koncentracja wokół 25-45 lat)
-    age = sample_beta(2, 3, 18, 70)  # Większość 25-45, ekstremum 18-70
+    # Iteration count (4 bytes, Big Endian): 100,000
+    iteration_count = (100000).to_bytes(4, byteorder='big')
 
-    # Calculate birth date
-    today = date.today()
-    years_ago = int(age)
-    days_variation = random.randint(0, 365)  # Random day within the year
+    # Salt length (4 bytes, Big Endian): 16
+    salt_length = (16).to_bytes(4, byteorder='big')
 
-    birth_date = today - timedelta(days=years_ago * 365 + days_variation)
-    return birth_date
+    # Combine all parts: header (10 bytes) + salt (16 bytes) + subkey (32 bytes) = 58 bytes total
+    hash_bytes = version + prf_algorithm + iteration_count + salt_length + salt + subkey
+
+    # Step 4: Return base64 encoded string (58 bytes -> ~77 base64 chars)
+    return base64.b64encode(hash_bytes).decode('ascii')
 
 def allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints"):
-    """
-    Alokuje użytkowników do miast używając weighted Gaussian distribution z blueprintu
-
-    Formula: (city_weight / total_weight) * target_users * gaussian(1.0, variance)
-
-    Args:
-        cities: Lista tupli (city_id, city_name) z bazy danych
-        num_users: Docelowa liczba użytkowników (np. 25000)
-        blueprints_dir: Ścieżka do katalogu blueprints
-
-    Returns:
-        Lista (city_id, city_name) dla każdego użytkownika (długość = num_users)
-    """
-    # Wczytaj blueprint z population_weight
     blueprint_loader = BlueprintLoader(blueprints_dir)
-    city_config = blueprint_loader.load_blueprint("01_city_rules.json")["CITY_CONFIG"]
+    city_config = blueprint_loader.load_blueprint("cities.json")["CITY_CONFIG"]
 
-    # Przygotuj mapowanie city_name -> (city_id, weight, variance)
     city_data = {}
     for city_id, city_name in cities:
         if city_name in city_config:
             config = city_config[city_name]
-            weight = config["population_weight"]["base"]
-            variance = config["population_weight"]["variance"]
-            city_data[city_name] = (city_id, weight, variance)
+            weight = config.get("weight", 0.0)
+            city_data[city_name] = (city_id, weight)
         else:
-            # Fallback dla miast bez konfiguracji
-            logger.warning(f"⚠️  Miasto {city_name} nie ma population_weight w blueprincie - używam domyślnego")
-            city_data[city_name] = (city_id, 500, 100)
+            city_data[city_name] = (city_id, 0.0)
 
-    # Oblicz sumę wag
-    total_weight = sum(data[1] for data in city_data.values())
-
-    # Alokuj użytkowników z Gaussian noise
     city_allocations = {}
     allocated_total = 0
 
-    for city_name, (city_id, weight, variance) in city_data.items():
-        # Bazowa proporcja
-        expected_users = (weight / total_weight) * num_users
+    sorted_cities = sorted(city_data.items(), key=lambda x: x[1][1], reverse=True)
 
-        # Dodaj Gaussian noise (stdev jako procent variance/weight dla stabilności)
-        noise_stdev = variance / weight  # Normalize variance
-        gaussian_multiplier = np.random.normal(1.0, noise_stdev * 0.3)  # 30% variance factor
-        gaussian_multiplier = max(0.5, min(1.5, gaussian_multiplier))  # Clip to [0.5, 1.5]
+    for city_name, (city_id, weight) in sorted_cities:
+        count = int(num_users * weight)
+        city_allocations[city_name] = {"city_id": city_id, "count": count, "weight": weight}
+        allocated_total += count
 
-        # Finalna alokacja
-        allocated = int(expected_users * gaussian_multiplier)
-        allocated = max(1, allocated)  # Minimum 1 user per city
+    remainder = num_users - allocated_total
+    if remainder > 0:
+        top_city = sorted_cities[0][0]
+        city_allocations[top_city]["count"] += remainder
 
-        city_allocations[city_name] = {
-            'city_id': city_id,
-            'allocated': allocated,
-            'expected': expected_users,
-            'weight': weight
-        }
-        allocated_total += allocated
-
-    # Dostosuj różnicę (jeśli suma != num_users)
-    difference = num_users - allocated_total
-
-    if difference != 0:
-        # Dodaj/odejmij różnicę proporcjonalnie do wagi
-        cities_sorted = sorted(city_allocations.items(), key=lambda x: x[1]['weight'], reverse=True)
-
-        for city_name, data in cities_sorted:
-            if difference == 0:
-                break
-
-            adjustment = 1 if difference > 0 else -1
-            if data['allocated'] + adjustment >= 1:  # Nie pozwól zejść poniżej 1
-                data['allocated'] += adjustment
-                allocated_total += adjustment
-                difference -= adjustment
-
-    # Loguj dystrybucję
-    logger.info(" Weighted Gaussian Distribution:")
-    logger.info(f"   Total weight sum: {total_weight:,}")
-    for city_name, data in sorted(city_allocations.items(), key=lambda x: x[1]['allocated'], reverse=True):
-        pct = (data['allocated'] / num_users) * 100
-        expected_pct = (data['expected'] / num_users) * 100
-        logger.info(f"   {city_name:25s}: {data['allocated']:5,} ({pct:5.2f}%) | Expected: {data['expected']:7.1f} ({expected_pct:5.2f}%)")
-
-    # Stwórz listę przypisań (każdy user -> city)
     user_city_assignments = []
     for city_name, data in city_allocations.items():
-        for _ in range(data['allocated']):
-            user_city_assignments.append((data['city_id'], city_name))
+        for _ in range(data["count"]):
+            user_city_assignments.append((data["city_id"], city_name))
 
-    # Losowa kolejność dla lepszej dystrybucji
     random.shuffle(user_city_assignments)
-
     return user_city_assignments
 
-def generate_users(db: DatabaseConnection, num_users: int = 25000):
-    """
-    Generuje ~25,000 użytkowników z ZOPTYMALIZOWANYMI secret attributes dla CF
+def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool = True):
+    start_time = time.time()
+    logger.info("Generating users...")
 
-    Secret Attributes (ZOPTYMALIZOWANE):
-    - secret_total_review_count (25-150, z 5% power users ~100)
-    - secret_characteristics_vector (JSONB - 14 dimensions) - NOWE
-    - secret_ingredient_preferences ({"pomidor": 0.85, "orzechy": 0.1})
-    - secret_cleanliness_preference (city-dependent)
-    - secret_preferred_ambiance ("Spokojny", "Energiczny", "Romantyczny")
-    - secret_mood_propensity (0.3 ± 0.05) - ZOPTYMALIZOWANE!
-    - secret_cross_impact_factor (0.02 ± 0.01) - ZOPTYMALIZOWANE!
-    - travel_propensity (0.20 ± 0.05) - ZOPTYMALIZOWANE!
-    """
-    logger.info(" Generowanie użytkowników...")
+    if cleanup:
+        logger.info("Cleaning up old Phase 4 data...")
+        try:
+            db.execute_query("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
+            db.execute_query("TRUNCATE TABLE saved_dishes RESTART IDENTITY CASCADE")
+            db.commit()
+            logger.info("Cleanup complete.")
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+            db.rollback()
+            raise e
 
-    # Cleanup old data
-    logger.info("🧹 Czyszczenie starych danych Phase 4 (users, saved_dishes)...")
-    try:
-        # Use execute_query directly instead of manual cursor management
-        db.execute_query("TRUNCATE TABLE users RESTART IDENTITY CASCADE")
-        db.execute_query("TRUNCATE TABLE saved_dishes RESTART IDENTITY CASCADE")
-        # user_variant_preferences is Phase 4b, handled there (or via CASCADE from users)
-        
-        db.commit()
-        logger.info("✅ Wyczyszczono starych użytkowników i powiązane tabele.")
-        
-    except Exception as e:
-        logger.error(f"❌ Błąd podczas cleanup Phase 4: {e}")
-        db.rollback()
-        raise e
-
-    # Pobierz miasta
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
-
     if not cities:
-        logger.error(" Brak miast w bazie! Najpierw uruchom Phase 1 (generate_cities)")
-        raise ValueError("Cannot generate users without cities in database")
+        raise ValueError("Cannot generate users without cities")
 
-    # Pobierz wszystkie składniki
+    # Fetch restaurants for restaurant accounts
+    restaurants = db.fetch_all("SELECT restaurant_id, restaurant_name, city_id FROM restaurants")
+    logger.info(f"Found {len(restaurants)} restaurants. Deciding ownership (70% target)...")
+
     all_ingredients = db.fetch_all("SELECT ingredient_name FROM ingredients")
-    ingredient_names = [name for (name,) in all_ingredients]
+    ingredient_names = [ing_name for (ing_name,) in all_ingredients]
 
-    # Load Archetypes for preferences
     loader = BlueprintLoader("blueprints")
-    variant_blueprints = loader.load_blueprint("variant_characteristics.json")
-    all_archetypes = list(variant_blueprints.keys())
+    dish_blueprints = loader.load_blueprint("dishes.json")
+    all_archetypes = list(dish_blueprints.keys())
 
     date_gen = DateGenerator()
+    photo_pools = PhotoPools()
 
-    # RBAC: Role allocation constants
-    TOTAL_ADMINS = 1       # 1 administrator (predef test account)
-    TOTAL_MODERATORS = 3   # 3 moderators (predef test accounts)
+    # Generate common ASP.NET Core Identity v3 password hash for all users
+    # Password: "Password123!" - reused for all 50k users (acceptable for mock data)
+    common_hash = generate_aspnet_identity_v3_hash("Password123!")
+    logger.info(f"Generated common password hash for 'Password123!': {common_hash[:20]}...")
+    logger.info(f"Hash length: {len(common_hash)} characters (expected ~77)")
 
-    # WEIGHTED GAUSSIAN DISTRIBUTION: Alokuj użytkowników do miast
+    total_admins = 1
+    total_moderators = 3
+
+    # Standard user allocation
     user_city_assignments = allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints")
+    num_standard_users = len(user_city_assignments)
 
-    # UPDATE: Set num_users to the actual allocated count (handling variance)
-    actual_num_users = len(user_city_assignments)
-    if actual_num_users != num_users:
-        logger.info(f"  Gaussian Variance applied: Target {num_users} -> Actual {actual_num_users}")
-        num_users = actual_num_users
-
+    # Note: total_users_to_generate estimation might be slightly off now due to filtering, 
+    # but that's fine for simple progress estimation or we can recalc.
+    
     user_data = []
+    
+    # 1. Generate Restaurant Users
+    # Randomly select ~70% of restaurants to be claimed
+    claimed_restaurants = [r for r in restaurants if random.random() < 0.70]
+    
+    for r_id, r_name, r_city_id in tqdm(claimed_restaurants, desc="Generating restaurant accounts", unit=" user"):
+        sanitized_name = "".join(c for c in r_name if c.isalnum()).lower()[:15]
+        username = f"rest_{sanitized_name}_{r_id}"[:30]  # Ensure 3-30 chars
+        if len(username) < 3:
+            username = f"rest{r_id}"
+        # Mod 11 Fix: Append r_id to email to ensure uniqueness (since restaurant names can be duplicates)
+        email = f"contact_{r_id}@{sanitized_name}.com"
+        
+        # Restaurant users always have a phone
+        phone = generate_phone()
+        
+        # Basic defaults for restaurant user
+        join_date = date_gen.generate_user_join_date()
+        
+        days_since_join = (datetime.now() - join_date).days
+        if days_since_join > 0:
+            last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
+        else:
+            last_login = join_date
+        
+        user_data.append(
+            {
+                "public_id": str(uuid.uuid4()),
+                "username": username,
+                "slug": slugify(username),
+                "email": email,
+                "email_verified": True,
+                "is_2fa_enabled": random.random() < 0.2,
+                "review_count": 0,
+                "photo_count": 0,
+                "newsletter_consent": True,
+                "password_hash": common_hash,
+                "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
+                "role": "restaurant",
+                "home_city_id": r_city_id,
+                "restaurant_id": r_id, # Link user to restaurant
+                "created_at": DateGenerator.to_sql_datetime(join_date),
+                "last_login_at": DateGenerator.to_sql_datetime(last_login),
+                "is_active": True,
+                "is_banned": False,
+                "is_deleted": False,
+                "deleted_at": None,
+                "full_name": r_name,
+                "first_name": None,
+                "last_name": None,
+                "phone": phone,
+                "avatar_url": None,
+                "avatar_blurhash": None,
+                "date_of_birth": None,
+                "secret_total_review_count": 0,
+                "secret_travel_propensity": 0,
+                "secret_enjoyed_archetypes": json.dumps({}),
+                "secret_chance_dine_random": 0,
+                "secret_chance_pick_random_dish": 0,
+                "secret_cross_impact_factor": 0,
+                "secret_mood_propensity": 0,
+                "secret_is_influencer": False,
+                "secret_rating_baseline": 6.0,
+                "secret_characteristics_vector": json.dumps({}),
+                "secret_ingredient_preferences": json.dumps({}),
+                "secret_cleanliness_preference": json.dumps({}),
+                "secret_preferred_ambiance": "Casual",
+            }
+        )
 
-    for i in range(num_users):
-        # ... (RBAC logic skipped for brevity, assuming context remains) ...
-        # RBAC: Role assignment logic
-        if i < TOTAL_ADMINS:
-            role = 'admin'
-            username = f"admin_{i+1}"
-            email = f"admin_{i+1}@smakosz.pl"
-        elif i < TOTAL_ADMINS + TOTAL_MODERATORS:
-            role = 'moderator'
-            mod_num = i - TOTAL_ADMINS + 1
+    # 2. Generate Standard Users (Admins, Moderators, Users)
+    for i in tqdm(range(num_standard_users), desc="Generating standard users", unit=" user", mininterval=1.0):
+        if i < total_admins:
+            role = "admin"
+            username = f"admin_{i + 1}"
+            email = f"admin_{i + 1}@smakosz.pl"
+        elif i < total_admins + total_moderators:
+            role = "moderator"
+            mod_num = i - total_admins + 1
             username = f"moderator_{mod_num}"
             email = f"moderator_{mod_num}@smakosz.pl"
         else:
-            role = 'user'
+            role = "user"
             base_username = fake.user_name()
-            username = f"{base_username}{i}"
+            # Ensure username is 3-30 chars (CHECK constraint)
+            username = f"{base_username}{i}"[:30]
+            if len(username) < 3:
+                username = f"user{i}"
             email = f"{base_username}{i}@example.com"
 
-        # WEIGHTED GAUSSIAN: Użyj pre-alokowanego przypisania zamiast random.choice()
         city_id, city_name = user_city_assignments[i]
         join_date = date_gen.generate_user_join_date()
 
-        # Czy power user? (5%)
-        is_power_user = random.random() < 0.05
+        # Skip expensive preference generation for non-user roles
+        # Business Rule: Only role='user' can submit reviews (enforced by DB trigger)
+        # Therefore, admin/moderator/restaurant don't need preference vectors
 
-        if is_power_user:
-            secret_total_review_count = random.randint(80, 120)  # ~100 średnio
-            travel_propensity = sample_normal(0.25, 0.05, 0.15, 0.35)  # Wyższy
-            # Power users have 20% chance to be influencers
-            is_influencer = random.random() < 0.20
+        if role == "user":
+            is_power_user = random.random() < 0.15
+            mobility_factor = float(round(beta_dist.rvs(2, 5), 3))
+
+            if is_power_user:
+                secret_total_review_count = int(random.gauss(100, 15))
+                secret_total_review_count = max(50, secret_total_review_count)
+                mobility_factor = min(1.0, mobility_factor + 0.1)
+                is_influencer = random.random() < 0.20
+            else:
+                secret_total_review_count = int(random.gauss(40, 20))
+                secret_total_review_count = max(10, secret_total_review_count)
+                is_influencer = random.random() < 0.005
+
+            secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)
+            secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)
+
+            # Expensive: Ingredient preference sampling
+            ingredient_preferences = {}
+            sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
+            for ingredient in sampled_ingredients:
+                ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
+
+            # Expensive: Archetype preference sampling
+            num_favorites = random.randint(3, 7)
+            favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
+            remaining = [a for a in all_archetypes if a not in favorites]
+            num_dislikes = random.randint(1, 3)
+            dislikes = random.sample(remaining, min(num_dislikes, len(remaining)))
+
+            enjoyed_archetypes = {}
+            for arch in favorites:
+                enjoyed_archetypes[arch] = round(random.uniform(0.7, 1.0), 2)
+            for arch in dislikes:
+                enjoyed_archetypes[arch] = round(random.uniform(0.1, 0.3), 2)
+
+            cleanliness_expectations = {
+                "Fine dining": round(random.uniform(8.0, 9.5), 1),
+                "Casual": round(random.uniform(6.0, 8.0), 1),
+                "Fast casual": round(random.uniform(5.0, 7.0), 1),
+            }
+            ambiance_types = ["Spokojny", "Energiczny", "Romantyczny", "Rodzinny", "Biznesowy"]
+            secret_preferred_ambiance = random.choice(ambiance_types)
+
         else:
-            secret_total_review_count = random.randint(25, 50)  # ~35 średnio
-            travel_propensity = sample_normal(0.20, 0.05, 0.10, 0.30)  # Normalny
-            # Regular users have small chance (0.5%) to be external influencers (e.g. Instagram celebs)
-            is_influencer = random.random() < 0.005
+            is_power_user = False
+            mobility_factor = 0.0
+            secret_total_review_count = 0  # Cannot review
+            is_influencer = random.random() < 0.50  # Can still be influential in community
+            secret_mood_propensity = 0.0
+            secret_cross_impact_factor = 0.0
 
-        # Admins/Mods are likely influencers
-        if role in ['admin', 'moderator']:
-            is_influencer = random.random() < 0.50
+            ingredient_preferences = {}
+            enjoyed_archetypes = {}
+            cleanliness_expectations = {}
+            secret_preferred_ambiance = "Casual"
 
-        # ZOPTYMALIZOWANE PARAMETRY
-        secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)  # 0.3 średnio (było 0.6)
-        secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)  # 0.02 średnio (było 0.05)
-
-        # Preferencje składnikowe (losowo 20-30 składników)
-        ingredient_preferences = {}
-        sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
-
-        for ingredient in sampled_ingredients:
-            ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
-
-        # GENERATE ENJOYED ARCHETYPES (Affinity to cuisines/types)
-        # Pick 3-7 favorites (affinity 0.7-1.0)
-        num_favorites = random.randint(3, 7)
-        favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
-        
-        # Pick 1-3 dislikes (affinity 0.1-0.3)
-        remaining = [a for a in all_archetypes if a not in favorites]
-        num_dislikes = random.randint(1, 3)
-        dislikes = random.sample(remaining, min(num_dislikes, len(remaining)))
-        
-        enjoyed_archetypes = {}
-        for arch in favorites:
-            enjoyed_archetypes[arch] = round(random.uniform(0.7, 1.0), 2)
-        for arch in dislikes:
-            enjoyed_archetypes[arch] = round(random.uniform(0.1, 0.3), 2)
-            
-        # Czystość (zależy od miasta)
-        cleanliness_expectations = {
-            "Fine dining": round(random.uniform(8.0, 9.5), 1),
-            "Casual": round(random.uniform(6.0, 8.0), 1),
-            "Fast casual": round(random.uniform(5.0, 7.0), 1)
-        }
-
-        # Atmosfera
-        ambiance_types = ["Spokojny", "Energiczny", "Romantyczny", "Rodzinny", "Biznesowy"]
-        secret_preferred_ambiance = random.choice(ambiance_types)
-
-        # Generate public profile fields
         full_name = generate_full_name()
-        phone = generate_phone()
-        avatar_url = generate_avatar_url(full_name, i)  # Use loop index as proxy for user_id
+
+        # Mod 14: Phone is optional (30% chance for standard users)
+        phone = generate_phone() if random.random() < 0.30 else None
+
+        # NULL Avatar Strategy: Configurable % custom avatars vs UI Avatars fallback
+        custom_avatar_chance = float(GENERATION_CONFIG["custom_avatar_percentage"])
+        if random.random() < custom_avatar_chance:
+            avatar_metadata = photo_pools.get_user_avatar()  # Returns dict with url, blurhash, width, height
+            avatar_url = avatar_metadata["url"]  # Extract URL for users.avatar_url field
+            avatar_blurhash = avatar_metadata.get("blurhash")  # Save blurhash for users.avatar_blurhash
+        else:
+            avatar_url = None  # Frontend will generate UI Avatars from initials
+            avatar_blurhash = None
+
         date_of_birth = generate_date_of_birth()
 
-        # Determine logical flags
-        is_verified = True 
-        newsletter = random.random() < 0.40
-        
-        # Status flags
-        is_banned = random.random() < 0.002
+        # Last Login: Random date between join_date and now
+        # Phase 5 will update this if user posted a review later than this date
+        days_since_join = (datetime.now() - join_date).days
+        if days_since_join > 0:
+            last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
+        else:
+            last_login = join_date
 
+        is_verified = True
+        newsletter = random.random() < 0.40
+        is_banned = random.random() < 0.002
         is_active = True
         is_deleted = False
         deleted_at = None
@@ -402,130 +370,204 @@ def generate_users(db: DatabaseConnection, num_users: int = 25000):
                 deletion_date = datetime.now()
             deleted_at = DateGenerator.to_sql_datetime(deletion_date)
 
-        # ========== RATING PERSONALITY (Baseline Bias) ==========
-        # Generate user's inherent rating tendency (independent of actual quality)
-        # This creates variance in review ratings for the same restaurant
-        #
-        # Distribution (optimized for ML training):
-        # - 15% Critics: Harsh raters (baseline ~4.0) - "Everything is mediocre"
-        # - 60% Realists: Neutral raters (baseline ~6.0) - "Fair is fair"
-        # - 25% Fans: Enthusiastic raters (baseline ~8.0) - "I love everything!"
-
         personality_roll = random.random()
-
-        if personality_roll < 0.15:
-            # CRITIC (15%): Baseline 4.0 ± 0.5
+        if personality_roll < 0.15:  # Critic
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(4.0, 0.5)))
-        elif personality_roll < 0.75:  # 0.15 + 0.60 = 0.75
-            # REALIST (60%): Baseline 6.0 ± 0.5
-            secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.0, 0.5)))
-        else:
-            # FAN (25%): Baseline 8.0 ± 0.5
+        elif personality_roll < 0.75:  # Realist
+            # Mod 16: Shift Realist baseline to 6.5
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.5, 0.5)))
+        else:  # Fan
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.0, 0.5)))
-
         secret_rating_baseline = round(secret_rating_baseline, 2)
-        # =========================================================
 
-        user_data.append({
-            "username": username,
-            "email": email,
-            "email_verified": is_verified,
-            "newsletter_consent": newsletter,
-            "password_hash": "mock_password_hash_123",
-            "role": role,
-            "home_city_id": city_id,
-            "account_created_at": DateGenerator.to_sql_datetime(join_date),
-            "last_login_at": None, # Will be updated by reviews
-            "is_active": is_active, # NEW
-            "is_banned": is_banned, # NEW
-            "is_deleted": is_deleted, # NEW
-            "deleted_at": deleted_at, # NEW
-            "full_name": full_name,
-            "phone": phone,
-            "avatar_url": avatar_url,
-            "date_of_birth": date_of_birth.isoformat(),  # Convert date to ISO format string
-            "secret_total_review_count": secret_total_review_count,
-            "secret_travel_propensity": round(travel_propensity, 3),
-            "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes), # NEW: Generated affinities
-            "secret_chance_dine_random": 0.1,  # Default value
-            "secret_chance_pick_random_dish": 0.05,  # Default value
-            "secret_cross_impact_factor": round(secret_cross_impact_factor, 3),
-            "secret_mood_propensity": round(secret_mood_propensity, 3),
-            "secret_is_influencer": is_influencer, # NEW
-            "secret_rating_baseline": secret_rating_baseline, # NEW: Rating personality (Critic/Realist/Fan)
-            "secret_characteristics_vector": json.dumps(generate_user_characteristics_vector()), # NEW
-            "secret_ingredient_preferences": json.dumps(ingredient_preferences),
-            "secret_cleanliness_preference": json.dumps(cleanliness_expectations),
-            "secret_preferred_ambiance": secret_preferred_ambiance,
-        })
-
-        if (i + 1) % 5000 == 0:
-            logger.info(f"  Wygenerowano {i + 1}/{num_users} użytkowników...")
+        user_data.append(
+            {
+                "public_id": str(uuid.uuid4()),
+                "username": username,
+                "slug": slugify(username),
+                "email": email,
+                "email_verified": is_verified,
+                "is_2fa_enabled": random.random() < 0.05,
+                "review_count": 0,
+                "photo_count": 0,
+                "newsletter_consent": newsletter,
+                "password_hash": common_hash,
+                "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
+                "role": role,
+                "home_city_id": city_id,
+                "restaurant_id": None,
+                "created_at": DateGenerator.to_sql_datetime(join_date),
+                "last_login_at": DateGenerator.to_sql_datetime(last_login),
+                "is_active": is_active,
+                "is_banned": is_banned,
+                "is_deleted": is_deleted,
+                "deleted_at": deleted_at,
+                "full_name": full_name,
+                "first_name": full_name.split()[0] if full_name else None,
+                "last_name": " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else None,
+                "phone": phone,
+                "avatar_url": avatar_url,
+                "avatar_blurhash": avatar_blurhash,
+                "date_of_birth": date_of_birth.isoformat(),
+                "secret_total_review_count": secret_total_review_count,
+                "secret_travel_propensity": round(mobility_factor, 3),
+                "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes),
+                "secret_chance_dine_random": 0.1,
+                "secret_chance_pick_random_dish": 0.05,
+                "secret_cross_impact_factor": round(secret_cross_impact_factor, 3),
+                "secret_mood_propensity": round(secret_mood_propensity, 3),
+                "secret_is_influencer": is_influencer,
+                "secret_rating_baseline": secret_rating_baseline,
+                # OPTIMIZATION: Only generate 14D vector for users who can review
+                "secret_characteristics_vector": (
+                    json.dumps(generate_user_characteristics_vector()) if role == "user" else json.dumps({})
+                ),
+                "secret_ingredient_preferences": json.dumps(ingredient_preferences),
+                "secret_cleanliness_preference": json.dumps(cleanliness_expectations),
+                "secret_preferred_ambiance": secret_preferred_ambiance,
+            }
+        )
 
     db.insert_bulk("users", user_data)
-    logger.info(f" Wygenerowano {len(user_data)} użytkowników")
-    logger.info(f"   • Administratorzy: {TOTAL_ADMINS}")
-    logger.info(f"   • Moderatorzy: {TOTAL_MODERATORS}")
-    logger.info(f"   • Power users: ~{int(num_users * 0.05)} (~5%)")
-    logger.info(f"   • Użytkownicy standardowi: {num_users - TOTAL_ADMINS - TOTAL_MODERATORS}")
 
-    # Przypisz Saved_Dishes (~2 na użytkownika)
+    # Sync owner_id back to restaurants table
+    logger.info("Syncing restaurant owners...")
+    db.execute_query("""
+        UPDATE restaurants r
+        SET owner_id = u.user_id
+        FROM users u
+        WHERE u.restaurant_id = r.restaurant_id
+          AND u.role = 'restaurant'
+    """)
+    db.commit()
+
+    _insert_user_avatars_to_media_assets(db, photo_pools)
     _assign_saved_dishes(db)
+    _generate_user_notification_settings(db)
+
+    duration = time.time() - start_time
+    logger.info(f"Generated {len(user_data)} users in {duration:.2f}s")
+
+def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: PhotoPools):
+    """
+    Insert user avatars into media_assets table.
+    Only inserts for users who have custom avatars (avatar_url IS NOT NULL).
+    """
+    logger.info("Inserting user avatars into media_assets...")
+
+    # Fetch users with custom avatars
+    users_with_avatars = db.fetch_all(
+        "SELECT user_id, avatar_url FROM users WHERE avatar_url IS NOT NULL"
+    )
+
+    if not users_with_avatars:
+        logger.info("No users with custom avatars found")
+        return
+
+    avatar_data = []
+
+    for user_id, avatar_url in tqdm(
+        users_with_avatars, desc="Processing avatars", unit=" avatar", mininterval=1.0
+    ):
+        # Note: Avatar metadata (blurhash, width, height) was generated during user creation
+        # but not cached. Since we only have the URL, we'll set metadata fields to NULL.
+        # In a production system, this metadata should be cached during generation.
+        avatar_data.append(
+            {
+                "public_id": str(uuid.uuid4()),
+                "entity_type": "user",
+                "entity_id": user_id,
+                "url": avatar_url,
+                "blurhash": None,  # Metadata not cached during generation
+                "width": None,
+                "height": None,
+                "is_primary": True,
+                "status": "approved",
+            }
+        )
+
+    if avatar_data:
+        db.insert_bulk("media_assets", avatar_data)
+        logger.info(f"Inserted {len(avatar_data)} user avatars into media_assets")
 
 def _assign_saved_dishes(db: DatabaseConnection):
-    """
-    Przypisuje ulubione dania użytkownikom.
+    logger.info("Assigning saved dishes...")
 
-    Pokrycie:
-    - 85% użytkowników ma zapisane dania (vs poprzednie ~75%)
-    - Zwykli użytkownicy: 3-10 ulubionych dań (średnio ~6.5)
-    - Power users (5%): 15-30 ulubionych dań (średnio ~22.5)
-
-    Oczekiwana liczba zapisów: ~175,000 dla 25k użytkowników
-    """
-    logger.info(" Przypisywanie ulubionych dań...")
-
-    # Pobierz użytkowników z secret_total_review_count (power users mają > 80)
-    users = db.fetch_all("SELECT user_id, secret_total_review_count FROM users")
+    users = UserDAO.get_all_users_basic(db)
     all_dishes = db.fetch_all("SELECT dish_id FROM dishes")
 
     if not all_dishes:
-        logger.warning("⚠️  Brak dań - pomijam Saved_Dishes")
+        logger.warning("No dishes found - skipping saved_dishes")
         return
 
     saved_data = []
     dish_list = [d[0] for d in all_dishes]
 
-    for user_id, review_count in users:
-        # Power user detection: secret_total_review_count > 80 (power users mają 80-120)
+    for user_id, review_count in tqdm(users, desc="Assigning saved dishes", unit=" user", mininterval=1.0):
         is_power_user = review_count is not None and review_count > 80
 
-        # 15% użytkowników nie ma żadnych zapisanych dań
         if random.random() < 0.15:
             continue
 
         if is_power_user:
-            # Power users: 15-30 ulubionych dań
             num_saved = random.randint(15, 30)
         else:
-            # Zwykli użytkownicy: 3-10 ulubionych dań
             num_saved = random.randint(3, 10)
 
-        # Upewnij się, że nie przekraczamy liczby dostępnych dań
         num_saved = min(num_saved, len(dish_list))
 
         sampled_dishes = random.sample(dish_list, num_saved)
 
         for dish_id in sampled_dishes:
-            saved_data.append({
-                "user_id": user_id,
-                "dish_id": dish_id
-            })
+            saved_data.append({"user_id": user_id, "dish_id": dish_id})
 
     if saved_data:
         db.insert_bulk("saved_dishes", saved_data)
-        users_with_saved = len(set(s["user_id"] for s in saved_data))
-        avg_per_user = len(saved_data) / users_with_saved if users_with_saved > 0 else 0
-        logger.info(f" Przypisano {len(saved_data):,} ulubionych dań")
-        logger.info(f"   Użytkownicy z ulubionymi: {users_with_saved:,} ({100*users_with_saved/len(users):.1f}%)")
-        logger.info(f"   Średnio na użytkownika: {avg_per_user:.1f}")
+        logger.info(f"Assigned {len(saved_data):,} saved dishes")
+
+def _generate_user_notification_settings(db: DatabaseConnection):
+    """Generate default notification settings for all users."""
+    logger.info("Generating user notification settings...")
+
+    # Fetch all user IDs
+    user_ids = db.fetch_all("SELECT user_id FROM users")
+    
+    if not user_ids:
+        logger.warning("No users found - skipping notification settings")
+        return
+
+    settings_data = []
+    for (user_id,) in tqdm(user_ids, desc="Generating settings", unit=" user", mininterval=1.0):
+        # Randomize some preferences for realism
+        settings_data.append({
+            "user_id": user_id,
+            "push_like": random.random() < 0.80,
+            "push_follow": random.random() < 0.90,
+            "push_system": True,
+        })
+
+    if settings_data:
+        db.insert_bulk("user_notification_settings", settings_data)
+        logger.info(f"Generated {len(settings_data):,} notification settings")
+
+if __name__ == "__main__":
+    import os
+    import sys
+
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+    from config import GENERATION_CONFIG, get_connection_params
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+    try:
+        connection_params = get_connection_params()
+        num_users = int(GENERATION_CONFIG["num_users"])  # type: ignore
+
+        with DatabaseConnection(connection_params) as db:
+            generate_users(db, num_users=num_users)
+            logger.info("Phase 4 completed.")
+
+    except Exception as e:
+        logger.error(f"Error: {e}", exc_info=True)
+        sys.exit(1)
