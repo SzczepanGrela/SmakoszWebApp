@@ -46,3 +46,51 @@ backup_*.sql
 
 # LINTER CACHE
 .ruff_cache/
+
+# TEMPORARY & REPORT FILES (Root level)
+# Reports and debug output (but keep requirements.txt)
+/*.txt
+!requirements.txt
+/*.csv
+/nul
+
+# Temporary markdown files (keep docs/ and system_documentation/)
+/AGENTS.md
+/CLAUDE.md.old
+/implementation_plan.md
+
+# Backup and old files
+*.old
+
+# TEST & COVERAGE
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.tox/
+
+# GENERATED DATA FILES
+data/downloaded_urls.json
+data/photo_index.json
+
+# ARCHIVE & DEPRECATED
+tools/archive/
+
+# CLAUDE AI
+.claude/
+
+# BUILD & DISTRIBUTION
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# JUPYTER NOTEBOOKS
+.ipynb_checkpoints/
+*.ipynb
+
+# TEMPORARY FILES
+*.tmp
+*.temp
+*.bak
+*~
