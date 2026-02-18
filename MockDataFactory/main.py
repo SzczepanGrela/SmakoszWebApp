@@ -1,208 +1,260 @@
 import argparse
 import logging
-import os
 import sys
 from datetime import datetime
+from typing import Literal, cast
 
 from config import GENERATION_CONFIG, get_connection_params
 from generators import (
-    generate_cities,
-    generate_cuisine_types,
-    generate_dishes,
-    generate_ingredients,
-    generate_restaurants,
-    generate_reviews,
-    generate_social_graph,
-    generate_system_config,
-    generate_tags,
-    generate_users,
+    CitiesPhase,
+    CuisineTypesPhase,
+    DishesPhase,
+    HeroImagesPhase,
+    IngredientsPhase,
+    RestaurantsPhase,
+    ReviewsPhase,
+    SocialGraphPhase,
+    SystemConfigPhase,
+    TagsPhase,
+    UsersPhase,
 )
-from tools.toggle_triggers import TriggerManager
+from orchestration import (
+    DataGenerationPipeline,
+    ExecutionContext,
+    PhaseRegistry,
+    PipelineConfig,
+)
 from utils.db_connection import DatabaseConnection
+from utils.logging_config import LoggingConfig
 
-def setup_logging():
-    file_handler = logging.FileHandler("mockdata_generation.log", encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
+    """
+    Setup and register all generation phases.
 
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+    Returns PhaseRegistry with all 10 phases registered.
+    This is the single source of truth for phase registration.
+    """
+    registry = PhaseRegistry()
 
-    try:
-        import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+    # Phase 0: System Configuration
+    registry.register(SystemConfigPhase(blueprints_dir=blueprints_dir))
 
-    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
+    # Phase 1: Core Definitions (parallel - no dependencies)
+    registry.register(CitiesPhase(blueprints_dir=blueprints_dir))
+    registry.register(CuisineTypesPhase(blueprints_dir=blueprints_dir))
+    registry.register(HeroImagesPhase(blueprints_dir=blueprints_dir))
+    registry.register(IngredientsPhase(blueprints_dir=blueprints_dir))
+    registry.register(TagsPhase())
 
-def clean_all_data(db: DatabaseConnection):
-    logger = logging.getLogger(__name__)
-    logger.info("Cleaning database...")
+    # Phase 2: Restaurants (depends on Cities)
+    registry.register(RestaurantsPhase(blueprints_dir=blueprints_dir))
 
-    tables = [
-        "system.tickets",
-        "system.ai_logs",
-        "system.moderation_logs",
-        "system.logs",
-        "system.security_logs",
-        "system.email_logs",
-        "system.jobs",
-        "system.refresh_tokens",
-        "system.banned_identifiers",
-        "system.forbidden_words",
-        "system.files_to_delete",
-        "system.config",
-        "verification_codes",
-        "user_sessions",
-        "user_notification_settings",
-        "notifications",
-        "search_history",
-        "data_correction_requests",
-        "report_reason_assignments",
-        "reports",
-        "user_follows",
-        "review_likes",
-        "saved_dishes",
-        "favorite_restaurants",
-        "media_assets",
-        "restaurant_tags",
-        "dish_tags",
-        "tags",
-        "reviews",
-        "dish_ingredients",
-        "dish_section_assignments",
-        "menu_sections",
-        "dishes",
-        "dish_variants",
-        "dish_archetypes",
-        "restaurant_opening_hours",
-        "restaurants",
-        "users",
-        "ingredients",
-        "cuisine_types",
-        "cities",
-    ]
+    # Phase 3: Dishes (depends on Ingredients + Restaurants)
+    registry.register(DishesPhase(blueprints_dir=blueprints_dir))
 
-    for table in tables:
-        # Use CASCADE to handle remaining dependencies
-        db.execute_query(f"TRUNCATE TABLE {table} CASCADE")
-        
-    logger.info("Database cleaned.")
+    # Phase 4: Users (depends on Cities)
+    registry.register(UsersPhase(blueprints_dir=blueprints_dir))
 
-def cleanup_database(db: DatabaseConnection):
-    """Interactively or automatically clean the database."""
-    print("\nWARNING: This will delete ALL data in the 'mockdatadb' database.")
-    print("Do you want to proceed? (yes/no)")
-    
-    # For automation, assume yes if env var set, otherwise ask
-    if os.getenv("AUTO_CONFIRM_CLEANUP") == "true":
-        response = "yes"
-    else:
-        # TEMPORARY: Auto-confirm for this run
-        response = "yes"
-        print("> yes (auto-confirmed)")
+    # Phase 5: Reviews (depends on Users + Restaurants + Dishes)
+    registry.register(ReviewsPhase(blueprints_dir=blueprints_dir))
 
-    if response in ("yes", "y"):
-        clean_all_data(db)
-    else:
-        print("Cleanup cancelled. Exiting.")
-        sys.exit(0)
+    # Phase 6: Social Graph (depends on Users)
+    registry.register(SocialGraphPhase(blueprints_dir=blueprints_dir))
+
+    return registry
 
 def print_statistics(db: DatabaseConnection):
+    """Print final database statistics."""
     logger = logging.getLogger(__name__)
-    logger.info("\n" + "=" * 40)
+    logger.info("\n" + "=" * 80)
     logger.info("FINAL DATABASE STATISTICS")
-    logger.info("=" * 40)
-    
+    logger.info("=" * 80)
+
     tables = [
-        "users", "restaurants", "dishes", "reviews", 
-        "notifications", "media_assets", "system.tickets"
+        "system.config",
+        "cities",
+        "cuisine_types",
+        "ingredients",
+        "tags",
+        "restaurants",
+        "dishes",
+        "users",
+        "reviews",
+        "user_follows",
+        "review_likes",
+        "notifications",
     ]
-    
+
     for table in tables:
-        count = db.fetch_val(f"SELECT COUNT(*) FROM {table}")
-        logger.info(f"{table.ljust(20)}: {count}")
+        try:
+            count = db.fetch_val(f"SELECT COUNT(*) FROM {table}")
+            logger.info(f"{table.ljust(25)}: {count:,}")
+        except Exception as e:
+            logger.warning(f"{table.ljust(25)}: ERROR ({e})")
+
+    logger.info("=" * 80)
 
 def main():
-    setup_logging()
-    logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser(
+        description="Mock Data Generator for SmakoszWebApp",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s --generate              Run full pipeline (Phase 0-6)
+  %(prog)s --phase phase3_dishes   Run single phase
+  %(prog)s --phases 0-3            Run phase range (0 through 3)
+  %(prog)s --no-cleanup            Skip database cleanup
+  %(prog)s --keep-triggers         Don't disable triggers (slower but safer)
+  %(prog)s -v --generate           Verbose logging
+        """
+    )
 
-    parser = argparse.ArgumentParser(description="Mock Data Generator for SmakoszWebApp")
+    # Execution mode
     parser.add_argument("--generate", action="store_true", help="Run full generation pipeline")
+    parser.add_argument("--phase", type=str, help="Run single phase (e.g., phase2_restaurants)")
+    parser.add_argument("--phases", type=str, help="Run phase range (e.g., 0-3)")
+
+    # Options
     parser.add_argument("--users", type=int, help="Override number of users to generate")
-    parser.add_argument("--all", action="store_true", help="Run everything (same as --generate)")
-    
+    parser.add_argument("--no-cleanup", action="store_true", help="Skip database cleanup")
+    parser.add_argument("--keep-triggers", action="store_true", help="Don't disable triggers")
+
+    # Logging
+    parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed INFO logs")
+    parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
+
     args = parser.parse_args()
 
-    start_time = datetime.now()
-    
-    # Load configuration
-    connection_params = get_connection_params()
-    num_users = args.users if args.users else GENERATION_CONFIG["num_users"]
+    # Logging setup
+    if args.debug:
+        log_level = "DEBUG"
+    elif args.verbose:
+        log_level = "INFO"
+    else:
+        log_level = "INFO"
 
-    logger.info(f"Starting MockDataFactory v6.0")
+    LoggingConfig.setup(level=cast(Literal["DEBUG", "INFO", "WARNING", "ERROR"], log_level), quiet=args.quiet)
+    logger = logging.getLogger(__name__)
+
+    start_time = datetime.now()
+
+    # Configuration
+    connection_params = get_connection_params()
+    config = dict(GENERATION_CONFIG)
+
+    # Override config from CLI args
+    if args.users:
+        config["num_users"] = args.users
+
+    logger.info("=" * 80)
+    logger.info("MockDataFactory v7.0 - New Architecture")
+    logger.info("=" * 80)
     logger.info(f"Target Database: {connection_params.get('dbname')}")
-    logger.info(f"Planned Users: {num_users}")
+    logger.info(f"Planned Users: {config.get('num_users', 'N/A'):,}")
+    logger.info(f"Cleanup: {'Disabled' if args.no_cleanup else 'Enabled'}")
+    logger.info(f"Triggers: {'Kept' if args.keep_triggers else 'Disabled (Performance Mode)'}")
+    logger.debug(f"Connection: {connection_params.get('host')}:{connection_params.get('port')}")
 
     try:
         with DatabaseConnection(connection_params) as db:
-            # 1. Cleanup
-            cleanup_database(db)
+            # Setup orchestration
+            registry = setup_phase_registry(blueprints_dir="blueprints")
+            context = ExecutionContext(
+                db=db,
+                config=config,
+                phase_registry=registry
+            )
 
-            # 2. Trigger Management
-            trigger_manager = TriggerManager(db)
-            
-            logger.info("=" * 80)
-            logger.info("PERFORMANCE MODE: Disabling heavy triggers")
-            logger.info("=" * 80)
-            
-            try:
-                # Disable triggers for bulk performance
-                trigger_manager.disable_heavy_triggers()
+            pipeline_config = PipelineConfig(
+                cleanup_before_run=not args.no_cleanup,
+                disable_triggers=not args.keep_triggers,
+                continue_on_error=False
+            )
 
-                # 3. Generation Pipeline
-                if args.generate or args.all:
-                    logger.info("\n--- Phase 0: System Config ---")
-                    generate_system_config(db, blueprints_dir="blueprints", cleanup=False)
+            # Determine which phases to run
+            phase_ids = None  # None = run all
 
-                    logger.info("\n--- Phase 1: Core Data ---")
-                    generate_cities(db, blueprints_dir="blueprints", cleanup=False)
-                    generate_cuisine_types(db, blueprints_dir="blueprints", cleanup=False)
-                    generate_ingredients(db, blueprints_dir="blueprints", cleanup=False)
-                    generate_tags(db, cleanup=False)
+            if args.phase:
+                # Single phase
+                phase_ids = [args.phase]
+                logger.info(f"Running single phase: {args.phase}")
+            elif args.phases:
+                # Phase range (e.g., "0-3")
+                try:
+                    start_phase, end_phase = args.phases.split("-")
+                    start_num = int(start_phase)
+                    end_num = int(end_phase)
 
-                    logger.info("\n--- Phase 2: Restaurants ---")
-                    generate_restaurants(db, blueprints_dir="blueprints", cleanup=False)
+                    # Generate phase IDs for range
+                    phase_ids = []
+                    if start_num == 0:
+                        phase_ids.append("phase0_config")
+                        start_num = 1
 
-                    logger.info("\n--- Phase 3: Dishes ---")
-                    generate_dishes(db, blueprints_dir="blueprints", cleanup=False)
+                    # Map phase numbers to IDs (simplified)
+                    phase_map = {
+                        1: ["phase1_cities", "phase1_cuisines", "phase1_ingredients", "phase1_tags"],
+                        2: ["phase2_restaurants"],
+                        3: ["phase3_dishes"],
+                        4: ["phase4_users"],
+                        5: ["phase5_reviews"],
+                        6: ["phase6_social"],
+                    }
 
-                    logger.info("\n--- Phase 4: Users ---")
-                    generate_users(db, num_users=num_users, cleanup=False)
+                    for phase_num in range(start_num, end_num + 1):
+                        if phase_num in phase_map:
+                            phase_ids.extend(phase_map[phase_num])
 
-                    logger.info("\n--- Phase 5: Reviews ---")
-                    generate_reviews(db, cleanup=False)
+                    logger.info(f"Running phase range {args.phases}: {len(phase_ids)} phases")
+                except ValueError:
+                    logger.error(f"Invalid phase range format: {args.phases}. Use format '0-3'")
+                    sys.exit(1)
+            elif args.generate:
+                # Full pipeline
+                logger.info("Running full generation pipeline (Phase 0-6)")
+            else:
+                # No action specified
+                parser.print_help()
+                sys.exit(0)
 
-                    logger.info("\n--- Phase 6: Social Graph ---")
-                    generate_social_graph(db, cleanup=False)
+            # Execute pipeline
+            pipeline = DataGenerationPipeline(context, pipeline_config)
+            result = pipeline.run(phase_ids=phase_ids)
 
-            finally:
-                # 4. Restore State (CRITICAL)
-                logger.info("\n" + "=" * 80)
-                logger.info("RESTORING STATE: Re-enabling triggers")
-                logger.info("=" * 80)
-                trigger_manager.enable_heavy_triggers()
-
-            # 5. Statistics & Finish
+            # Print statistics
             print_statistics(db)
-            
-            duration = datetime.now() - start_time
-            logger.info(f"\nSUCCESS! Completed in {duration}")
 
+            # Final summary
+            duration = datetime.now() - start_time
+
+            logger.info("\n" + "=" * 80)
+            if result.success:
+                logger.info(f"✓ SUCCESS! Completed in {duration}")
+                logger.info(f"Phases completed: {len(result.phase_results)}")
+
+                # Show per-phase timings
+                for phase_result in result.phase_results:
+                    logger.info(
+                        f"  - {phase_result.phase_id}: "
+                        f"{phase_result.duration_seconds:.2f}s "
+                        f"({phase_result.status.value})"
+                    )
+            else:
+                logger.error(f"✗ FAILED after {duration}")
+                logger.error(f"Failed phases: {result.failed_phases}")
+                for phase_result in result.phase_results:
+                    if phase_result.error:
+                        logger.error(f"  - {phase_result.phase_id}: {phase_result.error}")
+                sys.exit(1)
+
+            logger.info("=" * 80)
+
+    except KeyboardInterrupt:
+        logger.warning("\n\nInterrupted by user. Exiting...")
+        sys.exit(130)
     except Exception as e:
-        logger.error(f"FATAL ERROR: {e}", exc_info=True)
+        logger.error(f"\n\nFATAL ERROR: {e}", exc_info=True)
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ class DateGenerator:
     def ensure_naive(dt: Any) -> datetime:
         """Ensure a datetime object is naive (no timezone)."""
         if dt is None:
-            return None
+            return None  # type: ignore[return-value]
         if not isinstance(dt, datetime):
             if hasattr(dt, "year") and hasattr(dt, "month") and hasattr(dt, "day") and not hasattr(dt, "hour"):
                 return datetime.combine(dt, datetime.min.time())
@@ -52,7 +52,7 @@ class DateGenerator:
     def generate_review_date(self, restaurant_created: datetime, user_first_review: datetime | None = None) -> datetime:
         restaurant_created = self.ensure_naive(restaurant_created)
         user_first_review = self.ensure_naive(user_first_review)
-        
+
         earliest_date = restaurant_created + timedelta(days=1)
 
         if user_first_review and user_first_review > earliest_date:
@@ -102,32 +102,32 @@ class DateGenerator:
         """
         if count <= 0:
             return []
-            
+
         start_date = self.ensure_naive(start_date)
         end_date = self.ensure_naive(end_date)
-            
+
         total_seconds = (end_date - start_date).total_seconds()
         if total_seconds <= 0:
             return [start_date] * count
-            
-        dates = set()
+
+        dates: set[datetime] = set()
         attempts = 0
         max_attempts = count * 3
-        
+
         while len(dates) < count and attempts < max_attempts:
-            ratio = random.betavariate(5, 1) 
-            
+            ratio = random.betavariate(5, 1)
+
             offset_seconds = int(total_seconds * ratio)
             gen_date = start_date + timedelta(seconds=offset_seconds)
             gen_date = gen_date.replace(second=0, microsecond=0)
-            
+
             dates.add(gen_date)
             attempts += 1
-            
-        result = sorted(list(dates))
+
+        result = sorted(dates)
         while len(result) < count:
             result.append(end_date)
-            
+
         return result
 
     def generate_user_join_date(self) -> datetime:

@@ -15,14 +15,11 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import blurhash
-import numpy as np
-from PIL import Image
 from tqdm import tqdm
 
 # Fix Windows console encoding for Polish characters
@@ -33,6 +30,11 @@ if sys.platform == "win32":
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config import PHOTO_CONFIG
 from tools.utils import slugify
+from utils.image_processor import generate_blurhash
+from utils.logging_config import LoggingConfig
+from utils.photo_index_manager import PhotoIndexManager
+
+logger = logging.getLogger(__name__)
 
 IMAGE_EXTENSIONS = {".webp", ".jpg", ".jpeg", ".png"}
 DERIVED_SUFFIXES = {"_thumb", "_tiny", "_hero"}
@@ -52,31 +54,31 @@ def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
     # Only rename originals - derived files follow their original
     originals = sorted([f for f in folder.iterdir()
                         if f.suffix.lower() in IMAGE_EXTENSIONS and is_original(f)])
-    
+
     # Phase 1: rename originals to temp names to avoid collisions
     temp_map: list[tuple[Path, str]] = []  # (temp_path, final_name)
     for idx, old_file in enumerate(originals, start=1):
         final_name = f"{prefix}_{idx:03d}.webp"
         temp_name = f"__temp_{idx:03d}.webp"
         temp_path = folder / temp_name
-        
+
         # Also find and rename associated derived files
         for suffix in DERIVED_SUFFIXES:
             derived = folder / f"{old_file.stem}{suffix}{old_file.suffix}"
             if derived.exists():
                 derived_temp = folder / f"__temp_{idx:03d}{suffix}{old_file.suffix}"
                 derived.rename(derived_temp)
-        
+
         if old_file.name != final_name:
             renames[str(old_file)] = str(folder / final_name)
         old_file.rename(temp_path)
         temp_map.append((temp_path, final_name))
-    
+
     # Phase 2: rename temp -> final
     for temp_path, final_name in temp_map:
         final_path = folder / final_name
         temp_path.rename(final_path)
-        
+
         # Rename derived temp files too
         idx_str = temp_path.stem.replace("__temp_", "")
         base_name = final_path.stem  # e.g. prefix_001
@@ -85,28 +87,8 @@ def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
             if derived_temp.exists():
                 derived_final = folder / f"{base_name}{suffix}{final_path.suffix}"
                 derived_temp.rename(derived_final)
-    
+
     return renames
-
-def generate_blurhash(image_path: Path) -> tuple[str | None, int | None, int | None]:
-    """Generate blurhash and get dimensions for an image file."""
-    try:
-        with Image.open(image_path) as img:
-            if img.mode != "RGB":
-                img = img.convert("RGB")
-            width, height = img.size
-            
-            # Resize for faster blurhash computation
-            thumb = img.copy()
-            thumb.thumbnail((100, 100))
-
-            # Convert PIL Image to numpy array for blurhash
-            thumb_array = np.array(thumb)
-            hash_value = blurhash.encode(thumb_array, components_x=4, components_y=3)
-            return hash_value, width, height
-    except Exception as e:
-        print(f"  [BŁĄD blurhash]: {image_path}: {e}")
-        return None, None, None
 
 def process_photo_entry(entry: dict, output_root: Path, generate_hash: bool) -> tuple[dict, bool]:
     """
@@ -115,33 +97,34 @@ def process_photo_entry(entry: dict, output_root: Path, generate_hash: bool) -> 
     """
     if not generate_hash:
         return entry, False
-    
+
     # Skip if already has blurhash
     if entry.get("blurhash") and entry.get("width") and entry.get("height"):
         return entry, False
-    
+
     full_path = output_root / entry["path"]
     if not full_path.exists():
         return entry, False
-    
+
     hash_val, width, height = generate_blurhash(full_path)
     if hash_val:
         entry["blurhash"] = hash_val
         entry["width"] = width
         entry["height"] = height
         return entry, True
-    
+
     return entry, False
 
 def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     index_path = Path(str(PHOTO_CONFIG["local_photo_index"]))
     output_root = Path(str(PHOTO_CONFIG["output_dir"]))
+    mgr = PhotoIndexManager(index_path)
 
     # 0. Rename files first (before index sync)
     renamed_count = 0
     if rename_files:
-        print("Przemianowywanie plików do standardowego formatu...")
-        
+        logger.info("Renaming files to standard format...")
+
         # Dishes: dish/Category/Variant/ -> variant_001.webp
         dishes_dir = output_root / "dishes"
         if dishes_dir.exists():
@@ -154,9 +137,9 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     prefix = slugify(variant_dir.name)
                     renames = rename_files_in_folder(variant_dir, prefix)
                     if renames:
-                        print(f"  [DISHES] {variant_dir.name}: {len(renames)} plików")
+                        logger.info(f"[DISHES] {variant_dir.name}: {len(renames)} files")
                         renamed_count += len(renames)
-        
+
         # Restaurants: restaurants/Theme/ -> theme_001.webp
         rest_dir = output_root / "restaurants"
         if rest_dir.exists():
@@ -166,17 +149,17 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 prefix = slugify(theme_dir.name)
                 renames = rename_files_in_folder(theme_dir, prefix)
                 if renames:
-                    print(f"  [RESTAURANTS] {theme_dir.name}: {len(renames)} plików")
+                    logger.info(f"[RESTAURANTS] {theme_dir.name}: {len(renames)} files")
                     renamed_count += len(renames)
-        
+
         # Avatars: avatars/pool/ -> avatar_001.webp
         avatars_dir = output_root / "avatars" / "pool"
         if avatars_dir.exists():
             renames = rename_files_in_folder(avatars_dir, "avatar")
             if renames:
-                print(f"  [AVATARS] pool: {len(renames)} plików")
+                logger.info(f"[AVATARS] pool: {len(renames)} files")
                 renamed_count += len(renames)
-        
+
         # Ingredients: ingredients/name/ -> name_001.webp (or single file name.webp)
         ing_dir = output_root / "ingredients"
         if ing_dir.exists():
@@ -185,7 +168,7 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     prefix = slugify(ing_folder.name)
                     renames = rename_files_in_folder(ing_folder, prefix)
                     if renames:
-                        print(f"  [INGREDIENTS] {ing_folder.name}: {len(renames)} plików")
+                        logger.info(f"[INGREDIENTS] {ing_folder.name}: {len(renames)} files")
                         renamed_count += len(renames)
 
         # Hero: templates/hero/ -> hero_001.webp
@@ -193,20 +176,17 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
         if hero_dir.exists():
             renames = rename_files_in_folder(hero_dir, "hero")
             if renames:
-                print(f"  [HERO] templates/hero: {len(renames)} plików")
+                logger.info(f"[HERO] templates/hero: {len(renames)} files")
                 renamed_count += len(renames)
 
-        print(f"  Przemianowano łącznie: {renamed_count} plików\n")
+        logger.info(f"Total renamed: {renamed_count} files")
 
     if not index_path.exists():
-        print(f"Tworzenie nowego indeksu: {index_path}")
-        index_data = {"dishes": {}, "restaurants": {}, "avatars": [], "ingredients": {}}
-    else:
-        with open(index_path, "r", encoding="utf-8") as f:
-            index_data = json.load(f)
+        logger.info(f"Creating new index: {index_path}")
+    index_data = mgr.load()
 
-    print("Synchronizacja indeksu z plikami na dysku...")
-    
+    logger.info("Synchronizing index with files on disk...")
+
     removed_count = 0
     added_count = 0
     blurhash_count = 0
@@ -215,14 +195,14 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     dishes_dir = output_root / "dishes"
     if "dishes" not in index_data:
         index_data["dishes"] = {}
-    
+
     if dishes_dir.exists():
         indexed_dish_paths = set()
-        for category, variants in index_data["dishes"].items():
-            for variant, photos in variants.items():
+        for _category, variants in index_data["dishes"].items():
+            for _variant, photos in variants.items():
                 for photo in photos:
                     indexed_dish_paths.add(photo["path"])
-        
+
         # Remove deleted files
         for category, variants in list(index_data["dishes"].items()):
             for variant, photos in list(variants.items()):
@@ -232,27 +212,27 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     if full_path.exists():
                         valid_photos.append(photo)
                     else:
-                        print(f"  [USUNIĘTO]: {photo['path']}")
+                        logger.info(f"Removed: {photo['path']}")
                         removed_count += 1
                 variants[variant] = valid_photos
-        
+
         # Add new files
         for category_dir in dishes_dir.iterdir():
             if not category_dir.is_dir():
                 continue
             category = category_dir.name
-            
+
             if category not in index_data["dishes"]:
                 index_data["dishes"][category] = {}
-            
+
             for variant_dir in category_dir.iterdir():
                 if not variant_dir.is_dir():
                     continue
                 variant = variant_dir.name
-                
+
                 if variant not in index_data["dishes"][category]:
                     index_data["dishes"][category][variant] = []
-                
+
                 for img_file in variant_dir.iterdir():
                     if img_file.suffix.lower() in IMAGE_EXTENSIONS and is_original(img_file):
                         rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
@@ -262,20 +242,20 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                                 hash_val, w, h = generate_blurhash(img_file)
                                 new_entry.update({"blurhash": hash_val, "width": w, "height": h})
                             index_data["dishes"][category][variant].append(new_entry)
-                            print(f"  [DODANO]: {rel_path}")
+                            logger.info(f"Added: {rel_path}")
                             added_count += 1
 
     # 2. Restaurants
     restaurants_dir = output_root / "restaurants"
     if "restaurants" not in index_data:
         index_data["restaurants"] = {}
-    
+
     if restaurants_dir.exists():
         indexed_rest_paths = set()
-        for theme, photos in index_data["restaurants"].items():
+        for _theme, photos in index_data["restaurants"].items():
             for photo in photos:
                 indexed_rest_paths.add(photo["path"])
-        
+
         # Remove deleted
         for theme, photos in list(index_data["restaurants"].items()):
             valid_photos = []
@@ -284,19 +264,19 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 if full_path.exists():
                     valid_photos.append(photo)
                 else:
-                    print(f"  [USUNIĘTO]: {photo['path']}")
+                    logger.info(f"Removed: {photo['path']}")
                     removed_count += 1
             index_data["restaurants"][theme] = valid_photos
-        
+
         # Add new files
         for theme_dir in restaurants_dir.iterdir():
             if not theme_dir.is_dir():
                 continue
             theme = theme_dir.name
-            
+
             if theme not in index_data["restaurants"]:
                 index_data["restaurants"][theme] = []
-            
+
             for img_file in theme_dir.iterdir():
                 if img_file.suffix.lower() in IMAGE_EXTENSIONS and is_original(img_file):
                     rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
@@ -306,17 +286,17 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                             hash_val, w, h = generate_blurhash(img_file)
                             new_entry.update({"blurhash": hash_val, "width": w, "height": h})
                         index_data["restaurants"][theme].append(new_entry)
-                        print(f"  [DODANO]: {rel_path}")
+                        logger.info(f"Added: {rel_path}")
                         added_count += 1
 
     # 3. Avatars
     avatars_dir = output_root / "avatars" / "pool"
     if "avatars" not in index_data:
         index_data["avatars"] = []
-    
+
     if avatars_dir.exists():
         indexed_avatar_paths = {photo["path"] for photo in index_data["avatars"]}
-        
+
         # Remove deleted
         valid_avatars = []
         for photo in index_data["avatars"]:
@@ -324,10 +304,10 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
             if full_path.exists():
                 valid_avatars.append(photo)
             else:
-                print(f"  [USUNIĘTO]: {photo['path']}")
+                logger.info(f"Removed: {photo['path']}")
                 removed_count += 1
         index_data["avatars"] = valid_avatars
-        
+
         # Add new files
         for img_file in avatars_dir.iterdir():
             if img_file.suffix.lower() in IMAGE_EXTENSIONS and is_original(img_file):
@@ -338,26 +318,26 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         hash_val, w, h = generate_blurhash(img_file)
                         new_entry.update({"blurhash": hash_val, "width": w, "height": h})
                     index_data["avatars"].append(new_entry)
-                    print(f"  [DODANO]: {rel_path}")
+                    logger.info(f"Added: {rel_path}")
                     added_count += 1
 
     # 4. Ingredients
     ingredients_dir = output_root / "ingredients"
     if "ingredients" not in index_data:
         index_data["ingredients"] = {}
-    
+
     if ingredients_dir.exists():
         indexed_ing_paths = {v["path"] for v in index_data["ingredients"].values()}
-        
+
         # Remove deleted
         keys_to_remove = []
         for ing_name, photo in index_data["ingredients"].items():
             full_path = output_root / photo["path"]
             if not full_path.exists():
-                print(f"  [USUNIĘTO]: {photo['path']}")
+                logger.info(f"Removed: {photo['path']}")
                 keys_to_remove.append(ing_name)
                 removed_count += 1
-        
+
         for k in keys_to_remove:
             del index_data["ingredients"][k]
 
@@ -373,7 +353,7 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                             hash_val, w, h = generate_blurhash(img_file)
                             new_entry.update({"blurhash": hash_val, "width": w, "height": h})
                         index_data["ingredients"][ing_name] = new_entry
-                        print(f"  [DODANO]: {rel_path} (jako '{ing_name}')")
+                        logger.info(f"Added: {rel_path} (as '{ing_name}')")
                         added_count += 1
 
     # 5. Hero images (separate hero_index.json)
@@ -383,7 +363,7 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     if hero_dir.exists():
         # Load or create hero index
         if hero_index_path.exists():
-            with open(hero_index_path, "r", encoding="utf-8") as f:
+            with open(hero_index_path, encoding="utf-8") as f:
                 hero_index = json.load(f)
         else:
             hero_index = {"images": []}
@@ -399,7 +379,7 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 if full_path.exists():
                     valid_images.append(img_entry)
                 else:
-                    print(f"  [USUNIĘTO HERO]: {filename}")
+                    logger.info(f"Removed hero: {filename}")
                     removed_count += 1
         hero_index["images"] = valid_images
 
@@ -422,7 +402,7 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                             new_entry["width"] = w
                             new_entry["height"] = h
                     hero_index["images"].append(new_entry)
-                    print(f"  [DODANO HERO]: {filename}")
+                    logger.info(f"Added hero: {filename}")
                     added_count += 1
 
         # Generate blurhash for hero entries missing it
@@ -446,33 +426,33 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
 
     # 6. Generate blurhash for existing entries missing it
     if generate_hash:
-        print("\nGenerowanie brakujących blurhash...")
+        logger.info("Generating missing blurhash...")
         entries_to_update = []
-        
+
         # Collect entries missing blurhash
-        for category, variants in index_data.get("dishes", {}).items():
-            for variant, photos in variants.items():
+        for _category, variants in index_data.get("dishes", {}).items():
+            for _variant, photos in variants.items():
                 for photo in photos:
                     if not photo.get("blurhash"):
                         entries_to_update.append((photo, output_root))
-        
-        for theme, photos in index_data.get("restaurants", {}).items():
+
+        for _theme, photos in index_data.get("restaurants", {}).items():
             for photo in photos:
                 if not photo.get("blurhash"):
                     entries_to_update.append((photo, output_root))
-        
+
         for photo in index_data.get("avatars", []):
             if not photo.get("blurhash"):
                 entries_to_update.append((photo, output_root))
-        
-        for ing_name, photo in index_data.get("ingredients", {}).items():
+
+        for _ing_name, photo in index_data.get("ingredients", {}).items():
             if not photo.get("blurhash"):
                 entries_to_update.append((photo, output_root))
-        
+
         if entries_to_update:
-            print(f"  Znaleziono {len(entries_to_update)} wpisów bez blurhash")
-            
-            for entry, root in tqdm(entries_to_update, desc="Generowanie blurhash"):
+            logger.info(f"Found {len(entries_to_update)} entries without blurhash")
+
+            for entry, root in tqdm(entries_to_update, desc="Generowanie blurhash", mininterval=1.0, disable=LoggingConfig.is_quiet()):
                 full_path = root / entry["path"]
                 if full_path.exists():
                     hash_val, w, h = generate_blurhash(full_path)
@@ -482,25 +462,28 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         entry["height"] = h
                         blurhash_count += 1
 
-    # Save
-    index_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(index_path, "w", encoding="utf-8") as f:
-        json.dump(index_data, f, indent=2, ensure_ascii=False)
+    mgr.save(index_data)
 
-    print("-" * 50)
-    print(f"Synchronizacja zakończona:")
-    print(f"  - Usunięto:     {removed_count} martwych wpisów")
-    print(f"  - Dodano:       {added_count} nowych plików")
+    logger.info("-" * 50)
+    logger.info("Synchronization completed:")
+    logger.info(f"  - Removed:     {removed_count} dead entries")
+    logger.info(f"  - Added:       {added_count} new files")
     if generate_hash:
-        print(f"  - Blurhash:     {blurhash_count} wygenerowanych")
+        logger.info(f"  - Blurhash:    {blurhash_count} generated")
     if rename_files:
-        print(f"  - Przemianowano: {renamed_count} plików")
+        logger.info(f"  - Renamed:     {renamed_count} files")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Synchronizacja photo_index.json")
     parser.add_argument("--no-blurhash", action="store_true", help="Pomiń generowanie blurhash")
     parser.add_argument("--rename", action="store_true", help="Przemianuj pliki do formatu folder_001.webp")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
+    parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
     args = parser.parse_args()
-    
+
+    # Setup logging
+    log_level = "DEBUG" if args.debug else "INFO"
+    LoggingConfig.setup(level=log_level, quiet=args.quiet)
+
     refresh_index(generate_hash=not args.no_blurhash, rename_files=args.rename)
 

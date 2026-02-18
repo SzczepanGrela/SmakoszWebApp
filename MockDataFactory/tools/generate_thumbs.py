@@ -11,7 +11,6 @@ Usage:
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -21,6 +20,8 @@ from PIL import Image
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config import PHOTO_CONFIG
+from utils.image_processor import resize_and_crop
+from utils.photo_index_manager import PhotoIndexManager
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -44,26 +45,9 @@ def thumb_path_for(path: Path) -> Path:
     """Derive thumb path: photo_001.webp -> photo_001_thumb.webp"""
     return path.parent / f"{path.stem}{SUFFIX_THUMB}{path.suffix}"
 
-def resize_and_crop(img: Image.Image, target: tuple) -> Image.Image:
-    """Resize maintaining aspect ratio, then center-crop to target."""
-    img_ratio = img.width / img.height
-    target_ratio = target[0] / target[1]
-
-    if img_ratio > target_ratio:
-        new_h = target[1]
-        new_w = int(new_h * img_ratio)
-    else:
-        new_w = target[0]
-        new_h = int(new_w / img_ratio)
-
-    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    left = (new_w - target[0]) / 2
-    top = (new_h - target[1]) / 2
-    return img.crop((left, top, left + target[0], top + target[1]))
-
 def scan_missing_thumbs(categories: list[str]) -> list[tuple[Path, Path]]:
     """Find originals that are missing a corresponding thumb file.
-    
+
     Returns list of (original_path, thumb_path) tuples.
     """
     pairs: list[tuple[Path, Path]] = []
@@ -113,13 +97,13 @@ def generate_thumbs(pairs: list[tuple[Path, Path]], apply: bool) -> int:
 
 def update_index(categories: list[str]) -> None:
     """Add path_thumb entries to photo_index.json for dishes/restaurants."""
+    mgr = PhotoIndexManager(INDEX_FILE)
+
     if not INDEX_FILE.exists():
         logger.warning(f"Index file not found: {INDEX_FILE}")
         return
 
-    with open(INDEX_FILE, encoding="utf-8") as f:
-        index = json.load(f)
-
+    index = mgr.load()
     updated = 0
     for category in categories:
         section = index.get(category, {})
@@ -138,10 +122,10 @@ def update_index(categories: list[str]) -> None:
                         updated += 1
         else:
             # Dishes/restaurants are nested dicts
-            for group_key, items in section.items():
+            for _group_key, items in section.items():
                 if isinstance(items, dict):
                     # dishes: category -> variant -> [photos]
-                    for variant_key, photos in items.items():
+                    for _variant_key, photos in items.items():
                         if isinstance(photos, list):
                             for entry in photos:
                                 _update_entry(entry, updated)
@@ -159,10 +143,7 @@ def update_index(categories: list[str]) -> None:
                                 entry["path_thumb"] = thumb_rel
                                 updated += 1
 
-    # Write back
-    with open(INDEX_FILE, "w", encoding="utf-8") as f:
-        json.dump(index, f, indent=2, ensure_ascii=False)
-
+    mgr.save(index)
     logger.info(f"Updated {updated} entries in {INDEX_FILE}")
 
 def _update_entry(entry: dict, count: int) -> None:

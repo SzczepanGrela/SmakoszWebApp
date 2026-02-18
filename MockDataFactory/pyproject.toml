@@ -64,6 +64,14 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 [tool.ruff.lint.per-file-ignores]
 # Allow unused imports in __init__.py files
 "__init__.py" = ["F401"]
+# Tools are standalone scripts: sys.path tricks before imports (E402),
+# uppercase constants in functions (N806), unused loop vars (B007)
+"tools/*.py" = ["E402", "N806", "B007"]
+# Tests use MockX naming conventions and sys.path setup
+"tests/conftest.py" = ["E402"]
+"tests/**/*.py" = ["N806"]
+# Generators use uppercase constants (BATCH_SIZE, etc.) inside functions
+"generators/*.py" = ["N806"]
 
 [tool.mypy]
 # Python version to target

@@ -11,43 +11,29 @@ import logging
 import os
 import random
 import sys
-from concurrent.futures import ThreadPoolExecutor
-from io import BytesIO
 from pathlib import Path
 from typing import Any, cast
 
-from tqdm import tqdm  # type: ignore
-
-# Load environment variables first
 from dotenv import load_dotenv
+from tqdm import tqdm  # type: ignore
 
 load_dotenv()
 
-import numpy as np
 import requests  # type: ignore
-from PIL import Image
 from requests.adapters import HTTPAdapter  # type: ignore
 from urllib3.util.retry import Retry
 
-# BlurHash support for modern PWA placeholders
-try:
-    import blurhash  # type: ignore
-    BLURHASH_AVAILABLE = True
-except ImportError:
-    BLURHASH_AVAILABLE = False
-    logger.warning("blurhash library not found. Install with: pip install blurhash-python")
-    logger.warning("BlurHash generation will be skipped.")
-
-# Adjust path to find config module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config import PHOTO_CONFIG
+from tools.image_download import ImageDownloadService
 from tools.utils import slugify
+from utils.logging_config import LoggingConfig
+from utils.photo_index_manager import PhotoIndexManager
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Setup logger BEFORE blurhash import (which uses logger)
 logger = logging.getLogger(__name__)
 
-# Configuration
 OUTPUT_DIR = Path(cast(str, PHOTO_CONFIG["output_dir"]))
 INDEX_FILE = Path(cast(str, PHOTO_CONFIG["local_photo_index"]))
 SEEN_URLS_FILE = Path("data/downloaded_urls.json")  # Persistent state file
@@ -71,7 +57,7 @@ SUFFIX_THUMB = cast(str, PHOTO_CONFIG.get("suffix_thumb", "_thumb"))
 SUFFIX_TINY = cast(str, PHOTO_CONFIG.get("suffix_tiny", "_tiny"))
 
 # Import provider manager for multi-source fetching
-from tools.image_providers import ProviderManager, ImageResult
+from tools.image_providers import ImageResult, ProviderManager
 
 class PixabayDownloader:
     """
@@ -84,12 +70,14 @@ class PixabayDownloader:
         self.api_key = self._get_api_key()
         self.session = self._create_session()
         self.seen_urls: dict[str, str] = self._load_seen_urls()
-        self.index: dict[str, Any] = {"dishes": {}, "restaurants": {}, "avatars": []}
+        self.download_service = ImageDownloadService(self.session, self.seen_urls, OUTPUT_DIR)
+        self._index_mgr = PhotoIndexManager(INDEX_FILE)
+        self.index: dict[str, Any] = self._index_mgr._empty()
         self.restaurant_themes: dict[str, float] = {}
         self.restaurant_pixabay_terms: dict[str, str] = {}
         self._load_restaurant_themes()  # Populates both themes and pixabay_terms
         self.ingredient_mappings: dict[str, str] = self._load_ingredient_mappings()
-        
+
         # Multi-provider support
         self.provider_manager = ProviderManager()
 
@@ -247,13 +235,13 @@ class PixabayDownloader:
     ) -> list[ImageResult]:
         """
         Search multiple providers and mix results for visual diversity.
-        
+
         Args:
             query: Search term
             count: Total results needed
             orientation: 'horizontal' or 'vertical'
             pixabay_ratio: Fraction from Pixabay (default 60%, rest from Unsplash)
-            
+
         Returns:
             Mixed list of ImageResult from multiple providers
         """
@@ -268,433 +256,49 @@ class PixabayDownloader:
     ) -> list[str]:
         """
         Search multiple providers and return URLs only (for compatibility).
-        
+
         Args:
             query: Search term
             count: Total results needed
             orientation: 'horizontal' or 'vertical'
             pixabay_ratio: Fraction from Pixabay (default 60%, rest from Unsplash)
-            
+
         Returns:
             List of image URLs from multiple providers
         """
         results = self.search_mixed(query, count, orientation, pixabay_ratio)
         return [r.url for r in results if r.url]
 
-    def process_image(self, url: str, save_path: Path, target_size: tuple[int, int] | None = None) -> tuple[bool, dict[str, Any] | None]:
-        """
-        Download, process (resize/crop), generate BlurHash, and save image.
-
-        Args:
-            url: Image URL to download
-            save_path: Local path to save processed image
-            target_size: Optional (width, height) tuple. Defaults to TARGET_SIZE from config.
-
-        Returns:
-            tuple[bool, dict | None]: (success, metadata_dict)
-            metadata_dict contains: {"blurhash": str | None, "width": int, "height": int}
-        """
-        if save_path.exists():
-            # If file exists, try to generate metadata from existing file
-            try:
-                existing_img = Image.open(save_path)
-                if existing_img.mode != "RGB":
-                    existing_img = existing_img.convert("RGB")
-
-                metadata = {
-                    "blurhash": None,
-                    "width": existing_img.width,
-                    "height": existing_img.height
-                }
-
-                if BLURHASH_AVAILABLE:
-                    try:
-                        metadata["blurhash"] = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
-                    except Exception:
-                        pass
-
-                return (True, metadata)
-            except Exception:
-                return (True, None)
-
-        # Use provided target_size or fall back to config default
-        size = target_size if target_size else TARGET_SIZE
-
-        try:
-            resp = self.session.get(url, timeout=15)
-            if resp.status_code != 200:
-                return (False, None)
-
-            img: Image.Image = Image.open(BytesIO(resp.content))
-            if img.mode != "RGB":
-                img = img.convert("RGB")
-
-            # Minimum resolution filter - reject images smaller than target
-            # This ensures we never upscale, only downscale (better quality)
-            if img.width < size[0] or img.height < size[1]:
-                logger.debug(f"Skipping low-res image: {img.width}x{img.height} (min: {size[0]}x{size[1]})")
-                return (False, None)
-
-            # Aspect Ratio Calculation
-            img_ratio = img.width / img.height
-            target_ratio = size[0] / size[1]
-
-            if img_ratio > target_ratio:
-                new_height = size[1]
-                new_width = int(new_height * img_ratio)
-            else:
-                new_width = size[0]
-                new_height = int(new_width / img_ratio)
-
-            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-            # Center Crop
-            left = (new_width - size[0]) / 2
-            top = (new_height - size[1]) / 2
-            img = img.crop((left, top, left + size[0], top + size[1]))
-
-            # Capture final dimensions after cropping
-            final_width = img.width
-            final_height = img.height
-
-            # Generate BlurHash (4x3 components = good balance)
-            hash_str: str | None = None
-            if BLURHASH_AVAILABLE:
-                try:
-                    hash_str = blurhash.encode(np.array(img), components_x=4, components_y=3)
-                except Exception as e:
-                    logger.debug(f"BlurHash generation failed for {url}: {e}")
-
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-            img.save(save_path, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-
-            # Return metadata dict with blurhash and dimensions
-            metadata = {
-                "blurhash": hash_str,
-                "width": final_width,
-                "height": final_height
-            }
-            return (True, metadata)
-
-        except Exception as e:
-            logger.debug(f"Error processing {url}: {e}")
-            return (False, None)
+    def process_image(
+        self, url: str, save_path: Path, target_size: tuple[int, int] | None = None
+    ) -> tuple[bool, dict[str, Any] | None]:
+        """Download, resize/crop, generate BlurHash, and save one image."""
+        return self.download_service.process_image(url, save_path, target_size)
 
     def process_image_multi_size(
         self,
         url: str,
         save_path_full: Path,
         include_tiny: bool = False,
-        avatar_mode: bool = False
+        avatar_mode: bool = False,
     ) -> tuple[bool, dict[str, Any] | None]:
-        """
-        Download image and generate multiple sizes (full, thumb, optionally tiny).
-        
-        Uses naming convention: file.webp -> file_thumb.webp, file_tiny.webp
-        
-        Args:
-            url: Image URL to download
-            save_path_full: Path for full-size image (thumb/tiny derived from this)
-            include_tiny: Whether to also generate tiny size (for avatars)
-            avatar_mode: If True, uses SIZE_AVATAR for full size (300×300 square)
-            
-        Returns:
-            tuple[bool, dict | None]: (success, metadata_dict)
-            metadata_dict contains: {
-                "blurhash": str | None,
-                "width": int, "height": int,
-                "path_thumb": str,
-                "path_tiny": str | None
-            }
-        """
-        # Determine sizes based on mode
-        full_size = SIZE_AVATAR if avatar_mode else SIZE_FULL
-        # Derive paths for other sizes
-        stem = save_path_full.stem
-        suffix = save_path_full.suffix
-        parent = save_path_full.parent
-        
-        save_path_thumb = parent / f"{stem}{SUFFIX_THUMB}{suffix}"
-        save_path_tiny = parent / f"{stem}{SUFFIX_TINY}{suffix}" if include_tiny else None
-        
-        # Check if all required files already exist
-        all_exist = save_path_full.exists() and save_path_thumb.exists()
-        if include_tiny and save_path_tiny:
-            all_exist = all_exist and save_path_tiny.exists()
-            
-        if all_exist:
-            # Generate metadata from existing full file
-            try:
-                existing_img = Image.open(save_path_full)
-                if existing_img.mode != "RGB":
-                    existing_img = existing_img.convert("RGB")
-                    
-                metadata: dict[str, Any] = {
-                    "blurhash": None,
-                    "width": existing_img.width,
-                    "height": existing_img.height,
-                    "path_thumb": str(save_path_thumb.relative_to(OUTPUT_DIR.parent) if save_path_thumb.is_relative_to(OUTPUT_DIR.parent) else save_path_thumb),
-                }
-                
-                if include_tiny and save_path_tiny:
-                    metadata["path_tiny"] = str(save_path_tiny.relative_to(OUTPUT_DIR.parent) if save_path_tiny.is_relative_to(OUTPUT_DIR.parent) else save_path_tiny)
-                
-                if BLURHASH_AVAILABLE:
-                    try:
-                        metadata["blurhash"] = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
-                    except Exception:
-                        pass
-                        
-                return (True, metadata)
-            except Exception:
-                return (True, None)
-        
-        # --- Full file exists but some derived sizes are missing ---
-        # Generate missing variants from the existing full-size image (no re-download)
-        if save_path_full.exists():
-            try:
-                existing_img = Image.open(save_path_full)
-                if existing_img.mode != "RGB":
-                    existing_img = existing_img.convert("RGB")
-
-                # Generate missing THUMB
-                if not save_path_thumb.exists():
-                    img_thumb = self._resize_and_crop(existing_img.copy(), SIZE_THUMB)
-                    img_thumb.save(save_path_thumb, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-
-                # Generate missing TINY (if requested)
-                if include_tiny and save_path_tiny and not save_path_tiny.exists():
-                    img_tiny = self._resize_and_crop(existing_img.copy(), SIZE_TINY)
-                    img_tiny.save(save_path_tiny, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-
-                # Generate BlurHash
-                hash_str: str | None = None
-                if BLURHASH_AVAILABLE:
-                    try:
-                        hash_str = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
-                    except Exception:
-                        pass
-
-                metadata: dict[str, Any] = {
-                    "blurhash": hash_str,
-                    "width": existing_img.width,
-                    "height": existing_img.height,
-                    "path_thumb": str(save_path_thumb.relative_to(OUTPUT_DIR)),
-                }
-                if include_tiny and save_path_tiny:
-                    metadata["path_tiny"] = str(save_path_tiny.relative_to(OUTPUT_DIR))
-
-                return (True, metadata)
-            except Exception as e:
-                logger.debug(f"Error generating derived sizes from existing {save_path_full}: {e}")
-                return (True, None)
-
-        # --- Full file does NOT exist - download fresh ---
-        try:
-            resp = self.session.get(url, timeout=15)
-            if resp.status_code != 200:
-                return (False, None)
-                
-            img: Image.Image = Image.open(BytesIO(resp.content))
-            if img.mode != "RGB":
-                img = img.convert("RGB")
-                
-            # Check minimum resolution (must be at least full size)
-            if img.width < full_size[0] or img.height < full_size[1]:
-                logger.debug(f"Skipping low-res image: {img.width}x{img.height} (min: {full_size[0]}x{full_size[1]})")
-                return (False, None)
-            
-            # Ensure parent directory exists
-            parent.mkdir(parents=True, exist_ok=True)
-            
-            # Generate FULL size
-            img_full = self._resize_and_crop(img.copy(), full_size)
-            img_full.save(save_path_full, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-            
-            # Generate THUMB size
-            img_thumb = self._resize_and_crop(img.copy(), SIZE_THUMB)
-            img_thumb.save(save_path_thumb, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-            
-            # Generate TINY size (if requested)
-            if include_tiny and save_path_tiny:
-                img_tiny = self._resize_and_crop(img.copy(), SIZE_TINY)
-                img_tiny.save(save_path_tiny, IMAGE_FORMAT, quality=IMAGE_QUALITY)
-            
-            # Generate BlurHash from full image
-            hash_str: str | None = None
-            if BLURHASH_AVAILABLE:
-                try:
-                    hash_str = blurhash.encode(np.array(img_full), components_x=4, components_y=3)
-                except Exception as e:
-                    logger.debug(f"BlurHash generation failed for {url}: {e}")
-            
-            # Build metadata
-            rel_thumb = str(save_path_thumb.relative_to(OUTPUT_DIR))
-            
-            metadata = {
-                "blurhash": hash_str,
-                "width": img_full.width,
-                "height": img_full.height,
-                "path_thumb": rel_thumb,
-            }
-            
-            if include_tiny and save_path_tiny:
-                metadata["path_tiny"] = str(save_path_tiny.relative_to(OUTPUT_DIR))
-                
-            return (True, metadata)
-            
-        except Exception as e:
-            logger.debug(f"Error processing multi-size {url}: {e}")
-            return (False, None)
-    
-    def _resize_and_crop(self, img: Image.Image, target_size: tuple[int, int]) -> Image.Image:
-        """Resize image maintaining aspect ratio and center crop to target size."""
-        img_ratio = img.width / img.height
-        target_ratio = target_size[0] / target_size[1]
-        
-        if img_ratio > target_ratio:
-            new_height = target_size[1]
-            new_width = int(new_height * img_ratio)
-        else:
-            new_width = target_size[0]
-            new_height = int(new_width / img_ratio)
-            
-        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        
-        # Center crop
-        left = (new_width - target_size[0]) / 2
-        top = (new_height - target_size[1]) / 2
-        img = img.crop((left, top, left + target_size[0], top + target_size[1]))
-        
-        return img
+        """Download one image and save it at full, thumb, and optionally tiny size."""
+        return self.download_service.process_image_multi_size(
+            url, save_path_full, include_tiny, avatar_mode
+        )
 
     def download_batch(self, tasks: list[tuple]) -> list[dict[str, Any]]:
-        """
-        Execute a batch of download tasks using ThreadPoolExecutor.
-
-        Args:
-            tasks: List of tuples, either:
-                - (url, save_path, rel_path) - uses default TARGET_SIZE
-                - (url, save_path, rel_path, target_size) - uses custom size
-
-        Returns:
-            List of dicts with format: {"path": "...", "blurhash": "...", "width": int, "height": int}
-        """
-        saved_files: list[dict[str, Any]] = []
-        futures = []
-        task_indices = []
-
-        with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-            for task in tasks:
-                url = task[0]
-                save_path = task[1]
-                rel_path = task[2]
-                target_size = task[3] if len(task) == 4 else None
-
-                # Deduplication logic
-                if url in self.seen_urls:
-                    old_rel_path = self.seen_urls[url]
-                    if (OUTPUT_DIR / old_rel_path).exists():
-                        # Try to generate metadata for existing file
-                        _, metadata = self.process_image(url, OUTPUT_DIR / old_rel_path, target_size)
-                        result = {"path": old_rel_path}
-                        if metadata:
-                            result.update(metadata)  # Add blurhash, width, height
-                        saved_files.append(result)
-                        continue
-
-                futures.append(executor.submit(self.process_image, url, save_path, target_size))
-                task_indices.append(len(futures) - 1)
-
-            for i, future_idx in enumerate(task_indices):
-                f = futures[future_idx]
-                task = tasks[i]
-                url = task[0]
-                save_path = task[1]
-                rel_path = task[2]
-
-                if url in self.seen_urls and (OUTPUT_DIR / self.seen_urls[url]).exists():
-                    continue
-
-                success, metadata = f.result()
-                if success:
-                    self.seen_urls[url] = rel_path
-                    result = {"path": rel_path}
-                    if metadata:
-                        result.update(metadata)  # Add blurhash, width, height
-                    saved_files.append(result)
-
-        return saved_files
+        """Execute a batch of (url, save_path, rel_path[, size]) download tasks."""
+        return self.download_service.download_batch(tasks)
 
     def download_batch_multi_size(
         self,
         tasks: list[tuple[str, Path, str]],
         include_tiny: bool = False,
-        avatar_mode: bool = False
+        avatar_mode: bool = False,
     ) -> list[dict[str, Any]]:
-        """
-        Execute batch download with multi-size image generation.
-        
-        Args:
-            tasks: List of (url, save_path_full, rel_path_full) tuples
-            include_tiny: Whether to generate tiny size (for avatars)
-            avatar_mode: If True, uses SIZE_AVATAR for full size (300×300 square)
-            
-        Returns:
-            List of dicts with format: {
-                "path": "...",           # Full size path (stored in DB)
-                "path_thumb": "...",     # Thumbnail path (derived)
-                "path_tiny": "...",      # Tiny path (optional, derived)
-                "blurhash": "...",
-                "width": int,
-                "height": int
-            }
-        """
-        saved_files: list[dict[str, Any]] = []
-        futures = []
-        task_map: list[tuple[int, str, str]] = []  # (future_idx, url, rel_path)
-        
-        with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-            for url, save_path, rel_path in tasks:
-                # Deduplication logic
-                if url in self.seen_urls:
-                    old_rel_path = self.seen_urls[url]
-                    old_full_path = OUTPUT_DIR / old_rel_path
-                    if old_full_path.exists():
-                        # Try to generate metadata for existing file
-                        _, metadata = self.process_image_multi_size(
-                            url, old_full_path, include_tiny, avatar_mode
-                        )
-                        result = {"path": old_rel_path}
-                        if metadata:
-                            result.update(metadata)
-                        saved_files.append(result)
-                        continue
-                
-                future = executor.submit(
-                    self.process_image_multi_size,
-                    url,
-                    save_path,
-                    include_tiny,
-                    avatar_mode
-                )
-                task_map.append((len(futures), url, rel_path))
-                futures.append(future)
-            
-            # Collect results
-            for future_idx, url, rel_path in task_map:
-                if url in self.seen_urls and (OUTPUT_DIR / self.seen_urls[url]).exists():
-                    continue
-                    
-                success, metadata = futures[future_idx].result()
-                if success:
-                    self.seen_urls[url] = rel_path
-                    result = {"path": rel_path}
-                    if metadata:
-                        result.update(metadata)
-                    saved_files.append(result)
-        
-        return saved_files
+        """Execute batch download with multi-size image generation."""
+        return self.download_service.download_batch_multi_size(tasks, include_tiny, avatar_mode)
 
     def _scan_directory(self) -> dict:
         """
@@ -884,11 +488,11 @@ class PixabayDownloader:
         tasks = []
         ing_name_map = {}  # Map task index to ingredient name
 
-        for ing_name in tqdm(ingredients, desc="Preparing ingredient tasks"):
+        for ing_name in tqdm(ingredients, desc="Preparing ingredient tasks", mininterval=1.0, disable=LoggingConfig.is_quiet()):
             # Sanitize filename: allow alphanumeric and underscore, dash.
             # This matches our actual folder structure (e.g. "ciasto_makaronowe")
             safe_name = "".join(c for c in ing_name if c.isalnum() or c in ('_', '-')).lower()
-            
+
             # Structure: ingredients/name/name_001.webp
             ing_sub_dir = ing_dir / safe_name
             filename = f"{safe_name}_001.{IMAGE_FORMAT.lower()}"
@@ -900,7 +504,7 @@ class PixabayDownloader:
                 _, blurhash_val = self.process_image("", save_path, ICON_SIZE)
                 self.index["ingredients"][ing_name] = {"path": rel_path, "blurhash": blurhash_val}
                 continue
-            
+
             # Check if any file exists in the folder (robustness)
             found_existing = False
             if ing_sub_dir.exists():
@@ -955,7 +559,7 @@ class PixabayDownloader:
             self.index["dishes"][category] = {}
             variants = data.get("variants", {})
             logger.info(f"Category: {category} ({len(variants)} variants)")
-            
+
             # Get archetype-level fallback term
             archetype_term = data.get("pixabay_term")
 
@@ -971,7 +575,7 @@ class PixabayDownloader:
                         # logger.debug(f"Using archetype fallback '{query}' for '{variant_name}'")
                     else:
                         query = f"{variant_name} {category}"
-                
+
                 query = query.replace(",", "").strip()
 
                 logger.info(f"  > '{query}' ({target_count})")
@@ -1035,7 +639,7 @@ class PixabayDownloader:
         """Download diverse user profile pictures (portraits, art, etc)."""
         logger.info("--- DOWNLOADING USER AVATARS ---")
         avatars_dir = OUTPUT_DIR / "avatars"
-        
+
         # Local cleanup: Ensure fresh start for avatars
         if avatars_dir.exists():
             logger.info(f"Cleaning existing avatars folder: {avatars_dir}")
@@ -1044,7 +648,7 @@ class PixabayDownloader:
                 shutil.rmtree(avatars_dir)
             except Exception as e:
                 logger.warning(f"Failed to clean avatars folder: {e}")
-        
+
         avatars_dir.mkdir(parents=True, exist_ok=True)
 
         # Load search terms from config
@@ -1079,8 +683,7 @@ class PixabayDownloader:
 
     def save_index(self):
         """Save the final photo index."""
-        with open(INDEX_FILE, "w", encoding="utf-8") as f:
-            json.dump(self.index, f, indent=2)
+        self._index_mgr.save(self.index)
         logger.info(f"Index saved to {INDEX_FILE}")
         self._save_seen_urls()
 
@@ -1110,16 +713,16 @@ class PixabayDownloader:
         # Execute selected modules (or all if no filter)
         if not specific_mode or only_dishes:
             self.download_dishes()
-        
+
         if not specific_mode or only_restaurants:
             self.download_restaurants()
-            
+
         if not specific_mode or only_avatars:
             self.download_avatars()
-            
+
         if not specific_mode or only_ingredients:
             self.download_ingredients()  # NEW STEP
-            
+
         self.save_index()
 
 if __name__ == "__main__":
@@ -1130,8 +733,14 @@ if __name__ == "__main__":
     parser.add_argument("--only-dishes", action="store_true", help="Download only dishes")
     parser.add_argument("--only-restaurants", action="store_true", help="Download only restaurants")
     parser.add_argument("--only-avatars", action="store_true", help="Download only avatars")
-    
+    parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
+    parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
+
     args = parser.parse_args()
-    
+
+    # Setup logging
+    log_level = "DEBUG" if args.debug else "INFO"
+    LoggingConfig.setup(level=log_level, quiet=args.quiet)
+
     downloader = PixabayDownloader()
     downloader.run(args)

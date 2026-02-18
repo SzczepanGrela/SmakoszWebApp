@@ -1,7 +1,7 @@
 import json
 import logging
-import os
 import random
+import time
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 
@@ -10,10 +10,14 @@ from tqdm import tqdm
 
 from config import GENERATION_CONFIG, get_connection_params
 from data_access import CityDAO, RestaurantDAO, ReviewDAO, UserDAO
+from orchestration.context import ExecutionContext
+
+from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
 from utils.db_connection import DatabaseConnection
+from utils.logging_config import LoggingConfig
 
-from .workers.phase6_worker import process_follows_chunk, worker_init_phase6
+from .workers.phase6_worker import WorkerContext, process_follows_chunk, worker_init_phase6
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +65,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     variant_blueprints = loader.load_blueprint("dishes.json")
     archetypes = list(variant_blueprints.keys())
 
-    # User Follows (MULTIPROCESSING)
     logger.info("Generating user follows...")
 
     # Memory optimization: Only fetch necessary columns
@@ -90,10 +93,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     top_10_percent = user_ids[: max(1, int(num_users * 0.10))]
 
-    # Prepare user chunks for multiprocessing
     user_tuples = [(int(u[0]), u[1], u[2]) for u in users]  # (user_id, username, city_id)
 
-    # Calculate worker count
     total_cores = cpu_count()
     target_workers = int(total_cores * float(GENERATION_CONFIG.get("worker_cpu_usage_percent", 0.75)))  # type: ignore
     num_processes = max(1, min(target_workers, int(GENERATION_CONFIG.get("max_db_connections_limit", 16))))  # type: ignore
@@ -106,22 +107,28 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     db_params = get_connection_params()
 
     follows_data = []
-    notifications_buffer = []
+    notifications_buffer: list = []
     total_follows = 0
-    total_notifications = 0
 
-    # Process chunks in parallel with chunked insertion
     logger.info("Processing follows with chunked insertion...")
     with Pool(
         processes=num_processes,
         initializer=worker_init_phase6,
-        initargs=(db_params, user_ids, users_by_city, top_1_percent, top_10_percent, username_map),
+        initargs=(WorkerContext(
+            db_params=db_params,
+            user_ids=user_ids,
+            users_by_city=users_by_city,
+            top_1_percent=top_1_percent,
+            top_10_percent=top_10_percent,
+            username_map=username_map,
+        ),),
     ) as pool:
         for result in tqdm(
             pool.imap_unordered(process_follows_chunk, user_chunks),
             total=len(user_chunks),
             desc="Generating follows",
             mininterval=1.0,
+            disable=LoggingConfig.is_quiet(),
         ):
             follows_data.extend(result["follows"])
 
@@ -131,7 +138,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 total_follows += len(follows_data)
                 follows_data.clear()
 
-        # Final flush for remaining follows
         if follows_data:
             db.insert_bulk("user_follows", follows_data)
             total_follows += len(follows_data)
@@ -140,10 +146,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     logger.info(f"Generated {total_follows:,} follows")
     logger.info("Notifications handled by DB triggers.")
 
-    # Review Likes (Optimized with Zipf Distribution)
     logger.info("Generating review likes...")
 
-    # Fetch ALL review IDs and authors (lightweight query)
     logger.info("Fetching review IDs...")
     reviews = ReviewDAO.get_all_reviews_basic(db)
 
@@ -151,7 +155,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         logger.warning("No reviews found, skipping likes generation")
     else:
         review_ids = np.array([row[0] for row in reviews])
-        review_authors = {int(row[0]): int(row[1]) for row in reviews} 
+        review_authors = {int(row[0]): int(row[1]) for row in reviews}
         num_reviews = len(review_ids)
 
         logger.info(f"Found {num_reviews:,} reviews")
@@ -191,47 +195,28 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         logger.info(f"Sampling {len(liked_review_ids):,} liker IDs...")
         liker_user_ids = np.random.choice(user_ids, size=len(liked_review_ids), replace=True)
 
-        # Step 3: Filter out self-likes
-        # Identify indices where liker_user_id == author of the review
-        # We need to map liked_review_ids to their authors efficiently
-        
-        # Vectorized mapping: Create an array of authors corresponding to liked_review_ids
-        # Since liked_review_ids contains review_ids, and we have a dict, we can map it.
-        # But map is slow for arrays. Better: review_authors is a dict.
-        # Let's use list comprehension (fast enough for <10M items usually) or pandas if available (but we stick to numpy).
-        
-        # Optimization: iterate and build a mask.
-        # Or simply: Loop and filter? No, slow.
-        # Vectorized way:
-        # Create an array of authors matching the shape of liked_review_ids.
-        # We know liked_review_ids comes from repeating review_ids.
-        # So we can repeat the authors array in the same way!
-        
+        # Step 3: Filter out self-likes using vectorized author lookup
         review_authors_array = np.array([review_authors[rid] for rid in review_ids])
         liked_review_authors = np.repeat(review_authors_array, like_counts)
-        
-        # Now compare
+
         self_like_mask = (liker_user_ids == liked_review_authors)
         valid_likes_mask = ~self_like_mask
-        
+
         logger.info(f"Filtering self-likes: Removed {np.sum(self_like_mask):,} self-likes")
-        
+
         liker_user_ids = liker_user_ids[valid_likes_mask]
         liked_review_ids = liked_review_ids[valid_likes_mask]
-        
+
         # Step 5: Remove duplicates using numpy unique
         logger.info("Removing duplicate likes...")
-        # Stack into (n, 2) array for unique operation
         likes_pairs = np.column_stack((liker_user_ids, liked_review_ids))
-
-        # Get unique pairs
         unique_likes_pairs = np.unique(likes_pairs, axis=0)
 
         logger.info(f"Final unique likes: {len(unique_likes_pairs):,}")
 
         # Step 6: Insert likes in chunks (streaming approach)
         logger.info("Inserting likes with chunked insertion...")
-        
+
         # PERFORMANCE OPTIMIZATION: Disable triggers during bulk load
         logger.info("Disabling triggers on review_likes for performance...")
         try:
@@ -242,10 +227,9 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         except Exception as e:
             logger.warning(f"Could not disable triggers (might need superuser): {e}")
 
-        chunk_size = 50000 
+        chunk_size = 50000
         total_likes_inserted = 0
-        
-        # Process likes in chunks with progress bar
+
         num_chunks = (len(unique_likes_pairs) + chunk_size - 1) // chunk_size
         for chunk_start in tqdm(
             range(0, len(unique_likes_pairs), chunk_size),
@@ -253,11 +237,11 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             desc="Inserting likes (chunks)",
             unit=" chunk",
             mininterval=0.5,
+            disable=LoggingConfig.is_quiet(),
         ):
             chunk_end = min(chunk_start + chunk_size, len(unique_likes_pairs))
             chunk_pairs = unique_likes_pairs[chunk_start:chunk_end]
 
-            # Convert chunk to dicts
             likes_chunk = [
                 {
                     "user_id": int(pair[0]),  # Cast to native int
@@ -265,15 +249,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 }
                 for pair in chunk_pairs
             ]
-            
+
             # OPTIMIZATION: Sort by review_id to improve DB locality during index updates
             likes_chunk.sort(key=lambda x: x["review_id"])
 
-            # Insert chunk immediately (Triggers disabled)
             db.insert_bulk("review_likes", likes_chunk)
             total_likes_inserted += len(likes_chunk)
-            
-            # Clear chunk to free memory
             likes_chunk.clear()
 
         # Re-enable Triggers
@@ -287,20 +268,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             logger.error(f"Could not re-enable triggers: {e}")
 
         logger.info(f"Generated {total_likes_inserted:,} likes")
-        
-        # Post-process: Generate notifications (since trigger was disabled)
+
+        # Post-process: Generate notifications since trigger was disabled during bulk load
         logger.info("Generating notifications for likes (Bulk)...")
-        # We assume all current likes need notifications (Phase 6 is fresh generation).
-        # In a real migration, we'd filter by created_at, but here we truncated everything.
-        # However, we must respect the 50 limit pruning eventually, but for now generate all 
-        # (or rely on prune later). Generating 12M notifications is heavy.
-        # Let's check if we really want 12M notifications. 
-        # Maybe we only generate for the latest ones?
-        # Or better: Just run the bulk INSERT SELECT matching the trigger logic.
-        
         db.execute_query("""
             INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority)
-            SELECT 
+            SELECT
                 r.user_id,          -- Recipient
                 rl.user_id,         -- Actor
                 'like',
@@ -322,10 +295,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.commit()
         logger.info("Notifications generated.")
 
-    # System Welcome Notifications
     logger.info("Generating system notifications...")
 
-    # Select 20% of users for welcome notifications
     num_welcome = int(len(user_ids) * 0.2)
     welcome_users = random.sample(user_ids, num_welcome)
 
@@ -343,15 +314,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             }
         )
 
-        # Flush periodically
         flush_notifications(db, notifications_buffer, threshold=5000)
 
-    # Final flush
     flush_notifications(db, notifications_buffer, force=True)
 
     logger.info(f"Generated {num_welcome:,} system welcome notifications")
 
-    # Search History (Optimized)
     logger.info("Generating search history...")
 
     cities = CityDAO.get_all_city_names(db)
@@ -359,17 +327,14 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     search_data = []
 
-    # Vectorized: Select active searchers (40% of users)
     num_searchers = int(len(user_ids) * 0.4)
     active_searchers = np.random.choice(user_ids, size=num_searchers, replace=False)
 
-    # Vectorized: Generate search counts for all searchers at once
     search_counts = np.random.randint(1, 6, size=num_searchers)
     total_searches = int(search_counts.sum())  # Cast to native int
 
     logger.info(f"Generating {total_searches:,} search queries for {num_searchers:,} users...")
 
-    # Vectorized: Pre-generate all search types
     search_types = np.random.random(total_searches)
 
     search_idx = 0
@@ -385,7 +350,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             elif r < 0.7:
                 query = str(np.random.choice(archetypes))
             else:
-                query = f"{str(np.random.choice(archetypes))} {str(np.random.choice(city_names))}"
+                query = f"{np.random.choice(archetypes)!s} {np.random.choice(city_names)!s}"
 
             search_data.append(
                 {
@@ -406,7 +371,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     db.execute_query("SELECT prune_notifications()")
     db.commit()
 
-    # Data Correction Requests (Optimized)
     logger.info("Generating data correction requests...")
 
     restaurants = RestaurantDAO.get_all_restaurant_ids(db)
@@ -416,7 +380,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     num_requests = 200
 
-    # Vectorized: Generate all requests at once
     request_users = np.random.choice(user_ids, size=num_requests)
     request_restaurants = np.random.choice(restaurant_ids, size=num_requests)
     request_issues = np.random.choice(issue_types, size=num_requests)
@@ -427,7 +390,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             "user_id": int(request_users[i]),  # Cast to native int
             "restaurant_id": int(request_restaurants[i]),  # Cast to native int
             "issue_type": str(request_issues[i]),  # Cast to native str
-            "description": f"Zgłoszenie błędu: {str(request_issues[i])}. Proszę o weryfikację.",
+            "description": f"Zgłoszenie błędu: {request_issues[i]!s}. Proszę o weryfikację.",
             "status": str(request_statuses[i]),  # Cast to native str
         }
         for i in range(num_requests)
@@ -437,33 +400,29 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.insert_bulk("data_correction_requests", correction_data)
         logger.info(f"Generated {len(correction_data)} correction requests")
 
-    # Favorite Restaurants (NEW)
     logger.info("Generating favorite restaurants...")
-    
+
     # Logic: About 5-10% of users have favorite restaurants (Loyalty)
     # Each user picks 1-3 favorite places (usually visited before)
-    
+
     favorite_data = []
-    
-    # Fetch active users and restaurants
+
     active_users_subset = np.random.choice(user_ids, size=int(len(user_ids) * 0.10), replace=False)
-    
+
     for u_id in active_users_subset:
-        # User picks 1-3 favorites from known restaurants (simplified: pick random from list)
         num_favs = random.randint(1, 3)
         picked_restaurants = np.random.choice(restaurant_ids, size=num_favs, replace=False)
-        
+
         for r_id in picked_restaurants:
             favorite_data.append({
                 "user_id": int(u_id),
                 "restaurant_id": int(r_id),
             })
-            
+
     if favorite_data:
         db.insert_bulk("favorite_restaurants", favorite_data)
         logger.info(f"Generated {len(favorite_data)} favorite restaurant entries")
 
-    # Reports (Abuse/Content) - UPDATED v5.5 SCHEMA
     logger.info("Generating abuse reports (Many-to-Many Schema)...")
 
     # 1. Seed Reason Definitions
@@ -476,8 +435,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         {"reason_code": "harassment", "label_pl": "Nękanie", "description": "Ataki personalne na użytkowników/obsługę.", "severity_score": 4},
         {"reason_code": "sexual", "label_pl": "Treści seksualne", "description": "Nagość, pornografia.", "severity_score": 5},
     ]
-    
-    # Using execute_query since definitions are static/config
+
     for r in reason_definitions:
         db.execute_query("""
             INSERT INTO report_reason_definitions (reason_code, label_pl, description, severity_score)
@@ -486,12 +444,10 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         """, (r["reason_code"], r["label_pl"], r["description"], r["severity_score"]))
     db.commit()
 
-    # Fetch moderators/admins for resolution
     mod_users = db.fetch_all("SELECT user_id FROM users WHERE role IN ('admin', 'moderator')")
     mod_ids = [u[0] for u in mod_users] if mod_users else []
 
     report_reasons_keys = [r["reason_code"] for r in reason_definitions]
-    reports_buffer = []
     assignments_buffer = []
 
     # 1. Report Reviews
@@ -504,12 +460,11 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             status = str(np.random.choice(["pending", "resolved", "dismissed"], p=[0.7, 0.2, 0.1]))
             resolved_by = None
             resolved_at = None
-            
+
             if status != "pending" and mod_ids:
                 resolved_by = int(random.choice(mod_ids))
                 resolved_at = datetime.now().isoformat()
 
-            # Create Report
             report_data = {
                 "reporter_id": int(reporter_users[i]),
                 "entity_type": "review",
@@ -520,14 +475,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "resolved_at": resolved_at,
                 "version": 1
             }
-            
-            # Insert Single (need ID for assignment)
+
             report_id = db.insert_single("reports", report_data)
-            
-            # Create Assignments (1-2 random reasons)
+
             num_reasons = random.randint(1, 2)
             picked_reasons = random.sample(report_reasons_keys, num_reasons)
-            
+
             for code in picked_reasons:
                 assignments_buffer.append({
                     "report_id": report_id,
@@ -543,7 +496,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
         for i, pid in enumerate(target_photos):
             status = "pending"
-            
+
             report_data = {
                 "reporter_id": int(reporter_users_p[i]),
                 "entity_type": "photo",
@@ -554,19 +507,18 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "resolved_at": None,
                 "version": 1
             }
-            
+
             report_id = db.insert_single("reports", report_data)
-            
+
             assignments_buffer.append({
                 "report_id": report_id,
                 "reason_code": str(np.random.choice(["sexual", "offensive", "irrelevant"]))
             })
 
-    # Bulk insert assignments
     if assignments_buffer:
         db.insert_bulk("report_reason_assignments", assignments_buffer)
         logger.info(f"Generated {len(assignments_buffer)} report reason assignments")
-    
+
     logger.info("Generated abuse reports successfully.")
 
     # Final step: Update average ratings for all restaurants/dishes
@@ -575,7 +527,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.execute_query("SELECT update_average_ratings()")
         db.commit()
         logger.info("Average ratings updated successfully")
-        
+
         logger.info("Updating review helpful counts...")
         db.execute_query("SELECT sync_helpful_counts()")
         db.commit()
@@ -584,23 +536,149 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         logger.warning(f"Failed to update averages or counts: {e}")
         # Non-critical, continue anyway
 
-if __name__ == "__main__":
-    import os
-    import sys
+class SocialGraphPhase(BasePhase):
+    """
+    Phase 6: Social Graph Generation
 
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    Generates social interactions and user engagement data:
+    - User follows (friend connections with multiprocessing)
+    - Review likes (vectorized numpy operations for millions of likes)
+    - Notifications (follow/like/system notifications)
+    - Search history (user search patterns)
+    - Favorite restaurants (user preferences)
+    - Data correction requests (community contributions)
+    - Abuse reports (content moderation system)
+    - Updates aggregate ratings for restaurants and dishes
 
-    from config import get_connection_params
+    Key features:
+    - Multiprocessing for follows generation
+    - Fully vectorized numpy operations for like generation (handles millions efficiently)
+    - Zipf distribution for realistic popularity patterns
+    - Chunked insertion to prevent memory overflow
+    - Trigger management during bulk loads
+    - Many-to-many report reason assignments
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    Dependencies:
+        - phase4_users: Need users to create social connections
 
-    try:
-        connection_params = get_connection_params()
+    Generates:
+        - user_follows: Social graph connections
+        - review_likes: User likes on reviews
+        - notifications: Follow/like/system notifications
+        - search_history: User search queries
+        - favorite_restaurants: User favorite places
+        - data_correction_requests: User-reported issues
+        - reports + report_reason_assignments: Content moderation
+        - Updates: average ratings, helpful counts
+    """
 
-        with DatabaseConnection(connection_params) as db:
-            generate_social_graph(db)
-            logger.info("Phase 6 completed.")
+    def __init__(self, blueprints_dir: str = "blueprints"):
+        self.blueprints_dir = blueprints_dir
 
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        sys.exit(1)
+    @property
+    def metadata(self) -> PhaseMetadata:
+        return PhaseMetadata(
+            phase_id="phase6_social",
+            display_name="Social Graph Generation",
+            dependencies=[
+                "phase4_users",
+            ],
+            required_tables=[
+                "user_follows",
+                "review_likes",
+                "notifications",
+                "search_history",
+                "favorite_restaurants",
+                "data_correction_requests",
+                "reports",
+                "report_reason_assignments",
+            ],
+            cleanup_tables=[
+                "user_follows",
+                "review_likes",
+                "notifications",
+                "search_history",
+                "data_correction_requests",
+                "reports",
+            ],
+            estimated_duration=600,  # 10 minutes (multiprocessing + vectorized numpy)
+        )
+
+    def execute(self, context: ExecutionContext) -> PhaseResult:
+        """
+        Execute Phase 6: Social Graph Generation.
+
+        Process:
+        1. Generate user follows with multiprocessing
+        2. Generate review likes using vectorized numpy (Zipf distribution)
+        3. Generate notifications (follow/like/system)
+        4. Generate search history with realistic patterns
+        5. Generate favorite restaurants (loyalty markers)
+        6. Generate data correction requests
+        7. Generate abuse reports with many-to-many reasons
+        8. Update aggregate ratings and counts
+
+        Args:
+            context: Execution context with database connection
+
+        Returns:
+            PhaseResult with social graph generation statistics
+        """
+        start_time = time.time()
+        logger.info("=" * 60)
+        logger.info("PHASE 6: Social Graph Generation (Multiprocessing + Numpy)")
+        logger.info("=" * 60)
+
+        try:
+            # Note: cleanup parameter always False - orchestrator handles cleanup
+            generate_social_graph(context.db, cleanup=False)
+
+            follows_count = context.db.fetch_val("SELECT COUNT(*) FROM user_follows") or 0
+            likes_count = context.db.fetch_val("SELECT COUNT(*) FROM review_likes") or 0
+            notifications_count = context.db.fetch_val("SELECT COUNT(*) FROM notifications") or 0
+            search_count = context.db.fetch_val("SELECT COUNT(*) FROM search_history") or 0
+            favorites_count = context.db.fetch_val("SELECT COUNT(*) FROM favorite_restaurants") or 0
+            corrections_count = context.db.fetch_val(
+                "SELECT COUNT(*) FROM data_correction_requests"
+            ) or 0
+            reports_count = context.db.fetch_val("SELECT COUNT(*) FROM reports") or 0
+
+            duration = time.time() - start_time
+
+            logger.info(f"Phase 6 completed in {duration:.2f}s")
+            logger.info(
+                f"Generated: {follows_count:,} follows, {likes_count:,} likes, "
+                f"{notifications_count:,} notifications"
+            )
+            logger.info(
+                f"Additional: {search_count:,} searches, {favorites_count:,} favorites, "
+                f"{corrections_count:,} corrections, {reports_count:,} reports"
+            )
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.COMPLETED,
+                duration_seconds=duration,
+                entities_generated={
+                    "user_follows": follows_count,
+                    "review_likes": likes_count,
+                    "notifications": notifications_count,
+                    "search_history": search_count,
+                    "favorite_restaurants": favorites_count,
+                    "data_correction_requests": corrections_count,
+                    "reports": reports_count,
+                },
+                error=None,
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"Phase 6 FAILED after {duration:.2f}s: {e}", exc_info=True)
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.FAILED,
+                duration_seconds=duration,
+                entities_generated={},
+                error=e,
+            )

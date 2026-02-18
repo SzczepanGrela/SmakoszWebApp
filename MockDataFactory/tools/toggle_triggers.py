@@ -14,7 +14,6 @@ Usage:
 """
 
 import logging
-from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class TriggerManager:
             db_connection: DatabaseConnection instance from utils.db_connection
         """
         self.db = db_connection
-        self.disabled_triggers: List[Dict[str, str]] = []
+        self.disabled_triggers: list[dict[str, str]] = []
 
     def disable_heavy_triggers(self) -> None:
         """
@@ -204,7 +203,7 @@ class TriggerManager:
 
         logger.info("Normal database mode restored")
 
-    def get_trigger_status(self) -> Dict[str, List[str]]:
+    def get_trigger_status(self) -> dict[str, list[str]]:
         """
         Get current status of all triggers in the database.
 
@@ -253,8 +252,8 @@ class TriggerManager:
 
 # Example usage
 if __name__ == '__main__':
-    from utils.db_connection import DatabaseConnection
     from config import get_connection_params
+    from utils.db_connection import DatabaseConnection
 
     # Setup logging
     logging.basicConfig(
@@ -271,7 +270,7 @@ if __name__ == '__main__':
 
         # Get initial status
         status = manager.get_trigger_status()
-        print(f"\nInitial state:")
+        print("\nInitial state:")
         print(f"  Enabled triggers: {len(status['enabled'])}")
         print(f"  Disabled triggers: {len(status['disabled'])}")
 
@@ -281,7 +280,7 @@ if __name__ == '__main__':
 
         # Get status after disable
         status = manager.get_trigger_status()
-        print(f"\nAfter disable:")
+        print("\nAfter disable:")
         print(f"  Enabled triggers: {len(status['enabled'])}")
         print(f"  Disabled triggers: {len(status['disabled'])}")
 
@@ -291,7 +290,7 @@ if __name__ == '__main__':
 
         # Get final status
         status = manager.get_trigger_status()
-        print(f"\nFinal state:")
+        print("\nFinal state:")
         print(f"  Enabled triggers: {len(status['enabled'])}")
         print(f"  Disabled triggers: {len(status['disabled'])}")
 

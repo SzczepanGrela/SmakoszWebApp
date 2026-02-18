@@ -61,7 +61,7 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
     Uses base calories per 100g and estimated portion size.
     Price is ignored (Mod 12).
     """
-    
+
     # Base calories per 100g
     calories_per_100g = {
         "Pizza": 270,
@@ -82,7 +82,7 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
         "Curry": 140,
         "Dim Sum": 190
     }
-    
+
     # Estimated portion sizes in grams
     portion_sizes = {
         "Pizza": 450,
@@ -109,12 +109,12 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
 
     # Add variance to 100g value
     variance = random.uniform(0.9, 1.1)
-    
+
     # Richness impacts calorie density slightly
     density_modifier = 0.9 + (richness * 0.2) # 0.9 to 1.1
 
     final_cal_100g = base_cal_100g * variance * density_modifier
-    
+
     total_calories = (final_cal_100g * portion) / 100.0
 
     return int(round(total_calories / 10) * 10)

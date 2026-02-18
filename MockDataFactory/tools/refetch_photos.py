@@ -32,6 +32,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config import PHOTO_CONFIG
 from tools.image_providers import PixabayProvider
 from tools.utils import slugify
+from utils.image_processor import resize_and_crop
+from utils.logging_config import LoggingConfig
 
 # ── Config ────────────────────────────────────────────────────────────────────
 OUTPUT_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
@@ -42,27 +44,12 @@ SUFFIX_THUMB = str(PHOTO_CONFIG.get("suffix_thumb", "_thumb"))
 IMAGE_FORMAT = str(PHOTO_CONFIG.get("image_format", "WEBP"))
 IMAGE_QUALITY = int(PHOTO_CONFIG.get("image_quality", 80))
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("refetch")
 
 # Single Pixabay provider - no Unsplash
 _pixabay = PixabayProvider()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def _resize_and_crop(img: Image.Image, target: tuple[int, int]) -> Image.Image:
-    """Resize maintaining aspect ratio, then center-crop to exact target."""
-    img_ratio = img.width / img.height
-    target_ratio = target[0] / target[1]
-    if img_ratio > target_ratio:
-        new_h = target[1]
-        new_w = int(new_h * img_ratio)
-    else:
-        new_w = target[0]
-        new_h = int(new_w / img_ratio)
-    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    left = (new_w - target[0]) / 2
-    top = (new_h - target[1]) / 2
-    return img.crop((left, top, left + target[0], top + target[1]))
 
 def _generate_thumb(full_path: Path) -> None:
     """Generate a _thumb variant from a full-size image."""
@@ -71,7 +58,7 @@ def _generate_thumb(full_path: Path) -> None:
         img = Image.open(full_path)
         if img.mode != "RGB":
             img = img.convert("RGB")
-        img_thumb = _resize_and_crop(img, SIZE_THUMB)
+        img_thumb = resize_and_crop(img, SIZE_THUMB)
         img_thumb.save(thumb_path, IMAGE_FORMAT, quality=IMAGE_QUALITY)
     except Exception as e:
         logger.warning(f"  WARNING: Thumb failed for {full_path.name}: {e}")
@@ -98,7 +85,7 @@ def _download_single(url: str, save_path: Path, target_size: tuple[int, int]) ->
         if img.width < target_size[0] // 2 or img.height < target_size[1] // 2:
             return False
 
-        img = _resize_and_crop(img, target_size)
+        img = resize_and_crop(img, target_size)
         img.save(save_path, IMAGE_FORMAT, quality=IMAGE_QUALITY)
         return True
     except Exception as e:
@@ -159,7 +146,7 @@ def _download_and_rename(
 
         if _download_single(result.url, save_path, target_size):
             final_files.append(save_path)
-            print(f"  OK: {filename}")
+            logger.info(f"Downloaded: {filename}")
         else:
             logger.debug(f"  Skipped: {result.url}")
 
@@ -209,12 +196,12 @@ def refetch_dish_category(category: str, count: int):
     for dish_name, dish_data in variants.items():
         term = dish_data.get("pixabay_term")
         if not term:
-            print(f"  WARNING: Skipping {dish_name}: No pixabay_term.")
+            logger.warning(f"Skipping {dish_name}: No pixabay_term")
             continue
         try:
             refetch_dish(category, dish_name, term, count)
         except Exception as e:
-            print(f"  ERROR: Failed {dish_name}: {e}")
+            logger.error(f"Failed {dish_name}: {e}")
 
 def refetch_restaurant(theme_name: str, term: str | None, count: int):
     """Refetch photos for a single restaurant theme."""
@@ -243,12 +230,12 @@ def refetch_all_restaurants(count: int):
     for theme_name, theme_data in themes.items():
         term = theme_data.get("pixabay_term")
         if not term:
-            print(f"  WARNING: Skipping {theme_name}: No pixabay_term.")
+            logger.warning(f"Skipping {theme_name}: No pixabay_term")
             continue
         try:
             refetch_restaurant(theme_name, term, count)
         except Exception as e:
-            print(f"  ERROR: Failed {theme_name}: {e}")
+            logger.error(f"Failed {theme_name}: {e}")
 
 def refetch_ingredient(ing_name: str, term: str | None, count: int):
     """Refetch photos for a single ingredient."""
@@ -309,7 +296,15 @@ After refetching, run:  python tools/refresh_photo_index.py
     p_ing.add_argument("--term", help="Override Pixabay search term")
     p_ing.add_argument("--count", type=int, default=6, help="Photos (default: 6)")
 
+    # ── Global options ─────────────────────────────────────────
+    parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
+    parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
+
     args = parser.parse_args()
+
+    # Setup logging
+    log_level = "DEBUG" if args.debug else "INFO"
+    LoggingConfig.setup(level=log_level, quiet=args.quiet)
 
     # ── Dispatch ──────────────────────────────────────────────
     if args.entity == "dish":
@@ -329,7 +324,7 @@ After refetching, run:  python tools/refresh_photo_index.py
     elif args.entity == "ingredient":
         refetch_ingredient(args.name, args.term, args.count)
 
-    print("\nReminder: Don't forget: python tools/refresh_photo_index.py")
+    logger.info("\nReminder: Don't forget to run: python tools/refresh_photo_index.py")
 
 if __name__ == "__main__":
     main()

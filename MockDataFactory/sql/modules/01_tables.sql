@@ -30,6 +30,8 @@ CREATE TABLE restaurants (
     postal_code VARCHAR(10),
     latitude NUMERIC(10,7),
     longitude NUMERIC(10,7),
+    geocode_source VARCHAR(20) DEFAULT NULL,    -- 'nominatim' | 'city_centroid' (lat/lng = pochodna adresu, nigdy ręczna)
+    geocoded_at TIMESTAMPTZ DEFAULT NULL,       -- Kiedy geocodowano (NULL = job jeszcze w kolejce)
     phone VARCHAR(20),
     email VARCHAR(255),
     website VARCHAR(200),
@@ -385,8 +387,9 @@ CREATE TABLE data_correction_requests (
     request_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(user_id) ON DELETE SET NULL,
     restaurant_id INT REFERENCES restaurants(restaurant_id) ON DELETE CASCADE,
-    issue_type VARCHAR(50) NOT NULL,
+    issue_type VARCHAR(50) NOT NULL,    -- 'hours' | 'address' | 'phone' | 'menu' | 'other'
     description VARCHAR(500),
+    proposed_value JSONB DEFAULT NULL,  -- Opcjonalne dane proponowanej zmiany (np. {"sunday": null})
     status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMPTZ,
     version INT DEFAULT 1 -- Optimistic Locking

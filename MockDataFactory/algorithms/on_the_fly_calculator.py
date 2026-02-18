@@ -4,14 +4,13 @@ Replaces materialized user_variant_preferences table with zero-IO calculation.
 """
 
 import hashlib
-import random
 import logging
+import random
 from typing import Any
 
 from algorithms.preference_calculator import (
-    calculate_contextual_vector,
-    merge_vectors,
     DIMENSIONS,
+    calculate_contextual_vector,
     clamp,
 )
 from utils.helpers import safe_json_loads
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 def _get_deterministic_rng(user_id: int, dish_name: str, variant_name: str) -> random.Random:
     """
     Create reproducible RNG from user+dish combination.
-    
+
     Uses MD5 hash to generate a stable seed that works across Python restarts.
     The same (user_id, dish_name, variant_name) tuple always produces the same RNG state.
     """
@@ -33,28 +32,25 @@ def _get_deterministic_rng(user_id: int, dish_name: str, variant_name: str) -> r
 class OnTheFlyCalculator:
     # Standard deviation for reproducible noise
     NOISE_STDEV = 0.03
-    
+
     def __init__(self, vectors_data: dict[str, Any]):
-        """
-        Args:
-            vectors_data: The loaded `vectors.json` or `dishes.json` blueprint.
-        """
+        """Initialize calculator with blueprint vectors (dishes.json or vectors.json)."""
         self.vectors_data = vectors_data
 
     def get_contextual_preferences(
-        self, 
-        user: dict, 
-        dish: dict, 
-        variant_name: str, 
+        self,
+        user: dict,
+        dish: dict,
+        variant_name: str,
         archetype: str
     ) -> dict[str, float]:
         """
         Calculate preference vector on-the-fly using deterministic seeding.
-        
+
         Uses weight-based relevance gating:
         - Dimensions with weight > 1.0 are MODIFIABLE (user preferences shift the target)
         - Dimensions with weight <= 1.0 are LOCKED (target stays at archetype base)
-        
+
         Args:
             user: User data dict (must contain 'user_id' and 'secret_characteristics_vector').
             dish: Dish data dict (must contain 'dish_id' and 'dish_name').
@@ -69,10 +65,10 @@ class OnTheFlyCalculator:
 
         blueprint = self.vectors_data.get(archetype, {})
         archetype_base = blueprint.get("archetype_base", {})
-        
+
         base_chars = archetype_base.get("characteristics", {})
         adaptation_weights = archetype_base.get("default_weights", {"_default": 1.0})
-        
+
         variant_data = blueprint.get("variants", {}).get(variant_name, {})
         variant_chars = variant_data.get("characteristics", {})
         variant_weights = variant_data.get("weights")  # May be None
@@ -80,7 +76,7 @@ class OnTheFlyCalculator:
         user_vector_raw = user.get("secret_characteristics_vector", {})
         if isinstance(user_vector_raw, str):
             user_vector_raw = safe_json_loads(user_vector_raw, {})
-        
+
         # Convert to format expected by calculate_contextual_vector
         # (dict[str, dict] with 'value' and 'tolerance' keys)
         user_vector = {}
@@ -100,16 +96,16 @@ class OnTheFlyCalculator:
             variant_weights_override=variant_weights,
             damping_factor=0.8,
         )
-        
+
         # Handle unknown archetypes (fallback to neutral)
         if not target_vector:
-            target_vector = {dim: 0.5 for dim in DIMENSIONS}
+            target_vector = dict.fromkeys(DIMENSIONS, 0.5)
 
         # Same user + same dish always gets same noise (deterministic)
         rng = _get_deterministic_rng(user_id, dish_name, variant_name)
-        
+
         for dim in list(target_vector.keys()):
             noise = rng.gauss(0, self.NOISE_STDEV)
             target_vector[dim] = clamp(target_vector[dim] + noise, 0.0, 1.0)
-        
+
         return target_vector

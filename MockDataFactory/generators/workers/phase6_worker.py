@@ -9,53 +9,50 @@ import logging
 import os
 import random
 import time
+from dataclasses import dataclass
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# Worker global variables
+@dataclass
+class WorkerContext:
+    """
+    Immutable context shared across all workers in the multiprocessing pool.
 
-_WORKER_DB_PARAMS: dict[str, str] = {}
+    Passed as a single object to worker_init_phase6() so that the Pool
+    initializer has a clean, typed interface instead of 6 positional arguments.
 
-_WORKER_USER_IDS: list[int] = []
+    Fields mirror the original individual globals but are now grouped and
+    named, making testing straightforward:
 
-_WORKER_USERS_BY_CITY: dict[int, list[int]] = {}
+        ctx = WorkerContext(db_params={...}, user_ids=[...], ...)
+        generators.workers.phase6_worker._worker_ctx = ctx
+        result = process_follows_chunk(chunk)
+    """
 
-_WORKER_TOP_1_PERCENT: list[int] = []
+    db_params: dict[str, str]
+    user_ids: list[int]
+    users_by_city: dict[int, list[int]]
+    top_1_percent: list[int]
+    top_10_percent: list[int]
+    username_map: dict[int, str]
 
-_WORKER_TOP_10_PERCENT: list[int] = []
+# Single module-level reference - set once per worker process by worker_init_phase6().
+_worker_ctx: WorkerContext | None = None
 
-_WORKER_USERNAME_MAP: dict[int, str] = {}
-
-def worker_init_phase6(db_params, user_ids, users_by_city, top_1_percent, top_10_percent, username_map):
+def worker_init_phase6(ctx: WorkerContext) -> None:
     """
     Initialize worker process with shared data.
 
     Args:
-        db_params: Database connection parameters
-        user_ids: List of all user IDs
-        users_by_city: Dict mapping city_id to list of user_ids
-        top_1_percent: List of top 1% influencer user IDs
-        top_10_percent: List of top 10% influencer user IDs
-        username_map: Dict mapping user_id to username
+        ctx: WorkerContext holding all shared read-only data for the worker.
     """
-    global \
-        _WORKER_DB_PARAMS, \
-        _WORKER_USER_IDS, \
-        _WORKER_USERS_BY_CITY, \
-        _WORKER_TOP_1_PERCENT, \
-        _WORKER_TOP_10_PERCENT, \
-        _WORKER_USERNAME_MAP
+    global _worker_ctx
 
-    _WORKER_DB_PARAMS = db_params
-    _WORKER_USER_IDS = user_ids
-    _WORKER_USERS_BY_CITY = users_by_city
-    _WORKER_TOP_1_PERCENT = top_1_percent
-    _WORKER_TOP_10_PERCENT = top_10_percent
-    _WORKER_USERNAME_MAP = username_map
+    _worker_ctx = ctx
 
-    # Seed random generator per worker
+    # Seed random generator per worker to avoid correlated sequences.
     random.seed(os.getpid() + time.time())
     np.random.seed(os.getpid() + int(time.time() * 1000) % (2**32))
 
@@ -69,8 +66,10 @@ def process_follows_chunk(user_chunk):
     Returns:
         Dict with 'follows' and 'notifications' lists.
     """
+    ctx = _worker_ctx
+    assert ctx is not None, "worker_init_phase6() must be called before process_follows_chunk()"
+
     follows_data = []
-    notifications_data = []
 
     num_users_chunk = len(user_chunk)
 
@@ -78,7 +77,7 @@ def process_follows_chunk(user_chunk):
     follow_counts = np.random.normal(25, 10, size=num_users_chunk).astype(int)
     follow_counts = np.clip(follow_counts, 0, 150)
 
-    for idx, (follower_id, follower_username, city_id) in enumerate(user_chunk):
+    for idx, (follower_id, _follower_username, city_id) in enumerate(user_chunk):
         num_following = int(follow_counts[idx])  # Cast to native int
 
         if num_following == 0:
@@ -93,7 +92,7 @@ def process_follows_chunk(user_chunk):
 
         # Local follows (same city)
         if num_local > 0:
-            local_peers = _WORKER_USERS_BY_CITY.get(city_id, [])
+            local_peers = ctx.users_by_city.get(city_id, [])
             if len(local_peers) > 1:
                 # Remove self from local peers
                 local_candidates = [u for u in local_peers if u != follower_id]
@@ -114,12 +113,12 @@ def process_follows_chunk(user_chunk):
                 global_targets = []
                 for r in rand_global:
                     target: int
-                    if r < 0.5 and _WORKER_TOP_1_PERCENT:
-                        target = int(np.random.choice(_WORKER_TOP_1_PERCENT))
-                    elif r < 0.8 and _WORKER_TOP_10_PERCENT:
-                        target = int(np.random.choice(_WORKER_TOP_10_PERCENT))
+                    if r < 0.5 and ctx.top_1_percent:
+                        target = int(np.random.choice(ctx.top_1_percent))
+                    elif r < 0.8 and ctx.top_10_percent:
+                        target = int(np.random.choice(ctx.top_10_percent))
                     else:
-                        target = int(np.random.choice(_WORKER_USER_IDS))
+                        target = int(np.random.choice(ctx.user_ids))
 
                     if target != follower_id:
                         global_targets.append(target)

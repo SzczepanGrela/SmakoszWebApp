@@ -28,20 +28,20 @@ def standardize_folder_level(parent_dir: Path, recursive: bool = False):
 
     # List all subdirectories
     subdirs = [d for d in parent_dir.iterdir() if d.is_dir()]
-    
+
     for folder in subdirs:
         original_name = folder.name
         slugified_name = slugify(original_name)
-        
+
         # Check if recursion is needed (e.g. for dishes -> category -> variant)
         if recursive:
              standardize_folder_level(folder, recursive=False)
 
         if original_name == slugified_name:
             continue
-            
+
         target_path = parent_dir / slugified_name
-        
+
         if target_path.exists():
             logger.info(f"Merging: Merging '{original_name}' -> '{slugified_name}' (Target exists)")
             # Merge contents
@@ -51,7 +51,7 @@ def standardize_folder_level(parent_dir: Path, recursive: bool = False):
                     logger.warning(f"  WARNING: Skipping duplicate file: {item.name}")
                     continue
                 shutil.move(str(item), str(dest))
-            
+
             # Remove old folder if empty
             try:
                 folder.rmdir()
@@ -65,28 +65,28 @@ def standardize_folder_level(parent_dir: Path, recursive: bool = False):
 def main():
     output_dir = Path(os.getenv("IMAGE_OUTPUT_DIR") or PHOTO_CONFIG["output_dir"])
     logger.info(f"Standardizing folders in: {output_dir}")
-    
+
     # 1. Restaurants (Depth 1)
     logger.info("--- Processing RESTAURANTS ---")
     standardize_folder_level(output_dir / "restaurants", recursive=False)
-    
+
     # 2. Ingredients (Depth 1)
     logger.info("--- Processing INGREDIENTS ---")
     standardize_folder_level(output_dir / "ingredients", recursive=False)
-    
+
     # 3. Dishes (Depth 2: Category -> Variant)
     logger.info("--- Processing DISHES ---")
     # First standardize Categories
     standardize_folder_level(output_dir / "dishes", recursive=True)
-    
+
     # 4. Avatars
     logger.info("--- Processing AVATARS ---")
     standardize_folder_level(output_dir / "avatars", recursive=True)
-    
+
     # 5. Hero
     logger.info("--- Processing HERO ---")
     standardize_folder_level(output_dir / "hero", recursive=False)
-    
+
     logger.info("Done.")
 
 if __name__ == "__main__":
