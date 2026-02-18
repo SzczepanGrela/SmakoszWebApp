@@ -366,16 +366,19 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/SmakoszWebApp/PracaInżynierska (5).pdf
-/PODSUMOWANIE_PROJEKTU.md
-/ROADMAP.md
+/_archive/SmakoszWebApp/PracaInżynierska (5).pdf
 
 .claude/
 
-MockDataFactory/config/db_config.ini
+tools/generator/config/db_config.ini
 /venv/
 
 # PyCharm IDE
 .idea/
+
+# MONOREPO - Removed / obsolete paths
+# (Old root-level markdown files - removed from repo)
+/PODSUMOWANIE_PROJEKTU.md
+/ROADMAP.md
 /ROADMAP_FULL_V2.md
 /ROADMAP_FULL.md
