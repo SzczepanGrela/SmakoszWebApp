@@ -1,0 +1,25 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Smakosz.Domain.Entities;
+
+namespace Smakosz.Infrastructure.Persistence.Configurations.Restaurant;
+
+public class FavoriteRestaurantConfiguration : IEntityTypeConfiguration<FavoriteRestaurant>
+{
+    public void Configure(EntityTypeBuilder<FavoriteRestaurant> builder)
+    {
+        builder.HasKey(x => new { x.UserId, x.RestaurantId });
+
+        builder.HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Restaurant)
+            .WithMany()
+            .HasForeignKey(x => x.RestaurantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(x => x.RestaurantId);
+    }
+}
