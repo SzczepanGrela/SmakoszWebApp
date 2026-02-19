@@ -22,6 +22,7 @@ public class SecurityLogConfiguration : IEntityTypeConfiguration<SecurityLog>
             .HasMaxLength(50);
 
         builder.Property(x => x.IpAddress)
+            .HasConversion(new InetStringConverter())
             .HasColumnType("inet");
 
         builder.Property(x => x.Email)
