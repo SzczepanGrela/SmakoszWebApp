@@ -148,6 +148,8 @@ class ReviewGeneratorService:
             "ai_verdict": ai_verdict,
             "ai_model_version": ai_model_version,
             "ai_processed_at": ai_processed_at,
+            "is_approved": True,
+            "is_deleted": False,
         }
 
         user_photo_data = None

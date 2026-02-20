@@ -44,11 +44,13 @@ class DatabaseCleanupStrategy:
         logger.info("Querying database schema for table list...")
 
         # Get all user tables from public and system schemas
+        # Exclude EF Core migration history table
         tables = db.fetch_all(
             """
             SELECT schemaname, tablename
             FROM pg_tables
             WHERE schemaname IN ('public', 'system')
+              AND tablename NOT LIKE '\\_\\_%' ESCAPE '\\'
             ORDER BY tablename
             """
         )
@@ -126,6 +128,7 @@ class DatabaseManager:
     CLEANUP_TABLE_ORDER: ClassVar[list[str]] = [
         # System tables
         "system.tickets",
+        "system.job_progress",
         "system.ai_logs",
         "system.moderation_logs",
         "system.logs",
@@ -136,17 +139,23 @@ class DatabaseManager:
         "system.banned_identifiers",
         "system.forbidden_words",
         "system.files_to_delete",
+        "system.service_accounts",
+        "system.nodes",
         "system.config",
+        # Audit
+        "audit_logs",
         # User-related
         "verification_codes",
         "user_sessions",
         "user_notification_settings",
         "notifications",
-        "search_history",
+        "search_histories",
         # Reports and corrections
+        "ingredient_suggestions",
         "data_correction_requests",
         "report_reason_assignments",
         "reports",
+        "restaurant_edit_requests",
         # Social graph
         "user_follows",
         "review_likes",
@@ -170,10 +179,12 @@ class DatabaseManager:
         "dish_archetypes",
         # Restaurants
         "restaurant_opening_hours",
+        "rejection_reasons",
         "restaurants",
         # Users
         "users",
         # Base data
+        "report_reason_definitions",
         "ingredients",
         "cuisine_types",
         "cities",

@@ -2,6 +2,7 @@ import json
 import logging
 import random
 import time
+import uuid
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 
@@ -50,7 +51,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             db.execute_query("TRUNCATE TABLE user_follows RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE review_likes RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE notifications RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE search_history RESTART IDENTITY CASCADE")
+            db.execute_query("TRUNCATE TABLE search_histories RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE data_correction_requests RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE reports RESTART IDENTITY CASCADE")
             db.commit()
@@ -150,6 +151,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     logger.info("Fetching review IDs...")
     reviews = ReviewDAO.get_all_reviews_basic(db)
 
+    review_ids = np.array([])
     if not reviews:
         logger.warning("No reviews found, skipping likes generation")
     else:
@@ -271,7 +273,9 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         # Post-process: Generate notifications since trigger was disabled during bulk load
         logger.info("Generating notifications for likes (Bulk)...")
         db.execute_query("""
-            INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority)
+            INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority,
+                                       public_id, send_email, email_status, send_push, push_status, severity,
+                                       is_read, is_deleted)
             SELECT
                 r.user_id,          -- Recipient
                 rl.user_id,         -- Actor
@@ -284,7 +288,15 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                     'dish_name', d.dish_name,
                     'restaurant_name', rest.restaurant_name
                 ),
-                1
+                1,
+                gen_random_uuid(),
+                false,
+                'none',
+                false,
+                'none',
+                'info',
+                false,
+                false
             FROM review_likes rl
             JOIN reviews r ON rl.review_id = r.review_id
             JOIN dishes d ON r.dish_id = d.dish_id
@@ -303,6 +315,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     for user_id in welcome_users:
         notifications_buffer.append(
             {
+                "public_id": str(uuid.uuid4()),
                 "user_id": int(user_id),  # Cast to native int
                 "type": "system",
                 "title": "Witamy w Smakoszu!",
@@ -310,6 +323,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "priority": 3,
                 "metadata": json.dumps({"action": "welcome"}),
                 "is_read": True,
+                "send_email": False,
+                "email_status": "none",
+                "send_push": False,
+                "push_status": "none",
+                "severity": "info",
+                "is_deleted": False,
             }
         )
 
@@ -362,20 +381,15 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         chunk_size = 10000
         for i in range(0, len(search_data), chunk_size):
             chunk = search_data[i : i + chunk_size]
-            db.insert_bulk("search_history", chunk)
+            db.insert_bulk("search_histories", chunk)
         logger.info(f"Generated {len(search_data):,} search history entries")
-
-    # Prune old notifications to save space (keep latest 50 per user)
-    logger.info("Pruning old notifications...")
-    db.execute_query("SELECT prune_notifications()")
-    db.commit()
 
     logger.info("Generating data correction requests...")
 
     restaurants = RestaurantDAO.get_all_restaurant_ids(db)
     restaurant_ids = np.array([row[0] for row in restaurants])
 
-    issue_types = ["wrong_hours", "closed_permanently", "wrong_address", "bad_menu", "wrong_phone"]
+    issue_types = ["hours", "address", "phone", "menu", "other"]
 
     num_requests = 200
 
@@ -533,7 +547,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         logger.info("Review helpful counts updated successfully")
     except Exception as e:
         logger.warning(f"Failed to update averages or counts: {e}")
-        # Non-critical, continue anyway
+        db.rollback()  # Reset aborted transaction so subsequent queries work
 
 class SocialGraphPhase(BasePhase):
     """
@@ -564,7 +578,7 @@ class SocialGraphPhase(BasePhase):
         - user_follows: Social graph connections
         - review_likes: User likes on reviews
         - notifications: Follow/like/system notifications
-        - search_history: User search queries
+        - search_histories: User search queries
         - favorite_restaurants: User favorite places
         - data_correction_requests: User-reported issues
         - reports + report_reason_assignments: Content moderation
@@ -586,7 +600,7 @@ class SocialGraphPhase(BasePhase):
                 "user_follows",
                 "review_likes",
                 "notifications",
-                "search_history",
+                "search_histories",
                 "favorite_restaurants",
                 "data_correction_requests",
                 "reports",
@@ -596,7 +610,7 @@ class SocialGraphPhase(BasePhase):
                 "user_follows",
                 "review_likes",
                 "notifications",
-                "search_history",
+                "search_histories",
                 "data_correction_requests",
                 "reports",
             ],
@@ -635,7 +649,7 @@ class SocialGraphPhase(BasePhase):
             follows_count = context.db.fetch_val("SELECT COUNT(*) FROM user_follows") or 0
             likes_count = context.db.fetch_val("SELECT COUNT(*) FROM review_likes") or 0
             notifications_count = context.db.fetch_val("SELECT COUNT(*) FROM notifications") or 0
-            search_count = context.db.fetch_val("SELECT COUNT(*) FROM search_history") or 0
+            search_count = context.db.fetch_val("SELECT COUNT(*) FROM search_histories") or 0
             favorites_count = context.db.fetch_val("SELECT COUNT(*) FROM favorite_restaurants") or 0
             corrections_count = context.db.fetch_val(
                 "SELECT COUNT(*) FROM data_correction_requests"
@@ -662,7 +676,7 @@ class SocialGraphPhase(BasePhase):
                     "user_follows": follows_count,
                     "review_likes": likes_count,
                     "notifications": notifications_count,
-                    "search_history": search_count,
+                    "search_histories": search_count,
                     "favorite_restaurants": favorites_count,
                     "data_correction_requests": corrections_count,
                     "reports": reports_count,

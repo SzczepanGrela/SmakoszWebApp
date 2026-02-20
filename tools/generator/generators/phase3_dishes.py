@@ -255,6 +255,13 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             if "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids:
                 is_vegan = True
 
+            is_vegetarian = is_vegan
+            if not is_vegetarian and "Wegetariańskie" in tag_map and tag_map["Wegetariańskie"] in dish_tag_ids:
+                is_vegetarian = True
+
+            is_gluten_free = "Bezglutenowe" in tag_map and tag_map["Bezglutenowe"] in dish_tag_ids
+            is_lactose_free = is_vegan or ("Bez laktozy" in tag_map and tag_map["Bez laktozy"] in dish_tag_ids)
+
             is_available = True
             if restaurant_status != 'active':
                 is_available = False
@@ -266,7 +273,10 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "dish_name": dish_name,
                 "price": price,
                 "description": description,
+                "is_vegetarian": is_vegetarian,
                 "is_vegan": is_vegan,
+                "is_gluten_free": is_gluten_free,
+                "is_lactose_free": is_lactose_free,
                 "is_spicy": is_spicy,
                 "ingredients_json": json.dumps(ingredients),
                 "is_available": is_available,
