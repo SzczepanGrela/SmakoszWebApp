@@ -38,6 +38,9 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
         builder.Property(x => x.ImageBlurhash)
             .HasMaxLength(50);
 
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+
         builder.Property(x => x.ReviewCount)
             .HasDefaultValue(0);
 

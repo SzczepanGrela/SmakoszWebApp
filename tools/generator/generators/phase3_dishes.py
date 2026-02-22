@@ -17,6 +17,7 @@ from utils.db_connection import DatabaseConnection
 from utils.dish_helpers import generate_dish_calories, generate_dish_description
 from utils.distributions import sample_beta, zipf_distribution
 from utils.photo_pools import PhotoPools
+from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "secret_price_multiplier": row[2],
                 "secret_archetype_modifiers": row[3],
                 "status": row[4],
+                "created_at": row[5],
             }
         )
 
@@ -271,6 +273,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "restaurant_id": restaurant_id,
                 "variant_id": variant_id,
                 "dish_name": dish_name,
+                "slug": slugify(dish_name),
                 "price": price,
                 "description": description,
                 "is_vegetarian": is_vegetarian,
@@ -319,7 +322,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                     assigned_sections.append(random.choice(available_sections)["id"])
 
             for sec_id in set(assigned_sections):
-                dish_sections_buffer.append({"dish_id": dish_id, "section_id": sec_id})
+                dish_sections_buffer.append({"dish_id": dish_id, "section_id": sec_id, "created_at": restaurant.get("created_at")})
 
             ingredient_links = []
             for ingredient_name in ingredients:

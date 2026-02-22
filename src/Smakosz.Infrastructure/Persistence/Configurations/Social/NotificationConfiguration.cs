@@ -31,6 +31,9 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(x => x.Metadata)
             .HasColumnType("jsonb");
 
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+
         builder.Property(x => x.Priority)
             .HasDefaultValue(1);
 

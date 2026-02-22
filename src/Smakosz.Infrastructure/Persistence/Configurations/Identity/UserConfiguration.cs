@@ -12,6 +12,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.HasKey(x => x.UserId);
 
+        builder.HasQueryFilter(x => !x.IsDeleted);
+
         builder.Property(x => x.PublicId)
             .IsRequired();
 
@@ -54,6 +56,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Role)
             .HasConversion(new SnakeCaseEnumConverter<UserRole>())
             .HasMaxLength(20)
+            .IsRequired();
+
+        builder.Property(x => x.CreatedAt)
             .IsRequired();
 
         builder.Property(x => x.Slug)

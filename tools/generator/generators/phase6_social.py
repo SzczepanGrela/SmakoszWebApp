@@ -3,7 +3,7 @@ import logging
 import random
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from multiprocessing import Pool, cpu_count
 
 import numpy as np
@@ -144,7 +144,35 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             follows_data.clear()
 
     logger.info(f"Generated {total_follows:,} follows")
-    logger.info("Notifications handled by DB triggers.")
+
+    logger.info("Generating follow notifications (bulk)...")
+    db.execute_query("""
+        INSERT INTO notifications (user_id, actor_id, type, title, message,
+                                   metadata, priority, public_id,
+                                   send_email, email_status,
+                                   send_push, push_status,
+                                   severity, is_read, is_deleted)
+        SELECT
+            uf.followed_id,
+            uf.follower_id,
+            'follow',
+            'Nowy obserwujący',
+            'Użytkownik zaczął Cię obserwować.',
+            json_build_object(
+                'follower_id', uf.follower_id,
+                'target_type', 'user',
+                'follower_name', u.username
+            ),
+            2,
+            gen_random_uuid(),
+            false, 'none',
+            false, 'none',
+            'info', false, false
+        FROM user_follows uf
+        JOIN users u ON uf.follower_id = u.user_id
+    """)
+    db.commit()
+    logger.info("Follow notifications generated.")
 
     logger.info("Generating review likes...")
 
@@ -218,16 +246,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         # Step 6: Insert likes in chunks (streaming approach)
         logger.info("Inserting likes with chunked insertion...")
 
-        # PERFORMANCE OPTIMIZATION: Disable triggers during bulk load
-        logger.info("Disabling triggers on review_likes for performance...")
-        try:
-            db.execute_query("ALTER TABLE review_likes DISABLE TRIGGER trg_sync_review_likes_insert")
-            db.execute_query("ALTER TABLE review_likes DISABLE TRIGGER trg_sync_review_likes_delete")
-            db.execute_query("ALTER TABLE review_likes DISABLE TRIGGER trg_notify_like")
-            db.commit()
-        except Exception as e:
-            logger.warning(f"Could not disable triggers (might need superuser): {e}")
-
         chunk_size = 50000
         total_likes_inserted = 0
 
@@ -257,16 +275,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             db.insert_bulk("review_likes", likes_chunk)
             total_likes_inserted += len(likes_chunk)
             likes_chunk.clear()
-
-        # Re-enable Triggers
-        logger.info("Re-enabling triggers on review_likes...")
-        try:
-            db.execute_query("ALTER TABLE review_likes ENABLE TRIGGER trg_sync_review_likes_insert")
-            db.execute_query("ALTER TABLE review_likes ENABLE TRIGGER trg_sync_review_likes_delete")
-            db.execute_query("ALTER TABLE review_likes ENABLE TRIGGER trg_notify_like")
-            db.commit()
-        except Exception as e:
-            logger.error(f"Could not re-enable triggers: {e}")
 
         logger.info(f"Generated {total_likes_inserted:,} likes")
 
@@ -329,6 +337,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "push_status": "none",
                 "severity": "info",
                 "is_deleted": False,
+                "created_at": datetime.now(timezone.utc),
             }
         )
 
@@ -534,21 +543,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     logger.info("Generated abuse reports successfully.")
 
-    # Final step: Update average ratings for all restaurants/dishes
-    logger.info("Updating average ratings...")
-    try:
-        db.execute_query("SELECT update_average_ratings()")
-        db.commit()
-        logger.info("Average ratings updated successfully")
-
-        logger.info("Updating review helpful counts...")
-        db.execute_query("SELECT sync_helpful_counts()")
-        db.commit()
-        logger.info("Review helpful counts updated successfully")
-    except Exception as e:
-        logger.warning(f"Failed to update averages or counts: {e}")
-        db.rollback()  # Reset aborted transaction so subsequent queries work
-
 class SocialGraphPhase(BasePhase):
     """
     Phase 6: Social Graph Generation
@@ -561,14 +555,12 @@ class SocialGraphPhase(BasePhase):
     - Favorite restaurants (user preferences)
     - Data correction requests (community contributions)
     - Abuse reports (content moderation system)
-    - Updates aggregate ratings for restaurants and dishes
 
     Key features:
     - Multiprocessing for follows generation
     - Fully vectorized numpy operations for like generation (handles millions efficiently)
     - Zipf distribution for realistic popularity patterns
     - Chunked insertion to prevent memory overflow
-    - Trigger management during bulk loads
     - Many-to-many report reason assignments
 
     Dependencies:
@@ -582,7 +574,6 @@ class SocialGraphPhase(BasePhase):
         - favorite_restaurants: User favorite places
         - data_correction_requests: User-reported issues
         - reports + report_reason_assignments: Content moderation
-        - Updates: average ratings, helpful counts
     """
 
     def __init__(self, blueprints_dir: str = "blueprints"):

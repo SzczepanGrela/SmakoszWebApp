@@ -10,6 +10,7 @@ import os
 import random
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -131,6 +132,7 @@ def process_follows_chunk(user_chunk):
                 {
                     "follower_id": int(follower_id),  # Cast to native int
                     "followed_id": int(followed_id),  # Cast to native int
+                    "created_at": datetime.now(timezone.utc),
                 }
             )
 

@@ -244,7 +244,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("calories");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -891,7 +891,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("counter");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -1213,7 +1213,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("city_id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -1681,7 +1681,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("content_status");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -2754,7 +2754,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("assigned_admin_id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2885,7 +2885,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("avatar_url");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 

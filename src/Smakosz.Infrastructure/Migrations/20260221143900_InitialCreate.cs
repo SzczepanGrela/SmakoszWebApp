@@ -506,7 +506,7 @@ namespace Smakosz.Infrastructure.Migrations
                     calories = table.Column<int>(type: "integer", nullable: true),
                     image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_rating = table.Column<double>(type: "double precision", nullable: true),
                     review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
@@ -679,7 +679,7 @@ namespace Smakosz.Infrastructure.Migrations
                     counter = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     is_read = table.Column<bool>(type: "boolean", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     send_email = table.Column<bool>(type: "boolean", nullable: false),
                     email_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
@@ -854,7 +854,7 @@ namespace Smakosz.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_verified = table.Column<bool>(type: "boolean", nullable: false),
                     owner_id = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_service = table.Column<double>(type: "double precision", nullable: true),
                     avg_cleanliness = table.Column<double>(type: "double precision", nullable: true),
@@ -905,7 +905,7 @@ namespace Smakosz.Infrastructure.Migrations
                     avatar_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     avatar_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     date_of_birth = table.Column<DateOnly>(type: "date", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
@@ -959,7 +959,7 @@ namespace Smakosz.Infrastructure.Migrations
                     restaurant_id = table.Column<int>(type: "integer", nullable: false),
                     dish_id = table.Column<int>(type: "integer", nullable: false),
                     visit_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     dish_rating = table.Column<int>(type: "integer", nullable: false),
                     service_rating = table.Column<int>(type: "integer", nullable: false),
@@ -1090,7 +1090,7 @@ namespace Smakosz.Infrastructure.Migrations
                     priority = table.Column<int>(type: "integer", nullable: false, defaultValue: 3),
                     assigned_admin_id = table.Column<int>(type: "integer", nullable: true),
                     locked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
                 },
@@ -2163,232 +2163,11 @@ namespace Smakosz.Infrastructure.Migrations
                 principalTable: "users",
                 principalColumn: "user_id",
                 onDelete: ReferentialAction.SetNull);
-
-            // ============================================================
-            // SQL FUNCTIONS, TRIGGERS, AND VIEWS
-            // ============================================================
-            // Database objects that EF Core cannot generate automatically
-
-            migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION f_unaccent(text)
-  RETURNS text AS
-$func$
-SELECT public.unaccent('public.unaccent', $1)
-$func$  LANGUAGE sql IMMUTABLE;
-");
-
-            migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION generate_slug(input_text TEXT)
-RETURNS TEXT AS $$
-BEGIN
-    RETURN LOWER(
-        REGEXP_REPLACE(
-            REGEXP_REPLACE(
-                unaccent(TRIM(input_text)),
-                '[^a-zA-Z0-9\s-]', '', 'g'
-            ),
-            '\s+', '-', 'g'
-        )
-    );
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-");
-
-            migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION update_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-");
-
-            migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION log_audit_event()
-RETURNS TRIGGER AS $$
-DECLARE
-    pk_column_name TEXT := TG_ARGV[0];
-    pk_value TEXT;
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        EXECUTE format('SELECT ($1).%I::TEXT', pk_column_name) INTO pk_value USING NEW;
-        INSERT INTO audit_logs (table_name, operation, record_id, old_values, new_values)
-        VALUES (TG_TABLE_NAME, 'INSERT', pk_value::INT, NULL, to_jsonb(NEW));
-        RETURN NEW;
-    ELSIF TG_OP = 'UPDATE' THEN
-        EXECUTE format('SELECT ($1).%I::TEXT', pk_column_name) INTO pk_value USING NEW;
-        INSERT INTO audit_logs (table_name, operation, record_id, old_values, new_values)
-        VALUES (TG_TABLE_NAME, 'UPDATE', pk_value::INT, to_jsonb(OLD), to_jsonb(NEW));
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        EXECUTE format('SELECT ($1).%I::TEXT', pk_column_name) INTO pk_value USING OLD;
-        INSERT INTO audit_logs (table_name, operation, record_id, old_values, new_values)
-        VALUES (TG_TABLE_NAME, 'DELETE', pk_value::INT, to_jsonb(OLD), NULL);
-        RETURN OLD;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-");
-
-            migrationBuilder.Sql(@"
-DROP TRIGGER IF EXISTS trg_update_timestamp_users ON users;
-CREATE TRIGGER trg_update_timestamp_users
-    BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
-DROP TRIGGER IF EXISTS trg_update_timestamp_restaurants ON restaurants;
-CREATE TRIGGER trg_update_timestamp_restaurants
-    BEFORE UPDATE ON restaurants
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
-DROP TRIGGER IF EXISTS trg_update_timestamp_dishes ON dishes;
-CREATE TRIGGER trg_update_timestamp_dishes
-    BEFORE UPDATE ON dishes
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
-DROP TRIGGER IF EXISTS trg_update_timestamp_reviews ON reviews;
-CREATE TRIGGER trg_update_timestamp_reviews
-    BEFORE UPDATE ON reviews
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-
-DROP TRIGGER IF EXISTS trg_update_timestamp_notifications ON notifications;
-CREATE TRIGGER trg_update_timestamp_notifications
-    BEFORE UPDATE ON notifications
-    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
-");
-
-            migrationBuilder.Sql(@"
-DROP TRIGGER IF EXISTS trg_audit_restaurants ON restaurants;
-CREATE TRIGGER trg_audit_restaurants
-    AFTER INSERT OR UPDATE OR DELETE ON restaurants
-    FOR EACH ROW EXECUTE FUNCTION log_audit_event('restaurant_id');
-
-DROP TRIGGER IF EXISTS trg_audit_users ON users;
-CREATE TRIGGER trg_audit_users
-    AFTER INSERT OR UPDATE OR DELETE ON users
-    FOR EACH ROW EXECUTE FUNCTION log_audit_event('user_id');
-
-DROP TRIGGER IF EXISTS trg_audit_dishes ON dishes;
-CREATE TRIGGER trg_audit_dishes
-    AFTER INSERT OR UPDATE OR DELETE ON dishes
-    FOR EACH ROW EXECUTE FUNCTION log_audit_event('dish_id');
-
-DROP TRIGGER IF EXISTS trg_audit_reviews ON reviews;
-CREATE TRIGGER trg_audit_reviews
-    AFTER INSERT OR UPDATE OR DELETE ON reviews
-    FOR EACH ROW EXECUTE FUNCTION log_audit_event('review_id');
-");
-
-            migrationBuilder.Sql(@"
-CREATE OR REPLACE VIEW search_autocomplete AS
-    SELECT DISTINCT
-        'cuisine'::text AS type,
-        0 AS id,
-        cuisine_type AS name,
-        'Kategoria'::text AS subtitle,
-        NULL::text AS icon,
-        f_unaccent(lower(cuisine_type)) AS name_normalized,
-        1 AS priority
-    FROM restaurants
-    WHERE status = 'active' AND cuisine_type IS NOT NULL
-
-    UNION ALL
-
-    SELECT
-        'restaurant'::text AS type,
-        restaurant_id AS id,
-        restaurant_name AS name,
-        cuisine_type AS subtitle,
-        image_url AS icon,
-        f_unaccent(lower(restaurant_name || ' ' || COALESCE(cuisine_type, ''))) AS name_normalized,
-        2 AS priority
-    FROM restaurants
-    WHERE status = 'active'
-
-    UNION ALL
-
-    SELECT
-        'dish'::text AS type,
-        d.dish_id AS id,
-        d.dish_name AS name,
-        r.restaurant_name AS subtitle,
-        d.image_url AS icon,
-        f_unaccent(lower(d.dish_name)) AS name_normalized,
-        3 AS priority
-    FROM dishes d
-    JOIN restaurants r ON d.restaurant_id = r.restaurant_id
-    WHERE d.is_available = TRUE AND r.status = 'active';
-");
-
-            migrationBuilder.Sql(@"
-CREATE INDEX IF NOT EXISTS trgm_idx_restaurants_name
-ON restaurants
-USING GIN (f_unaccent(lower(restaurant_name)) gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_restaurants_cuisine_btree
-ON restaurants(cuisine_type) WHERE status = 'active';
-
-CREATE INDEX IF NOT EXISTS trgm_idx_restaurants_full_search
-ON restaurants
-USING GIN (f_unaccent(lower(restaurant_name || ' ' || COALESCE(cuisine_type, ''))) gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS trgm_idx_dishes_name
-ON dishes
-USING GIN (f_unaccent(lower(dish_name)) gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS trgm_idx_users_username
-ON users
-USING GIN (f_unaccent(lower(username)) gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users (lower(email));
-CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users (lower(username));
-
-CREATE INDEX IF NOT EXISTS idx_restaurants_geo
-ON restaurants(latitude, longitude)
-WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
-");
-
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"
-DROP INDEX IF EXISTS idx_restaurants_geo;
-DROP INDEX IF EXISTS idx_users_username_lower;
-DROP INDEX IF EXISTS idx_users_email_lower;
-DROP INDEX IF EXISTS trgm_idx_users_username;
-DROP INDEX IF EXISTS trgm_idx_dishes_name;
-DROP INDEX IF EXISTS trgm_idx_restaurants_full_search;
-DROP INDEX IF EXISTS idx_restaurants_cuisine_btree;
-DROP INDEX IF EXISTS trgm_idx_restaurants_name;
-");
-
-            migrationBuilder.Sql(@"
-DROP VIEW IF EXISTS search_autocomplete;
-");
-
-            migrationBuilder.Sql(@"
-DROP TRIGGER IF EXISTS trg_audit_reviews ON reviews;
-DROP TRIGGER IF EXISTS trg_audit_dishes ON dishes;
-DROP TRIGGER IF EXISTS trg_audit_users ON users;
-DROP TRIGGER IF EXISTS trg_audit_restaurants ON restaurants;
-
-DROP TRIGGER IF EXISTS trg_update_timestamp_notifications ON notifications;
-DROP TRIGGER IF EXISTS trg_update_timestamp_reviews ON reviews;
-DROP TRIGGER IF EXISTS trg_update_timestamp_dishes ON dishes;
-DROP TRIGGER IF EXISTS trg_update_timestamp_restaurants ON restaurants;
-DROP TRIGGER IF EXISTS trg_update_timestamp_users ON users;
-");
-
-            migrationBuilder.Sql(@"
-DROP FUNCTION IF EXISTS log_audit_event();
-DROP FUNCTION IF EXISTS update_timestamp();
-DROP FUNCTION IF EXISTS generate_slug(TEXT);
-DROP FUNCTION IF EXISTS f_unaccent(text);
-");
-
             migrationBuilder.DropForeignKey(
                 name: "fk_restaurants_users_owner_id",
                 table: "restaurants");

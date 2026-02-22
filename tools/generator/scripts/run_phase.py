@@ -86,7 +86,6 @@ Examples:
 
     parser.add_argument("phase_id", type=str, help="Phase ID to run (e.g., phase3_dishes)")
     parser.add_argument("--no-cleanup", action="store_true", help="Skip table cleanup")
-    parser.add_argument("--keep-triggers", action="store_true", help="Don't disable triggers")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
     parser.add_argument("--debug", "-d", action="store_true", help="Debug logging")
 
@@ -137,7 +136,6 @@ Examples:
 
             pipeline_config = PipelineConfig(
                 cleanup_before_run=not args.no_cleanup,
-                disable_triggers=not args.keep_triggers,
                 continue_on_error=False
             )
 
