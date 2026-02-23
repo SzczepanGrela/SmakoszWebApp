@@ -21,9 +21,10 @@ class TestPhase6Metadata:
         assert metadata.phase_id == "phase6_social"
         assert metadata.display_name == "Social Graph Generation"
 
-        # Critical: Phase 6 depends only on Phase 4 (users)
-        assert len(metadata.dependencies) == 1
+        # Phase 6 depends on Phase 4 (users) and Phase 5 (reviews for likes)
+        assert len(metadata.dependencies) == 2
         assert "phase4_users" in metadata.dependencies
+        assert "phase5_reviews" in metadata.dependencies
 
         # Check all required tables
         assert "user_follows" in metadata.required_tables
@@ -50,32 +51,38 @@ class TestPhase6Registration:
 
     def test_phase6_dependency_resolution(self):
         """Test that Phase 6 dependencies are resolved correctly."""
-        from generators.phase1_definitions import CitiesPhase
+        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase2_restaurants import RestaurantsPhase
+        from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
+        from generators.phase5_reviews import ReviewsPhase
 
         registry = PhaseRegistry()
 
-        # Register Phase 1 cities (required by Users) and Phase 4
+        # Register full chain needed for Phase 6
         registry.register(CitiesPhase())
+        registry.register(IngredientsPhase())
+        registry.register(RestaurantsPhase())
+        registry.register(DishesPhase())
         registry.register(UsersPhase())
+        registry.register(ReviewsPhase())
         registry.register(SocialGraphPhase())
 
         # Resolve dependencies for Phase 6
         resolved = registry.resolve_dependencies(["phase6_social"])
 
-        # Should include cities, users, then social
-        assert len(resolved) == 3
-        assert "phase1_cities" in resolved
+        # Must include reviews and users before social
         assert "phase4_users" in resolved
+        assert "phase5_reviews" in resolved
         assert "phase6_social" in resolved
 
-        # Verify order
-        cities_idx = resolved.index("phase1_cities")
+        # Verify order: users and reviews before social
         users_idx = resolved.index("phase4_users")
+        reviews_idx = resolved.index("phase5_reviews")
         social_idx = resolved.index("phase6_social")
 
-        assert cities_idx < users_idx
         assert users_idx < social_idx
+        assert reviews_idx < social_idx
 
 class TestPhase6DependencyValidation:
     """Test Phase 6 dependency validation."""
@@ -190,39 +197,15 @@ class TestPhase6CompleteChain:
         resolved = registry.resolve_dependencies(["phase6_social"])
 
         # Should automatically include all necessary dependencies
-        # Phase 6 needs: Users (which needs Cities)
         assert "phase1_cities" in resolved
         assert "phase4_users" in resolved
+        assert "phase5_reviews" in resolved
         assert "phase6_social" in resolved
 
-        # Cities -> Users -> Social
-        cities_idx = resolved.index("phase1_cities")
+        # Users and Reviews must come before Social
         users_idx = resolved.index("phase4_users")
+        reviews_idx = resolved.index("phase5_reviews")
         social_idx = resolved.index("phase6_social")
 
-        assert cities_idx < users_idx
         assert users_idx < social_idx
-
-    def test_phase6_independent_of_reviews(self):
-        """Test that Phase 6 doesn't require Phase 5 in dependency chain."""
-        from generators.phase1_definitions import CitiesPhase
-        from generators.phase4_users import UsersPhase
-
-        registry = PhaseRegistry()
-
-        # Register minimal chain: Cities -> Users -> Social
-        registry.register(CitiesPhase())
-        registry.register(UsersPhase())
-        registry.register(SocialGraphPhase())
-
-        # Phase 6 should NOT require Phase 5 (reviews)
-        resolved = registry.resolve_dependencies(["phase6_social"])
-
-        # Should only have 3 phases
-        assert len(resolved) == 3
-        assert "phase5_reviews" not in resolved
-        assert "phase3_dishes" not in resolved
-        assert "phase2_restaurants" not in resolved
-
-        # Only Cities -> Users -> Social
-        assert resolved == ["phase1_cities", "phase4_users", "phase6_social"]
+        assert reviews_idx < social_idx
