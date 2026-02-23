@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Smakosz.Application/Smakosz.Application.csproj" />
+    <Project Path="src/Smakosz.Domain/Smakosz.Domain.csproj" />
+    <Project Path="src/Smakosz.Infrastructure/Smakosz.Infrastructure.csproj" />
+  </Folder>
+</Solution>
