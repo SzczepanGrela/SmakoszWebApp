@@ -1,0 +1,57 @@
+using Smakosz.Domain.Entities;
+
+namespace Smakosz.Application.Features.Dishes.Dtos;
+
+public static class DishMappingExtensions
+{
+    public static DishCardDto ToCardDto(this Dish d, bool isSaved)
+    {
+        return new DishCardDto
+        {
+            PublicId = d.PublicId,
+            Slug = d.Slug ?? string.Empty,
+            DishName = d.DishName,
+            Price = d.Price,
+            AvgRating = d.AvgRating,
+            ReviewCount = d.ReviewCount,
+            ImageUrl = d.ImageUrl,
+            ImageBlurhash = d.ImageBlurhash,
+            RestaurantName = d.Restaurant?.RestaurantName,
+            RestaurantSlug = d.Restaurant?.Slug,
+            IsVegetarian = d.IsVegetarian,
+            IsVegan = d.IsVegan,
+            IsGlutenFree = d.IsGlutenFree,
+            IsSaved = isSaved
+        };
+    }
+
+    public static DishDetailDto ToDetailDto(this Dish d, bool isSaved)
+    {
+        return new DishDetailDto
+        {
+            PublicId = d.PublicId,
+            Slug = d.Slug ?? string.Empty,
+            DishName = d.DishName,
+            Price = d.Price,
+            AvgRating = d.AvgRating,
+            ReviewCount = d.ReviewCount,
+            ImageUrl = d.ImageUrl,
+            ImageBlurhash = d.ImageBlurhash,
+            Description = d.Description,
+            Calories = d.Calories,
+            IngredientsJson = d.IngredientsJson,
+            IsVegetarian = d.IsVegetarian,
+            IsVegan = d.IsVegan,
+            IsGlutenFree = d.IsGlutenFree,
+            IsLactoseFree = d.IsLactoseFree,
+            IsSpicy = d.IsSpicy,
+            IsAvailable = d.IsAvailable,
+            TrendingScore = d.TrendingScore,
+            RestaurantName = d.Restaurant?.RestaurantName,
+            RestaurantSlug = d.Restaurant?.Slug,
+            CuisineType = d.Restaurant?.CuisineType,
+            CityName = d.Restaurant?.City?.CityName,
+            IsSaved = isSaved
+        };
+    }
+}
