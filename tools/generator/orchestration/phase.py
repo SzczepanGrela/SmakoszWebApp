@@ -138,9 +138,7 @@ class BasePhase(ABC):
                                     f"This may cause issues for {self.metadata.phase_id}"
                                 )
                         except Exception as e:
-                            logger.debug(
-                                f"Could not check table {table}: {e}. Skipping validation."
-                            )
+                            logger.debug(f"Could not check table {table}: {e}. Skipping validation.")
 
 class PhaseRegistry:
     """
@@ -207,9 +205,7 @@ class PhaseRegistry:
         for phase_id in requested_phase_ids:
             if phase_id not in self._phases:
                 available = ", ".join(sorted(self._phases.keys()))
-                raise ValueError(
-                    f"Unknown phase: {phase_id}. Available: {available}"
-                )
+                raise ValueError(f"Unknown phase: {phase_id}. Available: {available}")
 
         # Collect all phases needed (requested + dependencies)
         all_needed = set()
@@ -226,9 +222,7 @@ class PhaseRegistry:
             # Add dependencies to processing queue
             for dep_id in phase.metadata.dependencies:
                 if dep_id not in self._phases:
-                    raise ValueError(
-                        f"Phase {phase_id} depends on unknown phase {dep_id}"
-                    )
+                    raise ValueError(f"Phase {phase_id} depends on unknown phase {dep_id}")
                 if dep_id not in all_needed:
                     to_process.append(dep_id)
 
@@ -268,9 +262,7 @@ class PhaseRegistry:
         # Check for circular dependencies
         if len(result) != len(all_needed):
             remaining = all_needed - set(result)
-            raise ValueError(
-                f"Circular dependency detected involving phases: {sorted(remaining)}"
-            )
+            raise ValueError(f"Circular dependency detected involving phases: {sorted(remaining)}")
 
         logger.debug(f"Dependency resolution: {requested_phase_ids} -> {result}")
         return result
@@ -282,10 +274,7 @@ class PhaseRegistry:
         Returns:
             Dictionary mapping phase_id -> list of dependency IDs
         """
-        return {
-            phase.metadata.phase_id: phase.metadata.dependencies
-            for phase in self._phases.values()
-        }
+        return {phase.metadata.phase_id: phase.metadata.dependencies for phase in self._phases.values()}
 
     def __len__(self) -> int:
         """Return number of registered phases."""

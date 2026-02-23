@@ -26,8 +26,8 @@ from tqdm import tqdm
 
 # Fix Windows console encoding for emoji/Polish characters
 if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 load_dotenv()
 
@@ -40,10 +40,7 @@ from tools.image_providers import ImageResult, ProviderManager, RateLimitError
 from tools.utils import slugify
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Constants from config
@@ -77,6 +74,7 @@ HERO_TARGET_COUNT = 60  # Target number of hero images
 @dataclass
 class ValidationResult:
     """Result of folder validation."""
+
     folder: str
     entity_type: str
     count: int
@@ -114,9 +112,15 @@ class FolderValidator:
         if not folder.exists():
             return 0
         skip_suffixes = {"_thumb", "_tiny", "_hero"}
-        return len([f for f in folder.iterdir()
-                   if f.is_file() and f.suffix.lower() in {'.webp', '.jpg', '.png'}
-                   and not any(f.stem.endswith(s) for s in skip_suffixes)])
+        return len(
+            [
+                f
+                for f in folder.iterdir()
+                if f.is_file()
+                and f.suffix.lower() in {".webp", ".jpg", ".png"}
+                and not any(f.stem.endswith(s) for s in skip_suffixes)
+            ]
+        )
 
     def _validate_ingredients(self) -> list[ValidationResult]:
         """Validate ingredient folders (exactly 1 per ingredient)."""
@@ -124,27 +128,31 @@ class FolderValidator:
         ing_dir = self.output_dir / "ingredients"
 
         if not ing_dir.exists():
-            return [ValidationResult(
-                folder=str(ing_dir),
-                entity_type="ingredients",
-                count=0,
-                min_required=1,
-                max_allowed=None,
-                status="error",
-                message="Ingredients directory does not exist"
-            )]
+            return [
+                ValidationResult(
+                    folder=str(ing_dir),
+                    entity_type="ingredients",
+                    count=0,
+                    min_required=1,
+                    max_allowed=None,
+                    status="error",
+                    message="Ingredients directory does not exist",
+                )
+            ]
 
         # Each ingredient should have exactly 1 file
         for img_file in ing_dir.glob("*.webp"):
-            results.append(ValidationResult(
-                folder=str(img_file),
-                entity_type="ingredient",
-                count=1,
-                min_required=1,
-                max_allowed=1,
-                status="ok",
-                message=""
-            ))
+            results.append(
+                ValidationResult(
+                    folder=str(img_file),
+                    entity_type="ingredient",
+                    count=1,
+                    min_required=1,
+                    max_allowed=1,
+                    status="ok",
+                    message="",
+                )
+            )
 
         return results
 
@@ -154,15 +162,17 @@ class FolderValidator:
         dishes_dir = self.output_dir / "dishes"
 
         if not dishes_dir.exists():
-            return [ValidationResult(
-                folder=str(dishes_dir),
-                entity_type="dishes",
-                count=0,
-                min_required=5,
-                max_allowed=15,
-                status="error",
-                message="Dishes directory does not exist"
-            )]
+            return [
+                ValidationResult(
+                    folder=str(dishes_dir),
+                    entity_type="dishes",
+                    count=0,
+                    min_required=5,
+                    max_allowed=15,
+                    status="error",
+                    message="Dishes directory does not exist",
+                )
+            ]
 
         rules = self.RULES["dish_variant"]
 
@@ -184,15 +194,17 @@ class FolderValidator:
                     status = "warning"
                     message = f"Above maximum ({count} > {rules['max']})"
 
-                results.append(ValidationResult(
-                    folder=str(variant.relative_to(self.output_dir)),
-                    entity_type="dish_variant",
-                    count=count,
-                    min_required=rules["min"],
-                    max_allowed=rules["max"],
-                    status=status,
-                    message=message
-                ))
+                results.append(
+                    ValidationResult(
+                        folder=str(variant.relative_to(self.output_dir)),
+                        entity_type="dish_variant",
+                        count=count,
+                        min_required=rules["min"],
+                        max_allowed=rules["max"],
+                        status=status,
+                        message=message,
+                    )
+                )
 
         return results
 
@@ -202,15 +214,17 @@ class FolderValidator:
         rest_dir = self.output_dir / "restaurants"
 
         if not rest_dir.exists():
-            return [ValidationResult(
-                folder=str(rest_dir),
-                entity_type="restaurants",
-                count=0,
-                min_required=5,
-                max_allowed=None,
-                status="error",
-                message="Restaurants directory does not exist"
-            )]
+            return [
+                ValidationResult(
+                    folder=str(rest_dir),
+                    entity_type="restaurants",
+                    count=0,
+                    min_required=5,
+                    max_allowed=None,
+                    status="error",
+                    message="Restaurants directory does not exist",
+                )
+            ]
 
         rules = self.RULES["restaurant_theme"]
 
@@ -226,15 +240,17 @@ class FolderValidator:
                 status = "error"
                 message = f"Below minimum ({count} < {rules['min']})"
 
-            results.append(ValidationResult(
-                folder=str(theme.relative_to(self.output_dir)),
-                entity_type="restaurant_theme",
-                count=count,
-                min_required=rules["min"],
-                max_allowed=rules["max"],
-                status=status,
-                message=message
-            ))
+            results.append(
+                ValidationResult(
+                    folder=str(theme.relative_to(self.output_dir)),
+                    entity_type="restaurant_theme",
+                    count=count,
+                    min_required=rules["min"],
+                    max_allowed=rules["max"],
+                    status=status,
+                    message=message,
+                )
+            )
 
         return results
 
@@ -243,15 +259,17 @@ class FolderValidator:
         avatar_dir = self.output_dir / "avatars" / "pool"
 
         if not avatar_dir.exists():
-            return [ValidationResult(
-                folder=str(avatar_dir),
-                entity_type="avatar_pool",
-                count=0,
-                min_required=500,
-                max_allowed=2000,
-                status="error",
-                message="Avatar pool directory does not exist"
-            )]
+            return [
+                ValidationResult(
+                    folder=str(avatar_dir),
+                    entity_type="avatar_pool",
+                    count=0,
+                    min_required=500,
+                    max_allowed=2000,
+                    status="error",
+                    message="Avatar pool directory does not exist",
+                )
+            ]
 
         rules = self.RULES["avatar_pool"]
         count = self._count_images(avatar_dir)
@@ -266,30 +284,34 @@ class FolderValidator:
             status = "warning"
             message = f"Above maximum ({count} > {rules['max']})"
 
-        return [ValidationResult(
-            folder=str(avatar_dir.relative_to(self.output_dir)),
-            entity_type="avatar_pool",
-            count=count,
-            min_required=rules["min"],
-            max_allowed=rules["max"],
-            status=status,
-            message=message
-        )]
+        return [
+            ValidationResult(
+                folder=str(avatar_dir.relative_to(self.output_dir)),
+                entity_type="avatar_pool",
+                count=count,
+                min_required=rules["min"],
+                max_allowed=rules["max"],
+                status=status,
+                message=message,
+            )
+        ]
 
     def _validate_hero(self) -> list[ValidationResult]:
         """Validate hero images pool (20-100 total)."""
         hero_dir = self.output_dir / "hero"
 
         if not hero_dir.exists():
-            return [ValidationResult(
-                folder=str(hero_dir),
-                entity_type="hero_pool",
-                count=0,
-                min_required=20,
-                max_allowed=100,
-                status="error",
-                message="Hero images directory does not exist"
-            )]
+            return [
+                ValidationResult(
+                    folder=str(hero_dir),
+                    entity_type="hero_pool",
+                    count=0,
+                    min_required=20,
+                    max_allowed=100,
+                    status="error",
+                    message="Hero images directory does not exist",
+                )
+            ]
 
         rules = self.RULES["hero_pool"]
         count = self._count_images(hero_dir)
@@ -304,15 +326,17 @@ class FolderValidator:
             status = "warning"
             message = f"Above maximum ({count} > {rules['max']})"
 
-        return [ValidationResult(
-            folder=str(hero_dir.relative_to(self.output_dir)),
-            entity_type="hero_pool",
-            count=count,
-            min_required=rules["min"],
-            max_allowed=rules["max"],
-            status=status,
-            message=message
-        )]
+        return [
+            ValidationResult(
+                folder=str(hero_dir.relative_to(self.output_dir)),
+                entity_type="hero_pool",
+                count=count,
+                min_required=rules["min"],
+                max_allowed=rules["max"],
+                status=status,
+                message=message,
+            )
+        ]
 
     def print_report(self, results: list[ValidationResult]) -> tuple[int, int]:
         """Print validation report and return (errors, warnings)."""
@@ -408,11 +432,7 @@ class MediaPipeline:
         return {}
 
     def search_with_backoff(
-        self,
-        query: str,
-        count: int,
-        orientation: str = "horizontal",
-        max_attempts: int = 15
+        self, query: str, count: int, orientation: str = "horizontal", max_attempts: int = 15
     ) -> list[ImageResult]:
         """Search with proper rate limit handling - keeps retrying until success."""
         for attempt in range(max_attempts):
@@ -420,7 +440,9 @@ class MediaPipeline:
                 return self.provider_manager.search_mixed(query, count, orientation)
             except RateLimitError as e:
                 wait_time = min(e.retry_after, 3600)  # Use API's suggested wait, max 1h
-                logger.warning(f"Waiting: Rate limit hit for '{query}'. Waiting {wait_time//60}min (attempt {attempt+1}/{max_attempts})...")
+                logger.warning(
+                    f"Waiting: Rate limit hit for '{query}'. Waiting {wait_time // 60}min (attempt {attempt + 1}/{max_attempts})..."
+                )
                 time.sleep(wait_time)
             except Exception as e:
                 logger.error(f"Search failed for '{query}': {e}")
@@ -435,7 +457,7 @@ class MediaPipeline:
         count: int,
         orientation: str = "horizontal",
         category: str | None = None,
-        max_attempts: int = 15
+        max_attempts: int = 15,
     ) -> list[ImageResult]:
         """
         Search ONLY Pixabay (CC0 license, no attribution required).
@@ -453,7 +475,9 @@ class MediaPipeline:
                 return pixabay.search(query, count, orientation, category=category)
             except RateLimitError as e:
                 wait_time = min(e.retry_after, 3600)
-                logger.warning(f"Waiting: Pixabay rate limit for '{query}'. Waiting {wait_time//60}min (attempt {attempt+1}/{max_attempts})...")
+                logger.warning(
+                    f"Waiting: Pixabay rate limit for '{query}'. Waiting {wait_time // 60}min (attempt {attempt + 1}/{max_attempts})..."
+                )
                 time.sleep(wait_time)
             except Exception as e:
                 logger.error(f"Pixabay search failed for '{query}': {e}")
@@ -520,9 +544,7 @@ class MediaPipeline:
                 if save_path.exists():
                     continue
 
-                self.download_service.process_image(
-                    self._prepare_url(result.url), save_path, SIZE_INGREDIENT
-                )
+                self.download_service.process_image(self._prepare_url(result.url), save_path, SIZE_INGREDIENT)
 
     def run_dishes(self, dry_run: bool = False):
         """Download dish photos from Pixabay only (CC0, no attribution)."""
@@ -621,8 +643,14 @@ class MediaPipeline:
             logger.info("Avatar pool already complete")
             return
 
-        queries = ["person portrait", "professional headshot", "casual portrait",
-                   "young adult portrait", "mature adult portrait", "smiling person"]
+        queries = [
+            "person portrait",
+            "professional headshot",
+            "casual portrait",
+            "young adult portrait",
+            "mature adult portrait",
+            "smiling person",
+        ]
         per_query = needed // len(queries) + 1
 
         if dry_run:
@@ -692,18 +720,18 @@ class MediaPipeline:
                 filename = f"hero_{idx:03d}.{IMAGE_FORMAT.lower()}"
                 save_path = hero_dir / filename
 
-                success, _ = self.download_service.process_image(
-                    self._prepare_url(result.url), save_path, SIZE_HERO
-                )
+                success, _ = self.download_service.process_image(self._prepare_url(result.url), save_path, SIZE_HERO)
                 if success:
                     # Add to index with credits
                     credit = result.credit or {}
-                    hero_index["images"].append({
-                        "filename": filename,
-                        "credit_user": credit.get("name") or credit.get("username") or "Unknown",
-                        "credit_url": credit.get("link") or "",
-                        "source": result.provider,
-                    })
+                    hero_index["images"].append(
+                        {
+                            "filename": filename,
+                            "credit_user": credit.get("name") or credit.get("username") or "Unknown",
+                            "credit_url": credit.get("link") or "",
+                            "source": result.provider,
+                        }
+                    )
                     idx += 1
 
         # Save updated index

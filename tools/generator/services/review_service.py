@@ -60,10 +60,10 @@ class ReviewGeneratorService:
                 - user_photo: Optional user photo data
         """
         if not user_variant_preference_vector:
-             calc = OnTheFlyCalculator(vectors_data)
-             user_variant_preference_vector = calc.get_contextual_preferences(
-                 user, dish, dish.get("secret_variant_name", "Unknown"), dish.get("secret_archetype", "General")
-             )
+            calc = OnTheFlyCalculator(vectors_data)
+            user_variant_preference_vector = calc.get_contextual_preferences(
+                user, dish, dish.get("secret_variant_name", "Unknown"), dish.get("secret_archetype", "General")
+            )
 
         ratings = calculate_review_ratings(
             user,
@@ -74,8 +74,8 @@ class ReviewGeneratorService:
         )
 
         if simulation_today:
-            review_date_date = review_date.date() if hasattr(review_date, 'date') else review_date
-            simulation_today_date = simulation_today.date() if hasattr(simulation_today, 'date') else simulation_today
+            review_date_date = review_date.date() if hasattr(review_date, "date") else review_date
+            simulation_today_date = simulation_today.date() if hasattr(simulation_today, "date") else simulation_today
             review_age_days = (simulation_today_date - review_date_date).days
         else:
             # Fallback: treat as old review (approved by default)
@@ -103,11 +103,11 @@ class ReviewGeneratorService:
 
         if has_comment:
             if is_recent_review:
-                content_status = 'pending'
+                content_status = "pending"
             else:
-                content_status = 'approved'
+                content_status = "approved"
         else:
-            content_status = 'none'
+            content_status = "none"
 
         # Recent reviews (≤7 days) are hidden until approved
         is_visible = not is_recent_review
@@ -117,13 +117,13 @@ class ReviewGeneratorService:
         if is_uncertain:
             ai_toxicity_score = round(random.uniform(0.3, 0.7), 4)
             ai_spam_score = round(random.uniform(0.3, 0.7), 4)
-            ai_verdict = 'needs_review'
+            ai_verdict = "needs_review"
         else:
             ai_toxicity_score = round(random.uniform(0.0, 0.1), 4)
             ai_spam_score = round(random.uniform(0.0, 0.05), 4)
-            ai_verdict = 'approved'
+            ai_verdict = "approved"
 
-        ai_model_version = 'mockHerbert-v1'
+        ai_model_version = "mockHerbert-v1"
         ai_processed_at = DateGenerator.to_sql_datetime(review_date)
 
         dish_rating_value = int(round(ratings["food_score"]))
@@ -132,7 +132,7 @@ class ReviewGeneratorService:
             "user_id": user["user_id"],
             "restaurant_id": restaurant["restaurant_id"],
             "dish_id": dish["dish_id"],
-            "visit_date": review_date.date() if hasattr(review_date, 'date') else review_date,
+            "visit_date": review_date.date() if hasattr(review_date, "date") else review_date,
             "dish_rating": dish_rating_value,
             "service_rating": int(round(ratings["service_score"])),
             "cleanliness_rating": int(round(ratings["cleanliness_score"])),
@@ -165,11 +165,11 @@ class ReviewGeneratorService:
             if photo_uncertain:
                 photo_ai_nsfw = round(random.uniform(0.3, 0.6), 4)
                 photo_ai_on_topic = round(random.uniform(0.3, 0.5), 4)
-                photo_ai_verdict = 'needs_review'
+                photo_ai_verdict = "needs_review"
             else:
                 photo_ai_nsfw = round(random.uniform(0.0, 0.05), 4)
                 photo_ai_on_topic = round(random.uniform(0.8, 0.99), 4)
-                photo_ai_verdict = 'approved'
+                photo_ai_verdict = "approved"
 
             user_photo_data = {
                 "url": photo_metadata["url"],

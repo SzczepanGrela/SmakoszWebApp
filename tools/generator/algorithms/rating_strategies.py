@@ -31,7 +31,7 @@ class ServiceRatingStrategy(RatingComponentStrategy):
         # Determine expected quality based on Price Level (Tier Proxy)
         price_level = int(restaurant.get("price_level", 2))
         if price_level == 1:
-            tier_key = "Fast casual" # Budget
+            tier_key = "Fast casual"  # Budget
             expected_baseline = 0.5
         elif price_level == 2:
             tier_key = "Casual"
@@ -61,7 +61,7 @@ class ServiceRatingStrategy(RatingComponentStrategy):
 
         # Bonus for exceeding expectations
         if base_quality > expected_quality + 0.1:
-             score += (base_quality - expected_quality) * bonus_mult
+            score += (base_quality - expected_quality) * bonus_mult
 
         variance = np.random.normal(0, 0.12)
         score += variance * 10.0
@@ -202,7 +202,7 @@ class FoodRatingStrategy(RatingComponentStrategy):
             for ing in ingredients:
                 # Handle both simple list of strings and list of objects
                 ing_name = ing if isinstance(ing, str) else ing.get("name", "")
-                ing_name_lower = ing_name.lower() # Robust matching
+                ing_name_lower = ing_name.lower()  # Robust matching
 
                 # Check direct match or partial match in user prefs (which should be normalized in future)
                 # Currently Phase 4 generates keys, we try to match them.
@@ -217,9 +217,9 @@ class FoodRatingStrategy(RatingComponentStrategy):
 
                 if pref_value is not None:
                     if pref_value > 0.8:
-                        ingredient_modifier += bonus_love # Strong bonus
+                        ingredient_modifier += bonus_love  # Strong bonus
                     elif pref_value < 0.2:
-                        ingredient_modifier -= penalty_hate # Strong penalty (simulates allergy/hate)
+                        ingredient_modifier -= penalty_hate  # Strong penalty (simulates allergy/hate)
                     elif pref_value < 0.4:
                         ingredient_modifier -= penalty_minor
 
@@ -273,7 +273,7 @@ class RatingAggregator:
         context = {
             "user_variant_preference_vector": user_variant_preference_vector,
             "vectors_data": vectors_data,
-            "scoring_weights": self.scoring_weights
+            "scoring_weights": self.scoring_weights,
         }
 
         components = {}

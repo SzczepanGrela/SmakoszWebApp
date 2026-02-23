@@ -53,11 +53,11 @@ class TestPhase5Registration:
         registry = PhaseRegistry()
 
         # Register all dependencies (full chain)
-        registry.register(CitiesPhase())        # Required by Restaurants + Users
-        registry.register(IngredientsPhase())   # Required by Dishes
-        registry.register(RestaurantsPhase())   # Direct dependency of Reviews
-        registry.register(DishesPhase())        # Direct dependency of Reviews
-        registry.register(UsersPhase())         # Direct dependency of Reviews
+        registry.register(CitiesPhase())  # Required by Restaurants + Users
+        registry.register(IngredientsPhase())  # Required by Dishes
+        registry.register(RestaurantsPhase())  # Direct dependency of Reviews
+        registry.register(DishesPhase())  # Direct dependency of Reviews
+        registry.register(UsersPhase())  # Direct dependency of Reviews
         registry.register(ReviewsPhase())
 
         # Resolve dependencies for Phase 5
@@ -97,11 +97,7 @@ class TestPhase5DependencyValidation:
         mock_db = MagicMock()
 
         phase = ReviewsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Simulate error due to missing users
         with patch("generators.phase5_reviews.generate_reviews") as mock_gen:
@@ -118,11 +114,7 @@ class TestPhase5DependencyValidation:
         mock_db = MagicMock()
 
         phase = ReviewsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Simulate error due to missing restaurants
         with patch("generators.phase5_reviews.generate_reviews") as mock_gen:
@@ -139,11 +131,7 @@ class TestPhase5DependencyValidation:
         mock_db = MagicMock()
 
         phase = ReviewsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Simulate error due to missing dishes (would occur during review generation)
         with patch("generators.phase5_reviews.generate_reviews") as mock_gen:
@@ -162,15 +150,11 @@ class TestPhase5ExecutionStructure:
         mock_db = MagicMock()
         mock_db.fetch_val.side_effect = [
             5000,  # reviews count
-            750,   # review photos (media_assets) count
+            750,  # review photos (media_assets) count
         ]
 
         phase = ReviewsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock the generate_reviews function
         with patch("generators.phase5_reviews.generate_reviews"):
@@ -198,11 +182,7 @@ class TestPhase5ErrorHandling:
         mock_db = MagicMock()
 
         phase = ReviewsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock generate_reviews to raise an exception
         with patch("generators.phase5_reviews.generate_reviews") as mock_gen:

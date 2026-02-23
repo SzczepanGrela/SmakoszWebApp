@@ -85,11 +85,7 @@ class TestPhase6DependencyValidation:
         mock_db = MagicMock()
 
         phase = SocialGraphPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Simulate error due to missing users
         with patch("generators.phase6_social.generate_social_graph") as mock_gen:
@@ -108,21 +104,17 @@ class TestPhase6ExecutionStructure:
         """Test that execute() returns proper PhaseResult structure."""
         mock_db = MagicMock()
         mock_db.fetch_val.side_effect = [
-            5000,   # user_follows count
+            5000,  # user_follows count
             25000,  # review_likes count
             15000,  # notifications count
-            8000,   # search_histories count
-            2000,   # favorite_restaurants count
-            200,    # data_correction_requests count
-            150,    # reports count
+            8000,  # search_histories count
+            2000,  # favorite_restaurants count
+            200,  # data_correction_requests count
+            150,  # reports count
         ]
 
         phase = SocialGraphPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock the generate_social_graph function
         with patch("generators.phase6_social.generate_social_graph"):
@@ -156,11 +148,7 @@ class TestPhase6ErrorHandling:
         mock_db = MagicMock()
 
         phase = SocialGraphPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock generate_social_graph to raise an exception
         with patch("generators.phase6_social.generate_social_graph") as mock_gen:
@@ -188,6 +176,7 @@ class TestPhase6CompleteChain:
 
         # Register all phases (0-6)
         from generators.phase0_config import SystemConfigPhase
+
         registry.register(SystemConfigPhase())
         registry.register(CitiesPhase())
         registry.register(IngredientsPhase())

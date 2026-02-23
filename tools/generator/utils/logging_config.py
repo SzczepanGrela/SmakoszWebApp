@@ -62,9 +62,7 @@ class LoggingConfig:
         if console and not quiet:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(effective_level)
-            console_formatter = logging.Formatter(
-                cls.CONSOLE_FORMAT, datefmt=cls.DATE_FORMAT
-            )
+            console_formatter = logging.Formatter(cls.CONSOLE_FORMAT, datefmt=cls.DATE_FORMAT)
             console_handler.setFormatter(console_formatter)
             root_logger.addHandler(console_handler)
 

@@ -20,10 +20,13 @@ class CounterSync:
         """Synchronize all denormalized counters in correct order."""
         self._sync_user_review_count()
         self._sync_user_follow_counts()
+        self._sync_user_photo_count()
         self._sync_dish_review_count()
         self._sync_review_helpful_count()
         self._sync_restaurant_avg_ratings()
         self._sync_dish_avg_rating()
+        self._sync_dish_trending_scores()
+        self._sync_restaurant_trending_scores()
         self.db.commit()
         logger.info("All denormalized counters synchronized.")
 
@@ -48,6 +51,19 @@ class CounterSync:
             UPDATE users u SET following_count = COALESCE(sub.cnt, 0)
             FROM (SELECT follower_id, COUNT(*) cnt FROM user_follows GROUP BY follower_id) sub
             WHERE u.user_id = sub.follower_id
+        """)
+
+    def _sync_user_photo_count(self):
+        logger.info("Syncing users.photo_count...")
+        self.db.execute_query("""
+            UPDATE users u SET photo_count = sub.cnt
+            FROM (
+                SELECT uploaded_by, COUNT(*) cnt
+                FROM media_assets
+                WHERE uploaded_by IS NOT NULL
+                GROUP BY uploaded_by
+            ) sub
+            WHERE u.user_id = sub.uploaded_by
         """)
 
     def _sync_dish_review_count(self):
@@ -91,4 +107,67 @@ class CounterSync:
             UPDATE dishes d SET avg_rating = sub.avg_r
             FROM (SELECT dish_id, AVG(dish_rating)::float avg_r FROM reviews GROUP BY dish_id) sub
             WHERE d.dish_id = sub.dish_id
+        """)
+
+    def _sync_dish_trending_scores(self):
+        """Bayesian Average trending score for dishes (docs/07_AI_SYSTEMS.md §5.4).
+
+        Uses 30-day window relative to newest review (instead of NOW()) so that
+        mock data always produces results regardless of generation date.
+        """
+        logger.info("Syncing dishes.trending_score (Bayesian Average)...")
+        self.db.execute_query("""
+            WITH time_ref AS (
+                SELECT MAX(created_at) - INTERVAL '30 days' AS cutoff FROM reviews
+            ),
+            global AS (
+                SELECT COALESCE(AVG(dish_rating), 5.0)::decimal AS avg_r
+                FROM reviews, time_ref
+                WHERE created_at > time_ref.cutoff
+                  AND content_status = 'approved' AND is_visible = true
+            )
+            UPDATE dishes d SET trending_score = sub.score
+            FROM (
+                SELECT r.dish_id,
+                    CASE WHEN COUNT(*) >= 3 THEN
+                        (COUNT(*)::decimal / (COUNT(*) + 5)) * AVG(r.dish_rating)
+                        + (5::decimal / (COUNT(*) + 5)) * g.avg_r
+                    ELSE NULL END AS score
+                FROM reviews r, time_ref t, global g
+                WHERE r.created_at > t.cutoff
+                  AND r.content_status = 'approved' AND r.is_visible = true
+                GROUP BY r.dish_id, g.avg_r
+            ) sub
+            WHERE d.dish_id = sub.dish_id
+        """)
+
+    def _sync_restaurant_trending_scores(self):
+        """Bayesian Average trending score for restaurants.
+
+        Same formula as dishes but aggregated per restaurant.
+        """
+        logger.info("Syncing restaurants.trending_score (Bayesian Average)...")
+        self.db.execute_query("""
+            WITH time_ref AS (
+                SELECT MAX(created_at) - INTERVAL '30 days' AS cutoff FROM reviews
+            ),
+            global AS (
+                SELECT COALESCE(AVG(dish_rating), 5.0)::decimal AS avg_r
+                FROM reviews, time_ref
+                WHERE created_at > time_ref.cutoff
+                  AND content_status = 'approved' AND is_visible = true
+            )
+            UPDATE restaurants res SET trending_score = sub.score
+            FROM (
+                SELECT r.restaurant_id,
+                    CASE WHEN COUNT(*) >= 3 THEN
+                        (COUNT(*)::decimal / (COUNT(*) + 5)) * AVG(r.dish_rating)
+                        + (5::decimal / (COUNT(*) + 5)) * g.avg_r
+                    ELSE NULL END AS score
+                FROM reviews r, time_ref t, global g
+                WHERE r.created_at > t.cutoff
+                  AND r.content_status = 'approved' AND r.is_visible = true
+                GROUP BY r.restaurant_id, g.avg_r
+            ) sub
+            WHERE res.restaurant_id = sub.restaurant_id
         """)

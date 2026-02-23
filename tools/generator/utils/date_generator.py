@@ -93,9 +93,7 @@ class DateGenerator:
 
         return dates
 
-    def generate_dates_skewed_to_end(
-        self, count: int, start_date: datetime, end_date: datetime
-    ) -> list[datetime]:
+    def generate_dates_skewed_to_end(self, count: int, start_date: datetime, end_date: datetime) -> list[datetime]:
         """
         Generate dates distributed between start_date and end_date,
         heavily skewed towards end_date (recent times) using Beta distribution.

@@ -37,7 +37,7 @@ class SystemConfigPhase(BasePhase):
             dependencies=[],  # No dependencies - first phase
             required_tables=["system.config"],
             cleanup_tables=["system.config"],
-            estimated_duration=5
+            estimated_duration=5,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -58,7 +58,7 @@ class SystemConfigPhase(BasePhase):
             config_path = Path(self.blueprints_dir) / "system_config.json"
 
             try:
-                with open(config_path, encoding='utf-8') as f:
+                with open(config_path, encoding="utf-8") as f:
                     data = json.load(f)
                     config_items = data.get("SYSTEM_CONFIG", {})
             except FileNotFoundError:
@@ -69,34 +69,34 @@ class SystemConfigPhase(BasePhase):
                     status=PhaseStatus.FAILED,
                     duration_seconds=time.time() - start_time,
                     entities_generated={},
-                    error=FileNotFoundError(error_msg)
+                    error=FileNotFoundError(error_msg),
                 )
 
             # Prepare insert data
             insert_data = []
             for key, details in config_items.items():
-                insert_data.append({
-                    "key": key,
-                    "value": details.get("value"),
-                    "description": details.get("description"),
-                    "is_secret": False,  # Default, can be overridden if needed
-                    "is_public": details.get("is_public", False)
-                })
+                insert_data.append(
+                    {
+                        "key": key,
+                        "value": details.get("value"),
+                        "description": details.get("description"),
+                        "is_secret": False,  # Default, can be overridden if needed
+                        "is_public": details.get("is_public", False),
+                    }
+                )
 
             # Insert into database
             if insert_data:
                 context.db.insert_bulk("system.config", insert_data)
 
             duration = time.time() - start_time
-            logger.info(
-                f"✓ Initialized {len(insert_data)} system settings in {duration:.2f}s"
-            )
+            logger.info(f"✓ Initialized {len(insert_data)} system settings in {duration:.2f}s")
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={"config_entries": len(insert_data)}
+                entities_generated={"config_entries": len(insert_data)},
             )
 
         except Exception as e:
@@ -107,5 +107,5 @@ class SystemConfigPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )

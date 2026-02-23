@@ -90,7 +90,7 @@ class PhotoPools:
                 photo_entry.get("path", ""),
                 photo_entry.get("blurhash"),
                 photo_entry.get("width"),
-                photo_entry.get("height")
+                photo_entry.get("height"),
             )
         elif isinstance(photo_entry, str):
             # Old format: just a path string
@@ -114,13 +114,15 @@ class PhotoPools:
         # Try direct lookup first, then slugified (to match snake_case folders)
         cat_data = self.index.get("dishes", {}).get(category)
         if cat_data is None:
-             from tools.utils import slugify
-             cat_data = self.index.get("dishes", {}).get(slugify(category), {})
+            from tools.utils import slugify
+
+            cat_data = self.index.get("dishes", {}).get(slugify(category), {})
 
         photos = cat_data.get(variant)
         if photos is None:
-             from tools.utils import slugify
-             photos = cat_data.get(slugify(variant), [])
+            from tools.utils import slugify
+
+            photos = cat_data.get(slugify(variant), [])
 
         if not photos:
             photos = [p for sublist in cat_data.values() for p in sublist]
@@ -151,12 +153,7 @@ class PhotoPools:
         selected_path, selected_hash, width, height = self._extract_photo_data(selected)
         used.add(selected_path)
 
-        return {
-            "url": self._format_url(selected_path),
-            "blurhash": selected_hash,
-            "width": width,
-            "height": height
-        }
+        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
 
     def get_restaurant_photo(self, theme: str, restaurant_id: int) -> dict[str, str | int | None]:
         """
@@ -171,8 +168,9 @@ class PhotoPools:
         """
         photos = self.index.get("restaurants", {}).get(theme)
         if photos is None:
-             from tools.utils import slugify
-             photos = self.index.get("restaurants", {}).get(slugify(theme), [])
+            from tools.utils import slugify
+
+            photos = self.index.get("restaurants", {}).get(slugify(theme), [])
         if not photos:
             # Dynamic fallback using placehold.co
             text = f"{theme} Interior".replace(" ", "+")
@@ -199,12 +197,7 @@ class PhotoPools:
         selected_path, selected_hash, width, height = self._extract_photo_data(selected)
         used.add(selected_path)
 
-        return {
-            "url": self._format_url(selected_path),
-            "blurhash": selected_hash,
-            "width": width,
-            "height": height
-        }
+        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
 
     def get_review_photo(self, archetype: str, variant: str) -> dict[str, str | int | None]:
         """
@@ -221,13 +214,15 @@ class PhotoPools:
         # Try direct lookup first, then slugified
         cat_data = self.index.get("dishes", {}).get(archetype)
         if cat_data is None:
-             from tools.utils import slugify
-             cat_data = self.index.get("dishes", {}).get(slugify(archetype), {})
+            from tools.utils import slugify
+
+            cat_data = self.index.get("dishes", {}).get(slugify(archetype), {})
 
         photos = cat_data.get(variant)
         if photos is None:
-             from tools.utils import slugify
-             photos = cat_data.get(slugify(variant), [])
+            from tools.utils import slugify
+
+            photos = cat_data.get(slugify(variant), [])
 
         if not photos:
             # Fallback to any photo from category
@@ -240,12 +235,7 @@ class PhotoPools:
 
         selected = random.choice(photos)
         selected_path, selected_hash, width, height = self._extract_photo_data(selected)
-        return {
-            "url": self._format_url(selected_path),
-            "blurhash": selected_hash,
-            "width": width,
-            "height": height
-        }
+        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
 
     def get_user_photo_generic(self) -> str:
         """
@@ -283,12 +273,7 @@ class PhotoPools:
         # Select random avatar from pool and format with R2/local domain
         selected = random.choice(avatars)
         selected_path, selected_hash, width, height = self._extract_photo_data(selected)
-        return {
-            "url": self._format_url(selected_path),
-            "blurhash": selected_hash,
-            "width": width,
-            "height": height
-        }
+        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
 
     def get_ingredient_photo(self, ingredient_name: str) -> dict[str, str | int | None]:
         """
@@ -306,12 +291,6 @@ class PhotoPools:
         if photo_entry:
             path, blurhash_val, width, height = self._extract_photo_data(photo_entry)
             if path:
-                return {
-                    "url": self._format_url(path),
-                    "blurhash": blurhash_val,
-                    "width": width,
-                    "height": height
-                }
+                return {"url": self._format_url(path), "blurhash": blurhash_val, "width": width, "height": height}
 
         return {"url": None, "blurhash": None, "width": None, "height": None}
-

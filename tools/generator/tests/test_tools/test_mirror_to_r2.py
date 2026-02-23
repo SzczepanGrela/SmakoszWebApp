@@ -15,20 +15,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 class TestR2UploadWithMock:
     """Tests for R2 upload functionality using mocked boto3."""
 
-    @patch('boto3.client')
+    @patch("boto3.client")
     def test_upload_calls_s3_correctly(self, mock_boto_client, mock_s3_client):
         """Verify upload_file is called with correct parameters."""
         mock_boto_client.return_value = mock_s3_client
 
         # Simulate what mirror_to_r2 would do
-        client = mock_boto_client('s3', endpoint_url='https://fake.r2.dev')
-        client.upload_file('/local/path/image.jpg', 'bucket', 'remote/path/image.jpg')
+        client = mock_boto_client("s3", endpoint_url="https://fake.r2.dev")
+        client.upload_file("/local/path/image.jpg", "bucket", "remote/path/image.jpg")
 
-        mock_s3_client.upload_file.assert_called_once_with(
-            '/local/path/image.jpg', 'bucket', 'remote/path/image.jpg'
-        )
+        mock_s3_client.upload_file.assert_called_once_with("/local/path/image.jpg", "bucket", "remote/path/image.jpg")
 
-    @patch('boto3.client')
+    @patch("boto3.client")
     def test_upload_respects_prefix(self, mock_boto_client, mock_s3_client):
         """Uploads should only go to correct prefix."""
         mock_boto_client.return_value = mock_s3_client
@@ -38,8 +36,8 @@ class TestR2UploadWithMock:
         local_file = "data/images/dishes/pizza/photo.jpg"
         remote_key = f"{prefix}dishes/pizza/photo.jpg"
 
-        client = mock_boto_client('s3')
-        client.upload_file(local_file, 'bucket', remote_key)
+        client = mock_boto_client("s3")
+        client.upload_file(local_file, "bucket", remote_key)
 
         # Verify the remote key has correct prefix
         call_args = mock_s3_client.upload_file.call_args
@@ -48,7 +46,7 @@ class TestR2UploadWithMock:
 class TestR2DeleteWithMock:
     """Tests for R2 delete functionality using mocked boto3."""
 
-    @patch('boto3.client')
+    @patch("boto3.client")
     def test_delete_only_prefixed_files(self, mock_boto_client, mock_s3_client):
         """Delete should only touch files with correct prefix."""
         mock_boto_client.return_value = mock_s3_client
@@ -61,20 +59,20 @@ class TestR2DeleteWithMock:
             ]
         }
 
-        client = mock_boto_client('s3')
-        response = client.list_objects_v2(Bucket='bucket', Prefix='smakosz/images/mock/')
+        client = mock_boto_client("s3")
+        response = client.list_objects_v2(Bucket="bucket", Prefix="smakosz/images/mock/")
 
         # Verify only mock-prefixed files are listed
         for obj in response.get("Contents", []):
             assert obj["Key"].startswith("smakosz/images/mock/")
 
-    @patch('boto3.client')
+    @patch("boto3.client")
     def test_delete_is_safe(self, mock_boto_client, mock_s3_client):
         """Delete operations should use mock client, not real one."""
         mock_boto_client.return_value = mock_s3_client
 
-        client = mock_boto_client('s3')
-        client.delete_object(Bucket='bucket', Key='smakosz/images/mock/test.jpg')
+        client = mock_boto_client("s3")
+        client.delete_object(Bucket="bucket", Key="smakosz/images/mock/test.jpg")
 
         # Verify mock was called, not real S3
         mock_s3_client.delete_object.assert_called_once()
@@ -109,7 +107,7 @@ class TestLocalFileScanning:
 class TestDryRunMode:
     """Tests for dry-run functionality."""
 
-    @patch('boto3.client')
+    @patch("boto3.client")
     def test_dry_run_no_actual_upload(self, mock_boto_client, mock_s3_client):
         """Dry run should not actually upload files."""
         mock_boto_client.return_value = mock_s3_client
@@ -117,8 +115,8 @@ class TestDryRunMode:
         dry_run = True
 
         if not dry_run:
-            client = mock_boto_client('s3')
-            client.upload_file('test.jpg', 'bucket', 'key')
+            client = mock_boto_client("s3")
+            client.upload_file("test.jpg", "bucket", "key")
 
         # In dry run, upload should never be called
         mock_s3_client.upload_file.assert_not_called()

@@ -21,7 +21,20 @@ from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
-def generate_dish_vector(archetype_name: str, archetype_data: dict, variant_name: str, variant_data: dict, restaurant_modifiers: dict) -> tuple:
+def _unique_slug(dish_name: str, used_slugs: set[str]) -> str:
+    """Generate a unique slug, appending -2, -3, etc. for duplicates."""
+    base = slugify(dish_name)
+    slug = base
+    counter = 2
+    while slug in used_slugs:
+        slug = f"{base}-{counter}"
+        counter += 1
+    used_slugs.add(slug)
+    return slug
+
+def generate_dish_vector(
+    archetype_name: str, archetype_data: dict, variant_name: str, variant_data: dict, restaurant_modifiers: dict
+) -> tuple:
     base_data = archetype_data.get("archetype_base", {})
     base_chars = base_data.get("characteristics", {})
     base_weights = base_data.get("default_weights", None)
@@ -145,13 +158,11 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             unique_variants.add((variant_name, category_name))
 
     variant_insert_data = [
-        {"variant_name": v, "archetype_id": archetype_map[a]}
-        for v, a in unique_variants
-        if a in archetype_map
+        {"variant_name": v, "archetype_id": archetype_map[a]} for v, a in unique_variants if a in archetype_map
     ]
 
     if variant_insert_data:
-        variant_insert_data.sort(key=lambda x: (x['archetype_id'], x['variant_name']))
+        variant_insert_data.sort(key=lambda x: (x["archetype_id"], x["variant_name"]))
         db.insert_bulk("dish_variants", variant_insert_data)
 
     variant_rows = db.fetch_all("""
@@ -163,6 +174,8 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     logger.info(f"Loaded {len(variant_map)} variants.")
 
     photo_pools = PhotoPools()
+
+    used_slugs: set[str] = set()
 
     total_dishes = 0
     total_ingredients_links = 0
@@ -214,7 +227,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 archetype_data=archetype_full_data,
                 variant_name=dish_name,
                 variant_data=variant_full_data,
-                restaurant_modifiers=restaurant_modifiers
+                restaurant_modifiers=restaurant_modifiers,
             )
 
             secret_base_price = base_price
@@ -265,7 +278,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             is_lactose_free = is_vegan or ("Bez laktozy" in tag_map and tag_map["Bez laktozy"] in dish_tag_ids)
 
             is_available = True
-            if restaurant_status != 'active':
+            if restaurant_status != "active":
                 is_available = False
 
             dish_data = {
@@ -273,7 +286,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "restaurant_id": restaurant_id,
                 "variant_id": variant_id,
                 "dish_name": dish_name,
-                "slug": slugify(dish_name),
+                "slug": _unique_slug(dish_name, used_slugs),
                 "price": price,
                 "description": description,
                 "is_vegetarian": is_vegetarian,
@@ -313,16 +326,18 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                         break
 
                 if not assigned_sections:
-                        for sec in available_sections:
-                            if archetype.lower() in sec["section_name"].lower():
-                                assigned_sections.append(sec["id"])
-                                break
+                    for sec in available_sections:
+                        if archetype.lower() in sec["section_name"].lower():
+                            assigned_sections.append(sec["id"])
+                            break
 
                 if not assigned_sections:
                     assigned_sections.append(random.choice(available_sections)["id"])
 
             for sec_id in set(assigned_sections):
-                dish_sections_buffer.append({"dish_id": dish_id, "section_id": sec_id, "created_at": restaurant.get("created_at")})
+                dish_sections_buffer.append(
+                    {"dish_id": dish_id, "section_id": sec_id, "created_at": restaurant.get("created_at")}
+                )
 
             ingredient_links = []
             for ingredient_name in ingredients:
@@ -554,7 +569,7 @@ class DishesPhase(BasePhase):
             dependencies=["phase1_ingredients", "phase2_restaurants"],
             required_tables=["dishes", "dish_variants", "dish_ingredients"],
             cleanup_tables=["dishes", "dish_variants", "dish_ingredients", "dish_tags"],
-            estimated_duration=60
+            estimated_duration=60,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -583,8 +598,8 @@ class DishesPhase(BasePhase):
                 entities_generated={
                     "dishes": dishes_count,
                     "dish_variants": variants_count,
-                    "dish_ingredients": ingredients_count
-                }
+                    "dish_ingredients": ingredients_count,
+                },
             )
 
         except Exception as e:
@@ -595,6 +610,5 @@ class DishesPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
-

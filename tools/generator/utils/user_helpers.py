@@ -111,26 +111,6 @@ def generate_phone() -> str:
     """
     return f"+48 {random.randint(500, 999)} {random.randint(100, 999)} {random.randint(100, 999)}"
 
-def generate_avatar_url(full_name: str, user_id: int) -> str:
-    """
-    Generate an avatar URL using UI Avatars service.
-
-    Creates a colorful avatar with user's initials. Color is deterministic
-    based on user_id for consistency.
-
-    Args:
-        full_name: User's full name (first two words used for initials)
-        user_id: User ID for color selection
-
-    Returns:
-        str: Avatar URL (max 500 characters)
-    """
-    names = full_name.split()[:2]
-    colors = ["3498db", "e74c3c", "2ecc71", "f39c12", "9b59b6", "1abc9c"]
-    color = colors[user_id % len(colors)]
-    url = f"https://ui-avatars.com/api/?name={'+'.join(names)}&background={color}&color=fff&size=200"
-    return url[:500]
-
 def generate_date_of_birth() -> date:
     """
     Generate a realistic date of birth.

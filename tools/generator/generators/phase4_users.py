@@ -65,31 +65,31 @@ def generate_aspnet_identity_v3_hash(password: str) -> str:
 
     # Step 2: Derive 32-byte key using PBKDF2-HMAC-SHA256 with 100,000 iterations
     subkey = hashlib.pbkdf2_hmac(
-        hash_name='sha256',
-        password=password.encode('utf-8'),
+        hash_name="sha256",
+        password=password.encode("utf-8"),
         salt=salt,
         iterations=100000,
-        dklen=32  # Derive 32-byte key
+        dklen=32,  # Derive 32-byte key
     )
 
     # Step 3: Construct binary format matching ASP.NET Core Identity v3
     # Format version (1 byte): 0x01
-    version = b'\x01'
+    version = b"\x01"
 
     # PRF algorithm (1 byte): 0x01 = HMAC-SHA256
-    prf_algorithm = b'\x01'
+    prf_algorithm = b"\x01"
 
     # Iteration count (4 bytes, Big Endian): 100,000
-    iteration_count = (100000).to_bytes(4, byteorder='big')
+    iteration_count = (100000).to_bytes(4, byteorder="big")
 
     # Salt length (4 bytes, Big Endian): 16
-    salt_length = (16).to_bytes(4, byteorder='big')
+    salt_length = (16).to_bytes(4, byteorder="big")
 
     # Combine all parts: header (10 bytes) + salt (16 bytes) + subkey (32 bytes) = 58 bytes total
     hash_bytes = version + prf_algorithm + iteration_count + salt_length + salt + subkey
 
     # Step 4: Return base64 encoded string (58 bytes -> ~77 base64 chars)
-    return base64.b64encode(hash_bytes).decode('ascii')
+    return base64.b64encode(hash_bytes).decode("ascii")
 
 def allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints"):
     blueprint_loader = BlueprintLoader(blueprints_dir)
@@ -242,7 +242,13 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         )
 
     # 2. Generate Standard Users (Admins, Moderators, Users)
-    for i in tqdm(range(num_standard_users), desc="Generating standard users", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+    for i in tqdm(
+        range(num_standard_users),
+        desc="Generating standard users",
+        unit=" user",
+        mininterval=1.0,
+        disable=LoggingConfig.is_quiet(),
+    ):
         if i < total_admins:
             role = "admin"
             username = f"admin_{i + 1}"
@@ -277,6 +283,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 secret_total_review_count = max(50, secret_total_review_count)
                 mobility_factor = min(1.0, mobility_factor + 0.1)
                 is_influencer = random.random() < 0.20
+            elif random.random() < 0.05:
+                # 5% cold-start users - NCF must learn fallback to popular items
+                secret_total_review_count = random.randint(1, 3)
+                is_influencer = False
             else:
                 secret_total_review_count = int(random.gauss(40, 20))
                 secret_total_review_count = max(10, secret_total_review_count)
@@ -446,9 +456,7 @@ def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: Ph
     """
     logger.info("Inserting user avatars into media_assets...")
 
-    users_with_avatars = db.fetch_all(
-        "SELECT user_id, avatar_url FROM users WHERE avatar_url IS NOT NULL"
-    )
+    users_with_avatars = db.fetch_all("SELECT user_id, avatar_url FROM users WHERE avatar_url IS NOT NULL")
 
     if not users_with_avatars:
         logger.info("No users with custom avatars found")
@@ -493,7 +501,9 @@ def _assign_saved_dishes(db: DatabaseConnection):
     saved_data = []
     dish_list = [d[0] for d in all_dishes]
 
-    for user_id, review_count in tqdm(users, desc="Assigning saved dishes", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+    for user_id, review_count in tqdm(
+        users, desc="Assigning saved dishes", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()
+    ):
         is_power_user = review_count is not None and review_count > 80
 
         if random.random() < 0.15:
@@ -525,13 +535,17 @@ def _generate_user_notification_settings(db: DatabaseConnection):
         return
 
     settings_data = []
-    for (user_id,) in tqdm(user_ids, desc="Generating settings", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
-        settings_data.append({
-            "user_id": user_id,
-            "push_like": random.random() < 0.80,
-            "push_follow": random.random() < 0.90,
-            "push_system": True,
-        })
+    for (user_id,) in tqdm(
+        user_ids, desc="Generating settings", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()
+    ):
+        settings_data.append(
+            {
+                "user_id": user_id,
+                "push_like": random.random() < 0.80,
+                "push_follow": random.random() < 0.90,
+                "push_system": True,
+            }
+        )
 
     if settings_data:
         db.insert_bulk("user_notification_settings", settings_data)
@@ -561,7 +575,7 @@ class UsersPhase(BasePhase):
             dependencies=["phase1_cities"],
             required_tables=["users", "user_notification_settings"],
             cleanup_tables=["users", "user_notification_settings", "saved_dishes"],
-            estimated_duration=40
+            estimated_duration=40,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -575,24 +589,18 @@ class UsersPhase(BasePhase):
             generate_users(context.db, num_users=num_users, cleanup=False)
 
             users_count = context.db.fetch_val("SELECT COUNT(*) FROM users")
-            settings_count = context.db.fetch_val(
-                "SELECT COUNT(*) FROM user_notification_settings"
-            )
+            settings_count = context.db.fetch_val("SELECT COUNT(*) FROM user_notification_settings")
 
             duration = time.time() - start_time
             logger.info(
-                f"✓ Generated {users_count} users with "
-                f"{settings_count} notification settings in {duration:.2f}s"
+                f"✓ Generated {users_count} users with {settings_count} notification settings in {duration:.2f}s"
             )
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={
-                    "users": users_count,
-                    "notification_settings": settings_count
-                }
+                entities_generated={"users": users_count, "notification_settings": settings_count},
             )
 
         except Exception as e:
@@ -603,6 +611,5 @@ class UsersPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
-

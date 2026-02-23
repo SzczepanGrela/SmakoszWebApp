@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class RateLimitError(Exception):
     """Raised when API rate limit is exceeded."""
+
     def __init__(self, provider: str, retry_after: int = 300, message: str = ""):
         self.provider = provider
         self.retry_after = retry_after  # seconds to wait
@@ -28,6 +29,7 @@ class RateLimitError(Exception):
 @dataclass
 class ImageResult:
     """Standardized image search result from any provider."""
+
     url: str
     provider: str
     provider_id: str
@@ -107,7 +109,9 @@ class PixabayProvider(ImageProvider):
         session.mount("https://", HTTPAdapter(max_retries=retries))
         return session
 
-    def search(self, query: str, count: int, orientation: str = "horizontal", category: str | None = None) -> list[ImageResult]:
+    def search(
+        self, query: str, count: int, orientation: str = "horizontal", category: str | None = None
+    ) -> list[ImageResult]:
         if not self.enabled:
             logger.warning("Pixabay API key not configured")
             return []
@@ -139,7 +143,9 @@ class PixabayProvider(ImageProvider):
             response.raise_for_status()
             data = response.json()
 
-            logger.debug(f"Pixabay search: '{query}' -> {data.get('totalHits', 0)} total hits, returning {len(data.get('hits', []))} results")
+            logger.debug(
+                f"Pixabay search: '{query}' -> {data.get('totalHits', 0)} total hits, returning {len(data.get('hits', []))} results"
+            )
 
         except RateLimitError:
             raise  # Re-raise rate limit errors
@@ -149,14 +155,16 @@ class PixabayProvider(ImageProvider):
 
         results = []
         for hit in data.get("hits", []):
-            results.append(ImageResult(
-                url=hit.get("largeImageURL", hit.get("webformatURL", "")),
-                provider=self.name,
-                provider_id=str(hit.get("id", "")),
-                width=hit.get("imageWidth", 0),
-                height=hit.get("imageHeight", 0),
-                credit={"name": hit.get("user", ""), "link": hit.get("pageURL", "")}
-            ))
+            results.append(
+                ImageResult(
+                    url=hit.get("largeImageURL", hit.get("webformatURL", "")),
+                    provider=self.name,
+                    provider_id=str(hit.get("id", "")),
+                    width=hit.get("imageWidth", 0),
+                    height=hit.get("imageHeight", 0),
+                    credit={"name": hit.get("user", ""), "link": hit.get("pageURL", "")},
+                )
+            )
 
         return results
 
@@ -223,8 +231,7 @@ class UnsplashProvider(ImageProvider):
         """Pre-emptively check if we're rate limited."""
         if self._rate_remaining <= 0 and self._rate_reset > 0 and time.time() < self._rate_reset:
             retry_after = int(self._rate_reset - time.time())
-            raise RateLimitError("unsplash", retry_after,
-                f"Limit exhausted. Resets in {retry_after}s")
+            raise RateLimitError("unsplash", retry_after, f"Limit exhausted. Resets in {retry_after}s")
 
     def search(self, query: str, count: int, orientation: str = "horizontal") -> list[ImageResult]:
         if not self.enabled:
@@ -244,12 +251,7 @@ class UnsplashProvider(ImageProvider):
         }
 
         try:
-            response = self._session.get(
-                f"{self.API_URL}/search/photos",
-                headers=headers,
-                params=params,
-                timeout=10
-            )
+            response = self._session.get(f"{self.API_URL}/search/photos", headers=headers, params=params, timeout=10)
 
             # Update rate limit tracking from headers
             self._update_rate_limit(response)
@@ -259,14 +261,19 @@ class UnsplashProvider(ImageProvider):
                 # Calculate wait time until reset (top of next hour)
                 retry_after = 3600 - (int(time.time()) % 3600)  # Seconds until next hour
                 UnsplashProvider._rate_reset = time.time() + retry_after
-                logger.debug(f"Unsplash rate limit: {self._rate_remaining}/{self._rate_limit} remaining, retry in {retry_after}s")
-                raise RateLimitError("unsplash", retry_after,
-                    f"Rate limit hit ({self._rate_limit}/hour). Resets in {retry_after}s")
+                logger.debug(
+                    f"Unsplash rate limit: {self._rate_remaining}/{self._rate_limit} remaining, retry in {retry_after}s"
+                )
+                raise RateLimitError(
+                    "unsplash", retry_after, f"Rate limit hit ({self._rate_limit}/hour). Resets in {retry_after}s"
+                )
 
             response.raise_for_status()
             data = response.json()
 
-            logger.debug(f"Unsplash search: '{query}' -> {data.get('total', 0)} total, returning {len(data.get('results', []))} results")
+            logger.debug(
+                f"Unsplash search: '{query}' -> {data.get('total', 0)} total, returning {len(data.get('results', []))} results"
+            )
 
         except RateLimitError:
             raise  # Re-raise rate limit errors
@@ -278,19 +285,21 @@ class UnsplashProvider(ImageProvider):
         for photo in data.get("results", []):
             urls = photo.get("urls", {})
             links = photo.get("links", {})
-            results.append(ImageResult(
-                url=urls.get("raw", urls.get("full", "")),
-                provider=self.name,
-                provider_id=photo.get("id", ""),
-                width=photo.get("width", 0),
-                height=photo.get("height", 0),
-                credit={
-                    "name": photo.get("user", {}).get("name", ""),
-                    "username": photo.get("user", {}).get("username", ""),
-                    "link": links.get("html", ""),
-                },
-                download_location=links.get("download_location"),  # For trigger download
-            ))
+            results.append(
+                ImageResult(
+                    url=urls.get("raw", urls.get("full", "")),
+                    provider=self.name,
+                    provider_id=photo.get("id", ""),
+                    width=photo.get("width", 0),
+                    height=photo.get("height", 0),
+                    credit={
+                        "name": photo.get("user", {}).get("name", ""),
+                        "username": photo.get("user", {}).get("username", ""),
+                        "link": links.get("html", ""),
+                    },
+                    download_location=links.get("download_location"),  # For trigger download
+                )
+            )
 
         return results
 
@@ -335,11 +344,7 @@ class UnsplashProvider(ImageProvider):
 
         try:
             # Fire-and-forget with short timeout
-            response = self._session.get(
-                download_location,
-                headers=headers,
-                timeout=5
-            )
+            response = self._session.get(download_location, headers=headers, timeout=5)
             if response.status_code == 200:
                 logger.debug("✓ Triggered download for Unsplash photo")
             else:
@@ -420,7 +425,7 @@ class ProviderManager:
                             "https://api.unsplash.com/search/photos",
                             headers={"Authorization": f"Client-ID {api_key}"},
                             params={"query": "test", "per_page": 1},
-                            timeout=10
+                            timeout=10,
                         )
                         remaining = int(r.headers.get("X-Ratelimit-Remaining", 0))
                         limit = int(r.headers.get("X-Ratelimit-Limit", 50))
@@ -443,12 +448,7 @@ class ProviderManager:
         logger.info(f"Resuming {error.provider} requests.")
 
     def search_mixed(
-        self,
-        query: str,
-        total: int,
-        orientation: str = "horizontal",
-        pixabay_ratio: float = 0.6,
-        max_retries: int = 3
+        self, query: str, total: int, orientation: str = "horizontal", pixabay_ratio: float = 0.6, max_retries: int = 3
     ) -> list[ImageResult]:
         """
         Search multiple providers and mix results.

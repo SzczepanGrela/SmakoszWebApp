@@ -142,7 +142,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             if attempt == max_retries - 1:
                 logger.error(f"Failed to connect to database after {max_retries} attempts: {e}")
                 raise
-            time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+            time.sleep(2**attempt)  # Exponential backoff: 1s, 2s, 4s
 
     city_ids = [c["city_id"] for c in _WORKER_CITIES]
 
@@ -164,7 +164,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             review_dates = date_gen.generate_dates_skewed_to_end(
                 count=num_reviews,
                 start_date=user["join_date"],
-                end_date=simulation_today  # type: ignore[arg-type]
+                end_date=simulation_today,  # type: ignore[arg-type]
             )
 
             for review_date in review_dates:
@@ -193,14 +193,14 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                     stats["home"] += 1
 
                 available_restaurants = [
-                    r for r in _WORKER_RESTAURANTS
+                    r
+                    for r in _WORKER_RESTAURANTS
                     if r["city_id"] == city_id and DateGenerator.ensure_naive(r["created_at"]) <= review_date
                 ]
 
                 if not available_restaurants:
                     available_restaurants = [
-                        r for r in _WORKER_RESTAURANTS
-                        if DateGenerator.ensure_naive(r["created_at"]) <= review_date
+                        r for r in _WORKER_RESTAURANTS if DateGenerator.ensure_naive(r["created_at"]) <= review_date
                     ]
                     if not available_restaurants:
                         stats["skipped_temporal"] += 1
@@ -248,15 +248,15 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                 # Check restaurant created_at to ensure visit isn't before opening
                 if restaurant["created_at"]:
                     res_created = restaurant["created_at"]
-                    if hasattr(res_created, 'date'):
+                    if hasattr(res_created, "date"):
                         res_created = res_created.date()
-                    if hasattr(visit_date, 'date'):
+                    if hasattr(visit_date, "date"):
                         visit_date_val = visit_date.date()
                     else:
                         visit_date_val = visit_date
 
                     if visit_date_val < res_created:
-                        visit_date = review_date # Fallback: visit same day as review if calc fails
+                        visit_date = review_date  # Fallback: visit same day as review if calc fails
 
                 review_result = review_service.generate_single_review(
                     user=user,
@@ -317,7 +317,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             db.close()
         raise  # Propagate exception to parent process
     finally:
-        if db and hasattr(db, 'is_connected') and db.is_connected():
+        if db and hasattr(db, "is_connected") and db.is_connected():
             db.close()
 
     return stats
@@ -410,7 +410,9 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     # VALIDATION: Enhanced user filtering check
     total_users_in_db = db.fetch_val("SELECT COUNT(*) FROM users")
     users_with_role_user = len(users_raw) if users_raw else 0
-    logger.info(f"Phase 5 User Filter: {users_with_role_user:,} users with role='user' (out of {total_users_in_db:,} total)")
+    logger.info(
+        f"Phase 5 User Filter: {users_with_role_user:,} users with role='user' (out of {total_users_in_db:,} total)"
+    )
 
     if not users_raw:
         logger.error("No users found to process!")
@@ -418,7 +420,9 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     if users_with_role_user == 0:
         logger.error("CRITICAL: WHERE role='user' filter returned 0 users! Check user_dao.py:82")
-        logger.error(f"Total users in DB: {total_users_in_db:,} - all may be non-user roles (restaurant/admin/moderator)")
+        logger.error(
+            f"Total users in DB: {total_users_in_db:,} - all may be non-user roles (restaurant/admin/moderator)"
+        )
         return
 
     user_objects = []
@@ -473,6 +477,7 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     # Calculate simulation_today for time-based pending logic (last 7 days = pending)
     from datetime import datetime
+
     simulation_today = datetime.now().replace(tzinfo=None)
     logger.info(f"Simulation today: {simulation_today.date()} (reviews from last 7 days will be pending)")
 
@@ -570,9 +575,7 @@ class ReviewsPhase(BasePhase):
             generate_reviews(context.db, cleanup=False)
 
             reviews_count = context.db.fetch_val("SELECT COUNT(*) FROM reviews") or 0
-            media_count = context.db.fetch_val(
-                "SELECT COUNT(*) FROM media_assets WHERE entity_type = 'review'"
-            ) or 0
+            media_count = context.db.fetch_val("SELECT COUNT(*) FROM media_assets WHERE entity_type = 'review'") or 0
 
             duration = time.time() - start_time
 

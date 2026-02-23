@@ -9,26 +9,26 @@ class BlueprintLoader:
         self.logger = logging.getLogger(__name__)
 
         if not self.blueprints_dir.exists():
-            raise FileNotFoundError(f"Folder {blueprints_dir} nie istnieje!")
+            raise FileNotFoundError(f"Directory {blueprints_dir} does not exist!")
 
     def load_blueprint(self, filename: str) -> dict[str, Any]:
         filepath = self.blueprints_dir / filename
 
         if not filepath.exists():
-            raise FileNotFoundError(f"Blueprint {filename} nie istnieje!")
+            raise FileNotFoundError(f"Blueprint {filename} does not exist!")
 
         try:
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
 
-            self.logger.debug(f" Wczytano blueprint: {filename}")
+            self.logger.debug(f"Loaded blueprint: {filename}")
             return data
 
         except json.JSONDecodeError as e:
-            self.logger.error(f" Błąd parsowania JSON w {filename}: {e}")
+            self.logger.error(f"JSON parse error in {filename}: {e}")
             raise
         except Exception as e:
-            self.logger.error(f" Błąd wczytywania {filename}: {e}")
+            self.logger.error(f"Error loading {filename}: {e}")
             raise
 
     def load_all_blueprints(self) -> dict[str, dict[str, Any]]:
@@ -38,7 +38,7 @@ class BlueprintLoader:
             filename = filepath.name
             blueprints[filename] = self.load_blueprint(filename)
 
-        self.logger.info(f" Wczytano {len(blueprints)} blueprintów")
+        self.logger.info(f"Loaded {len(blueprints)} blueprints")
         return blueprints
 
     def get_blueprint_path(self, filename: str) -> Path:
@@ -48,6 +48,6 @@ class BlueprintLoader:
         missing_keys = [key for key in required_keys if key not in data]
 
         if missing_keys:
-            raise ValueError(f"Blueprint {name} brakuje kluczy: {missing_keys}")
+            raise ValueError(f"Blueprint {name} missing keys: {missing_keys}")
 
-        self.logger.debug(f" Walidacja {name} - OK")
+        self.logger.debug(f"Validation {name} - OK")

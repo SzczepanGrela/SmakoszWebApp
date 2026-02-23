@@ -14,7 +14,7 @@ logger = logging.getLogger("BlueprintVerifier")
 
 def load_json_blueprint(filepath):
     try:
-        with open(filepath, encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"ERROR: Failed to load {filepath}: {e}")
@@ -49,7 +49,9 @@ def verify_blueprints():
     for theme, data in themes.items():
         # Check mapping
         mapped_profile = theme_mapping.get(theme, "General")
-        is_fallback = (theme not in theme_mapping) or (mapped_profile == "General" and theme not in ["Kebab", "Kuchnia Polska"])
+        is_fallback = (theme not in theme_mapping) or (
+            mapped_profile == "General" and theme not in ["Kebab", "Kuchnia Polska"]
+        )
 
         # Check sections
         sections = data.get("menu_config", {}).get("sections", [])
@@ -57,14 +59,17 @@ def verify_blueprints():
             logger.error(f"ERROR: {theme}: No Sections Defined!")
 
         if is_fallback:
-             themes_without_specific_mapping.append(theme)
-             # logger.warning(f"  {status_icon} {theme}: {status_text}")
+            themes_without_specific_mapping.append(theme)
 
     if themes_without_specific_mapping:
-        logger.warning(f"\nWARNING:  {len(themes_without_specific_mapping)} Themes are falling back to 'General' (Missing specific menu):")
+        logger.warning(
+            f"\nWARNING:  {len(themes_without_specific_mapping)} Themes are falling back to 'General' (Missing specific menu):"
+        )
         for t in themes_without_specific_mapping:
             logger.warning(f"   - {t}")
-        logger.info("   -> Recommendations: Create new mappings in phase2_restaurants.py and new menu profiles in phase3_dishes.py")
+        logger.info(
+            "   -> Recommendations: Create new mappings in phase2_restaurants.py and new menu profiles in phase3_dishes.py"
+        )
 
     # 2. Dish Reachability (Orphans)
     logger.info("\n--- 2. Dish Reachability Analysis ---")
@@ -83,9 +88,9 @@ def verify_blueprints():
     if orphans:
         logger.error(f"ERROR: Found {len(orphans)} ORPHANED Dish Categories (Never Generated):")
         for o in orphans:
-             possible_match = [k for k in MENU_BLUEPRINTS if k.lower() in o.lower()]
-             hint = f"(Maybe add to {possible_match[0]}?)" if possible_match else ""
-             logger.error(f"   - {o} {hint}")
+            possible_match = [k for k in MENU_BLUEPRINTS if k.lower() in o.lower()]
+            hint = f"(Maybe add to {possible_match[0]}?)" if possible_match else ""
+            logger.error(f"   - {o} {hint}")
     else:
         logger.info("OK: All dish categories are reachable.")
 
@@ -107,9 +112,11 @@ def verify_blueprints():
                     unknown_ingredients[ing].append(f"{category}/{v_name}")
 
     if unknown_ingredients:
-        logger.warning(f"WARNING: Found {len(unknown_ingredients)} ingredients used in dishes but NOT in ingredients_list.json:")
+        logger.warning(
+            f"WARNING: Found {len(unknown_ingredients)} ingredients used in dishes but NOT in ingredients_list.json:"
+        )
         sorted_unknown = sorted(unknown_ingredients.items(), key=lambda x: len(x[1]), reverse=True)
-        for ing, usage in sorted_unknown[:10]: # Top 10
+        for ing, usage in sorted_unknown[:10]:  # Top 10
             logger.warning(f"   - '{ing}': used in {len(usage)} dishes (e.g. {usage[0]})")
         if len(unknown_ingredients) > 10:
             logger.warning(f"   ... and {len(unknown_ingredients) - 10} more.")
@@ -121,35 +128,39 @@ def verify_blueprints():
 
     for category, content in dishes.items():
         if isinstance(content, dict):
-             # 1. Base Price
-             bp = content.get("base_price", {})
-             if not bp or "mean" not in bp:
-                 logger.error(f"ERROR: {category}: Missing base_price configuration")
+            # 1. Base Price
+            bp = content.get("base_price", {})
+            if not bp or "mean" not in bp:
+                logger.error(f"ERROR: {category}: Missing base_price configuration")
 
-             # 2. Inheritable Base Characteristics
-             archetype_base = content.get("archetype_base", {})
-             base_chars = archetype_base.get("characteristics", {})
-             if not base_chars:
-                 logger.warning(f"WARNING: {category}: 'archetype_base.characteristics' is empty. Variants will need to define all stats.")
+            # 2. Inheritable Base Characteristics
+            archetype_base = content.get("archetype_base", {})
+            base_chars = archetype_base.get("characteristics", {})
+            if not base_chars:
+                logger.warning(
+                    f"WARNING: {category}: 'archetype_base.characteristics' is empty. Variants will need to define all stats."
+                )
 
-             # 3. Variants
-             variants = content.get("variants", {})
-             if not variants:
-                 logger.warning(f"WARNING: {category}: No variants defined (Empty category)")
+            # 3. Variants
+            variants = content.get("variants", {})
+            if not variants:
+                logger.warning(f"WARNING: {category}: No variants defined (Empty category)")
 
-             for v_name, v_data in variants.items():
-                 # Check pixabay term
-                 if not v_data.get("pixabay_term"):
-                     logger.warning(f"WARNING: {category}/{v_name}: Missing 'pixabay_term' (Photos will fail)")
+            for v_name, v_data in variants.items():
+                # Check pixabay term
+                if not v_data.get("pixabay_term"):
+                    logger.warning(f"WARNING: {category}/{v_name}: Missing 'pixabay_term' (Photos will fail)")
 
-                 # Check Characteristics Inheritance
-                 variant_chars = v_data.get("characteristics", {})
+                # Check Characteristics Inheritance
+                variant_chars = v_data.get("characteristics", {})
 
-                 # Simulate Merge (Conceptual)
-                 # We consider it "Valid" if either Base OR Variant provides data.
-                 # If both are empty, the dish will be "Blank" (likely random gen in Phase 3).
-                 if not base_chars and not variant_chars:
-                     logger.warning(f"WARNING: {category}/{v_name}: No characteristics in Base AND No characteristics in Variant. Dish will be purely random.")
+                # Simulate Merge (Conceptual)
+                # We consider it "Valid" if either Base OR Variant provides data.
+                # If both are empty, the dish will be "Blank" (likely random gen in Phase 3).
+                if not base_chars and not variant_chars:
+                    logger.warning(
+                        f"WARNING: {category}/{v_name}: No characteristics in Base AND No characteristics in Variant. Dish will be purely random."
+                    )
 
     logger.info("\n--- Verification Complete ---")
 

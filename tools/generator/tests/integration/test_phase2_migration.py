@@ -70,11 +70,7 @@ class TestPhase2DependencyValidation:
         mock_db.fetch_all.return_value = []  # No cities
 
         phase = RestaurantsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={"num_restaurants": 100},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={"num_restaurants": 100}, phase_registry=PhaseRegistry())
 
         # Should execute but handle empty cities gracefully
         # (The actual function might have its own error handling)
@@ -94,17 +90,13 @@ class TestPhase2ExecutionStructure:
         """Test that execute() returns proper PhaseResult structure."""
         mock_db = MagicMock()
         mock_db.fetch_val.side_effect = [
-            50,   # restaurants count
+            50,  # restaurants count
             150,  # menu_sections count
             350,  # opening_hours count
         ]
 
         phase = RestaurantsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={"num_restaurants": 50},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={"num_restaurants": 50}, phase_registry=PhaseRegistry())
 
         # Mock the generate_restaurants function
         with patch("generators.phase2_restaurants.generate_restaurants"):
@@ -134,11 +126,7 @@ class TestPhase2ErrorHandling:
         mock_db = MagicMock()
 
         phase = RestaurantsPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock generate_restaurants to raise an exception
         with patch("generators.phase2_restaurants.generate_restaurants") as mock_gen:

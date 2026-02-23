@@ -227,11 +227,7 @@ class PixabayDownloader:
         return urls[:min_count]
 
     def search_mixed(
-        self,
-        query: str,
-        count: int,
-        orientation: str = "horizontal",
-        pixabay_ratio: float = 0.6
+        self, query: str, count: int, orientation: str = "horizontal", pixabay_ratio: float = 0.6
     ) -> list[ImageResult]:
         """
         Search multiple providers and mix results for visual diversity.
@@ -248,11 +244,7 @@ class PixabayDownloader:
         return self.provider_manager.search_mixed(query, count, orientation, pixabay_ratio)
 
     def search_mixed_urls(
-        self,
-        query: str,
-        count: int,
-        orientation: str = "horizontal",
-        pixabay_ratio: float = 0.6
+        self, query: str, count: int, orientation: str = "horizontal", pixabay_ratio: float = 0.6
     ) -> list[str]:
         """
         Search multiple providers and return URLs only (for compatibility).
@@ -283,9 +275,7 @@ class PixabayDownloader:
         avatar_mode: bool = False,
     ) -> tuple[bool, dict[str, Any] | None]:
         """Download one image and save it at full, thumb, and optionally tiny size."""
-        return self.download_service.process_image_multi_size(
-            url, save_path_full, include_tiny, avatar_mode
-        )
+        return self.download_service.process_image_multi_size(url, save_path_full, include_tiny, avatar_mode)
 
     def download_batch(self, tasks: list[tuple]) -> list[dict[str, Any]]:
         """Execute a batch of (url, save_path, rel_path[, size]) download tasks."""
@@ -332,10 +322,14 @@ class PixabayDownloader:
                 parts = rel.parts
 
                 if (
-                    len(parts) == 4 and parts[0] == "dishes"
-                    or len(parts) == 3 and parts[0] == "restaurants"
-                    or len(parts) == 2 and parts[0] == "avatars"
-                    or len(parts) == 2 and parts[0] == "ingredients"
+                    len(parts) == 4
+                    and parts[0] == "dishes"
+                    or len(parts) == 3
+                    and parts[0] == "restaurants"
+                    or len(parts) == 2
+                    and parts[0] == "avatars"
+                    or len(parts) == 2
+                    and parts[0] == "ingredients"
                 ):
                     expected_files.append(path)
                 else:
@@ -488,10 +482,12 @@ class PixabayDownloader:
         tasks = []
         ing_name_map = {}  # Map task index to ingredient name
 
-        for ing_name in tqdm(ingredients, desc="Preparing ingredient tasks", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+        for ing_name in tqdm(
+            ingredients, desc="Preparing ingredient tasks", mininterval=1.0, disable=LoggingConfig.is_quiet()
+        ):
             # Sanitize filename: allow alphanumeric and underscore, dash.
             # This matches our actual folder structure (e.g. "ciasto_makaronowe")
-            safe_name = "".join(c for c in ing_name if c.isalnum() or c in ('_', '-')).lower()
+            safe_name = "".join(c for c in ing_name if c.isalnum() or c in ("_", "-")).lower()
 
             # Structure: ingredients/name/name_001.webp
             ing_sub_dir = ing_dir / safe_name
@@ -565,7 +561,8 @@ class PixabayDownloader:
 
             for variant_name, variant_data in variants.items():
                 target_count = random.randint(
-                    int(PHOTO_CONFIG["min_photos_per_variant"]), int(PHOTO_CONFIG["max_photos_per_variant"])  # type: ignore
+                    int(PHOTO_CONFIG["min_photos_per_variant"]),
+                    int(PHOTO_CONFIG["max_photos_per_variant"]),  # type: ignore
                 )
 
                 query = variant_data.get("pixabay_term")
@@ -645,6 +642,7 @@ class PixabayDownloader:
             logger.info(f"Cleaning existing avatars folder: {avatars_dir}")
             try:
                 import shutil
+
                 shutil.rmtree(avatars_dir)
             except Exception as e:
                 logger.warning(f"Failed to clean avatars folder: {e}")
@@ -727,6 +725,7 @@ class PixabayDownloader:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Photo Fetcher")
     parser.add_argument("--no-cleanup", action="store_true", help="Skip the cleanup/delete phase")
     parser.add_argument("--only-ingredients", action="store_true", help="Download only ingredients")

@@ -27,9 +27,7 @@ def test_log_rotation_configured():
     root = logging.getLogger()
 
     # Find rotating file handler
-    rotating_handlers = [
-        h for h in root.handlers if isinstance(h, RotatingFileHandler)
-    ]
+    rotating_handlers = [h for h in root.handlers if isinstance(h, RotatingFileHandler)]
 
     assert len(rotating_handlers) > 0
     handler = rotating_handlers[0]
@@ -45,9 +43,7 @@ def test_console_handler_disabled_in_quiet():
     console_handlers = [
         h
         for h in root.handlers
-        if isinstance(h, logging.StreamHandler)
-        and hasattr(h.stream, "name")
-        and h.stream.name == "<stdout>"
+        if isinstance(h, logging.StreamHandler) and hasattr(h.stream, "name") and h.stream.name == "<stdout>"
     ]
 
     assert len(console_handlers) == 0

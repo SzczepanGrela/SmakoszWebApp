@@ -63,7 +63,11 @@ MENU_BLUEPRINTS: dict[str, dict] = {
     "Indian Restaurant": {"archetypes": ["Curry", "Naan", "Ryż", "Zupa"], "mean": 30, "sigma": 6},
     "Greek Taverna": {"archetypes": ["Danie Greckie", "Sałatka", "Owoce Morza", "Wino"], "mean": 28, "sigma": 5},
     "BBQ Smokehouse": {"archetypes": ["Dania BBQ", "Stek", "Burger", "Frytki", "Piwo"], "mean": 25, "sigma": 5},
-    "Korean Restaurant": {"archetypes": ["Danie Koreańskie", "Zupa", "Ryż", "Danie Azjatyckie"], "mean": 26, "sigma": 6},
+    "Korean Restaurant": {
+        "archetypes": ["Danie Koreańskie", "Zupa", "Ryż", "Danie Azjatyckie"],
+        "mean": 26,
+        "sigma": 6,
+    },
     "Tapas Bar": {"archetypes": ["Tapas", "Wino", "Owoce Morza", "Przystawka"], "mean": 18, "sigma": 4},
     "American Diner": {"archetypes": ["Burger", "Milkshake", "Naleśniki", "Frytki", "Kawa"], "mean": 20, "sigma": 5},
     "German Pub": {"archetypes": ["Danie Niemieckie", "Kiełbasa", "Piwo", "Precel"], "mean": 22, "sigma": 4},
@@ -73,7 +77,15 @@ MENU_BLUEPRINTS: dict[str, dict] = {
         "mean": 15,
         "sigma": 4,
     },
-    "Sandwich Shop": {"archetypes": ["Kanapka", "Panini", "Sałatka", "Kawa", "Napój Bezalkoholowy"], "mean": 12, "sigma": 3},
+    "Sandwich Shop": {
+        "archetypes": ["Kanapka", "Panini", "Sałatka", "Kawa", "Napój Bezalkoholowy"],
+        "mean": 12,
+        "sigma": 3,
+    },
     "Cafe": {"archetypes": ["Kawa", "Herbata", "Deser", "Ciasto", "Kanapka"], "mean": 15, "sigma": 4},
-    "Fine Dining": {"archetypes": ["Stek", "Owoce Morza", "Wino", "Deser", "Danie Francuskie"], "mean": 45, "sigma": 10},
+    "Fine Dining": {
+        "archetypes": ["Stek", "Owoce Morza", "Wino", "Deser", "Danie Francuskie"],
+        "mean": 45,
+        "sigma": 10,
+    },
 }
