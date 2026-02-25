@@ -26,6 +26,7 @@ public class GetReviewsByUserHandler
         CancellationToken cancellationToken)
     {
         var user = await _db.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Slug == request.UserSlug && !u.IsDeleted, cancellationToken);
 
         if (user is null)
@@ -39,6 +40,7 @@ public class GetReviewsByUserHandler
             : [];
 
         var result = await _db.Reviews
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Dish)
             .Include(r => r.Restaurant)

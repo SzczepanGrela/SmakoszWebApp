@@ -26,6 +26,7 @@ public class GetReviewsByDishHandler
         CancellationToken cancellationToken)
     {
         var dish = await _db.Dishes
+            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Slug == request.DishSlug, cancellationToken);
 
         if (dish is null)
@@ -39,6 +40,7 @@ public class GetReviewsByDishHandler
             : [];
 
         var query = _db.Reviews
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Dish)
             .Include(r => r.Restaurant)

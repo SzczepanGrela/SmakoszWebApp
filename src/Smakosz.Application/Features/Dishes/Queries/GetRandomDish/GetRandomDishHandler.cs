@@ -20,6 +20,7 @@ public class GetRandomDishHandler : IRequestHandler<GetRandomDishQuery, ErrorOr<
     public async Task<ErrorOr<DishCardDto>> Handle(GetRandomDishQuery request, CancellationToken cancellationToken)
     {
         var dish = await _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .OrderBy(_ => EF.Functions.Random())

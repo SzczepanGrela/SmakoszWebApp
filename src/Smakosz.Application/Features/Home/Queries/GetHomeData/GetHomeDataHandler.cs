@@ -33,6 +33,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         };
 
         var trendingRestaurants = await _db.Restaurants
+            .AsNoTracking()
             .Include(r => r.City)
             .Where(r => r.Status == RestaurantStatus.Active)
             .OrderByDescending(r => r.TrendingScore)
@@ -54,6 +55,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .ToListAsync(cancellationToken);
 
         var trendingDishes = await _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .OrderByDescending(d => d.TrendingScore)
@@ -78,6 +80,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .ToListAsync(cancellationToken);
 
         var topRatedDishes = await _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .OrderByDescending(d => d.AvgRating)
@@ -102,6 +105,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .ToListAsync(cancellationToken);
 
         var recentReviews = await _db.Reviews
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Dish)
             .Include(r => r.Restaurant)
@@ -139,6 +143,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .ToListAsync(cancellationToken);
 
         var popularCategories = await _db.Restaurants
+            .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.CuisineType != null)
             .GroupBy(r => r.CuisineType!)
             .OrderByDescending(g => g.Count())

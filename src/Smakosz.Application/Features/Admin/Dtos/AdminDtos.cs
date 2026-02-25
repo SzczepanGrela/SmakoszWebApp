@@ -1,0 +1,167 @@
+namespace Smakosz.Application.Features.Admin.Dtos;
+
+public class AdminDashboardDto
+{
+    public int TotalUsers { get; init; }
+    public int TotalRestaurants { get; init; }
+    public int TotalReviews { get; init; }
+    public int PendingReports { get; init; }
+    public int PendingCorrections { get; init; }
+}
+
+public class AdminUserDto
+{
+    public int UserId { get; init; }
+    public string Username { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public string Role { get; init; } = default!;
+    public string Status { get; init; } = default!;
+    public bool EmailVerified { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
+public class AdminRestaurantDto
+{
+    public int RestaurantId { get; init; }
+    public string Name { get; init; } = default!;
+    public string Slug { get; init; } = default!;
+    public string Status { get; init; } = default!;
+    public string? OwnerUsername { get; init; }
+    public decimal AverageRating { get; init; }
+    public int ReviewCount { get; init; }
+}
+
+public class AdminReportDto
+{
+    public int ReportId { get; init; }
+    public string EntityType { get; init; } = default!;
+    public int EntityId { get; init; }
+    public string Reason { get; init; } = default!;
+    public string Status { get; init; } = default!;
+    public string? ReporterUsername { get; init; }
+    public DateTime CreatedAt { get; init; }
+}
+
+public class AdminLogDto
+{
+    public int LogId { get; init; }
+    public string Level { get; init; } = default!;
+    public string Message { get; init; } = default!;
+    public DateTime Timestamp { get; init; }
+}
+
+public class AdminUserDetailDto
+{
+    public int UserId { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public bool EmailVerified { get; set; }
+    public bool IsBanned { get; set; }
+    public bool Is2faEnabled { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? Slug { get; set; }
+    public int ReviewCount { get; set; }
+    public int FollowersCount { get; set; }
+    public int FollowingCount { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+}
+
+public class AdminIngredientDto
+{
+    public int IngredientId { get; set; }
+    public string IngredientName { get; set; } = string.Empty;
+    public bool IsAllergen { get; set; }
+    public bool IsVegetarian { get; set; }
+    public bool IsVegan { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class AdminCityDto
+{
+    public int Id { get; set; }
+    public string CityName { get; set; } = string.Empty;
+    public string? Region { get; set; }
+    public int RestaurantCount { get; set; }
+}
+
+public class AdminTicketDto
+{
+    public int TicketId { get; set; }
+    public string TicketType { get; set; } = string.Empty;
+    public long ReferenceId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public int Priority { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class PhotoModerationDto
+{
+    public long AssetId { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string EntityType { get; set; } = string.Empty;
+    public int EntityId { get; set; }
+    public string? UploadedByUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class ReviewModerationDto
+{
+    public int ReviewId { get; set; }
+    public string? Username { get; set; }
+    public string? DishName { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? Content { get; set; }
+    public int DishRating { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class EditRequestDto
+{
+    public int RequestId { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? Username { get; set; }
+    public string ChangeType { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string Payload { get; set; } = string.Empty;
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class SystemConfigDto
+{
+    public string Key { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsSecret { get; set; }
+    public bool IsPublic { get; set; }
+}
+
+public class SystemLogDto
+{
+    public long Id { get; set; }
+    public string Source { get; set; } = string.Empty;
+    public string Level { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class JobDto
+{
+    public int JobId { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public int Priority { get; set; }
+    public int Progress { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
+}
+
+public class AiModelDto
+{
+    public string? ModelType { get; set; }
+    public string? ModelVersion { get; set; }
+    public int UsageCount { get; set; }
+    public DateTime? LastUsed { get; set; }
+}
