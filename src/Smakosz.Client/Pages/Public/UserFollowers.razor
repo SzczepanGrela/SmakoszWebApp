@@ -1,0 +1,39 @@
+@page "/users/{Slug}/followers"
+@inject Smakosz.Client.Services.IUserProfileService UserProfileService
+
+<PageTitle>Obserwujacy - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h2><i class="fa-solid fa-users me-2"></i>Obserwujacy @Slug</h2>
+    @if (_loading)
+    {
+        <Smakosz.Client.Components.LoadingSpinner />
+    }
+    else if (_result != null && _result.Data.Any())
+    {
+        <div class="row">
+            @foreach (var user in _result.Data)
+            {
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card p-3">
+                        <Smakosz.Client.Components.UserCard User="@user" ShowFollowButton="true" />
+                    </div>
+                </div>
+            }
+        </div>
+        <Smakosz.Client.Components.Pagination Info="@_result.Pagination" OnPageChange="Load" />
+    }
+    else
+    {
+        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-users" Title="Brak obserwujacych" />
+    }
+</div>
+
+@code {
+    [Parameter] public string Slug { get; set; } = default!;
+    private Smakosz.Client.Models.PagedResult<Smakosz.Client.Models.UserSummaryDto>? _result;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() { await Load(1); _loading = false; }
+    private async Task Load(int page) { _result = await UserProfileService.GetFollowersAsync(Slug, page); }
+}

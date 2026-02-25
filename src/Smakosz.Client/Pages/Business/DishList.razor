@@ -1,0 +1,115 @@
+@page "/restaurant/dishes"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+@inject ToastService Toast
+
+<PageTitle>Dania - Panel restauracji</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-bowl-food me-2"></i>Dania</h2>
+    <a href="/restaurant/dishes/add" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj danie
+    </a>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_dishes == null || !_dishes.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-bowl-food" Title="Brak dan" Description="Dodaj pierwsze danie do swojego menu." ActionText="Dodaj danie" ActionUrl="/restaurant/dishes/add" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nazwa</th>
+                    <th>Cena</th>
+                    <th>Ocena</th>
+                    <th>Recenzje</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dish in _dishes.Data)
+                {
+                    <tr>
+                        <td>
+                            <img src="@Helpers.ImageHelper.GetDishImage(dish.ImageUrl)" class="rounded"
+                                 style="width:48px;height:48px;object-fit:cover;" alt="@dish.DishName" />
+                        </td>
+                        <td class="fw-medium align-middle">@dish.DishName</td>
+                        <td class="align-middle">@(dish.Price?.ToString("F2") ?? "-") zl</td>
+                        <td class="align-middle">
+                            @if (dish.AvgRating.HasValue)
+                            {
+                                <span style="color:var(--accent-color);">@dish.AvgRating.Value.ToString("F1")</span>
+                            }
+                            else { <span class="text-muted">-</span> }
+                        </td>
+                        <td class="align-middle">@dish.ReviewCount</td>
+                        <td class="align-middle text-end">
+                            <a href="/restaurant/dishes/edit/@dish.PublicId" class="btn btn-outline-primary btn-sm me-1">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => ConfirmDelete(dish)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_dishes.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_dishes.Pagination" OnPageChange="LoadPage" />
+    }
+
+    @if (_dishToDelete != null)
+    {
+        <ConfirmModal Message="@($"Czy na pewno chcesz usunac danie \"{_dishToDelete.DishName}\"?")" OnConfirm="HandleDelete" />
+    }
+}
+
+@code {
+    private PagedResult<DishCardDto>? _dishes;
+    private DishCardDto? _dishToDelete;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _dishes = await BusinessService.GetDishesAsync(page);
+        _loading = false;
+    }
+
+    private void ConfirmDelete(DishCardDto dish) => _dishToDelete = dish;
+
+    private async Task HandleDelete()
+    {
+        if (_dishToDelete == null) return;
+        var success = await BusinessService.DeleteDishAsync(_dishToDelete.PublicId);
+        if (success)
+        {
+            Toast.ShowSuccess("Danie zostalo usuniete.");
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie usunac dania.");
+        }
+        _dishToDelete = null;
+    }
+}

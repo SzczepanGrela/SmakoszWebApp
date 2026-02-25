@@ -1,0 +1,152 @@
+@page "/profile/settings"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IUserProfileService UserProfileService
+@inject ToastService Toast
+
+<PageTitle>Ustawienia - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fa-solid fa-gear me-2"></i>Ustawienia</h1>
+
+    @if (_loading)
+    {
+        <LoadingSpinner Text="Ladowanie ustawien..." />
+    }
+    else if (_profile == null)
+    {
+        <EmptyState Icon="fa-solid fa-gear" Title="Nie udalo sie zaladowac ustawien"
+                    Description="Sprobuj odswiezyc strone." />
+    }
+    else
+    {
+        <div class="row">
+            <!-- Sidebar navigation -->
+            <div class="col-lg-3 mb-4">
+                <div class="list-group shadow-sm">
+                    <a href="/profile" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-user me-2"></i>Profil
+                    </a>
+                    <a href="/profile/settings" class="list-group-item list-group-item-action active">
+                        <i class="fa-solid fa-gear me-2"></i>Ustawienia
+                    </a>
+                    <a href="/profile/security" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                    </a>
+                    <a href="/profile/notifications" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-bell me-2"></i>Powiadomienia
+                    </a>
+                </div>
+            </div>
+
+            <!-- Settings content -->
+            <div class="col-lg-9">
+                <!-- Informacje osobiste -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-address-card me-2"></i>Informacje osobiste</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                            </div>
+                        }
+                        @if (_saved)
+                        {
+                            <div class="alert alert-success">
+                                <i class="fa-solid fa-check me-2"></i>Zmiany zostaly zapisane.
+                            </div>
+                        }
+
+                        <EditForm Model="_profile" OnValidSubmit="HandleSave">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Bio</label>
+                                <textarea class="form-control" rows="4" @bind="_profile.Bio"
+                                          placeholder="Napisz cos o sobie... Co lubisz jesc? Jakie sa Twoje ulubione kuchnie?"></textarea>
+                                <small class="text-muted">Twoje bio jest widoczne dla innych uzytkownikow.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Miasto</label>
+                                <input type="text" class="form-control" @bind="_profile.City"
+                                       placeholder="np. Warszawa, Krakow, Wroclaw..." />
+                                <small class="text-muted">Ulatwia nam dopasowanie rekomendacji do Twojej lokalizacji.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">URL avatara</label>
+                                <input type="url" class="form-control" @bind="_profile.AvatarUrl"
+                                       placeholder="https://..." />
+                                <small class="text-muted">Link do Twojego zdjecia profilowego.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary" disabled="@_saving">
+                                @if (_saving)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Zapisz zmiany
+                            </button>
+                        </EditForm>
+                    </div>
+                </div>
+
+                <!-- Powiadomienia link -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-bell me-2"></i>Powiadomienia</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Zarzadzaj swoimi preferencjami dotyczacymi powiadomien.</p>
+                        <a href="/profile/notifications" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdz do ustawien powiadomien
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bezpieczenstwo link -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Zmien haslo i zarzadzaj aktywnymi sesjami.</p>
+                        <a href="/profile/security" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdz do ustawien bezpieczenstwa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private MyProfileDto? _profile;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _saved;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profile = await UserProfileService.GetMyProfileAsync();
+        _loading = false;
+    }
+
+    private async Task HandleSave()
+    {
+        _saving = true;
+        _error = null;
+        _saved = false;
+        var success = await UserProfileService.UpdateProfileAsync(_profile!);
+        if (success)
+        {
+            _saved = true;
+            Toast.ShowSuccess("Ustawienia zostaly zapisane.");
+        }
+        else
+        {
+            _error = "Nie udalo sie zapisac zmian. Sprobuj ponownie.";
+        }
+        _saving = false;
+    }
+}

@@ -1,0 +1,67 @@
+@page "/admin/system-config"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Konfiguracja - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-gear me-2"></i>Konfiguracja systemu</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (!_configs.Any())
+{
+    <EmptyState Icon="fa-solid fa-gear" Title="Brak konfiguracji" />
+}
+else
+{
+    @foreach (var group in _configs.GroupBy(c => c.Category ?? "Ogolne"))
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">@group.Key</h5></div>
+            <div class="card-body">
+                @foreach (var config in group)
+                {
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium mb-0">@config.Key</label>
+                            @if (!string.IsNullOrEmpty(config.Description))
+                            {
+                                <small class="text-muted d-block">@config.Description</small>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control form-control-sm" @bind="config.Value" />
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary btn-sm" @onclick="() => SaveConfig(config)">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<AdminSystemConfigDto> _configs = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _configs = await AdminService.GetSystemConfigAsync();
+        _loading = false;
+    }
+
+    private async Task SaveConfig(AdminSystemConfigDto config)
+    {
+        var success = await AdminService.UpdateSystemConfigAsync(config.Key, config.Value);
+        if (success) Toast.ShowSuccess($"Klucz \"{config.Key}\" zaktualizowany.");
+        else Toast.ShowError("Nie udalo sie zapisac.");
+    }
+}

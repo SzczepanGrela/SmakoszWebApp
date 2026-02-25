@@ -1,0 +1,77 @@
+@page "/admin/reviews"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Moderacja recenzji - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-comments me-2"></i>Moderacja recenzji</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_reviews == null || !_reviews.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji do moderacji" Description="Wszystkie recenzje zostaly sprawdzone." />
+}
+else
+{
+    @foreach (var review in _reviews.Data)
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <strong>@review.AuthorUsername</strong>
+                        <span class="text-muted mx-2">o</span>
+                        <strong>@review.DishName</strong>
+                        <small class="text-muted ms-2">(@review.RestaurantName)</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (review.ReportCount > 0)
+                        {
+                            <span class="badge bg-danger"><i class="fa-solid fa-flag me-1"></i>@review.ReportCount zgl.</span>
+                        }
+                        <StatusBadge Status="@review.ContentStatus" />
+                    </div>
+                </div>
+                <p class="mb-2">@review.Content</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="small text-muted">
+                        <span>Ocena dania: @review.DishRating/10</span>
+                        <span class="ms-3"><i class="fa-solid fa-calendar me-1"></i>@review.CreatedAt.ToString("dd.MM.yyyy")</span>
+                    </div>
+                    <ModerationActionBar OnModerate="args => ModerateReview(review.PublicId, args.Action, args.Reason)" />
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_reviews.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_reviews.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminReviewDto>? _reviews;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _reviews = await AdminService.GetPendingReviewsAsync(page);
+        _loading = false;
+    }
+
+    private async Task ModerateReview(Guid id, string action, string? reason)
+    {
+        var success = await AdminService.ModerateReviewAsync(id, action, reason);
+        if (success) { Toast.ShowSuccess(action == "approve" ? "Recenzja zatwierdzona." : "Recenzja odrzucona."); await LoadPage(1); }
+        else Toast.ShowError("Operacja nieudana.");
+    }
+}

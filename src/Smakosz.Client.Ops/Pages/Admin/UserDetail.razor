@@ -1,0 +1,104 @@
+@page "/admin/users/{Id:guid}"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Uzytkownik - Admin Smakosz</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_user == null)
+{
+    <EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono uzytkownika" ActionText="Powrot do listy" ActionUrl="/admin/users" />
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="/admin/users" class="btn btn-outline-secondary btn-sm me-2">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="fw-bold d-inline">@_user.Username</h2>
+        </div>
+        <div class="d-flex gap-2">
+            @if (_user.IsBanned)
+            {
+                <button class="btn btn-success btn-sm" @onclick='() => UserAction("unban")'>
+                    <i class="fa-solid fa-unlock me-1"></i>Odbanuj
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-danger btn-sm" @onclick='() => UserAction("ban")'>
+                    <i class="fa-solid fa-ban me-1"></i>Zbanuj
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Informacje</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@_user.Email @(_user.EmailVerified ? "(zweryfikowany)" : "(niezweryfikowany)")</dd>
+
+                        <dt class="col-sm-4">Rola</dt>
+                        <dd class="col-sm-8"><span class="badge bg-info">@_user.Role</span></dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            @if (_user.IsBanned) { <span class="badge bg-danger">Zbanowany</span> }
+                            else if (_user.IsActive) { <span class="badge bg-success">Aktywny</span> }
+                            else { <span class="badge bg-secondary">Nieaktywny</span> }
+                        </dd>
+
+                        <dt class="col-sm-4">Rejestracja</dt>
+                        <dd class="col-sm-8">@_user.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-4">Ostatnie logowanie</dt>
+                        <dd class="col-sm-8">@(_user.LastLoginAt?.ToString("dd.MM.yyyy HH:mm") ?? "Nigdy")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Statystyki</h5></div>
+                <div class="card-body text-center">
+                    <div class="fs-1 fw-bold" style="color:var(--accent-color);">@_user.ReviewCount</div>
+                    <small class="text-muted">Recenzji</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private AdminUserDto? _user;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await AdminService.GetUserAsync(Id);
+        _loading = false;
+    }
+
+    private async Task UserAction(string action)
+    {
+        var success = await AdminService.UpdateUserAsync(Id, action);
+        if (success)
+        {
+            Toast.ShowSuccess("Uzytkownik zaktualizowany.");
+            _user = await AdminService.GetUserAsync(Id);
+        }
+        else Toast.ShowError("Operacja nieudana.");
+    }
+}

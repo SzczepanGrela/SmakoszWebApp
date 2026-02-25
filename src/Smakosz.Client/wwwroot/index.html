@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smakosz - Znajdz najlepszy smak w miescie</title>
+    <base href="/" />
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YcnS/1f3sFp3YnMhLfM0P2Ep6h8B1k5Rl5W" crossorigin="anonymous" />
+
+    <!-- Font Awesome 6.5 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" />
+
+    <!-- App CSS -->
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="Smakosz.Client.styles.css" rel="stylesheet" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <meta name="theme-color" content="#D4A574" />
+</head>
+<body>
+    <div id="app">
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background-color:#E8DDD0;">
+            <div class="text-center">
+                <h1 style="color:#4A3428;font-size:2.5rem;font-weight:bold;">Smakosz</h1>
+                <div class="spinner-border" style="color:#D4A574;width:3rem;height:3rem;" role="status">
+                    <span class="visually-hidden">Ladowanie...</span>
+                </div>
+                <p style="color:#4A3428;margin-top:1rem;">Ladowanie aplikacji...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" style="display:none;position:fixed;bottom:0;width:100%;z-index:9999;">
+        <div class="alert alert-danger m-3" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            Wystapil nieoczekiwany blad. <a href="" class="alert-link">Odswiez strone</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+</body>
+</html>

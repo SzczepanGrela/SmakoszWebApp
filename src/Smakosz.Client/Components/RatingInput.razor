@@ -1,0 +1,28 @@
+<div class="mb-3">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="form-label fw-medium">@Label</label>
+    }
+    <div class="rating-stars-interactive">
+        @for (int i = 1; i <= 10; i++)
+        {
+            var val = i;
+            <i class="interactive-star fa-solid fa-star @(val <= Value ? "text-warning" : "text-muted")"
+               style="cursor:pointer;font-size:1.25rem;"
+               @onclick="() => SetValue(val)"></i>
+        }
+        <span class="ms-2 fw-bold">@Value/10</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    private async Task SetValue(int val)
+    {
+        Value = val;
+        await ValueChanged.InvokeAsync(val);
+    }
+}

@@ -1,0 +1,15 @@
+<button class="btn btn-outline-secondary btn-sm" @onclick="Share">
+    <i class="fa-solid fa-share-nodes me-1"></i>Udostepnij
+</button>
+
+@code {
+    [Parameter] public string Url { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private async Task Share()
+    {
+        await JS.InvokeVoidAsync("navigator.share", new { title = Title, url = Url });
+    }
+}

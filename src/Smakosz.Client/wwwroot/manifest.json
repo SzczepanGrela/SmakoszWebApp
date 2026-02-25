@@ -1,0 +1,21 @@
+{
+  "name": "Smakosz - Znajdz najlepszy smak w miescie",
+  "short_name": "Smakosz",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E8DDD0",
+  "theme_color": "#D4A574",
+  "description": "System recenzji restauracji i dan. Odkrywaj nowe smaki, oceniaj dania i dziel sie opiniami.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

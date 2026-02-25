@@ -1,0 +1,29 @@
+@page "/terms"
+@inject Smakosz.Client.Services.IContentService ContentService
+
+<PageTitle>Regulamin - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    @if (_loading)
+    {
+        <Smakosz.Client.Components.LoadingSpinner />
+    }
+    else if (_content != null)
+    {
+        <h1>@_content.Title</h1>
+        <div class="card p-4 mt-3">
+            @((MarkupString)_content.Content)
+        </div>
+    }
+</div>
+
+@code {
+    private Smakosz.Client.Models.ContentPageDto? _content;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _content = await ContentService.GetTermsPageAsync();
+        _loading = false;
+    }
+}

@@ -1,0 +1,82 @@
+@page "/admin/jobs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Zadania - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-clock-rotate-left me-2"></i>Zadania w tle</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_jobs == null || !_jobs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-clock-rotate-left" Title="Brak zadan" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Status</th>
+                    <th>Harmonogram</th>
+                    <th>Ostatnie uruchomienie</th>
+                    <th>Nastepne</th>
+                    <th>Sukcesy/Bledy</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var job in _jobs.Data)
+                {
+                    <tr>
+                        <td class="fw-medium">@job.JobName</td>
+                        <td><StatusBadge Status="@job.Status" /></td>
+                        <td class="text-muted small">@(job.Schedule ?? "-")</td>
+                        <td class="text-muted small">@(job.LastRun?.ToString("dd.MM HH:mm") ?? "Nigdy")</td>
+                        <td class="text-muted small">@(job.NextRun?.ToString("dd.MM HH:mm") ?? "-")</td>
+                        <td>
+                            <span class="text-success">@job.SuccessCount</span> / <span class="text-danger">@job.FailureCount</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-outline-primary btn-sm" @onclick="() => TriggerJob(job.Id)" title="Uruchom teraz">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_jobs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_jobs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminJobDto>? _jobs;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _jobs = await AdminService.GetJobsAsync(page);
+        _loading = false;
+    }
+
+    private async Task TriggerJob(int id)
+    {
+        var success = await AdminService.TriggerJobAsync(id);
+        if (success) { Toast.ShowSuccess("Zadanie uruchomione."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie uruchomic zadania.");
+    }
+}

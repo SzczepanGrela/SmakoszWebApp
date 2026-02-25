@@ -1,0 +1,18 @@
+@inject Smakosz.Client.Services.INotificationService NotificationService
+
+<a href="/notifications" class="nav-link notification-bell position-relative">
+    <i class="fa-solid fa-bell"></i>
+    @if (_unreadCount > 0)
+    {
+        <span class="badge rounded-pill bg-danger">@_unreadCount</span>
+    }
+</a>
+
+@code {
+    private int _unreadCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _unreadCount = await NotificationService.GetUnreadCountAsync();
+    }
+}

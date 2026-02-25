@@ -1,0 +1,34 @@
+@inject Smakosz.Client.Services.IDishService DishService
+@inject NavigationManager Navigation
+
+<section class="quick-actions-bar">
+    <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-primary btn-sm" @onclick="GetRandomDish">
+            <i class="fa-solid fa-dice me-1"></i>Losowe danie
+        </button>
+        <button class="btn btn-outline-info btn-sm" @onclick="NearbyRestaurants">
+            <i class="fa-solid fa-location-dot me-1"></i>W poblizu
+        </button>
+        <AuthorizeView>
+            <Authorized>
+                <a href="/recommendations" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Rekomendacje
+                </a>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</section>
+
+@code {
+    private async Task GetRandomDish()
+    {
+        var dish = await DishService.GetRandomAsync();
+        if (dish != null)
+            Navigation.NavigateTo($"/dish/{dish.Slug}");
+    }
+
+    private void NearbyRestaurants()
+    {
+        Navigation.NavigateTo("/search?location=w+poblizu");
+    }
+}

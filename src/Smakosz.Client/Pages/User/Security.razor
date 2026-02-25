@@ -1,0 +1,216 @@
+@page "/profile/security"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IUserProfileService UserProfileService
+@inject ToastService Toast
+
+<PageTitle>Bezpieczenstwo - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo</h1>
+
+    <div class="row">
+        <!-- Sidebar navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="list-group shadow-sm">
+                <a href="/profile" class="list-group-item list-group-item-action">
+                    <i class="fa-solid fa-user me-2"></i>Profil
+                </a>
+                <a href="/profile/settings" class="list-group-item list-group-item-action">
+                    <i class="fa-solid fa-gear me-2"></i>Ustawienia
+                </a>
+                <a href="/profile/security" class="list-group-item list-group-item-action active">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                </a>
+                <a href="/profile/notifications" class="list-group-item list-group-item-action">
+                    <i class="fa-solid fa-bell me-2"></i>Powiadomienia
+                </a>
+            </div>
+        </div>
+
+        <!-- Security content -->
+        <div class="col-lg-9">
+            <!-- Change password -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa-solid fa-key me-2"></i>Zmiana hasla</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(_passwordError))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@_passwordError
+                        </div>
+                    }
+                    @if (_passwordChanged)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-check me-2"></i>Haslo zostalo zmienione.
+                        </div>
+                    }
+
+                    <EditForm Model="_passwordModel" OnValidSubmit="HandleChangePassword">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Obecne haslo</label>
+                            <PasswordInput Value="@_passwordModel.CurrentPassword"
+                                           ValueChanged="v => _passwordModel.CurrentPassword = v"
+                                           Placeholder="Wprowadz obecne haslo" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Nowe haslo</label>
+                            <PasswordInput Value="@_passwordModel.NewPassword"
+                                           ValueChanged="v => _passwordModel.NewPassword = v"
+                                           Placeholder="Wprowadz nowe haslo" />
+                            <small class="text-muted">Minimum 8 znakow, wielka litera, cyfra i znak specjalny.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Potwierdz nowe haslo</label>
+                            <PasswordInput Value="@_passwordModel.ConfirmPassword"
+                                           ValueChanged="v => _passwordModel.ConfirmPassword = v"
+                                           Placeholder="Powtorz nowe haslo" />
+                        </div>
+                        <button type="submit" class="btn btn-primary" disabled="@_changingPassword">
+                            @if (_changingPassword)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Zmien haslo
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+
+            <!-- Active sessions -->
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa-solid fa-desktop me-2"></i>Aktywne sesje</h5>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="LoadSessions" disabled="@_loadingSessions">
+                        <i class="fa-solid fa-rotate me-1"></i>Odswiez
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (_loadingSessions)
+                    {
+                        <LoadingSpinner Text="Ladowanie sesji..." />
+                    }
+                    else if (_sessions == null || !_sessions.Any())
+                    {
+                        <EmptyState Icon="fa-solid fa-desktop" Title="Brak aktywnych sesji"
+                                    Description="Nie znaleziono aktywnych sesji." />
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var session in _sessions)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fa-solid @GetDeviceIcon(session.Device) text-muted"></i>
+                                            <strong>@session.Device</strong>
+                                            @if (session.IsCurrent)
+                                            {
+                                                <span class="badge bg-success">Obecna sesja</span>
+                                            }
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            @if (!string.IsNullOrEmpty(session.IpAddress))
+                                            {
+                                                <span>IP: @session.IpAddress</span>
+                                                <span class="mx-1">|</span>
+                                            }
+                                            Zalogowano: @session.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                            <span class="mx-1">|</span>
+                                            Wygasa: @session.ExpiresAt.ToString("dd.MM.yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<SessionDto>? _sessions;
+    private bool _loadingSessions = true;
+    private bool _changingPassword;
+    private bool _passwordChanged;
+    private string? _passwordError;
+
+    private ChangePasswordModel _passwordModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSessions();
+    }
+
+    private async Task LoadSessions()
+    {
+        _loadingSessions = true;
+        _sessions = await UserProfileService.GetSessionsAsync();
+        _loadingSessions = false;
+    }
+
+    private async Task HandleChangePassword()
+    {
+        _passwordError = null;
+        _passwordChanged = false;
+
+        if (string.IsNullOrWhiteSpace(_passwordModel.CurrentPassword))
+        {
+            _passwordError = "Wprowadz obecne haslo.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_passwordModel.NewPassword))
+        {
+            _passwordError = "Wprowadz nowe haslo.";
+            return;
+        }
+        if (_passwordModel.NewPassword.Length < 8)
+        {
+            _passwordError = "Nowe haslo musi miec co najmniej 8 znakow.";
+            return;
+        }
+        if (_passwordModel.NewPassword != _passwordModel.ConfirmPassword)
+        {
+            _passwordError = "Hasla nie sa zgodne.";
+            return;
+        }
+
+        _changingPassword = true;
+        var success = await UserProfileService.ChangePasswordAsync(
+            _passwordModel.CurrentPassword, _passwordModel.NewPassword);
+
+        if (success)
+        {
+            _passwordChanged = true;
+            _passwordModel = new ChangePasswordModel();
+            Toast.ShowSuccess("Haslo zostalo zmienione.");
+        }
+        else
+        {
+            _passwordError = "Nie udalo sie zmienic hasla. Sprawdz, czy obecne haslo jest poprawne.";
+        }
+        _changingPassword = false;
+    }
+
+    private static string GetDeviceIcon(string device)
+    {
+        var lower = device.ToLowerInvariant();
+        if (lower.Contains("mobile") || lower.Contains("android") || lower.Contains("iphone"))
+            return "fa-mobile-screen";
+        if (lower.Contains("tablet") || lower.Contains("ipad"))
+            return "fa-tablet-screen-button";
+        return "fa-desktop";
+    }
+
+    private class ChangePasswordModel
+    {
+        public string CurrentPassword { get; set; } = "";
+        public string NewPassword { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

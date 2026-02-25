@@ -1,0 +1,1102 @@
+/* ========================================================================
+   Smakosz App CSS - ported from _archive/SmakoszWebApp/wwwroot/css/site.css
+   All 989 lines preserved + Blazor-specific additions
+   ======================================================================== */
+
+/* Food-themed color palette */
+:root {
+    --primary-color: #D4A574;        /* Warm honey */
+    --secondary-color: #D4C4A8;      /* Darker cream */
+    --accent-color: #B8860B;         /* Dark goldenrod */
+    --background-color: #E8DDD0;     /* Warm taupe */
+    --text-color: #4A3428;           /* Dark brown */
+    --card-bg: #F2EDE6;              /* Light warm beige */
+    --hover-color: #E8C07D;          /* Lighter honey */
+    --shadow-color: rgba(74, 52, 40, 0.2);
+}
+
+html {
+    font-size: 14px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--background-color), 0 0 0 0.25rem var(--primary-color);
+}
+
+/* Hero section */
+.hero-section {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 70vh;
+    margin-top: -76px;
+    padding-top: 76px;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+    z-index: 1;
+}
+
+.hero-section > .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Dish Card Styling */
+.dish-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    height: 100%;
+    border: 1px solid var(--secondary-color);
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.dish-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-color);
+    border-color: var(--primary-color);
+}
+
+.dish-card-small {
+    transition: transform 0.2s ease-in-out;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 6px var(--shadow-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dish-card-small:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border-color: var(--primary-color);
+}
+
+.dish-card img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.dish-card-small img {
+    height: 120px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.dish-card-large img {
+    height: 280px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.dish-card .small-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.dish-tags {
+    margin-top: 0.5rem;
+}
+
+.dish-tags .badge {
+    font-size: 0.75rem;
+}
+
+/* Category cards */
+.category-card {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid var(--secondary-color);
+    text-decoration: none;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.category-card:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    background-color: var(--secondary-color);
+}
+
+.admin-sidebar .nav-link {
+    color: var(--text-color);
+    padding: 12px 16px;
+    border-radius: 0;
+    border-bottom: 1px solid var(--primary-color);
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+/* Main padding for fixed navbar */
+main {
+    padding-top: 76px;
+}
+
+/* Toast notifications */
+.toast-container {
+    z-index: 1055;
+    top: 90px !important;
+}
+
+.toast {
+    min-width: 300px;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
+
+.toast.showing {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.toast-body {
+    padding: 0.75rem;
+    word-wrap: break-word;
+}
+
+.toast .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toast-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.toast.animate-in {
+    animation: toast-slide-in 0.3s ease-out;
+}
+
+.toast.animate-out {
+    animation: toast-slide-out 0.3s ease-in;
+}
+
+.toast.bg-success {
+    background-color: #198754 !important;
+}
+
+.toast.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.toast.bg-warning {
+    background-color: #fd7e14 !important;
+    color: #000 !important;
+}
+
+.toast.bg-warning .btn-close {
+    filter: invert(1) grayscale(100%) brightness(0%);
+}
+
+.toast.bg-info {
+    background-color: #0dcaf0 !important;
+    color: #000 !important;
+}
+
+.toast.bg-info .btn-close {
+    filter: invert(1) grayscale(100%) brightness(0%);
+}
+
+/* Star ratings */
+.stars-lg i {
+    color: #ffc107;
+    margin-right: 2px;
+}
+
+.rating-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rating-stars i {
+    font-size: 1rem;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+    margin-right: 5px;
+}
+
+.rating-stars i:hover {
+    color: #ffc107;
+}
+
+.rating-stars .fa-lg {
+    font-size: 1.25rem;
+}
+
+.rating-stars-interactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rating-stars-interactive .interactive-star {
+    transition: color 0.2s ease;
+}
+
+.rating-stars-interactive .interactive-star:hover {
+    color: #ffc107 !important;
+}
+
+/* Profile */
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-header {
+    margin-bottom: 2rem;
+    padding: 2rem 0;
+}
+
+/* Review cards */
+.review-card {
+    background: var(--card-bg);
+    border: 1px solid var(--secondary-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.review-card:hover {
+    border-left-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-color);
+}
+
+.review-card-small {
+    border-radius: 6px;
+}
+
+.review-card-small .card-body {
+    padding: 1rem;
+}
+
+/* Filters panel */
+.filters-panel {
+    background-color: var(--secondary-color);
+    padding: 20px;
+    border-radius: 8px;
+    position: sticky;
+    top: 76px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border: 1px solid var(--primary-color);
+}
+
+/* Upload area */
+.upload-area {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px dashed var(--primary-color);
+    background-color: var(--card-bg);
+}
+
+.upload-area:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--accent-color);
+}
+
+/* Restaurant header */
+.restaurant-header {
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -76px;
+    padding-top: 76px;
+}
+
+/* Dish details panel */
+.dish-details-panel {
+    position: sticky;
+    top: 76px;
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: 1px solid var(--secondary-color);
+}
+
+/* Navbar */
+.navbar {
+    backdrop-filter: blur(10px);
+    background-color: var(--secondary-color) !important;
+    border-bottom: 1px solid var(--primary-color);
+}
+
+.navbar-brand {
+    font-size: 1.8rem;
+    color: var(--text-color) !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Button styles */
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    border: none;
+    transition: all 0.2s ease-in-out;
+    color: var(--background-color);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    background: linear-gradient(45deg, var(--hover-color), var(--primary-color));
+}
+
+/* Hero search form */
+.hero-section .form-control {
+    border: 1px solid var(--secondary-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    padding: 12px 16px;
+    background-color: var(--card-bg);
+}
+
+.hero-section .btn {
+    padding: 12px 24px;
+    font-weight: 600;
+}
+
+/* Cards general */
+.card {
+    border: 1px solid var(--secondary-color);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--card-bg);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--secondary-color);
+    border-top: 1px solid var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 50vh;
+        background-attachment: scroll;
+        padding: 2rem 0;
+    }
+
+    .hero-section .display-4 {
+        font-size: 2rem;
+    }
+
+    main {
+        padding-top: 66px;
+    }
+
+    .admin-sidebar {
+        position: static;
+        height: auto;
+    }
+
+    .filters-panel {
+        position: static;
+        margin-bottom: 20px;
+    }
+
+    .dish-details-panel {
+        position: static;
+        margin-top: 2rem;
+    }
+
+    .dish-of-day-card .card-body {
+        text-align: center;
+    }
+
+    .dish-of-day-card .row {
+        flex-direction: column;
+    }
+
+    .quick-actions-bar {
+        padding: 1rem;
+    }
+
+    .location-info-card .card-body {
+        padding: 1rem;
+    }
+
+    .restaurant-location-card .card-body {
+        padding: 1rem;
+    }
+
+    .location-info-card .row > div {
+        margin-bottom: 1.5rem;
+    }
+
+    .restaurant-location-card .row > div {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-section h1,
+.hero-section p {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-section p {
+    animation-delay: 0.2s;
+}
+
+/* Loading states */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #ffb300) !important;
+    color: #000 !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #138496) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333) !important;
+}
+
+/* Table improvements */
+.table-hover tbody tr:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Alert styling */
+.alert {
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+}
+
+.alert i {
+    margin-right: 0.5rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #cce7ff, #b8daff);
+    color: #0c5460;
+}
+
+/* Dish of the Day card */
+.dish-of-day-card {
+    background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 8px 32px var(--shadow-color);
+    overflow: hidden;
+}
+
+.dish-of-day-card .card-header {
+    background: linear-gradient(90deg, #ffc107, #ffb300) !important;
+    border: none;
+    font-weight: 600;
+}
+
+.dish-of-day-card img {
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.dish-of-day-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Quick choice cards */
+.quick-choice-card {
+    background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+    border: 1px solid var(--primary-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quick-choice-card:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-color);
+}
+
+/* Hero section stats */
+.hero-section .stats-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Quick actions bar */
+.quick-actions-bar {
+    background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+/* Section headings */
+.section-heading {
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: 2rem;
+}
+
+.section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 2px;
+}
+
+/* Shimmer animation on dish cards */
+.dish-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+    z-index: 1;
+}
+
+.dish-card:hover::before {
+    left: 100%;
+}
+
+/* Modal enhancements */
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    background: var(--card-bg);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Interactive button effects */
+.btn-interactive {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-interactive::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-interactive:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Floating action button */
+.floating-action {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border: none;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.floating-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px var(--shadow-color);
+}
+
+/* Loading animations */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.loading-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Restaurant Information Cards */
+.location-info-card, .restaurant-location-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 4px 16px var(--shadow-color);
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.location-info-card {
+    box-shadow: 0 8px 32px var(--shadow-color);
+}
+
+.location-info-card .card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border: none;
+    padding: 1.5rem;
+}
+
+.restaurant-location-card .card-header {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.location-info-card .card-body {
+    padding: 2rem;
+}
+
+.restaurant-location-card .card-body {
+    padding: 1.5rem;
+}
+
+.restaurant-location-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.location-info-card h5, .restaurant-location-card h5 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.location-info-card .btn, .restaurant-location-card .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.location-info-card .btn:hover, .restaurant-location-card .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.restaurant-location-card h5 a {
+    color: var(--accent-color);
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.restaurant-location-card h5 a:hover {
+    color: var(--primary-color);
+}
+
+/* Map and location buttons */
+.btn-map {
+    background: linear-gradient(45deg, #4285f4, #34a853);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-map:hover {
+    background: linear-gradient(45deg, #3367d6, #2d8a43);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    color: white;
+}
+
+/* Phone and website links */
+a[href^="tel:"] {
+    color: var(--accent-color);
+    transition: color 0.3s ease;
+}
+
+a[href^="tel:"]:hover {
+    color: var(--primary-color);
+}
+
+/* Location icons */
+.fa-map-marker-alt,
+.fa-location-dot {
+    color: #ea4335;
+}
+
+.fa-phone {
+    color: #34a853;
+}
+
+.fa-globe {
+    color: #4285f4;
+}
+
+.fa-route {
+    color: #fbbc04;
+}
+
+.fa-directions {
+    color: var(--primary-color);
+}
+
+/* Stars rating in location cards */
+.location-info-card .stars-lg i,
+.restaurant-location-card .stars-lg i {
+    font-size: 1.2rem;
+    margin-right: 2px;
+}
+
+/* Contact information */
+.contact-info {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Location sharing animation */
+@keyframes shareSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.share-success {
+    animation: shareSuccess 0.3s ease;
+}
+
+/* Button with Icon Styling */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn i {
+    font-size: 0.875rem;
+}
+
+.btn-sm i {
+    font-size: 0.75rem;
+}
+
+.btn-lg i {
+    font-size: 1rem;
+}
+
+/* Z-index utilities */
+.z-index-1 {
+    z-index: 1;
+}
+
+/* ========================================================================
+   Blazor-specific additions
+   ======================================================================== */
+
+/* Blazor validation */
+.validation-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #198754;
+}
+
+.invalid {
+    outline: 1px solid #dc3545;
+}
+
+/* Auth layout */
+.auth-layout {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Business sidebar */
+.business-sidebar {
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--secondary-color), var(--card-bg));
+    border-right: 1px solid var(--primary-color);
+}
+
+.business-sidebar .nav-link {
+    color: var(--text-color);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.3);
+    transition: all 0.2s ease;
+}
+
+.business-sidebar .nav-link:hover {
+    background-color: var(--hover-color);
+}
+
+.business-sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+/* Step wizard */
+.step-wizard .step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.step-wizard .step.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.step-wizard .step.completed {
+    background-color: #198754;
+    color: white;
+}
+
+.step-wizard .step-line {
+    flex: 1;
+    height: 2px;
+    background-color: var(--secondary-color);
+}
+
+.step-wizard .step-line.completed {
+    background-color: #198754;
+}
+
+/* Data table */
+.data-table {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.data-table th {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: none;
+}
+
+.data-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+/* Admin stat card */
+.admin-stat-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    transition: transform 0.2s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Notification bell */
+.notification-bell {
+    position: relative;
+}
+
+.notification-bell .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Skeleton loader */
+@keyframes skeleton-loading {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--secondary-color) 25%, var(--card-bg) 50%, var(--secondary-color) 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}

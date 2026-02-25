@@ -1,0 +1,14 @@
+<Modal IsOpen="@IsOpen" Title="Potwierdzenie" OnClose="@OnCancel">
+    <p>@Message</p>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-outline-secondary" @onclick="OnCancel">Anuluj</button>
+        <button class="btn btn-danger" @onclick="OnConfirm">Potwierdz</button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Message { get; set; } = "Czy na pewno?";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

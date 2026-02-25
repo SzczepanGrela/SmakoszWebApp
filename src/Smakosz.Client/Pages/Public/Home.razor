@@ -1,0 +1,167 @@
+@page "/"
+@inject IHomeService HomeService
+@inject IDishService DishService
+@inject NavigationManager Navigation
+
+<PageTitle>Smakosz - Znajdz najlepszy smak w miescie</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ladowanie..." />
+}
+else if (_data != null)
+{
+    <!-- Hero Section -->
+    <HeroSection BackgroundUrl="@_heroImage">
+        <h1 class="display-4 fw-bold mb-3">Znajdz najlepszy smak w miescie</h1>
+        <p class="lead mb-4">Najlepsze dania ze wszystkich restauracji.</p>
+
+        <!-- Quick Stats -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-auto">
+                <div class="d-flex gap-4 text-center stats-container">
+                    <div>
+                        <div class="fw-bold fs-4">@_data.Stats.TotalDishes.ToString("N0")</div>
+                        <small>Dan</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-4">@_data.Stats.TotalRestaurants</div>
+                        <small>Restauracji</small>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-4">@_data.Stats.TotalReviews.ToString("N0")</div>
+                        <small>Ocen</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <input class="form-control form-control-lg" type="search" @bind="_searchQuery"
+                           @onkeydown="HandleSearchKey" placeholder="Jakiego dania szukasz? (np. pizza, ramen...)" />
+                    <button class="btn btn-primary btn-lg" @onclick="DoSearch">
+                        <i class="fa-solid fa-magnifying-glass"></i> Szukaj
+                    </button>
+                </div>
+            </div>
+        </div>
+    </HeroSection>
+
+    <div class="container mt-5">
+        <!-- Quick Actions Bar -->
+        <QuickActionsBar />
+
+        <!-- Popular Categories -->
+        @if (_data.PopularCategories.Any())
+        {
+            <section class="mb-5">
+                <h2 class="text-center mb-4">Popularne kategorie</h2>
+                <div class="row g-3">
+                    @foreach (var category in _data.PopularCategories)
+                    {
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <CategoryCard Name="@category" Icon="@GetCategoryIcon(category)" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- Trending Dishes -->
+        @if (_data.TrendingDishes.Any())
+        {
+            <section class="mb-5">
+                <SectionHeader Title="Teraz na topie" Icon="fa-solid fa-fire text-danger" />
+                <div class="row">
+                    @foreach (var dish in _data.TrendingDishes.Take(4))
+                    {
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <DishCard Dish="@dish" BadgeText="Trending" BadgeClass="bg-danger" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- Top Rated Dishes -->
+        @if (_data.TopRatedDishes.Any())
+        {
+            <section class="mb-5">
+                <SectionHeader Title="Wysoko oceniane" Icon="fa-solid fa-star text-warning" />
+                <div class="row">
+                    @foreach (var dish in _data.TopRatedDishes.Take(4))
+                    {
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <DishCard Dish="@dish" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- Recent Reviews -->
+        @if (_data.RecentReviews.Any())
+        {
+            <section class="mb-5">
+                <SectionHeader Title="Najnowsze opinie" Icon="fa-solid fa-comments" />
+                <div class="row">
+                    @foreach (var review in _data.RecentReviews.Take(3))
+                    {
+                        <div class="col-md-4 mb-3">
+                            <ReviewCard Review="@review" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+}
+
+@code {
+    private Models.HomeDataDto? _data;
+    private bool _loading = true;
+    private string _searchQuery = "";
+
+    private static readonly string[] HeroImages =
+    {
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=2000&q=80",
+        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=2000&q=80",
+        "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=2000&q=80",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=2000&q=80",
+        "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=2000&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=2000&q=80",
+        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=2000&q=80",
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=2000&q=80"
+    };
+
+    private string _heroImage = HeroImages[Random.Shared.Next(HeroImages.Length)];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _data = await HomeService.GetHomeDataAsync();
+        _loading = false;
+    }
+
+    private void DoSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(_searchQuery))
+            Navigation.NavigateTo($"/search?query={Uri.EscapeDataString(_searchQuery)}");
+    }
+
+    private void HandleSearchKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") DoSearch();
+    }
+
+    private static string GetCategoryIcon(string category) => category switch
+    {
+        "Pizza" => "\U0001F355", "Burgery" => "\U0001F354", "Sushi" => "\U0001F363",
+        "Ramen" => "\U0001F35C", "Pierogi" => "\U0001F95F", "Desery" => "\U0001F370",
+        "Pasta" => "\U0001F35D", "Kebab" => "\U0001F959", "Tacos" => "\U0001F32E",
+        "Curry" => "\U0001F35B", "Salatki" => "\U0001F957", "Owoce morza" => "\U0001F990",
+        _ => "\U0001F374"
+    };
+}

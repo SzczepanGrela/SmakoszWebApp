@@ -1,0 +1,41 @@
+@using Smakosz.Client.Helpers
+
+<div class="review-card p-3">
+    <div class="d-flex gap-3">
+        <img src="@ImageHelper.GetAvatarUrl(Review.Author.AvatarUrl, Review.Author.Username)"
+             alt="@Review.Author.Username" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;" />
+        <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <a href="/users/@Review.Author.Slug" class="fw-bold text-decoration-none" style="color:var(--text-color);">
+                        @Review.Author.Username
+                    </a>
+                    @if (ShowDish)
+                    {
+                        <span class="text-muted mx-1">o</span>
+                        <a href="/dish/@Review.DishSlug" class="text-decoration-none" style="color:var(--accent-color);">@Review.DishName</a>
+                    }
+                    @if (ShowRestaurant)
+                    {
+                        <small class="text-muted d-block">@Review.RestaurantName</small>
+                    }
+                </div>
+                <small class="text-muted">@DateTimeHelper.TimeAgo(Review.CreatedAt ?? DateTime.UtcNow)</small>
+            </div>
+            <div class="mt-1">
+                <RatingStars Rating="@((Review.DishRating + Review.ServiceRating + Review.CleanlinessRating + Review.AmbianceRating) / 4.0)" Size="sm" ShowValue="true" />
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Review.Content))
+            {
+                <p class="mt-2 mb-1 small">@Review.Content</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Smakosz.Client.Models.ReviewCardDto Review { get; set; } = default!;
+    [Parameter] public bool ShowDish { get; set; } = true;
+    [Parameter] public bool ShowRestaurant { get; set; } = true;
+    [Parameter] public bool ShowActions { get; set; }
+}

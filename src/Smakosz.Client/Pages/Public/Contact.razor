@@ -1,0 +1,74 @@
+@page "/contact"
+@inject Smakosz.Client.Services.IContentService ContentService
+@inject Smakosz.Client.Services.ToastService Toast
+
+<PageTitle>Kontakt - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1><i class="fa-solid fa-envelope me-2"></i>Kontakt</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            @if (_contact != null)
+            {
+                <div class="card p-4">
+                    <h5 class="mb-3">Dane kontaktowe</h5>
+                    <div class="mb-2"><i class="fa-solid fa-envelope me-2"></i>@_contact.Email</div>
+                    @if (_contact.Phone != null)
+                    {
+                        <div class="mb-2"><i class="fa-solid fa-phone me-2"></i>@_contact.Phone</div>
+                    }
+                    @if (_contact.Address != null)
+                    {
+                        <div class="mb-2"><i class="fa-solid fa-location-dot me-2"></i>@_contact.Address</div>
+                    }
+                    @if (_contact.SupportHours != null)
+                    {
+                        <div class="mb-2"><i class="fa-solid fa-clock me-2"></i>@_contact.SupportHours</div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h5 class="mb-3">Wyslij wiadomosc</h5>
+                <div class="mb-3">
+                    <label class="form-label">Imie</label>
+                    <input class="form-control" @bind="_name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" @bind="_email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Temat</label>
+                    <input class="form-control" @bind="_subject" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Wiadomosc</label>
+                    <textarea class="form-control" rows="4" @bind="_message"></textarea>
+                </div>
+                <button class="btn btn-primary w-100" @onclick="Send">
+                    <i class="fa-solid fa-paper-plane me-1"></i>Wyslij
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Smakosz.Client.Models.ContactPageDto? _contact;
+    private string _name = "", _email = "", _subject = "", _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _contact = await ContentService.GetContactPageAsync();
+    }
+
+    private async Task Send()
+    {
+        await ContentService.SendContactMessageAsync(_name, _email, _subject, _message);
+        Toast.ShowSuccess("Wiadomosc wyslana!");
+        _name = _email = _subject = _message = "";
+    }
+}

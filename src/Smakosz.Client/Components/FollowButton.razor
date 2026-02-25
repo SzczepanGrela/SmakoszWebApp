@@ -1,0 +1,9 @@
+<button class="btn btn-sm @(IsFollowing ? "btn-outline-secondary" : "btn-primary")" @onclick="OnToggle">
+    <i class="fa-solid @(IsFollowing ? "fa-user-check" : "fa-user-plus") me-1"></i>
+    @(IsFollowing ? "Obserwujesz" : "Obserwuj")
+</button>
+
+@code {
+    [Parameter] public bool IsFollowing { get; set; }
+    [Parameter] public EventCallback OnToggle { get; set; }
+}

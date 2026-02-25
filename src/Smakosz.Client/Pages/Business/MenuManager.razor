@@ -1,0 +1,61 @@
+@page "/restaurant/menu"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+@inject ToastService Toast
+
+<PageTitle>Zarzadzanie menu - Panel restauracji</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-bars me-2"></i>Zarzadzanie menu</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Sekcje menu</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Zarzadzaj sekcjami menu. Uzyj strzalek aby zmieniac kolejnosc.</p>
+            <MenuSectionEditor Sections="@_sections" SectionsChanged="s => _sections = s" />
+        </div>
+    </div>
+
+    <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
+        @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz zmiany w menu
+    </button>
+}
+
+@code {
+    private List<MenuSectionDto> _sections = [];
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sections = await BusinessService.GetMenuSectionsAsync();
+        _loading = false;
+    }
+
+    private async Task HandleSave()
+    {
+        _saving = true;
+        _error = null;
+        var success = await BusinessService.UpdateMenuSectionsAsync(_sections);
+        if (success)
+            Toast.ShowSuccess("Menu zostalo zaktualizowane.");
+        else
+            _error = "Nie udalo sie zapisac zmian.";
+        _saving = false;
+    }
+}

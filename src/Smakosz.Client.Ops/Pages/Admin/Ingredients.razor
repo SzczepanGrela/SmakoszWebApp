@@ -1,0 +1,129 @@
+@page "/admin/ingredients"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Skladniki - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-carrot me-2"></i>Skladniki</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj skladnik
+    </button>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_editingId.HasValue ? "Edytuj" : "Nowy") skladnik</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Nazwa *</label>
+                    <input type="text" class="form-control" @bind="_form.Name" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Kategoria</label>
+                    <input type="text" class="form-control" @bind="_form.Category" />
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" @bind="_form.IsAllergen" />
+                        <label class="form-check-label">Alergen</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveIngredient">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_ingredients == null || !_ingredients.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-carrot" Title="Brak skladnikow" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Nazwa</th><th>Kategoria</th><th>Alergen</th><th>Uzycie</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var ing in _ingredients.Data)
+                {
+                    <tr>
+                        <td class="fw-medium">@ing.Name</td>
+                        <td>@(ing.Category ?? "-")</td>
+                        <td>@(ing.IsAllergen ? "Tak" : "Nie")</td>
+                        <td>@ing.UsageCount</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditIngredient(ing)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteIngredient(ing.Id)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_ingredients.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_ingredients.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminIngredientDto>? _ingredients;
+    private bool _loading = true;
+    private bool _showForm;
+    private int? _editingId;
+    private AdminIngredientDto _form = new();
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _ingredients = await AdminService.GetIngredientsAsync(page);
+        _loading = false;
+    }
+
+    private void ShowAddForm() { _form = new(); _editingId = null; _showForm = true; }
+    private void EditIngredient(AdminIngredientDto ing) { _form = new() { Id = ing.Id, Name = ing.Name, Category = ing.Category, IsAllergen = ing.IsAllergen }; _editingId = ing.Id; _showForm = true; }
+    private void CancelForm() { _showForm = false; _editingId = null; }
+
+    private async Task SaveIngredient()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name)) return;
+        bool success;
+        if (_editingId.HasValue)
+            success = await AdminService.UpdateIngredientAsync(_editingId.Value, _form);
+        else
+            success = await AdminService.CreateIngredientAsync(_form);
+
+        if (success) { Toast.ShowSuccess("Skladnik zapisany."); _showForm = false; await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie zapisac.");
+    }
+
+    private async Task DeleteIngredient(int id)
+    {
+        var success = await AdminService.DeleteIngredientAsync(id);
+        if (success) { Toast.ShowSuccess("Skladnik usuniety."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie usunac.");
+    }
+}

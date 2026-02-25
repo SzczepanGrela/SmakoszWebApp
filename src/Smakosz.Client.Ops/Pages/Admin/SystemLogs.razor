@@ -1,0 +1,88 @@
+@page "/admin/logs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Logi systemowe - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-file-lines me-2"></i>Logi systemowe</h2>
+    <div class="btn-group btn-group-sm">
+        <button class="btn @(_levelFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByLevel(null)">Wszystkie</button>
+        <button class="btn @(_levelFilter == "Error" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByLevel("Error")'>Error</button>
+        <button class="btn @(_levelFilter == "Warning" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByLevel("Warning")'>Warning</button>
+        <button class="btn @(_levelFilter == "Information" ? "btn-info" : "btn-outline-info")" @onclick='() => FilterByLevel("Information")'>Info</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_logs == null || !_logs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-file-lines" Title="Brak logow" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover" style="font-size:0.85rem;">
+            <thead>
+                <tr><th style="width:160px;">Czas</th><th style="width:80px;">Poziom</th><th>Wiadomosc</th><th>Zrodlo</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var log in _logs.Data)
+                {
+                    <tr class="@LogRowClass(log.Level)">
+                        <td class="text-muted">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="badge @LevelBadge(log.Level)">@log.Level</span></td>
+                        <td>
+                            @log.Message
+                            @if (!string.IsNullOrEmpty(log.Exception))
+                            {
+                                <details class="mt-1">
+                                    <summary class="small text-danger">Exception</summary>
+                                    <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.Exception</pre>
+                                </details>
+                            }
+                        </td>
+                        <td class="text-muted">@log.Source</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_logs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_logs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminLogEntryDto>? _logs;
+    private string? _levelFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _logs = await AdminService.GetLogsAsync(page, _levelFilter);
+        _loading = false;
+    }
+
+    private async Task FilterByLevel(string? level) { _levelFilter = level; await LoadPage(1); }
+
+    private static string LevelBadge(string level) => level switch
+    {
+        "Error" => "bg-danger",
+        "Warning" => "bg-warning text-dark",
+        "Information" => "bg-info",
+        "Debug" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private static string LogRowClass(string level) => level == "Error" ? "table-danger" : level == "Warning" ? "table-warning" : "";
+}

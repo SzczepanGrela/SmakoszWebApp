@@ -1,0 +1,66 @@
+@page "/business/pending"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IBusinessService BusinessService
+
+<PageTitle>Status rejestracji - Smakosz</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            @if (_loading)
+            {
+                <LoadingSpinner Text="Sprawdzanie statusu..." />
+            }
+            else if (_status != null)
+            {
+                @if (_status.Status == "approved")
+                {
+                    <div class="mb-4">
+                        <i class="fa-solid fa-circle-check fa-4x" style="color:var(--accent-color);"></i>
+                    </div>
+                    <h2 class="fw-bold">Rejestracja zatwierdzona!</h2>
+                    <p class="text-muted mb-4">Mozesz teraz zarzadzac swoja restauracja.</p>
+                    <a href="/restaurant/dashboard" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-chart-line me-2"></i>Przejdz do panelu
+                    </a>
+                }
+                else if (_status.Status == "pending")
+                {
+                    <div class="mb-4">
+                        <i class="fa-solid fa-clock fa-4x text-warning"></i>
+                    </div>
+                    <h2 class="fw-bold">Wniosek w trakcie weryfikacji</h2>
+                    <p class="text-muted mb-4">Twoj wniosek zostal zlozony @_status.SubmittedAt.ToString("dd.MM.yyyy") i jest weryfikowany przez nasz zespol. Powiadomimy Cie o decyzji.</p>
+                    @if (!string.IsNullOrEmpty(_status.Message))
+                    {
+                        <div class="alert alert-info">@_status.Message</div>
+                    }
+                }
+                else
+                {
+                    <div class="mb-4">
+                        <i class="fa-solid fa-circle-xmark fa-4x text-danger"></i>
+                    </div>
+                    <h2 class="fw-bold">Wniosek odrzucony</h2>
+                    <p class="text-muted mb-4">@(_status.Message ?? "Skontaktuj sie z nami, aby uzyskac wiecej informacji.")</p>
+                    <a href="/business/register" class="btn btn-primary">Zloz ponownie</a>
+                }
+            }
+            else
+            {
+                <EmptyState Icon="fa-solid fa-store" Title="Brak wniosku" Description="Nie znaleziono wniosku o rejestracje." ActionText="Zarejestruj restauracje" ActionUrl="/business/register" />
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegistrationStatusDto? _status;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _status = await BusinessService.GetRegistrationStatusAsync();
+        _loading = false;
+    }
+}

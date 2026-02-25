@@ -1,0 +1,162 @@
+@page "/restaurant/dishes/edit/{Id:guid}"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+@inject NavigationManager Navigation
+@inject ToastService Toast
+
+<PageTitle>Edytuj danie - Panel restauracji</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-pen me-2"></i>Edytuj danie</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_dish == null)
+{
+    <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Powrot do listy" ActionUrl="/restaurant/dishes" />
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Informacje o daniu</h5></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Nazwa dania *</label>
+                        <input type="text" class="form-control" @bind="_dish.DishName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Opis</label>
+                        <textarea class="form-control" rows="3" @bind="_dish.Description"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">Cena (zl)</label>
+                            <input type="number" class="form-control" step="0.01" @bind="_dish.Price" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">Kalorie (kcal)</label>
+                            <input type="number" class="form-control" @bind="_dish.Calories" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">URL zdjecia</label>
+                        <input type="url" class="form-control" @bind="_dish.ImageUrl" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Opcje dietetyczne</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsVegetarian" />
+                                <label class="form-check-label">Wegetarianskie</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsVegan" />
+                                <label class="form-check-label">Weganskie</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsGlutenFree" />
+                                <label class="form-check-label">Bez glutenu</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsLactoseFree" />
+                                <label class="form-check-label">Bez laktozy</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsSpicy" />
+                                <label class="form-check-label">Ostre</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" @bind="_dish.IsAvailable" />
+                                <label class="form-check-label">Dostepne</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <img src="@Helpers.ImageHelper.GetDishImage(_dish.ImageUrl)" class="img-fluid rounded mb-3" alt="@_dish.DishName" />
+                    <h6 class="fw-bold">@_dish.DishName</h6>
+                    @if (_dish.Price.HasValue)
+                    {
+                        <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zl</span>
+                    }
+                    @if (_dish.AvgRating.HasValue)
+                    {
+                        <div class="mt-2">
+                            <RatingStars Rating="@_dish.AvgRating.Value" Size="sm" ShowValue="true" />
+                            <small class="text-muted">(@_dish.ReviewCount recenzji)</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a href="/restaurant/dishes" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Powrot
+        </a>
+        <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
+            @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz zmiany
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private DishDetailDto? _dish;
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dish = await BusinessService.GetDishAsync(Id);
+        _loading = false;
+    }
+
+    private async Task HandleSave()
+    {
+        if (string.IsNullOrWhiteSpace(_dish!.DishName))
+        {
+            _error = "Nazwa dania jest wymagana.";
+            return;
+        }
+
+        _saving = true;
+        _error = null;
+        var success = await BusinessService.UpdateDishAsync(Id, _dish);
+        if (success)
+        {
+            Toast.ShowSuccess("Danie zostalo zaktualizowane.");
+            Navigation.NavigateTo("/restaurant/dishes");
+        }
+        else
+        {
+            _error = "Nie udalo sie zapisac zmian.";
+        }
+        _saving = false;
+    }
+}

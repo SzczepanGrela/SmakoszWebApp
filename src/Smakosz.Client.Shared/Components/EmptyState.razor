@@ -1,0 +1,21 @@
+@namespace Smakosz.Client.Components
+<div class="empty-state">
+    <i class="@Icon"></i>
+    <h5>@Title</h5>
+    @if (!string.IsNullOrEmpty(Description))
+    {
+        <p class="text-muted">@Description</p>
+    }
+    @if (!string.IsNullOrEmpty(ActionText) && !string.IsNullOrEmpty(ActionUrl))
+    {
+        <a href="@ActionUrl" class="btn btn-primary mt-2">@ActionText</a>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "fa-solid fa-magnifying-glass";
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? ActionText { get; set; }
+    [Parameter] public string? ActionUrl { get; set; }
+}

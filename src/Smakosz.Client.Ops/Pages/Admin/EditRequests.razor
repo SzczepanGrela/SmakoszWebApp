@@ -1,0 +1,75 @@
+@page "/admin/edit-requests"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Prosby o edycje - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-pen-to-square me-2"></i>Prosby o edycje</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_requests == null || !_requests.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-pen-to-square" Title="Brak prosb o edycje" />
+}
+else
+{
+    @foreach (var req in _requests.Data)
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="fw-bold mb-1">@req.RestaurantName - @req.FieldChanged</h6>
+                        <small class="text-muted">Zglosil: @req.RequestedBy | @req.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                    </div>
+                    <StatusBadge Status="@req.Status" />
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted">Stara wartosc</label>
+                        <div class="p-2 rounded" style="background:var(--card-bg);">@(req.OldValue ?? "-")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted">Nowa wartosc</label>
+                        <div class="p-2 rounded" style="background:#e8f5e9;">@(req.NewValue ?? "-")</div>
+                    </div>
+                </div>
+                @if (req.Status == "pending")
+                {
+                    <ModerationActionBar OnModerate="args => ProcessRequest(req.Id, args.Action, args.Reason)" />
+                }
+            </div>
+        </div>
+    }
+
+    @if (_requests.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_requests.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminEditRequestDto>? _requests;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _requests = await AdminService.GetEditRequestsAsync(page);
+        _loading = false;
+    }
+
+    private async Task ProcessRequest(int id, string action, string? reason)
+    {
+        var success = await AdminService.ProcessEditRequestAsync(id, action, reason);
+        if (success) { Toast.ShowSuccess("Prosba przetworzona."); await LoadPage(1); }
+        else Toast.ShowError("Operacja nieudana.");
+    }
+}

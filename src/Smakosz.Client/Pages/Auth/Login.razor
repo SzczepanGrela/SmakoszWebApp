@@ -1,0 +1,62 @@
+@page "/login"
+@layout Smakosz.Client.Layout.AuthLayout
+@inject Smakosz.Client.Services.IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Logowanie - Smakosz</PageTitle>
+
+<h4 class="text-center mb-4">Zaloguj sie</h4>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="HandleLogin">
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" @bind="_model.Email" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Haslo</label>
+        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" />
+    </div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" @bind="_model.RememberMe" />
+        <label class="form-check-label">Zapamietaj mnie</label>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
+        @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+        Zaloguj sie
+    </button>
+</EditForm>
+
+<div class="text-center mt-3">
+    <a href="/forgot-password" class="small">Nie pamietasz hasla?</a>
+</div>
+<div class="text-center mt-2">
+    <span class="small">Nie masz konta?</span> <a href="/register" class="small fw-bold">Zarejestruj sie</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+    private Smakosz.Client.Models.LoginRequest _model = new();
+    private string? _error;
+    private bool _loading;
+
+    private async Task HandleLogin()
+    {
+        _loading = true;
+        _error = null;
+        var result = await AuthService.LoginAsync(_model);
+        if (result.Success)
+        {
+            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nieprawidlowy email lub haslo.";
+        }
+        _loading = false;
+    }
+}

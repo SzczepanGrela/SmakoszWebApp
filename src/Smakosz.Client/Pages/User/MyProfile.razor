@@ -1,0 +1,226 @@
+@page "/profile"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IUserProfileService UserProfileService
+@inject ToastService Toast
+@inject NavigationManager Navigation
+
+<PageTitle>Moj profil - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fa-solid fa-user me-2"></i>Moj profil</h1>
+
+    @if (_loading)
+    {
+        <LoadingSpinner Text="Ladowanie profilu..." />
+    }
+    else if (_profile == null)
+    {
+        <EmptyState Icon="fa-solid fa-user-slash" Title="Nie udalo sie zaladowac profilu"
+                    Description="Sprobuj odswiezyc strone." />
+    }
+    else
+    {
+        <div class="row">
+            <!-- Profile sidebar -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <img src="@ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
+                             class="rounded-circle mb-3" style="width:120px;height:120px;object-fit:cover;"
+                             alt="@_profile.Username" />
+                        <h4 class="fw-bold mb-1">@_profile.Username</h4>
+                        <p class="text-muted mb-3">@_profile.Email</p>
+
+                        <div class="d-flex justify-content-center gap-4 mb-3">
+                            <div class="text-center">
+                                <div class="fw-bold">@_profile.ReviewCount</div>
+                                <small class="text-muted">Recenzje</small>
+                            </div>
+                            <div class="text-center">
+                                <a href="/followers" class="text-decoration-none" style="color:var(--text-color);">
+                                    <div class="fw-bold">@_profile.FollowerCount</div>
+                                    <small class="text-muted">Obserwujacy</small>
+                                </a>
+                            </div>
+                            <div class="text-center">
+                                <a href="/following" class="text-decoration-none" style="color:var(--text-color);">
+                                    <div class="fw-bold">@_profile.FollowingCount</div>
+                                    <small class="text-muted">Obserwowani</small>
+                                </a>
+                            </div>
+                        </div>
+
+                        <small class="text-muted">
+                            <i class="fa-solid fa-calendar me-1"></i>Dolaczyl/a @_profile.CreatedAt.ToString("MMMM yyyy")
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Quick links -->
+                <div class="list-group mt-3 shadow-sm">
+                    <a href="/saved" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-bookmark me-2"></i>Zapisane dania
+                        <span class="badge bg-secondary float-end">@_profile.SavedDishCount</span>
+                    </a>
+                    <a href="/profile/settings" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-gear me-2"></i>Ustawienia
+                    </a>
+                    <a href="/profile/security" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                    </a>
+                    <a href="/profile/notifications" class="list-group-item list-group-item-action">
+                        <i class="fa-solid fa-bell me-2"></i>Powiadomienia
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile details / edit form -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Informacje o profilu</h5>
+                        @if (!_editMode)
+                        {
+                            <button class="btn btn-outline-primary btn-sm" @onclick="ToggleEdit">
+                                <i class="fa-solid fa-pen me-1"></i>Edytuj
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                            </div>
+                        }
+
+                        @if (_editMode)
+                        {
+                            <EditForm Model="_profile" OnValidSubmit="HandleSave">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Nazwa uzytkownika</label>
+                                    <input type="text" class="form-control" @bind="_profile.Username" readonly />
+                                    <small class="text-muted">Nazwy uzytkownika nie mozna zmieniac.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Email</label>
+                                    <input type="email" class="form-control" @bind="_profile.Email" readonly />
+                                    <small class="text-muted">Aby zmienic email, skontaktuj sie z nami.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Bio</label>
+                                    <textarea class="form-control" rows="3" @bind="_profile.Bio"
+                                              placeholder="Napisz cos o sobie..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Miasto</label>
+                                    <input type="text" class="form-control" @bind="_profile.City"
+                                           placeholder="Twoje miasto" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">URL avatara</label>
+                                    <input type="url" class="form-control" @bind="_profile.AvatarUrl"
+                                           placeholder="https://..." />
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary" disabled="@_saving">
+                                        @if (_saving)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        Zapisz zmiany
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="CancelEdit">
+                                        Anuluj
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Nazwa uzytkownika</dt>
+                                <dd class="col-sm-8">@_profile.Username</dd>
+
+                                <dt class="col-sm-4">Email</dt>
+                                <dd class="col-sm-8">@_profile.Email</dd>
+
+                                <dt class="col-sm-4">Bio</dt>
+                                <dd class="col-sm-8">@(string.IsNullOrEmpty(_profile.Bio) ? "Brak" : _profile.Bio)</dd>
+
+                                <dt class="col-sm-4">Miasto</dt>
+                                <dd class="col-sm-8">@(string.IsNullOrEmpty(_profile.City) ? "Nie podano" : _profile.City)</dd>
+
+                                <dt class="col-sm-4">Zapisane dania</dt>
+                                <dd class="col-sm-8">@_profile.SavedDishCount</dd>
+                            </dl>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private MyProfileDto? _profile;
+    private MyProfileDto? _profileBackup;
+    private bool _loading = true;
+    private bool _editMode;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profile = await UserProfileService.GetMyProfileAsync();
+        _loading = false;
+    }
+
+    private void ToggleEdit()
+    {
+        _profileBackup = new MyProfileDto
+        {
+            PublicId = _profile!.PublicId,
+            Slug = _profile.Slug,
+            Username = _profile.Username,
+            Email = _profile.Email,
+            AvatarUrl = _profile.AvatarUrl,
+            Bio = _profile.Bio,
+            City = _profile.City,
+            ReviewCount = _profile.ReviewCount,
+            FollowerCount = _profile.FollowerCount,
+            FollowingCount = _profile.FollowingCount,
+            SavedDishCount = _profile.SavedDishCount,
+            CreatedAt = _profile.CreatedAt
+        };
+        _editMode = true;
+        _error = null;
+    }
+
+    private void CancelEdit()
+    {
+        if (_profileBackup != null)
+        {
+            _profile = _profileBackup;
+        }
+        _editMode = false;
+        _error = null;
+    }
+
+    private async Task HandleSave()
+    {
+        _saving = true;
+        _error = null;
+        var success = await UserProfileService.UpdateProfileAsync(_profile!);
+        if (success)
+        {
+            _editMode = false;
+            Toast.ShowSuccess("Profil zostal zaktualizowany.");
+        }
+        else
+        {
+            _error = "Nie udalo sie zapisac zmian. Sprobuj ponownie.";
+        }
+        _saving = false;
+    }
+}

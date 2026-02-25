@@ -1,0 +1,87 @@
+@inherits LayoutComponentBase
+@inject IBusinessService BusinessService
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="fa-solid fa-utensils me-2"></i>Smakosz
+        </a>
+        <span class="navbar-text fw-bold">
+            <i class="fa-solid fa-store me-1"></i>Panel Restauracji
+        </span>
+        <AuthorizeView>
+            <Authorized>
+                <UserDropdown />
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</nav>
+
+<div class="d-flex" style="padding-top:76px;">
+    <!-- Sidebar -->
+    <nav class="business-sidebar d-none d-lg-block" style="width:260px;min-width:260px;">
+        <div class="p-3">
+            <h6 class="text-muted text-uppercase small mb-3">Zarzadzanie</h6>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/dashboard")" href="/restaurant/dashboard">
+                    <i class="fa-solid fa-chart-line me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/info")" href="/restaurant/info">
+                    <i class="fa-solid fa-circle-info me-2"></i>Informacje
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/hours")" href="/restaurant/hours">
+                    <i class="fa-solid fa-clock me-2"></i>Godziny otwarcia
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/menu")" href="/restaurant/menu">
+                    <i class="fa-solid fa-bars me-2"></i>Menu
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/dishes")" href="/restaurant/dishes">
+                    <i class="fa-solid fa-bowl-food me-2"></i>Dania
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/photos")" href="/restaurant/photos">
+                    <i class="fa-solid fa-images me-2"></i>Zdjecia
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/reviews")" href="/restaurant/reviews">
+                    <i class="fa-solid fa-comments me-2"></i>Recenzje
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/stats")" href="/restaurant/stats">
+                    <i class="fa-solid fa-chart-bar me-2"></i>Statystyki
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/requests")" href="/restaurant/requests">
+                    <i class="fa-solid fa-history me-2"></i>Historia zmian
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Content -->
+    <div class="flex-grow-1 p-4" style="min-height:calc(100vh - 76px);">
+        @Body
+    </div>
+</div>
+
+<ToastContainer />
+
+@code {
+    private string ActiveClass(string href) =>
+        Navigation.Uri.Contains(href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}

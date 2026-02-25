@@ -1,0 +1,56 @@
+@page "/restaurant/requests"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+
+<PageTitle>Historia zmian - Panel restauracji</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-history me-2"></i>Historia zmian</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (!_requests.Any())
+{
+    <EmptyState Icon="fa-solid fa-history" Title="Brak historii" Description="Historia zatwierdzonych i oczekujacych zmian pojawi sie tutaj." />
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Zmienione pole</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var req in _requests.OrderByDescending(r => r.CreatedAt))
+                        {
+                            <tr>
+                                <td class="fw-medium">@req.FieldChanged</td>
+                                <td><StatusBadge Status="@req.Status" /></td>
+                                <td class="text-muted">@req.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<EditRequestSummaryDto> _requests = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _requests = await BusinessService.GetEditRequestsAsync();
+        _loading = false;
+    }
+}

@@ -1,0 +1,28 @@
+@if (IsVegan || IsVegetarian || IsGlutenFree || IsLactoseFree)
+{
+    <div class="dish-tags mt-1">
+        @if (IsVegan)
+        {
+            <span class="badge bg-success me-1">Vegan</span>
+        }
+        @if (IsVegetarian)
+        {
+            <span class="badge bg-success me-1">Wege</span>
+        }
+        @if (IsGlutenFree)
+        {
+            <span class="badge bg-info me-1">Bez glutenu</span>
+        }
+        @if (IsLactoseFree)
+        {
+            <span class="badge bg-info me-1">Bez laktozy</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVegan { get; set; }
+    [Parameter] public bool IsVegetarian { get; set; }
+    [Parameter] public bool IsGlutenFree { get; set; }
+    [Parameter] public bool IsLactoseFree { get; set; }
+}

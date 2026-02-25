@@ -1,0 +1,122 @@
+@page "/saved"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IUserProfileService UserProfileService
+
+<PageTitle>Zapisane - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fa-solid fa-bookmark me-2"></i>Zapisane</h1>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "dishes" ? "active" : "")"
+                    @onclick='() => SwitchTab("dishes")'>
+                <i class="fa-solid fa-utensils me-1"></i>Dania
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "restaurants" ? "active" : "")"
+                    @onclick='() => SwitchTab("restaurants")'>
+                <i class="fa-solid fa-store me-1"></i>Restauracje
+            </button>
+        </li>
+    </ul>
+
+    @if (_loading)
+    {
+        <LoadingSpinner Text="Ladowanie zapisanych..." />
+    }
+    else
+    {
+        @if (_activeTab == "dishes")
+        {
+            @if (_dishes == null || !_dishes.Data.Any())
+            {
+                <EmptyState Icon="fa-solid fa-bookmark" Title="Brak zapisanych dan"
+                            Description="Zapisuj dania, ktore Ci smakowaly, aby latwo je potem znalezc."
+                            ActionText="Przegladaj dania" ActionUrl="/search?type=dishes" />
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var dish in _dishes.Data)
+                    {
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <DishCard Dish="@dish" />
+                        </div>
+                    }
+                </div>
+                <Pagination Info="@_dishes.Pagination" OnPageChange="LoadDishPage" />
+            }
+        }
+
+        @if (_activeTab == "restaurants")
+        {
+            @if (_restaurants == null || !_restaurants.Data.Any())
+            {
+                <EmptyState Icon="fa-solid fa-heart" Title="Brak zapisanych restauracji"
+                            Description="Dodawaj restauracje do ulubionych, aby miec je zawsze pod reka."
+                            ActionText="Przegladaj restauracje" ActionUrl="/search?type=restaurants" />
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var restaurant in _restaurants.Data)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <RestaurantCard Restaurant="@restaurant" />
+                        </div>
+                    }
+                </div>
+                <Pagination Info="@_restaurants.Pagination" OnPageChange="LoadRestaurantPage" />
+            }
+        }
+    }
+</div>
+
+@code {
+    private PagedResult<DishCardDto>? _dishes;
+    private PagedResult<RestaurantCardDto>? _restaurants;
+    private bool _loading = true;
+    private string _activeTab = "dishes";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDishPage(1);
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        if (_activeTab == tab) return;
+        _activeTab = tab;
+        _loading = true;
+
+        if (tab == "dishes" && _dishes == null)
+        {
+            await LoadDishPage(1);
+        }
+        else if (tab == "restaurants" && _restaurants == null)
+        {
+            await LoadRestaurantPage(1);
+        }
+        else
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadDishPage(int page)
+    {
+        _loading = true;
+        _dishes = await UserProfileService.GetSavedDishesAsync(page);
+        _loading = false;
+    }
+
+    private async Task LoadRestaurantPage(int page)
+    {
+        _loading = true;
+        _restaurants = await UserProfileService.GetSavedRestaurantsAsync(page);
+        _loading = false;
+    }
+}

@@ -1,0 +1,39 @@
+@namespace Smakosz.Client.Components
+@if (Info != null && Info.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(Info.Page - 1)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </li>
+            @for (int i = StartPage; i <= EndPage; i++)
+            {
+                var pageNum = i;
+                <li class="page-item @(pageNum == Info.Page ? "active" : "")">
+                    <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                </li>
+            }
+            <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(Info.Page + 1)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </li>
+        </ul>
+    </nav>
+}
+
+@code {
+    [Parameter] public Smakosz.Client.Models.PaginationInfo? Info { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+
+    private int StartPage => Math.Max(1, Info!.Page - 2);
+    private int EndPage => Math.Min(Info!.TotalPages, Info.Page + 2);
+
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= Info!.TotalPages && page != Info.Page)
+            await OnPageChange.InvokeAsync(page);
+    }
+}

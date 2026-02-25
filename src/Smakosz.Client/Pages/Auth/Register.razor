@@ -1,0 +1,58 @@
+@page "/register"
+@layout Smakosz.Client.Layout.AuthLayout
+@inject Smakosz.Client.Services.IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Rejestracja - Smakosz</PageTitle>
+
+<h4 class="text-center mb-4">Utworz konto</h4>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="HandleRegister">
+    <div class="mb-3">
+        <label class="form-label">Nazwa uzytkownika</label>
+        <input type="text" class="form-control" @bind="_model.Username" required minlength="3" maxlength="30" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" @bind="_model.Email" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Haslo</label>
+        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Placeholder="Min. 8 znakow" />
+    </div>
+    <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
+        @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+        Zarejestruj sie
+    </button>
+</EditForm>
+
+<div class="text-center mt-3">
+    <span class="small">Masz juz konto?</span> <a href="/login" class="small fw-bold">Zaloguj sie</a>
+</div>
+
+@code {
+    private Smakosz.Client.Models.RegisterRequest _model = new();
+    private string? _error;
+    private bool _loading;
+
+    private async Task HandleRegister()
+    {
+        _loading = true;
+        _error = null;
+        var result = await AuthService.RegisterAsync(_model);
+        if (result.Success)
+        {
+            Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Blad rejestracji.";
+        }
+        _loading = false;
+    }
+}

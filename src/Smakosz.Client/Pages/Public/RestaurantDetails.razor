@@ -1,0 +1,213 @@
+@page "/restaurant/{Slug}"
+@inject IRestaurantService RestaurantService
+
+<PageTitle>@(_restaurant?.RestaurantName ?? "Restauracja") - Smakosz</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ladowanie restauracji..." />
+}
+else if (_restaurant == null)
+{
+    <div class="container mt-5">
+        <EmptyState Icon="fa-solid fa-store" Title="Nie znaleziono restauracji" ActionText="Strona glowna" ActionUrl="/" />
+    </div>
+}
+else
+{
+    <!-- Restaurant Hero -->
+    <div class="restaurant-header position-relative"
+         style="background-image:url('@Helpers.ImageHelper.GetRestaurantImage(_restaurant.ImageUrl)');">
+        <div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.7));"></div>
+        <div class="container position-relative z-index-1 text-white text-center">
+            <h1 class="display-5 fw-bold">@_restaurant.RestaurantName</h1>
+            <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+                @if (_restaurant.CuisineType != null)
+                {
+                    <span><i class="fa-solid fa-utensils me-1"></i>@_restaurant.CuisineType</span>
+                }
+                @if (_restaurant.CityName != null)
+                {
+                    <span><i class="fa-solid fa-location-dot me-1"></i>@_restaurant.CityName</span>
+                }
+                @if (_restaurant.PriceLevel.HasValue)
+                {
+                    <span>@(new string('$', _restaurant.PriceLevel.Value))</span>
+                }
+                @if (_restaurant.IsVerified)
+                {
+                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Zweryfikowana</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Main content -->
+            <div class="col-lg-8">
+                <!-- Ratings Breakdown -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="mb-3">Oceny</h5>
+                        <div class="row">
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgFoodScore)</div>
+                                <small class="text-muted">Jedzenie</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgService)</div>
+                                <small class="text-muted">Obsluga</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgCleanliness)</div>
+                                <small class="text-muted">Czystosc</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgAmbiance)</div>
+                                <small class="text-muted">Atmosfera</small>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <small class="text-muted">Na podstawie @_restaurant.ReviewCount recenzji</small>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_restaurant.Description))
+                {
+                    <div class="mb-4">
+                        <h5>O restauracji</h5>
+                        <p>@_restaurant.Description</p>
+                    </div>
+                }
+
+                <!-- Menu Sections & Dishes -->
+                <div class="mb-4">
+                    <SectionHeader Title="Menu" Icon="fa-solid fa-bars" />
+
+                    @if (_dishes != null && _dishes.Data.Any())
+                    {
+                        @if (_restaurant.MenuSections.Any())
+                        {
+                            @foreach (var menuSec in _restaurant.MenuSections.OrderBy(s => s.DisplayOrder))
+                            {
+                                <h6 class="mt-3 mb-2 fw-bold">@menuSec.SectionName</h6>
+                                <div class="row">
+                                    @foreach (var dish in _dishes.Data)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <DishCard Dish="@dish" Size="small" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="row">
+                                @foreach (var dish in _dishes.Data)
+                                {
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <DishCard Dish="@dish" />
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (_dishes.Pagination.TotalPages > 1)
+                        {
+                            <Pagination Info="@_dishes.Pagination" OnPageChange="LoadDishPage" />
+                        }
+                    }
+                    else
+                    {
+                        <EmptyState Icon="fa-solid fa-bowl-food" Title="Brak dan w menu" />
+                    }
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="dish-details-panel mb-4">
+                    <h5 class="mb-3">Informacje kontaktowe</h5>
+                    @if (_restaurant.Address != null)
+                    {
+                        <div class="mb-2">
+                            <i class="fa-solid fa-location-dot me-2"></i>@_restaurant.Address
+                        </div>
+                    }
+                    @if (_restaurant.Phone != null)
+                    {
+                        <div class="mb-2">
+                            <i class="fa-solid fa-phone me-2"></i>
+                            <a href="tel:@_restaurant.Phone">@_restaurant.Phone</a>
+                        </div>
+                    }
+                    @if (_restaurant.Email != null)
+                    {
+                        <div class="mb-2">
+                            <i class="fa-solid fa-envelope me-2"></i>@_restaurant.Email
+                        </div>
+                    }
+                    @if (_restaurant.Website != null)
+                    {
+                        <div class="mb-2">
+                            <i class="fa-solid fa-globe me-2"></i>
+                            <a href="@_restaurant.Website" target="_blank">Strona www</a>
+                        </div>
+                    }
+                    <div class="d-flex gap-2 mt-3">
+                        <FavoriteButton IsFavorite="@_restaurant.IsFavorite" OnToggle="() => _restaurant.IsFavorite = !_restaurant.IsFavorite" />
+                        <ShareButton Url="@Navigation.Uri" Title="@_restaurant.RestaurantName" />
+                    </div>
+                </div>
+
+                <!-- Opening Hours -->
+                @if (_restaurant.OpeningHours.Any())
+                {
+                    <div class="dish-details-panel">
+                        <h5 class="mb-3"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h5>
+                        @foreach (var hours in _restaurant.OpeningHours.OrderBy(h => h.DayOfWeek))
+                        {
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>@DayName(hours.DayOfWeek)</span>
+                                <span>@(hours.IsClosed ? "Zamkniete" : $"{hours.OpenTime} - {hours.CloseTime}")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = default!;
+    @inject NavigationManager Navigation
+
+    private Models.RestaurantDetailDto? _restaurant;
+    private Models.PagedResult<Models.DishCardDto>? _dishes;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _restaurant = await RestaurantService.GetBySlugAsync(Slug);
+        if (_restaurant != null)
+            _dishes = await RestaurantService.GetDishesAsync(Slug);
+        _loading = false;
+    }
+
+    private async Task LoadDishPage(int page)
+    {
+        _dishes = await RestaurantService.GetDishesAsync(Slug, page);
+    }
+
+    private static string FormatScore(double? score) => score.HasValue ? score.Value.ToString("F1") : "-";
+
+    private static string DayName(int day) => day switch
+    {
+        0 => "Niedziela", 1 => "Poniedzialek", 2 => "Wtorek", 3 => "Sroda",
+        4 => "Czwartek", 5 => "Piatek", 6 => "Sobota", _ => ""
+    };
+}

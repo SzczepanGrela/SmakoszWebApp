@@ -1,0 +1,15 @@
+<div class="btn-group" role="group">
+    <button class="btn @(ActiveType == "restaurants" ? "btn-primary" : "btn-outline-secondary")"
+            @onclick='() => OnTypeChange.InvokeAsync("restaurants")'>
+        <i class="fa-solid fa-store me-1"></i>Restauracje
+    </button>
+    <button class="btn @(ActiveType == "dishes" ? "btn-primary" : "btn-outline-secondary")"
+            @onclick='() => OnTypeChange.InvokeAsync("dishes")'>
+        <i class="fa-solid fa-bowl-food me-1"></i>Dania
+    </button>
+</div>
+
+@code {
+    [Parameter] public string ActiveType { get; set; } = "restaurants";
+    [Parameter] public EventCallback<string> OnTypeChange { get; set; }
+}
