@@ -49,7 +49,7 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
 
         builder.Property(x => x.SecretCharacteristicsVector)
             .HasColumnType("jsonb")
-            .IsRequired();
+            .HasDefaultValue("{}");
 
         builder.Property(x => x.SecretPenaltyVector)
             .HasColumnType("jsonb");

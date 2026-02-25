@@ -7,5 +7,6 @@ public enum TicketType
     Report,
     EditRequest,
     IngredientSuggestion,
-    DataCorrection
+    DataCorrection,
+    Contact
 }

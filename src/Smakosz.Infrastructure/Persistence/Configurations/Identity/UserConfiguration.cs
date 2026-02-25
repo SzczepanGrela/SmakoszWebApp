@@ -72,7 +72,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(x => x.SecretCharacteristicsVector)
             .HasColumnType("jsonb")
-            .IsRequired();
+            .HasDefaultValue("{}");
 
         builder.Property(x => x.SecretIngredientPreferences)
             .HasColumnType("jsonb");

@@ -14,8 +14,8 @@ public class CityConfiguration : IEntityTypeConfiguration<City>
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.Property(x => x.PostalCodePrefix)
-            .HasMaxLength(2);
+        builder.Property(x => x.Region)
+            .HasMaxLength(100);
 
         builder.HasIndex(x => x.CityName)
             .IsUnique();
