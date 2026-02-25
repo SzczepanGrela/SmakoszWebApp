@@ -16,3 +16,12 @@ public class AppliedFiltersDto
     public List<string> Dietary { get; set; } = [];
     public bool GeoEnabled { get; set; }
 }
+
+public class SearchFiltersDto
+{
+    public List<string> Cuisines { get; set; } = [];
+    public List<string> DietaryOptions { get; set; } = [];
+    public List<string> Cities { get; set; } = [];
+    public int MinPrice { get; set; }
+    public int MaxPrice { get; set; }
+}

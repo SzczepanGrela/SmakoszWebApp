@@ -77,4 +77,25 @@ public class BusinessService : IBusinessService
         var response = await _api.PostApiResponseAsync<object>("/api/business/register", dto);
         return response.Success;
     }
+
+    public async Task<bool> CreateMenuSectionAsync(string name)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/business/menu-sections", new { Name = name });
+        return response.Success;
+    }
+
+    public async Task<bool> UpdateMenuSectionAsync(int sectionId, string name)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/business/menu-sections/{sectionId}", new { Name = name });
+        return response.Success;
+    }
+
+    public Task<bool> DeleteMenuSectionAsync(int sectionId)
+        => _api.DeleteAsync($"/api/business/menu-sections/{sectionId}");
+
+    public async Task<bool> UpdateDishAvailabilityAsync(Guid publicId, bool isAvailable)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{publicId}/availability", new { IsAvailable = isAvailable });
+        return response.Success;
+    }
 }

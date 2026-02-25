@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Web;
 using Smakosz.Client.Models;
 
@@ -11,7 +12,8 @@ public class SearchService : ISearchService
 
     public Task<SearchResultDto?> SearchAsync(string type = "restaurants", string? query = null, string? location = null,
         string? cuisines = null, int? minPrice = null, int? maxPrice = null, string? dietary = null,
-        string sortBy = "rating", string sortDir = "desc", int page = 1, int pageSize = 20)
+        string sortBy = "rating", string sortDir = "desc", int page = 1, int pageSize = 20,
+        double? lat = null, double? lng = null, double? radius = null)
     {
         var qs = HttpUtility.ParseQueryString(string.Empty);
         qs["type"] = type;
@@ -25,7 +27,13 @@ public class SearchService : ISearchService
         if (minPrice.HasValue) qs["minPrice"] = minPrice.Value.ToString();
         if (maxPrice.HasValue) qs["maxPrice"] = maxPrice.Value.ToString();
         if (!string.IsNullOrWhiteSpace(dietary)) qs["dietary"] = dietary;
+        if (lat.HasValue) qs["lat"] = lat.Value.ToString(CultureInfo.InvariantCulture);
+        if (lng.HasValue) qs["lng"] = lng.Value.ToString(CultureInfo.InvariantCulture);
+        if (radius.HasValue) qs["radius"] = radius.Value.ToString(CultureInfo.InvariantCulture);
 
         return _api.GetAsync<SearchResultDto>($"/api/search?{qs}");
     }
+
+    public Task<SearchFiltersDto?> GetFiltersAsync()
+        => _api.GetAsync<SearchFiltersDto>("/api/search/filters");
 }

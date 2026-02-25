@@ -44,12 +44,25 @@
                     @foreach (var diet in _dietaryOptions)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet.Value)"
-                                   @onchange="e => ToggleDietary(diet.Value, (bool)e.Value!)" />
-                            <label class="form-check-label small">@diet.Label</label>
+                            <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet)"
+                                   @onchange="e => ToggleDietary(diet, (bool)e.Value!)" />
+                            <label class="form-check-label small">@diet</label>
                         </div>
                     }
                 </div>
+                @if (_cities.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Miasto</label>
+                        <select class="form-select form-select-sm" @bind="_selectedCity">
+                            <option value="">Wszystkie</option>
+                            @foreach (var city in _cities)
+                            {
+                                <option value="@city">@city</option>
+                            }
+                        </select>
+                    </div>
+                }
                 <button class="btn btn-primary btn-sm w-100" @onclick="DoSearch">Zastosuj filtry</button>
             </FilterPanel>
         </div>
@@ -102,20 +115,23 @@
     [SupplyParameterFromQuery] public string? Type { get; set; }
     [SupplyParameterFromQuery] public int Page { get; set; } = 1;
 
-    private Models.SearchResultDto? _result;
+    private SearchResultDto? _result;
     private bool _loading = true;
     private string _query = "";
     private string _type = "restaurants";
     private string _sortBy = "rating";
     private int _page = 1;
+    private string _selectedCity = "";
     private readonly HashSet<string> _selectedCuisines = [];
     private readonly HashSet<string> _selectedDietary = [];
 
-    private static readonly string[] _cuisineOptions = { "Polska", "Wloska", "Azjatycka", "Amerykanska", "Meksykanska", "Francuska" };
-    private static readonly (string Label, string Value)[] _dietaryOptions =
-    {
-        ("Wegetarianskie", "vegetarian"), ("Weganskie", "vegan"), ("Bez glutenu", "gluten_free"), ("Bez laktozy", "lactose_free")
-    };
+    private List<string> _cuisineOptions = [];
+    private List<string> _dietaryOptions = [];
+    private List<string> _cities = [];
+
+    private static readonly string[] _fallbackCuisines = { "Polska", "Wloska", "Azjatycka", "Amerykanska", "Meksykanska", "Francuska" };
+    private static readonly string[] _fallbackDietary = { "vegetarian", "vegan", "gluten_free", "lactose_free" };
+
     private static readonly List<SortOption> _sortOptions = new()
     {
         new() { Label = "Ocena", Value = "rating" },
@@ -129,7 +145,24 @@
         _query = Query ?? "";
         _type = Type ?? "restaurants";
         _page = Page > 0 ? Page : 1;
-        await LoadResults();
+
+        var filtersTask = SearchService.GetFiltersAsync();
+        var resultsTask = LoadResults();
+
+        var filters = await filtersTask;
+        if (filters != null)
+        {
+            _cuisineOptions = filters.Cuisines.Any() ? filters.Cuisines : [.. _fallbackCuisines];
+            _dietaryOptions = filters.DietaryOptions.Any() ? filters.DietaryOptions : [.. _fallbackDietary];
+            _cities = filters.Cities;
+        }
+        else
+        {
+            _cuisineOptions = [.. _fallbackCuisines];
+            _dietaryOptions = [.. _fallbackDietary];
+        }
+
+        await resultsTask;
     }
 
     private async Task LoadResults()
@@ -137,7 +170,8 @@
         _loading = true;
         var cuisines = _selectedCuisines.Any() ? string.Join(",", _selectedCuisines) : null;
         var dietary = _selectedDietary.Any() ? string.Join(",", _selectedDietary) : null;
-        _result = await SearchService.SearchAsync(_type, _query, null, cuisines, null, null, dietary, _sortBy, "desc", _page);
+        var location = !string.IsNullOrEmpty(_selectedCity) ? _selectedCity : null;
+        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page);
         _loading = false;
     }
 

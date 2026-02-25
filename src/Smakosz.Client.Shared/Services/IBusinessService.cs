@@ -21,4 +21,8 @@ public interface IBusinessService
     Task<List<EditRequestSummaryDto>> GetEditRequestsAsync();
     Task<RegistrationStatusDto?> GetRegistrationStatusAsync();
     Task<bool> RegisterBusinessAsync(BusinessRestaurantDto dto);
+    Task<bool> CreateMenuSectionAsync(string name);
+    Task<bool> UpdateMenuSectionAsync(int sectionId, string name);
+    Task<bool> DeleteMenuSectionAsync(int sectionId);
+    Task<bool> UpdateDishAvailabilityAsync(Guid publicId, bool isAvailable);
 }
