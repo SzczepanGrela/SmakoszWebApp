@@ -1,6 +1,7 @@
 @page "/dish/{Slug}"
 @inject IDishService DishService
 @inject IReviewService ReviewService
+@inject IUserProfileService UserProfileService
 
 <PageTitle>@(_dish?.DishName ?? "Danie") - Smakosz</PageTitle>
 
@@ -36,7 +37,11 @@ else
                             </a>
                         }
                     </div>
-                    <SaveDishButton IsSaved="@_dish.IsSaved" OnToggle="() => _dish.IsSaved = !_dish.IsSaved" />
+                    <AuthorizeView>
+                        <Authorized>
+                            <SaveDishButton IsSaved="@_dish.IsSaved" OnToggle="ToggleSaveDish" />
+                        </Authorized>
+                    </AuthorizeView>
                 </div>
 
                 <!-- Ratings & Price -->
@@ -162,5 +167,18 @@ else
     private async Task LoadReviewPage(int page)
     {
         _reviews = await ReviewService.GetByDishAsync(Slug, page);
+    }
+
+    private async Task ToggleSaveDish()
+    {
+        if (_dish == null) return;
+        bool success;
+        if (_dish.IsSaved)
+            success = await UserProfileService.UnsaveDishAsync(Slug);
+        else
+            success = await UserProfileService.SaveDishAsync(Slug);
+
+        if (success)
+            _dish.IsSaved = !_dish.IsSaved;
     }
 }

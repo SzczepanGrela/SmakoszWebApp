@@ -15,4 +15,13 @@ public interface IUserProfileService
     Task<bool> ChangePasswordAsync(string currentPassword, string newPassword);
     Task<NotificationSettingsDto?> GetNotificationSettingsAsync();
     Task<bool> UpdateNotificationSettingsAsync(NotificationSettingsDto settings);
+    Task<bool> SaveDishAsync(string dishSlug);
+    Task<bool> UnsaveDishAsync(string dishSlug);
+    Task<bool> FavoriteRestaurantAsync(string restaurantSlug);
+    Task<bool> UnfavoriteRestaurantAsync(string restaurantSlug);
+    Task<bool> FollowUserAsync(string slug);
+    Task<bool> UnfollowUserAsync(string slug);
+    Task<bool> RevokeSessionAsync(Guid sessionId);
+    Task<bool> RevokeAllSessionsAsync();
+    Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1);
 }

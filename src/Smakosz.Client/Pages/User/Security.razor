@@ -83,9 +83,15 @@
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fa-solid fa-desktop me-2"></i>Aktywne sesje</h5>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="LoadSessions" disabled="@_loadingSessions">
-                        <i class="fa-solid fa-rotate me-1"></i>Odswiez
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-danger btn-sm" @onclick="RevokeAll"
+                                disabled="@(_loadingSessions || _sessions == null || _sessions.Count <= 1)">
+                            <i class="fa-solid fa-right-from-bracket me-1"></i>Wyloguj wszystkie inne
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="LoadSessions" disabled="@_loadingSessions">
+                            <i class="fa-solid fa-rotate me-1"></i>Odswiez
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (_loadingSessions)
@@ -123,6 +129,12 @@
                                             Wygasa: @session.ExpiresAt.ToString("dd.MM.yyyy HH:mm")
                                         </small>
                                     </div>
+                                    @if (!session.IsCurrent)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm" @onclick="() => RevokeSession(session.SessionId)">
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i>Wyloguj
+                                        </button>
+                                    }
                                 </div>
                             }
                         </div>
@@ -195,6 +207,34 @@
             _passwordError = "Nie udalo sie zmienic hasla. Sprawdz, czy obecne haslo jest poprawne.";
         }
         _changingPassword = false;
+    }
+
+    private async Task RevokeSession(Guid sessionId)
+    {
+        var success = await UserProfileService.RevokeSessionAsync(sessionId);
+        if (success)
+        {
+            Toast.ShowSuccess("Sesja zostala wylogowana.");
+            await LoadSessions();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie wylogowac sesji.");
+        }
+    }
+
+    private async Task RevokeAll()
+    {
+        var success = await UserProfileService.RevokeAllSessionsAsync();
+        if (success)
+        {
+            Toast.ShowSuccess("Wszystkie inne sesje zostaly wylogowane.");
+            await LoadSessions();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie wylogowac sesji.");
+        }
     }
 
     private static string GetDeviceIcon(string device)

@@ -1,5 +1,6 @@
 @page "/restaurant/{Slug}"
 @inject IRestaurantService RestaurantService
+@inject IUserProfileService UserProfileService
 
 <PageTitle>@(_restaurant?.RestaurantName ?? "Restauracja") - Smakosz</PageTitle>
 
@@ -158,7 +159,11 @@ else
                         </div>
                     }
                     <div class="d-flex gap-2 mt-3">
-                        <FavoriteButton IsFavorite="@_restaurant.IsFavorite" OnToggle="() => _restaurant.IsFavorite = !_restaurant.IsFavorite" />
+                        <AuthorizeView>
+                            <Authorized>
+                                <FavoriteButton IsFavorite="@_restaurant.IsFavorite" OnToggle="ToggleFavorite" />
+                            </Authorized>
+                        </AuthorizeView>
                         <ShareButton Url="@Navigation.Uri" Title="@_restaurant.RestaurantName" />
                     </div>
                 </div>
@@ -210,4 +215,17 @@ else
         0 => "Niedziela", 1 => "Poniedzialek", 2 => "Wtorek", 3 => "Sroda",
         4 => "Czwartek", 5 => "Piatek", 6 => "Sobota", _ => ""
     };
+
+    private async Task ToggleFavorite()
+    {
+        if (_restaurant == null) return;
+        bool success;
+        if (_restaurant.IsFavorite)
+            success = await UserProfileService.UnfavoriteRestaurantAsync(Slug);
+        else
+            success = await UserProfileService.FavoriteRestaurantAsync(Slug);
+
+        if (success)
+            _restaurant.IsFavorite = !_restaurant.IsFavorite;
+    }
 }
