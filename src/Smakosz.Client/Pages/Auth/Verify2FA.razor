@@ -1,5 +1,6 @@
 @page "/verify-2fa"
 @layout Smakosz.Client.Layout.AuthLayout
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Weryfikacja 2FA - Smakosz</PageTitle>
@@ -10,20 +11,89 @@
     <p class="text-muted small">Wprowadz kod z aplikacji uwierzytelniajcej.</p>
 </div>
 
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+}
+
 <div class="mb-3">
     <input type="text" class="form-control form-control-lg text-center" maxlength="6" @bind="_code" placeholder="000000" />
 </div>
-<button class="btn btn-primary w-100" @onclick="Verify">Zweryfikuj</button>
+<button class="btn btn-primary w-100" @onclick="Verify" disabled="@_loading">
+    @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+    Zweryfikuj
+</button>
+
 <div class="text-center mt-3">
+    <button class="btn btn-link btn-sm text-decoration-none" @onclick="ResendCode" disabled="@(_resendCooldown > 0)">
+        <i class="fa-solid fa-rotate-right me-1"></i>
+        @if (_resendCooldown > 0)
+        {
+            <span>Wyslij ponownie (@_resendCooldown s)</span>
+        }
+        else
+        {
+            <span>Wyslij ponownie</span>
+        }
+    </button>
+</div>
+
+<div class="text-center mt-2">
     <a href="/login" class="small"><i class="fa-solid fa-arrow-left me-1"></i>Powrot</a>
 </div>
 
 @code {
     private string _code = "";
+    private string? _error;
+    private bool _loading;
+    private int _resendCooldown;
+    private System.Threading.Timer? _timer;
 
-    private void Verify()
+    private async Task Verify()
     {
-        if (_code.Length == 6)
+        if (_code.Length != 6) return;
+        _loading = true;
+        _error = null;
+        var result = await AuthService.Verify2faAsync(_code);
+        if (result.Success)
+        {
             Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nieprawidlowy kod.";
+        }
+        _loading = false;
+    }
+
+    private async Task ResendCode()
+    {
+        _error = null;
+        var result = await AuthService.Resend2faAsync();
+        if (result.Success)
+        {
+            StartCooldown();
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nie udalo sie wyslac kodu.";
+        }
+    }
+
+    private void StartCooldown()
+    {
+        _resendCooldown = 60;
+        _timer?.Dispose();
+        _timer = new System.Threading.Timer(_ =>
+        {
+            _resendCooldown--;
+            if (_resendCooldown <= 0) _timer?.Dispose();
+            InvokeAsync(StateHasChanged);
+        }, null, 1000, 1000);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }

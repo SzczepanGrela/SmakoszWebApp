@@ -1,6 +1,6 @@
 @page "/verify-email"
 @layout Smakosz.Client.Layout.AuthLayout
-@inject Smakosz.Client.Services.IAuthService AuthService
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Weryfikacja email - Smakosz</PageTitle>
@@ -27,10 +27,24 @@
     <label class="form-label">Kod weryfikacyjny</label>
     <input type="text" class="form-control form-control-lg text-center" maxlength="6" @bind="_code" placeholder="000000" />
 </div>
-<button class="btn btn-primary w-100 mt-3 @(_loading ? "loading" : "")" @onclick="Verify" disabled="@_loading">
+<button class="btn btn-primary w-100 mt-3" @onclick="Verify" disabled="@_loading">
     @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
     Zweryfikuj
 </button>
+
+<div class="text-center mt-3">
+    <button class="btn btn-link btn-sm text-decoration-none" @onclick="ResendCode" disabled="@(_resendCooldown > 0)">
+        <i class="fa-solid fa-rotate-right me-1"></i>
+        @if (_resendCooldown > 0)
+        {
+            <span>Wyslij ponownie kod (@_resendCooldown s)</span>
+        }
+        else
+        {
+            <span>Wyslij ponownie kod</span>
+        }
+    </button>
+</div>
 
 @code {
     [SupplyParameterFromQuery] public string? Email { get; set; }
@@ -38,12 +52,14 @@
     private string? _error;
     private bool _loading;
     private bool _success;
+    private int _resendCooldown;
+    private System.Threading.Timer? _timer;
 
     private async Task Verify()
     {
         _loading = true;
         _error = null;
-        var result = await AuthService.VerifyEmailAsync(new Smakosz.Client.Models.VerifyEmailRequest { Code = _code });
+        var result = await AuthService.VerifyEmailAsync(new VerifyEmailRequest { Code = _code });
         if (result.Success)
         {
             _success = true;
@@ -55,5 +71,37 @@
             _error = result.Error?.Message ?? "Nieprawidlowy kod.";
         }
         _loading = false;
+    }
+
+    private async Task ResendCode()
+    {
+        if (string.IsNullOrEmpty(Email)) return;
+        _error = null;
+        var result = await AuthService.ResendVerificationAsync(Email);
+        if (result.Success)
+        {
+            StartCooldown();
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nie udalo sie wyslac kodu.";
+        }
+    }
+
+    private void StartCooldown()
+    {
+        _resendCooldown = 60;
+        _timer?.Dispose();
+        _timer = new System.Threading.Timer(_ =>
+        {
+            _resendCooldown--;
+            if (_resendCooldown <= 0) _timer?.Dispose();
+            InvokeAsync(StateHasChanged);
+        }, null, 1000, 1000);
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }

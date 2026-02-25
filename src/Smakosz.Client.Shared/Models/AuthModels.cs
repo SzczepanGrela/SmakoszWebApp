@@ -50,3 +50,25 @@ public class RefreshTokenRequest
 {
     public string RefreshToken { get; set; } = default!;
 }
+
+public class ForgotPasswordRequest
+{
+    public string Email { get; set; } = default!;
+}
+
+public class ResetPasswordRequest
+{
+    public string Token { get; set; } = default!;
+    public string NewPassword { get; set; } = default!;
+    public string ConfirmPassword { get; set; } = default!;
+}
+
+public class Verify2faRequest
+{
+    public string Code { get; set; } = default!;
+}
+
+public class ResendVerificationRequest
+{
+    public string Email { get; set; } = default!;
+}
