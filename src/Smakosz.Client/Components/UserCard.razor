@@ -1,4 +1,5 @@
 @using Smakosz.Client.Helpers
+@inject Smakosz.Client.Services.IUserProfileService UserProfileService
 
 <div class="d-flex align-items-center gap-3 p-2">
     <img src="@ImageHelper.GetAvatarUrl(User.AvatarUrl, User.Username)" class="rounded-circle"
@@ -9,11 +10,31 @@
     </div>
     @if (ShowFollowButton)
     {
-        <FollowButton IsFollowing="false" />
+        <FollowButton IsFollowing="@_isFollowing" OnToggle="ToggleFollow" />
     }
 </div>
 
 @code {
     [Parameter, EditorRequired] public Smakosz.Client.Models.UserSummaryDto User { get; set; } = default!;
     [Parameter] public bool ShowFollowButton { get; set; }
+    [Parameter] public bool IsFollowing { get; set; }
+
+    private bool _isFollowing;
+
+    protected override void OnParametersSet()
+    {
+        _isFollowing = IsFollowing;
+    }
+
+    private async Task ToggleFollow()
+    {
+        bool success;
+        if (_isFollowing)
+            success = await UserProfileService.UnfollowUserAsync(User.Slug);
+        else
+            success = await UserProfileService.FollowUserAsync(User.Slug);
+
+        if (success)
+            _isFollowing = !_isFollowing;
+    }
 }
