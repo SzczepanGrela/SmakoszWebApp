@@ -1,12 +1,16 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Smakosz.API.Common;
+using Smakosz.API.Middleware;
 using Smakosz.API.Services;
 using Smakosz.Application;
 using Smakosz.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Smakosz.Infrastructure;
+using Smakosz.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,13 +43,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ClockSkew = TimeSpan.Zero
         };
-    });
+    })
+    .AddScheme<AuthenticationSchemeOptions, WorkerApiKeyAuthHandler>("WorkerApiKey", null);
 
 // Authorization policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("admin", "moderator"));
     options.AddPolicy("RestaurantOwner", p => p.RequireRole("restaurant"));
+    options.AddPolicy("Worker", p => p.RequireRole("Worker"));
 });
 
 // Controllers
@@ -103,6 +109,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Auto-migrate database and apply SQL objects in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<SmakoszDbContext>();
+    await db.Database.MigrateAsync();
+    await db.ApplySqlObjectsAsync();
+}
+
 // Middleware pipeline
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -117,4 +132,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

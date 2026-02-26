@@ -1,8 +1,10 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Media.Commands.UploadMedia;
@@ -73,6 +75,21 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
         };
 
         _db.MediaAssets.Add(asset);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        _db.SystemJobs.Add(new SystemJob
+        {
+            Type = "image_moderation",
+            Status = JobStatus.Pending,
+            Priority = 5,
+            EntityId = asset.AssetId.ToString(),
+            EntityType = "media_asset",
+            Payload = JsonSerializer.Serialize(new
+            {
+                asset_id = asset.AssetId,
+                image_url = asset.Url
+            })
+        });
         await _db.SaveChangesAsync(cancellationToken);
 
         return new UploadMediaResult
