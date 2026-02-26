@@ -392,6 +392,7 @@ tools/generator/config/db_config.ini
 
 # All markdown files (documentation kept local-only)
 *.md
+docs/
 .vscode/settings.json
 tools/generator/data/dataset_stats.json
 
