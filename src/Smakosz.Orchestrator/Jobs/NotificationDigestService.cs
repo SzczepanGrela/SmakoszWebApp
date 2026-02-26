@@ -1,0 +1,76 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Enums;
+
+namespace Smakosz.Orchestrator.Jobs;
+
+public class NotificationDigestService
+{
+    private readonly ISmakoszDbContext _db;
+    private readonly IEmailService _email;
+    private readonly IDateTimeProvider _clock;
+    private readonly ILogger<NotificationDigestService> _logger;
+
+    public NotificationDigestService(
+        ISmakoszDbContext db,
+        IEmailService email,
+        IDateTimeProvider clock,
+        ILogger<NotificationDigestService> logger)
+    {
+        _db = db;
+        _email = email;
+        _clock = clock;
+        _logger = logger;
+    }
+
+    public async Task SendAsync(CancellationToken ct)
+    {
+        var pending = await _db.Notifications
+            .Include(n => n.User)
+            .Where(n => n.SendEmail && n.EmailStatus == EmailStatus.Pending && !n.IsDeleted)
+            .ToListAsync(ct);
+
+        if (pending.Count == 0)
+            return;
+
+        var grouped = pending.GroupBy(n => n.UserId);
+        var sent = 0;
+
+        foreach (var group in grouped)
+        {
+            var user = group.First().User;
+            var notifications = group.ToList();
+
+            var subject = notifications.Count == 1
+                ? notifications[0].Title
+                : $"Masz {notifications.Count} nowych powiadomień";
+
+            var body = string.Join("<hr/>",
+                notifications.Select(n => $"<h3>{n.Title}</h3><p>{n.Message}</p>"));
+
+            try
+            {
+                await _email.SendDigestAsync(user.Email, subject, body, ct);
+
+                foreach (var n in notifications)
+                    n.EmailStatus = EmailStatus.Sent;
+
+                sent++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "notification-digest: failed to send to {Email}", user.Email);
+
+                foreach (var n in notifications)
+                    n.EmailStatus = EmailStatus.Failed;
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        _logger.LogInformation(
+            "notification-digest: sent {Sent} digests ({Total} notifications)",
+            sent, pending.Count);
+    }
+}
