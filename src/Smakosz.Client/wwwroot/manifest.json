@@ -6,6 +6,7 @@
   "background_color": "#E8DDD0",
   "theme_color": "#D4A574",
   "description": "System recenzji restauracji i dan. Odkrywaj nowe smaki, oceniaj dania i dziel sie opiniami.",
+  "_TODO_icons": "Replace placeholder icons (icon-192.png, icon-512.png) with final branded artwork",
   "icons": [
     {
       "src": "icon-192.png",
