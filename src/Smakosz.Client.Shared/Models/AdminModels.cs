@@ -62,7 +62,7 @@ public class AdminReviewDto
 {
     public Guid PublicId { get; set; }
     public string Content { get; set; } = default!;
-    public string ContentStatus { get; set; } = default!;
+    public int ContentStatus { get; set; }
     public string AuthorUsername { get; set; } = default!;
     public string DishName { get; set; } = default!;
     public string RestaurantName { get; set; } = default!;
