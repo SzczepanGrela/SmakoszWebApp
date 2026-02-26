@@ -34,8 +34,8 @@ public class GetBusinessDishesHandlerTests
         var result = await _handler.Handle(new GetBusinessDishesQuery(), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.Should().HaveCount(2);
-        result.Value.Should().AllSatisfy(d => d.DishId.Should().BeOneOf(1, 2));
+        result.Value.Data.Should().HaveCount(2);
+        result.Value.Data.Should().AllSatisfy(d => d.DishId.Should().BeOneOf(1, 2));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class GetBusinessDishesHandlerTests
         var result = await _handler.Handle(new GetBusinessDishesQuery(), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.Should().BeEmpty();
+        result.Value.Data.Should().BeEmpty();
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class GetBusinessDishesHandlerTests
         var result = await _handler.Handle(new GetBusinessDishesQuery(), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        var dish = result.Value.Single();
+        var dish = result.Value.Data.Single();
         dish.DishId.Should().Be(7);
         dish.DishName.Should().Be("Burger");
         dish.Slug.Should().Be("burger");

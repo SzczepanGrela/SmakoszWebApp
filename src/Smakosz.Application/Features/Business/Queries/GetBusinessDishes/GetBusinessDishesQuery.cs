@@ -3,13 +3,14 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Business.Dtos;
 
 namespace Smakosz.Application.Features.Business.Queries.GetBusinessDishes;
 
-public record GetBusinessDishesQuery(int? SectionId = null) : IRequest<ErrorOr<List<BusinessDishDto>>>;
+public record GetBusinessDishesQuery(int? SectionId = null, int Page = 1, int PageSize = 20) : IRequest<ErrorOr<PagedResult<BusinessDishDto>>>;
 
-public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, ErrorOr<List<BusinessDishDto>>>
+public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, ErrorOr<PagedResult<BusinessDishDto>>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
@@ -20,7 +21,7 @@ public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, 
         _currentUser = currentUser;
     }
 
-    public async Task<ErrorOr<List<BusinessDishDto>>> Handle(GetBusinessDishesQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PagedResult<BusinessDishDto>>> Handle(GetBusinessDishesQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
@@ -44,19 +45,41 @@ public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, 
             query = query.Where(d => dishIds.Contains(d.DishId));
         }
 
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var page = Math.Max(1, request.Page);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
         var dishes = await query
             .OrderBy(d => d.DishName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(d => new BusinessDishDto
             {
                 DishId = d.DishId,
+                PublicId = d.PublicId,
                 DishName = d.DishName,
                 Slug = d.Slug ?? string.Empty,
                 Price = d.Price,
                 Description = d.Description,
+                ImageUrl = d.ImageUrl,
+                AvgRating = d.AvgRating,
+                ReviewCount = d.ReviewCount,
                 IsAvailable = d.IsAvailable
             })
             .ToListAsync(cancellationToken);
 
-        return dishes;
+        return new PagedResult<BusinessDishDto>
+        {
+            Data = dishes,
+            Pagination = new PaginationInfo
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = totalPages,
+                TotalCount = totalCount
+            }
+        };
     }
 }

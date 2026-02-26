@@ -21,7 +21,7 @@ public class SearchService : ISearchService
         qs["pageSize"] = pageSize.ToString();
         qs["sortBy"] = sortBy;
         qs["sortDir"] = sortDir;
-        if (!string.IsNullOrWhiteSpace(query)) qs["query"] = query;
+        if (!string.IsNullOrWhiteSpace(query)) qs["q"] = query;
         if (!string.IsNullOrWhiteSpace(location)) qs["location"] = location;
         if (!string.IsNullOrWhiteSpace(cuisines)) qs["cuisines"] = cuisines;
         if (minPrice.HasValue) qs["minPrice"] = minPrice.Value.ToString();

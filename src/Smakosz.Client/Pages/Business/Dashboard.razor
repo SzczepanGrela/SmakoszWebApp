@@ -24,56 +24,22 @@ else
 
     <!-- Stats cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.TotalReviews</div>
                 <small class="text-muted">Recenzje</small>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@(_dashboard.AvgRating?.ToString("F1") ?? "-")</div>
                 <small class="text-muted">Srednia ocena</small>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.TotalDishes</div>
                 <small class="text-muted">Dania w menu</small>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm text-center p-3">
-                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.ViewsThisMonth</div>
-                <small class="text-muted">Wyswietlenia (miesiac)</small>
-            </div>
-        </div>
-    </div>
-
-    <!-- Weekly activity -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header"><h5 class="mb-0">Aktywnosc tygodniowa</h5></div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Wyswietlenia</th>
-                            <th>Recenzje</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var stat in _dashboard.WeeklyStats)
-                        {
-                            <tr>
-                                <td>@stat.Date</td>
-                                <td>@stat.Views</td>
-                                <td>@stat.Reviews</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>

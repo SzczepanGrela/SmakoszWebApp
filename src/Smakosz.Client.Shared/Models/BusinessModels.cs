@@ -8,8 +8,7 @@ public class BusinessDashboardDto
     public int TotalReviews { get; set; }
     public double? AvgRating { get; set; }
     public int TotalDishes { get; set; }
-    public int ViewsThisMonth { get; set; }
-    public List<BusinessStatsDto> WeeklyStats { get; set; } = [];
+    public int TotalMenuSections { get; set; }
 }
 
 public class BusinessRestaurantDto
@@ -30,9 +29,10 @@ public class BusinessRestaurantDto
 
 public class BusinessStatsDto
 {
-    public string Date { get; set; } = default!;
-    public int Views { get; set; }
-    public int Reviews { get; set; }
+    public int TotalReviews { get; set; }
+    public double? AverageRating { get; set; }
+    public int ReviewsThisMonth { get; set; }
+    public int ReviewsLastMonth { get; set; }
 }
 
 public class RegistrationStatusDto
@@ -54,4 +54,18 @@ public class EditRequestSummaryDto
     public string FieldChanged { get; set; } = default!;
     public string Status { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
+}
+
+public class BusinessDishDto
+{
+    public int DishId { get; set; }
+    public Guid PublicId { get; set; }
+    public string DishName { get; set; } = default!;
+    public string Slug { get; set; } = default!;
+    public decimal? Price { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public double? AvgRating { get; set; }
+    public int ReviewCount { get; set; }
+    public bool IsAvailable { get; set; }
 }
