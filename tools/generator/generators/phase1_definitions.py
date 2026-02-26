@@ -176,9 +176,7 @@ class CitiesPhase(BasePhase):
 
             city_data = []
             for city_name in city_config:
-                city_data.append(
-                    {"city_name": city_name, "postal_code_prefix": POSTAL_CODE_PREFIXES.get(city_name, "00")}
-                )
+                city_data.append({"city_name": city_name})
 
             if not city_data:
                 raise ValueError("No cities found in CITY_CONFIG")
