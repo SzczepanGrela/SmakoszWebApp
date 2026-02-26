@@ -70,7 +70,7 @@ namespace Smakosz.Infrastructure.Migrations
                     city_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     city_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    postal_code_prefix = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
+                    region = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -511,7 +511,7 @@ namespace Smakosz.Infrastructure.Migrations
                     avg_rating = table.Column<double>(type: "double precision", nullable: true),
                     review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     secret_base_price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
-                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false),
+                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
                     secret_penalty_vector = table.Column<string>(type: "jsonb", nullable: true),
                     secret_quality = table.Column<double>(type: "double precision", nullable: true),
                     secret_popularity_factor = table.Column<double>(type: "double precision", nullable: true)
@@ -928,7 +928,7 @@ namespace Smakosz.Infrastructure.Migrations
                     secret_mood_propensity = table.Column<double>(type: "double precision", nullable: true),
                     secret_is_influencer = table.Column<bool>(type: "boolean", nullable: false),
                     secret_rating_baseline = table.Column<double>(type: "double precision", nullable: false, defaultValue: 6.0),
-                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false),
+                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
                     secret_ingredient_preferences = table.Column<string>(type: "jsonb", nullable: true),
                     secret_cleanliness_preference = table.Column<string>(type: "jsonb", nullable: true),
                     secret_preferred_ambiance = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
@@ -1088,6 +1088,7 @@ namespace Smakosz.Infrastructure.Migrations
                     reference_id = table.Column<long>(type: "bigint", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     priority = table.Column<int>(type: "integer", nullable: false, defaultValue: 3),
+                    description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: true),
                     assigned_admin_id = table.Column<int>(type: "integer", nullable: true),
                     locked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -1840,8 +1841,7 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_tickets_ticket_type_reference_id",
                 schema: "system",
                 table: "tickets",
-                columns: new[] { "ticket_type", "reference_id" },
-                unique: true);
+                columns: new[] { "ticket_type", "reference_id" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_follows_followed_id_created_at",
