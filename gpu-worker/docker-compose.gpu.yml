@@ -1,0 +1,27 @@
+services:
+  gpu-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: gpu-worker
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - GPU_WORKER_API_URL=${GPU_WORKER_API_URL:-http://100.x.x.1:8080}
+      - GPU_WORKER_API_KEY=${WORKER_API_KEY}
+      - GPU_WORKER_WORKER_ID=${GPU_WORKER_WORKER_ID:-gpu-worker}
+      - GPU_WORKER_R2_ENDPOINT=${R2_ENDPOINT}
+      - GPU_WORKER_R2_ACCESS_KEY=${R2_ACCESS_KEY}
+      - GPU_WORKER_R2_SECRET_KEY=${R2_SECRET_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./model_cache:/app/model_cache
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
