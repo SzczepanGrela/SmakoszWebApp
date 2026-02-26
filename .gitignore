@@ -321,6 +321,14 @@ __pycache__/
 *.env
 !.env.example
 
+# ASP.NET Core secrets (real keys in appsettings.json, template committed)
+appsettings.json
+appsettings.Development.json
+!appsettings.json.template
+
+# Launch settings (local dev only)
+**/Properties/launchSettings.json
+
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
@@ -386,3 +394,7 @@ tools/generator/config/db_config.ini
 *.md
 .vscode/settings.json
 tools/generator/data/dataset_stats.json
+
+# Diagnostic / build output files
+*_errors.txt
+*_results.txt

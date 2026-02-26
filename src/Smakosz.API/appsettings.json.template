@@ -1,0 +1,30 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=<DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>"
+  },
+  "Jwt": {
+    "Secret": "<MIN-32-CHAR-SECRET-KEY>",
+    "Issuer": "Smakosz.API",
+    "Audience": "Smakosz.Client"
+  },
+  "Cors": {
+    "AllowedOrigins": [ "https://localhost:5002", "http://localhost:5002" ]
+  },
+  "R2": {
+    "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
+    "AccessKey": "<R2_ACCESS_KEY_ID>",
+    "SecretKey": "<R2_SECRET_ACCESS_KEY>",
+    "BucketName": "<R2_BUCKET_NAME>",
+    "PublicUrl": "<R2_PUBLIC_DOMAIN>"
+  },
+  "WorkerAuth": {
+    "ApiKey": "<WORKER_API_KEY>"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
