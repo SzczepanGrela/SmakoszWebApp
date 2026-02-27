@@ -154,4 +154,15 @@ public class AdminService : IAdminService
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/jobs/{id}/trigger", null);
         return response.Success;
     }
+
+    // Ingredient Suggestions
+    public Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null)
+        => _api.GetAsync<PagedResult<AdminIngredientSuggestionDto>>($"/api/admin/ingredient-suggestions?page={page}&status={status}");
+
+    public async Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/ingredient-suggestions/{id}/review",
+            new { Approve = approve, AdminNote = adminNote });
+        return response.Success;
+    }
 }

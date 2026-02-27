@@ -41,6 +41,17 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
         if (alreadyReviewed)
             return DomainErrors.Review.AlreadyExists;
 
+        if (!string.IsNullOrEmpty(request.Content))
+        {
+            var contentLower = request.Content.ToLowerInvariant();
+            var hasForbiddenWord = await _db.ForbiddenWords
+                .Where(fw => fw.Category == ForbiddenWordCategory.Profanity || fw.Category == ForbiddenWordCategory.Offensive)
+                .AnyAsync(fw => !fw.IsRegex && contentLower.Contains(fw.Word.ToLower()), cancellationToken);
+
+            if (hasForbiddenWord)
+                return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        }
+
         var review = new Review
         {
             UserId = _currentUser.UserId.Value,
@@ -75,6 +86,21 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
                     text = review.Content,
                     language = "pl"
                 })
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        if (dish.Restaurant?.OwnerId is { } ownerId && ownerId != _currentUser.UserId.Value)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserId = ownerId,
+                ActorId = _currentUser.UserId.Value,
+                Type = NotificationType.System,
+                Title = "Nowa recenzja",
+                Message = $"Ktoś dodał recenzję dania \"{dish.DishName}\".",
+                GroupKey = $"review:restaurant:{dish.RestaurantId}",
+                CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
         }

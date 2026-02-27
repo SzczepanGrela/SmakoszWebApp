@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Me.Commands.UpdateProfile;
 
@@ -30,6 +31,14 @@ public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ErrorO
 
         if (request.Username is not null)
         {
+            var usernameLower = request.Username.ToLowerInvariant();
+            var forbiddenUsername = await _db.ForbiddenWords
+                .Where(fw => fw.Category == ForbiddenWordCategory.Reserved || fw.Category == ForbiddenWordCategory.Offensive)
+                .AnyAsync(fw => !fw.IsRegex && usernameLower.Contains(fw.Word.ToLower()), cancellationToken);
+
+            if (forbiddenUsername)
+                return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
+
             var slugCandidate = request.Username.ToLowerInvariant().Replace(" ", "-");
 
             var slugTaken = await _db.Users.AnyAsync(

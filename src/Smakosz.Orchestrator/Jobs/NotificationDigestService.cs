@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Orchestrator.Jobs;
@@ -56,6 +57,16 @@ public class NotificationDigestService
                 foreach (var n in notifications)
                     n.EmailStatus = EmailStatus.Sent;
 
+                _db.EmailLogs.Add(new EmailLog
+                {
+                    Type = "NotificationDigest",
+                    Recipient = user.Email,
+                    Subject = subject,
+                    Status = "sent",
+                    CreatedAt = _clock.UtcNow,
+                    SentAt = _clock.UtcNow
+                });
+
                 sent++;
             }
             catch (Exception ex)
@@ -64,6 +75,16 @@ public class NotificationDigestService
 
                 foreach (var n in notifications)
                     n.EmailStatus = EmailStatus.Failed;
+
+                _db.EmailLogs.Add(new EmailLog
+                {
+                    Type = "NotificationDigest",
+                    Recipient = user.Email,
+                    Subject = subject,
+                    Status = "failed",
+                    ErrorMessage = ex.Message,
+                    CreatedAt = _clock.UtcNow
+                });
             }
         }
 

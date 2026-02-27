@@ -4,5 +4,7 @@ public enum ModerationEntityType
 {
     Photo,
     Review,
-    EditRequest
+    EditRequest,
+    User,
+    Report
 }

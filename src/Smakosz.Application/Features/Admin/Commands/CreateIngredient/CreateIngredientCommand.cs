@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.CreateIngredient;
 
@@ -62,6 +64,17 @@ public class CreateIngredientHandler : IRequestHandler<CreateIngredientCommand, 
         };
 
         _db.Ingredients.Add(ingredient);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "Ingredients",
+            RecordId = ingredient.IngredientId,
+            Operation = AuditOperation.Insert,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = _dateTime.UtcNow,
+            NewValues = JsonSerializer.Serialize(new { request.Name, request.IsAllergen, request.IsVegetarian, request.IsVegan, request.IsGlutenFree, request.IsLactoseFree })
+        });
         await _db.SaveChangesAsync(cancellationToken);
 
         return ingredient.IngredientId;

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Me.Commands.FollowUser;
 
@@ -45,6 +46,17 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
         {
             FollowerId = _currentUser.UserId.Value,
             FollowedId = targetUser.UserId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        _db.Notifications.Add(new Notification
+        {
+            UserId = targetUser.UserId,
+            ActorId = _currentUser.UserId.Value,
+            Type = NotificationType.Follow,
+            Title = "Nowy obserwujący",
+            Message = "Ktoś zaczął Cię obserwować.",
+            GroupKey = $"follow:{targetUser.UserId}",
             CreatedAt = DateTime.UtcNow
         });
 

@@ -1,6 +1,7 @@
 @page "/admin/ingredient-suggestions"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
 @inject ToastService Toast
 
 <PageTitle>Sugestie skladnikow - Admin Smakosz</PageTitle>
@@ -9,7 +10,11 @@
 
 <p class="text-muted mb-4">Skladniki sugerowane przez uzytkownikow lub AI, oczekujace na dodanie do bazy.</p>
 
-@if (!_suggestions.Any())
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_suggestions == null || !_suggestions.Data.Any())
 {
     <EmptyState Icon="fa-solid fa-lightbulb" Title="Brak sugestii" Description="Nie ma oczekujacych sugestii skladnikow." />
 }
@@ -18,16 +23,16 @@ else
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
-                <tr><th>Nazwa</th><th>Sugerowana kategoria</th><th>Zrodlo</th><th>Data</th><th></th></tr>
+                <tr><th>Nazwa</th><th>Restauracja</th><th>Zrodlo</th><th>Data</th><th></th></tr>
             </thead>
             <tbody>
-                @foreach (var s in _suggestions)
+                @foreach (var s in _suggestions.Data)
                 {
                     <tr>
-                        <td class="fw-medium">@s.Name</td>
-                        <td>@(s.Category ?? "-")</td>
-                        <td><span class="badge bg-info">@s.Source</span></td>
-                        <td class="text-muted small">@s.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="fw-medium">@s.SuggestedName</td>
+                        <td>@(s.RestaurantName ?? "-")</td>
+                        <td><span class="badge bg-info">@(s.Username ?? "AI")</span></td>
+                        <td class="text-muted small">@(s.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")</td>
                         <td class="text-end">
                             <button class="btn btn-success btn-sm me-1" @onclick="() => Accept(s)">
                                 <i class="fa-solid fa-check me-1"></i>Dodaj
@@ -41,28 +46,51 @@ else
             </tbody>
         </table>
     </div>
+
+    @if (_suggestions.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_suggestions.Pagination" OnPageChange="LoadPage" />
+    }
 }
 
 @code {
-    private record Suggestion(string Name, string? Category, string Source, DateTime CreatedAt);
+    private PagedResult<AdminIngredientSuggestionDto>? _suggestions;
+    private bool _loading = true;
 
-    private List<Suggestion> _suggestions = new()
-    {
-        new("Tofu wedzony", "Bialko", "AI", DateTime.UtcNow.AddDays(-2)),
-        new("Mleko kokosowe", "Nabiał rosliny", "uzytkownik", DateTime.UtcNow.AddDays(-1)),
-        new("Sezam czarny", "Nasiona", "AI", DateTime.UtcNow.AddHours(-5)),
-        new("Miso pasta", "Przyprawy", "uzytkownik", DateTime.UtcNow.AddDays(-3))
-    };
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
 
-    private void Accept(Suggestion s)
+    private async Task LoadPage(int page)
     {
-        _suggestions.Remove(s);
-        Toast.ShowSuccess($"Skladnik \"{s.Name}\" dodany do bazy.");
+        _loading = true;
+        _suggestions = await AdminService.GetIngredientSuggestionsAsync(page, "Pending");
+        _loading = false;
     }
 
-    private void Dismiss(Suggestion s)
+    private async Task Accept(AdminIngredientSuggestionDto s)
     {
-        _suggestions.Remove(s);
-        Toast.ShowSuccess("Sugestia odrzucona.");
+        var success = await AdminService.ReviewIngredientSuggestionAsync(s.SuggestionId, true);
+        if (success)
+        {
+            Toast.ShowSuccess($"Skladnik \"{s.SuggestedName}\" dodany do bazy.");
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie zaakceptowac sugestii.");
+        }
+    }
+
+    private async Task Dismiss(AdminIngredientSuggestionDto s)
+    {
+        var success = await AdminService.ReviewIngredientSuggestionAsync(s.SuggestionId, false);
+        if (success)
+        {
+            Toast.ShowSuccess("Sugestia odrzucona.");
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie odrzucic sugestii.");
+        }
     }
 }

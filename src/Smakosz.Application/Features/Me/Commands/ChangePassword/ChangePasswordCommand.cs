@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Me.Commands.ChangePassword;
 
@@ -37,6 +39,18 @@ public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Erro
 
         user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
         user.SecurityStamp = Guid.NewGuid().ToString();
+
+        _db.SecurityLogs.Add(new SecurityLog
+        {
+            EventType = SecurityEventType.PasswordChanged,
+            IpAddress = _currentUser.IpAddress,
+            UserAgent = _currentUser.UserAgent,
+            Email = user.Email,
+            UserId = user.UserId,
+            Details = "{\"action\": \"password_changed\"}",
+            CreatedAt = DateTime.UtcNow
+        });
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;

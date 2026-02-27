@@ -5,6 +5,7 @@ using Smakosz.Application.Features.Admin.Commands.CreateCity;
 using Smakosz.Application.Features.Admin.Commands.CreateIngredient;
 using Smakosz.Application.Features.Admin.Commands.DeleteCity;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
+using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
@@ -13,6 +14,7 @@ using Smakosz.Application.Features.Admin.Queries.GetAdminDashboard;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
+using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
 using Smakosz.Application.Features.Admin.Queries.GetReports;
 using Smakosz.Application.Features.Admin.Queries.GetUserDetail;
 using Smakosz.Application.Features.Admin.Queries.GetUsers;
@@ -159,6 +161,26 @@ public class AdminController : ApiController
         var result = await _mediator.Send(new DeleteCityCommand(cityId));
         return ToNoContentResult(result);
     }
+
+    [HttpGet("ingredient-suggestions")]
+    public async Task<IActionResult> GetIngredientSuggestions(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = null)
+    {
+        var result = await _mediator.Send(new GetIngredientSuggestionsQuery(new PaginationParams(page, pageSize), status));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("ingredient-suggestions/{suggestionId:int}/review")]
+    public async Task<IActionResult> ReviewIngredientSuggestion(
+        int suggestionId,
+        [FromBody] ReviewIngredientSuggestionRequest request)
+    {
+        var result = await _mediator.Send(new ReviewIngredientSuggestionCommand(
+            suggestionId, request.Approve, request.AdminNote));
+        return ToNoContentResult(result);
+    }
 }
 
 public record UpdateReportStatusRequest(string Status);
@@ -172,3 +194,4 @@ public record CreateIngredientRequest(
 public record UpdateIngredientRequest(string? Name, bool? IsAllergen, bool? IsVegetarian, bool? IsVegan);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
+public record ReviewIngredientSuggestionRequest(bool Approve, string? AdminNote);

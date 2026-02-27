@@ -219,4 +219,13 @@ public static class DomainErrors
         public static readonly Error NotFound =
             Error.NotFound("PHOTO_NOT_FOUND", "Zdjęcie nie zostało znalezione");
     }
+
+    public static class ForbiddenWord
+    {
+        public static readonly Error UsernameContainsForbiddenWord =
+            Error.Validation("FORBIDDEN_WORD_USERNAME", "Nazwa użytkownika zawiera niedozwolone słowo");
+
+        public static readonly Error ContentContainsForbiddenWord =
+            Error.Validation("FORBIDDEN_WORD_CONTENT", "Treść zawiera niedozwolone słowo");
+    }
 }

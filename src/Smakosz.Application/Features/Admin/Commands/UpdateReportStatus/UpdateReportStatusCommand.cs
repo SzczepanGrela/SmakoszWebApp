@@ -3,6 +3,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.UpdateReportStatus;
 
@@ -38,6 +41,27 @@ public class UpdateReportStatusHandler : IRequestHandler<UpdateReportStatusComma
         report.Status = statusEnum;
         report.ResolvedAt = _dateTime.UtcNow;
         report.ResolvedByAdminId = _currentUser.UserId!.Value;
+
+        _db.ModerationLogs.Add(new ModerationLog
+        {
+            EntityType = ModerationEntityType.Report,
+            EntityId = report.ReportId,
+            Actor = ModerationActor.Admin,
+            Verdict = ModerationVerdict.Resolved,
+            ReasonCodes = [request.Status],
+            ProcessedBy = _currentUser.UserId,
+            CreatedAt = _dateTime.UtcNow
+        });
+
+        _db.Notifications.Add(new Notification
+        {
+            UserId = report.ReporterId,
+            ActorId = _currentUser.UserId,
+            Type = NotificationType.System,
+            Title = "Zgłoszenie rozpatrzone",
+            Message = $"Twoje zgłoszenie zostało rozpatrzone ze statusem: {request.Status}.",
+            CreatedAt = _dateTime.UtcNow
+        });
 
         await _db.SaveChangesAsync(cancellationToken);
         return Result.Success;

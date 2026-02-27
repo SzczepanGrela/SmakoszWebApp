@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
@@ -48,6 +49,29 @@ public class BanUserHandler : IRequestHandler<BanUserCommand, ErrorOr<Success>>
                 BannedAt = DateTime.UtcNow
             });
         }
+
+        _db.ModerationLogs.Add(new ModerationLog
+        {
+            EntityType = ModerationEntityType.User,
+            EntityId = user.UserId,
+            Actor = ModerationActor.Admin,
+            Verdict = ModerationVerdict.Banned,
+            ProcessedBy = _currentUser.UserId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        _db.Notifications.Add(new Notification
+        {
+            UserId = user.UserId,
+            ActorId = _currentUser.UserId,
+            Type = NotificationType.System,
+            Severity = NotificationSeverity.Danger,
+            Title = "Konto zablokowane",
+            Message = "Twoje konto zostało zablokowane przez administratora.",
+            SendEmail = true,
+            EmailStatus = EmailStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        });
 
         await _db.SaveChangesAsync(cancellationToken);
 

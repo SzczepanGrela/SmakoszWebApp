@@ -1,10 +1,13 @@
+using System.Text.Json;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
 
@@ -43,6 +46,9 @@ public class UpdateSystemConfigHandler : IRequestHandler<UpdateSystemConfigComma
         var config = await _db.SystemConfigs
             .FirstOrDefaultAsync(c => c.Key == request.Key, cancellationToken);
 
+        var oldValue = config?.Value;
+        var isInsert = config is null;
+
         if (config is null)
         {
             config = new SystemConfig
@@ -60,6 +66,17 @@ public class UpdateSystemConfigHandler : IRequestHandler<UpdateSystemConfigComma
             config.UpdatedAt = _dateTime.UtcNow;
             config.UpdatedBy = _currentUser.UserId;
         }
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "SystemConfigs",
+            RecordId = 0,
+            Operation = isInsert ? AuditOperation.Insert : AuditOperation.Update,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = _dateTime.UtcNow,
+            OldValues = oldValue is not null ? JsonSerializer.Serialize(new { Key = request.Key, Value = oldValue }) : null,
+            NewValues = JsonSerializer.Serialize(new { request.Key, request.Value })
+        });
 
         await _db.SaveChangesAsync(cancellationToken);
 

@@ -1,8 +1,11 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 
@@ -29,6 +32,16 @@ public class DeleteIngredientHandler : IRequestHandler<DeleteIngredientCommand, 
 
         if (ingredient is null)
             return DomainErrors.Ingredient.NotFound;
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "Ingredients",
+            RecordId = ingredient.IngredientId,
+            Operation = AuditOperation.Delete,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = DateTime.UtcNow,
+            OldValues = JsonSerializer.Serialize(new { ingredient.IngredientName })
+        });
 
         _db.Ingredients.Remove(ingredient);
         await _db.SaveChangesAsync(cancellationToken);
