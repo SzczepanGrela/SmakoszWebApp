@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.BanUser;
 
@@ -31,6 +33,22 @@ public class BanUserHandler : IRequestHandler<BanUserCommand, ErrorOr<Success>>
             return DomainErrors.User.NotFound;
 
         user.IsBanned = true;
+
+        var alreadyBanned = await _db.BannedIdentifiers.AnyAsync(
+            b => b.Type == BannedIdentifierType.Email && b.Value == user.Email, cancellationToken);
+
+        if (!alreadyBanned)
+        {
+            _db.BannedIdentifiers.Add(new BannedIdentifier
+            {
+                Type = BannedIdentifierType.Email,
+                Value = user.Email,
+                Reason = $"Auto-ban: user {user.Username} (ID: {user.UserId}) banned by admin",
+                BannedBy = _currentUser.UserId,
+                BannedAt = DateTime.UtcNow
+            });
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
