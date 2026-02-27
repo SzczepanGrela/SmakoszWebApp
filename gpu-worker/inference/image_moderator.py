@@ -56,9 +56,16 @@ class ImageModerator:
         logger.info("Image moderation models loaded on %s", device)
 
     def _download_image(self, url: str) -> Image.Image:
-        resp = httpx.get(url, timeout=30.0, follow_redirects=True)
-        resp.raise_for_status()
-        return Image.open(io.BytesIO(resp.content)).convert("RGB")
+        try:
+            resp = httpx.get(url, timeout=30.0, follow_redirects=True)
+            resp.raise_for_status()
+            return Image.open(io.BytesIO(resp.content)).convert("RGB")
+        except httpx.HTTPStatusError as e:
+            raise ValueError(f"Failed to download image ({e.response.status_code}): {url}") from e
+        except httpx.TimeoutException:
+            raise ValueError(f"Timeout downloading image: {url}")
+        except Exception as e:
+            raise ValueError(f"Failed to process image from {url}: {e}") from e
 
     def _predict_nsfw(self, image: Image.Image) -> float:
         inputs = self.nsfw_processor(images=image, return_tensors="pt").to(self.device)

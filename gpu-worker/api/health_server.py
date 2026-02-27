@@ -1,5 +1,6 @@
 import platform
 import sys
+import threading
 import time
 
 import torch
@@ -9,20 +10,27 @@ from config import Settings
 
 app = FastAPI(title="GPU Worker Health")
 
+_lock = threading.Lock()
 _start_time = time.monotonic()
 _models_loaded: list[str] = []
 _current_phase: str = "idle"
 
 def set_models_loaded(models: list[str]) -> None:
     global _models_loaded
-    _models_loaded = models
+    with _lock:
+        _models_loaded = models
 
 def set_current_phase(phase: str) -> None:
     global _current_phase
-    _current_phase = phase
+    with _lock:
+        _current_phase = phase
 
 @app.get("/health")
 def health():
+    with _lock:
+        models_loaded = list(_models_loaded)
+        current_phase = _current_phase
+
     cuda_available = torch.cuda.is_available()
 
     gpu_name = None
@@ -37,16 +45,16 @@ def health():
         gpu_memory_used = (mem[1] - mem[0]) // (1024 * 1024)
         cuda_version = torch.version.cuda
 
-    status = "online" if _models_loaded else "degraded"
+    status = "online" if models_loaded else "degraded"
 
     return {
         "status": status,
-        "current_phase": _current_phase,
+        "current_phase": current_phase,
         "gpu_available": cuda_available,
         "gpu_name": gpu_name,
         "gpu_memory_total": gpu_memory_total,
         "gpu_memory_used": gpu_memory_used,
-        "models_loaded": _models_loaded,
+        "models_loaded": models_loaded,
         "uptime_seconds": round(time.monotonic() - _start_time, 1),
         "python_version": platform.python_version(),
         "pytorch_version": torch.__version__,
@@ -55,8 +63,6 @@ def health():
     }
 
 def start_health_server(settings: Settings, loaded_models: list[str]) -> None:
-    import threading
-
     import uvicorn
 
     set_models_loaded(loaded_models)
