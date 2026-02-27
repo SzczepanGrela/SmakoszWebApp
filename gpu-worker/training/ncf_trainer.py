@@ -78,6 +78,8 @@ class NcfTrainer:
             torch.tensor(ratings, dtype=torch.float32),
             len(unique_users),
             len(unique_dishes),
+            user_map,
+            dish_map,
         )
 
     def train(self, job: dict, api: WorkerApiClient) -> dict:
@@ -96,7 +98,7 @@ class NcfTrainer:
         rows = self._download_csv(csv_url)
         logger.info("Loaded %d training samples", len(rows))
 
-        user_ids, dish_ids, ratings, num_users, num_dishes = self._prepare_data(rows)
+        user_ids, dish_ids, ratings, num_users, num_dishes, user_map, dish_map = self._prepare_data(rows)
         logger.info("Users: %d, Dishes: %d", num_users, num_dishes)
 
         # Train/validation split (90/10)
@@ -180,6 +182,15 @@ class NcfTrainer:
         version = datetime.utcnow().strftime("v%Y%m%d_%H%M%S")
         export_dir = Path("model_cache") / "ncf" / version
         onnx_path = export_to_onnx(model, export_dir, embedding_dim)
+
+        # Export ID mapping for evaluation
+        mapping = {
+            "user_map": {str(k): v for k, v in user_map.items()},
+            "dish_map": {str(k): v for k, v in dish_map.items()},
+        }
+        mapping_path = export_dir / "mapping.json"
+        mapping_path.write_text(json.dumps(mapping))
+        logger.info("ID mapping exported to %s", mapping_path)
 
         # Upload to R2
         model_url = ""
