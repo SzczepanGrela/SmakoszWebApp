@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """
-Test fine-tuned HerBERT - inference identyczny z text_moderator.py.
-
-Uzywa torch.sigmoid (nie softmax), probs[1] jako toxicity score.
-Logika zgodna z gpu-worker/inference/text_moderator.py:42-46.
+Test fine-tuned HerBERT locally. Inference matches gpu-worker text_moderator.py.
 
 Usage:
     python tools/herbert/test_model.py
@@ -21,15 +18,8 @@ TEST_TEXTS = [
 ]
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Test fine-tuned HerBERT - inference identyczny z text_moderator.py."
-    )
-    parser.add_argument(
-        "--model-path",
-        type=str,
-        default="./herbert-v1",
-        help="Sciezka do katalogu z modelem (domyslnie: ./herbert-v1)",
-    )
+    parser = argparse.ArgumentParser(description="Test fine-tuned HerBERT locally")
+    parser.add_argument("--model-path", type=str, default="./herbert-v1", help="Path to model directory")
     args = parser.parse_args()
 
     import torch

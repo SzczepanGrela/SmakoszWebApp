@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Fine-tuning HerBERT dla hate speech detection.
-Uruchamiany na Vertex AI Custom Training.
+Fine-tune HerBERT for toxicity detection on Vertex AI.
 
 Usage:
     python tools/herbert/train.py \
@@ -14,7 +13,6 @@ Usage:
 import argparse
 
 def download_from_gcs(gcs_path: str, local_path: str):
-    """Pobiera plik z GCS."""
     from google.cloud import storage
 
     bucket_name = gcs_path.split("/")[2]
@@ -27,7 +25,6 @@ def download_from_gcs(gcs_path: str, local_path: str):
     print(f"Downloaded {gcs_path} -> {local_path}")
 
 def upload_to_gcs(local_path: str, gcs_path: str):
-    """Uploaduje plik/folder do GCS."""
     from pathlib import Path
     from google.cloud import storage
 
@@ -51,7 +48,6 @@ def upload_to_gcs(local_path: str, gcs_path: str):
                 print(f"Uploaded {file_path}")
 
 def compute_metrics(eval_pred):
-    """Oblicza metryki ewaluacji."""
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
     predictions, labels = eval_pred
@@ -69,28 +65,36 @@ def compute_metrics(eval_pred):
         "f1": f1,
     }
 
+class TokenizedDataset:
+    """PyTorch Dataset backed by pandas + tokenizer. No HF datasets dependency."""
+
+    def __init__(self, texts, labels, tokenizer, max_length):
+        self.encodings = tokenizer(
+            texts, padding="max_length", truncation=True, max_length=max_length
+        )
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        import torch
+
+        item = {k: torch.tensor(v[idx]) for k, v in self.encodings.items()}
+        item["labels"] = torch.tensor(self.labels[idx])
+        return item
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Fine-tuning HerBERT dla hate speech detection (Vertex AI)."
-    )
-    parser.add_argument("--train_data", type=str, required=True,
-                        help="Sciezka GCS do train.csv (gs://<BUCKET>/datasets/train.csv)")
-    parser.add_argument("--val_data", type=str, required=True,
-                        help="Sciezka GCS do val.csv (gs://<BUCKET>/datasets/val.csv)")
-    parser.add_argument("--test_data", type=str, default=None,
-                        help="Sciezka GCS do test.csv (gs://<BUCKET>/datasets/test.csv)")
-    parser.add_argument("--output_dir", type=str, required=True,
-                        help="Sciezka GCS do zapisu modelu (gs://<BUCKET>/models/v1)")
-    parser.add_argument("--model_name", type=str, default="allegro/herbert-base-cased",
-                        help="Nazwa modelu bazowego (domyslnie: allegro/herbert-base-cased)")
-    parser.add_argument("--epochs", type=int, default=3,
-                        help="Liczba epok (domyslnie: 3)")
-    parser.add_argument("--batch_size", type=int, default=16,
-                        help="Batch size (domyslnie: 16)")
-    parser.add_argument("--learning_rate", type=float, default=2e-5,
-                        help="Learning rate (domyslnie: 2e-5)")
-    parser.add_argument("--max_length", type=int, default=256,
-                        help="Maksymalna dlugosc tokenizacji (domyslnie: 256)")
+    parser = argparse.ArgumentParser(description="Fine-tune HerBERT for toxicity detection (Vertex AI)")
+    parser.add_argument("--train_data", type=str, required=True, help="GCS path to train.csv")
+    parser.add_argument("--val_data", type=str, required=True, help="GCS path to val.csv")
+    parser.add_argument("--test_data", type=str, default=None, help="GCS path to test.csv")
+    parser.add_argument("--output_dir", type=str, required=True, help="GCS path for model output")
+    parser.add_argument("--model_name", type=str, default="allegro/herbert-base-cased")
+    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--learning_rate", type=float, default=2e-5)
+    parser.add_argument("--max_length", type=int, default=256)
     args = parser.parse_args()
 
     import os
@@ -103,55 +107,37 @@ def main():
         Trainer,
         EarlyStoppingCallback,
     )
-    from datasets import Dataset
 
-    # === 1. Pobierz dane z GCS ===
     os.makedirs("/tmp/data", exist_ok=True)
     download_from_gcs(args.train_data, "/tmp/data/train.csv")
     download_from_gcs(args.val_data, "/tmp/data/val.csv")
     if args.test_data:
         download_from_gcs(args.test_data, "/tmp/data/test.csv")
 
-    # === 2. Zaladuj dane ===
-    train_df = pd.read_csv("/tmp/data/train.csv")
-    val_df = pd.read_csv("/tmp/data/val.csv")
-    test_df = pd.read_csv("/tmp/data/test.csv") if args.test_data else None
+    column_map = {"Text": "text", "Class": "label"}
+    train_df = pd.read_csv("/tmp/data/train.csv").rename(columns=column_map)
+    val_df = pd.read_csv("/tmp/data/val.csv").rename(columns=column_map)
+    test_df = pd.read_csv("/tmp/data/test.csv").rename(columns=column_map) if args.test_data else None
 
     print(f"Train size: {len(train_df)}")
     print(f"Val size: {len(val_df)}")
     if test_df is not None:
         print(f"Test size: {len(test_df)}")
 
-    # === 3. Tokenizer ===
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
-    def tokenize_function(examples):
-        return tokenizer(
-            examples["text"],
-            padding="max_length",
-            truncation=True,
-            max_length=args.max_length,
-        )
-
-    # === 4. Przygotuj datasety ===
-    torch_columns = ["input_ids", "attention_mask", "label"]
-
-    train_dataset = Dataset.from_pandas(train_df)
-    val_dataset = Dataset.from_pandas(val_df)
-
-    train_dataset = train_dataset.map(tokenize_function, batched=True)
-    val_dataset = val_dataset.map(tokenize_function, batched=True)
-
-    train_dataset.set_format("torch", columns=torch_columns)
-    val_dataset.set_format("torch", columns=torch_columns)
-
+    train_dataset = TokenizedDataset(
+        train_df["text"].tolist(), train_df["label"].tolist(), tokenizer, args.max_length
+    )
+    val_dataset = TokenizedDataset(
+        val_df["text"].tolist(), val_df["label"].tolist(), tokenizer, args.max_length
+    )
     test_dataset = None
     if test_df is not None:
-        test_dataset = Dataset.from_pandas(test_df)
-        test_dataset = test_dataset.map(tokenize_function, batched=True)
-        test_dataset.set_format("torch", columns=torch_columns)
+        test_dataset = TokenizedDataset(
+            test_df["text"].tolist(), test_df["label"].tolist(), tokenizer, args.max_length
+        )
 
-    # === 5. Model ===
     model = AutoModelForSequenceClassification.from_pretrained(
         args.model_name,
         num_labels=2,
@@ -159,7 +145,6 @@ def main():
         label2id={"neutral": 0, "toxic": 1},
     )
 
-    # === 6. Training Arguments ===
     training_args = TrainingArguments(
         output_dir="/tmp/checkpoints",
         num_train_epochs=args.epochs,
@@ -171,7 +156,7 @@ def main():
         eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,
-        metric_for_best_model="f1",
+        metric_for_best_model="eval_f1",
         greater_is_better=True,
         fp16=torch.cuda.is_available(),
         gradient_accumulation_steps=2,
@@ -180,7 +165,6 @@ def main():
         report_to="none",
     )
 
-    # === 7. Trainer ===
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -190,11 +174,9 @@ def main():
         callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
     )
 
-    # === 8. Trenuj ===
     print("Starting training...")
     trainer.train()
 
-    # === 9. Ewaluacja finalna ===
     print("Validation evaluation...")
     val_results = trainer.evaluate(eval_dataset=val_dataset)
     print(f"Val results: {val_results}")
@@ -205,7 +187,6 @@ def main():
         test_results = trainer.evaluate(eval_dataset=test_dataset, metric_key_prefix="test")
         print(f"Test results: {test_results}")
 
-    # === 10. Zapisz model ===
     local_output = "/tmp/final_model"
     trainer.save_model(local_output)
     tokenizer.save_pretrained(local_output)
@@ -219,7 +200,6 @@ def main():
             for key, value in test_results.items():
                 f.write(f"{key}: {value}\n")
 
-    # === 11. Upload do GCS ===
     print(f"Uploading model to {args.output_dir}...")
     upload_to_gcs(local_output, args.output_dir)
 
