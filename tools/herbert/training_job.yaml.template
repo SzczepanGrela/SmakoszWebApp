@@ -1,0 +1,27 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: n1-standard-4
+      acceleratorType: NVIDIA_TESLA_T4
+      acceleratorCount: 1
+    replicaCount: 1
+    containerSpec:
+      imageUri: europe-docker.pkg.dev/vertex-ai/training/pytorch-gpu.2-4.py310:latest
+      command:
+        - bash
+        - -c
+      args:
+        - |
+          set -e
+          python -m venv --system-site-packages /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install --no-cache-dir "transformers==4.44.0" "accelerate==0.33.0" sacremoses python-json-logger
+          gsutil cp gs://<BUCKET>/code/train.py /tmp/train.py
+          python /tmp/train.py \
+            --train_data=gs://<BUCKET>/datasets/train.csv \
+            --val_data=gs://<BUCKET>/datasets/val.csv \
+            --test_data=gs://<BUCKET>/datasets/test.csv \
+            --output_dir=gs://<BUCKET>/models/v1 \
+            --epochs=3 \
+            --batch_size=16 \
+            --learning_rate=2e-5 \
+            --max_length=256
