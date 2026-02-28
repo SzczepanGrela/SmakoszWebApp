@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#F3F0EB"/>
+  <g transform="translate(200,130)" fill="none" stroke="#C4B8A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- plate -->
+    <ellipse cx="0" cy="20" rx="55" ry="16" />
+    <!-- cloche -->
+    <path d="M-45,20 Q-45,-35 0,-40 Q45,-35 45,20"/>
+    <!-- handle -->
+    <line x1="-6" y1="-40" x2="6" y2="-40"/>
+    <circle cx="0" cy="-44" r="4"/>
+  </g>
+  <text x="200" y="200" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#A0937D">Brak zdjecia dania</text>
+</svg>

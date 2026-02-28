@@ -2,8 +2,8 @@ namespace Smakosz.Client.Helpers;
 
 public static class ImageHelper
 {
-    private const string DefaultDishPlaceholder = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop";
-    private const string DefaultRestaurantPlaceholder = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop";
+    private const string DefaultDishPlaceholder = "/images/dish-placeholder.svg";
+    private const string DefaultRestaurantPlaceholder = "/images/restaurant-placeholder.svg";
 
     public static string GetImageUrl(string? imageUrl, string? fallback = null)
         => !string.IsNullOrWhiteSpace(imageUrl) ? imageUrl : fallback ?? DefaultDishPlaceholder;

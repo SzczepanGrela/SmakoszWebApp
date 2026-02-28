@@ -19,7 +19,7 @@ public class ImageHelperTests
     public void GetImageUrl_WithNullOrEmpty_ReturnsFallbackOrDefault(string? imageUrl)
     {
         var result = ImageHelper.GetImageUrl(imageUrl);
-        result.Should().Contain("unsplash.com");
+        result.Should().Be("/images/dish-placeholder.svg");
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class ImageHelperTests
     public void GetDishImage_WithNull_ReturnsDishPlaceholder()
     {
         var result = ImageHelper.GetDishImage(null);
-        result.Should().Contain("unsplash.com").And.Contain("photo-1546069901");
+        result.Should().Be("/images/dish-placeholder.svg");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class ImageHelperTests
     public void GetRestaurantImage_WithNull_ReturnsRestaurantPlaceholder()
     {
         var result = ImageHelper.GetRestaurantImage(null);
-        result.Should().Contain("unsplash.com").And.Contain("photo-1517248135467");
+        result.Should().Be("/images/restaurant-placeholder.svg");
     }
 
     [Fact]
