@@ -24,7 +24,23 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenService>(sp =>
             new JwtTokenService(configuration));
-        services.AddScoped<IEmailService, StubEmailService>();
+        // Email - Brevo if configured, otherwise stub
+        var brevoApiKey = configuration.GetSection(BrevoOptions.SectionName)["ApiKey"];
+        if (!string.IsNullOrEmpty(brevoApiKey))
+        {
+            var brevoOptions = new BrevoOptions
+            {
+                ApiKey = brevoApiKey,
+                SenderEmail = configuration.GetSection(BrevoOptions.SectionName)["SenderEmail"] ?? "noreply@smakosz.xyz",
+                SenderName = configuration.GetSection(BrevoOptions.SectionName)["SenderName"] ?? "Smakosz"
+            };
+            services.AddSingleton(brevoOptions);
+            services.AddHttpClient<IEmailService, BrevoEmailService>();
+        }
+        else
+        {
+            services.AddScoped<IEmailService, StubEmailService>();
+        }
 
         // File storage - R2 if configured, otherwise stub
         var r2Section = configuration.GetSection(R2Options.SectionName);
@@ -36,7 +52,7 @@ public static class DependencyInjection
                 AccountId = r2AccountId,
                 AccessKey = r2Section["AccessKey"] ?? string.Empty,
                 SecretKey = r2Section["SecretKey"] ?? string.Empty,
-                BucketName = r2Section["BucketName"] ?? "smakosz",
+                BucketName = r2Section["BucketName"] ?? "smakosz-photos",
                 PublicUrl = r2Section["PublicUrl"] ?? string.Empty
             };
             services.AddSingleton(Microsoft.Extensions.Options.Options.Create(r2Options));

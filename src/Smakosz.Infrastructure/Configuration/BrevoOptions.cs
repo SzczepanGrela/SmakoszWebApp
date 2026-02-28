@@ -1,0 +1,10 @@
+namespace Smakosz.Infrastructure.Configuration;
+
+public class BrevoOptions
+{
+    public const string SectionName = "Brevo";
+
+    public string ApiKey { get; set; } = string.Empty;
+    public string SenderEmail { get; set; } = "noreply@smakosz.xyz";
+    public string SenderName { get; set; } = "Smakosz";
+}
