@@ -39,6 +39,7 @@ public class GetTicketsHandler : IRequestHandler<GetTicketsQuery, ErrorOr<PagedR
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
+            .Include(t => t.AssignedAdmin)
             .OrderByDescending(t => t.CreatedAt)
             .Skip((request.Pagination.Page - 1) * request.Pagination.PageSize)
             .Take(request.Pagination.PageSize)
@@ -49,6 +50,8 @@ public class GetTicketsHandler : IRequestHandler<GetTicketsQuery, ErrorOr<PagedR
                 ReferenceId = t.ReferenceId,
                 Status = t.Status.ToString(),
                 Priority = t.Priority,
+                Description = t.Description,
+                AssignedAdminUsername = t.AssignedAdmin != null ? t.AssignedAdmin.Username : null,
                 CreatedAt = t.CreatedAt
             })
             .ToListAsync(cancellationToken);
