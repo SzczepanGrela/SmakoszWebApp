@@ -3,6 +3,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Smakosz.API.Common;
@@ -51,6 +52,26 @@ public class ExceptionHandlingMiddlewareTests
 
         root.GetProperty("success").GetBoolean().Should().BeFalse();
         root.GetProperty("error").GetProperty("code").GetString().Should().Be("VALIDATION_ERROR");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WhenDbUpdateConcurrencyException_Returns409Conflict()
+    {
+        RequestDelegate next = _ => throw new DbUpdateConcurrencyException("Concurrency conflict");
+        var middleware = new ExceptionHandlingMiddleware(next, _logger);
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(409);
+
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var json = await JsonDocument.ParseAsync(context.Response.Body);
+        var root = json.RootElement;
+
+        root.GetProperty("success").GetBoolean().Should().BeFalse();
+        root.GetProperty("error").GetProperty("code").GetString().Should().Be("CONCURRENCY_CONFLICT");
     }
 
     [Fact]

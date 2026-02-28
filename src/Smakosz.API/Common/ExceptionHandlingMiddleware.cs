@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Smakosz.API.Common;
 
@@ -36,6 +37,21 @@ public class ExceptionHandlingMiddleware
                     Code = "VALIDATION_ERROR",
                     Message = "Walidacja nie powiodla sie",
                     Details = errors
+                }
+            });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _logger.LogWarning("Concurrency conflict detected");
+
+            context.Response.StatusCode = StatusCodes.Status409Conflict;
+            await context.Response.WriteAsJsonAsync(new ApiResponse<object>
+            {
+                Success = false,
+                Error = new ApiError
+                {
+                    Code = "CONCURRENCY_CONFLICT",
+                    Message = "Obiekt został zmodyfikowany przez innego użytkownika. Odśwież dane i spróbuj ponownie."
                 }
             });
         }
