@@ -73,10 +73,9 @@
                                 <small class="text-muted">Ulatwia nam dopasowanie rekomendacji do Twojej lokalizacji.</small>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-medium">URL avatara</label>
-                                <input type="url" class="form-control" @bind="_profile.AvatarUrl"
-                                       placeholder="https://..." />
-                                <small class="text-muted">Link do Twojego zdjecia profilowego.</small>
+                                <label class="form-label fw-medium">Zdjecie profilowe</label>
+                                <ImageUpload EntityType="user" CurrentImageUrl="@_profile.AvatarUrl"
+                                             OnImageUploaded="url => _profile.AvatarUrl = url" />
                             </div>
                             <button type="submit" class="btn btn-primary" disabled="@_saving">
                                 @if (_saving)

@@ -1,6 +1,7 @@
 @page "/restaurant/photos"
 @layout BusinessLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
 @inject ToastService Toast
 
 <PageTitle>Zdjecia - Panel restauracji</PageTitle>
@@ -16,16 +17,7 @@
 {
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label fw-medium">URL zdjecia</label>
-                <div class="input-group">
-                    <input type="url" class="form-control" @bind="_newPhotoUrl" placeholder="https://..." />
-                    <button class="btn btn-primary" @onclick="AddPhoto" disabled="@string.IsNullOrWhiteSpace(_newPhotoUrl)">
-                        <i class="fa-solid fa-plus me-1"></i>Dodaj
-                    </button>
-                </div>
-                <small class="text-muted">W pelnej wersji bedzie mozliwosc przesylania plikow.</small>
-            </div>
+            <ImageUpload EntityType="restaurant" OnImageUploaded="AddPhoto" />
         </div>
     </div>
 }
@@ -54,27 +46,14 @@ else
 }
 
 @code {
-    private List<string> _photos = new()
-    {
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400",
-        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400",
-        "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400",
-        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400"
-    };
+    private List<string> _photos = [];
     private bool _showUpload;
-    private string _newPhotoUrl = "";
 
-    private void AddPhoto()
+    private void AddPhoto(string url)
     {
-        if (!string.IsNullOrWhiteSpace(_newPhotoUrl))
-        {
-            _photos.Insert(0, _newPhotoUrl);
-            _newPhotoUrl = "";
-            _showUpload = false;
-            Toast.ShowSuccess("Zdjecie zostalo dodane.");
-        }
+        _photos.Insert(0, url);
+        _showUpload = false;
+        Toast.ShowSuccess("Zdjecie zostalo dodane.");
     }
 
     private void RemovePhoto(string url)

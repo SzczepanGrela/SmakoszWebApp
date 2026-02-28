@@ -48,8 +48,9 @@ else
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium">URL zdjecia</label>
-                        <input type="url" class="form-control" @bind="_dish.ImageUrl" />
+                        <label class="form-label fw-medium">Zdjecie dania</label>
+                        <ImageUpload EntityType="dish" CurrentImageUrl="@_dish.ImageUrl"
+                                     OnImageUploaded="url => _dish.ImageUrl = url" />
                     </div>
                 </div>
             </div>
