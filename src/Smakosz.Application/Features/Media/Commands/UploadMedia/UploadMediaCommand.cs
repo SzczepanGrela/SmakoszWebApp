@@ -95,6 +95,19 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
                 image_url = asset.Url
             })
         });
+
+        if (entityType != MediaEntityType.Hero)
+        {
+            _db.SystemTickets.Add(new SystemTicket
+            {
+                TicketType = TicketType.Photo,
+                ReferenceId = asset.AssetId,
+                Status = TicketStatus.Open,
+                Priority = 3,
+                Description = $"Nowe zdjęcie ({entityType}) wymaga moderacji"
+            });
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return new UploadMediaResult

@@ -102,6 +102,7 @@ public class AdminTicketDto
 public class PhotoModerationDto
 {
     public long AssetId { get; set; }
+    public Guid PublicId { get; set; }
     public string Url { get; set; } = string.Empty;
     public string EntityType { get; set; } = string.Empty;
     public int EntityId { get; set; }
@@ -112,6 +113,7 @@ public class PhotoModerationDto
 public class ReviewModerationDto
 {
     public int ReviewId { get; set; }
+    public Guid PublicId { get; set; }
     public string? Username { get; set; }
     public string? DishName { get; set; }
     public string? RestaurantName { get; set; }
@@ -183,4 +185,31 @@ public class IngredientSuggestionDto
     public string? RestaurantName { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
+}
+
+public class AdminTicketDetailDto
+{
+    public int TicketId { get; set; }
+    public string TicketType { get; set; } = string.Empty;
+    public long ReferenceId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public int Priority { get; set; }
+    public string? Description { get; set; }
+    public string? AssignedAdminUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
+
+    public ContactInfoDto? Contact { get; set; }
+    public PhotoModerationDto? Photo { get; set; }
+    public ReviewModerationDto? Review { get; set; }
+    public AdminReportDto? Report { get; set; }
+    public EditRequestDto? EditRequest { get; set; }
+    public IngredientSuggestionDto? Suggestion { get; set; }
+}
+
+public class ContactInfoDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 }

@@ -40,6 +40,17 @@ public class ProcessEditRequestHandler : IRequestHandler<ProcessEditRequestComma
         if (!request.Approve)
             editRequest.RejectionReason = request.RejectionReason;
 
+        var relatedTicket = await _db.SystemTickets
+            .FirstOrDefaultAsync(t => t.TicketType == TicketType.EditRequest
+                && t.ReferenceId == editRequest.RequestId
+                && t.Status != TicketStatus.Resolved
+                && t.Status != TicketStatus.Closed, cancellationToken);
+        if (relatedTicket != null)
+        {
+            relatedTicket.Status = TicketStatus.Resolved;
+            relatedTicket.AssignedAdminId = _currentUser.UserId;
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;

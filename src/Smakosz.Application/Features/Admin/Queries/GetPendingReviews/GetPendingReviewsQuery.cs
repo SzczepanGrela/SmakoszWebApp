@@ -41,6 +41,7 @@ public class GetPendingReviewsHandler : IRequestHandler<GetPendingReviewsQuery, 
             .Select(r => new ReviewModerationDto
             {
                 ReviewId = r.ReviewId,
+                PublicId = r.PublicId,
                 Username = r.User.Username,
                 DishName = r.Dish.DishName,
                 RestaurantName = r.Restaurant.RestaurantName,
