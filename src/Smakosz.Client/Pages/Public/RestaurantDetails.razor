@@ -1,6 +1,7 @@
 @page "/restaurant/{Slug}"
 @inject IRestaurantService RestaurantService
 @inject IUserProfileService UserProfileService
+@inject ToastService Toast
 
 <PageTitle>@(_restaurant?.RestaurantName ?? "Restauracja") - Smakosz</PageTitle>
 
@@ -168,6 +169,23 @@ else
                     </div>
                 </div>
 
+                <!-- User Actions -->
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="dish-details-panel mb-4">
+                            <h5 class="mb-3"><i class="fa-solid fa-comment-dots me-2"></i>Akcje</h5>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showCorrectionModal = true">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Zaproponuj poprawke
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showIngredientModal = true">
+                                    <i class="fa-solid fa-seedling me-1"></i>Zaproponuj skladnik
+                                </button>
+                            </div>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
                 <!-- Opening Hours -->
                 @if (_restaurant.OpeningHours.Any())
                 {
@@ -187,6 +205,85 @@ else
     </div>
 }
 
+@* Data Correction Modal *@
+@if (_showCorrectionModal)
+{
+    <Modal IsOpen="true" Title="Zaproponuj poprawke danych" OnClose="() => _showCorrectionModal = false">
+        <div class="mb-3">
+            <label class="form-label">Typ problemu *</label>
+            <select class="form-select" @bind="_correctionIssueType">
+                <option value="">-- Wybierz --</option>
+                <option value="Hours">Godziny otwarcia</option>
+                <option value="Address">Adres</option>
+                <option value="Phone">Telefon</option>
+                <option value="Menu">Menu</option>
+                <option value="Other">Inne</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Opis problemu</label>
+            <textarea class="form-control" rows="3" @bind="_correctionDescription" placeholder="Opisz co jest nieprawidlowe..."></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Proponowana wartosc</label>
+            <textarea class="form-control" rows="2" @bind="_correctionProposedValue" placeholder="Jaka powinna byc prawidlowa wartosc?"></textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showCorrectionModal = false">Anuluj</button>
+            <button class="btn btn-primary btn-sm" @onclick="SubmitCorrection" disabled="@(string.IsNullOrWhiteSpace(_correctionIssueType) || _correctionSubmitting)">
+                @if (_correctionSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Wyslij
+            </button>
+        </div>
+    </Modal>
+}
+
+@* Ingredient Suggestion Modal *@
+@if (_showIngredientModal)
+{
+    <Modal IsOpen="true" Title="Zaproponuj skladnik" OnClose="() => _showIngredientModal = false">
+        <div class="mb-3">
+            <label class="form-label">Nazwa skladnika *</label>
+            <input type="text" class="form-control" @bind="_ingredientName" placeholder="Np. Orzechy wloskie" />
+        </div>
+        <div class="mb-3">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="isAllergen" @bind="_ingredientIsAllergen" />
+                <label class="form-check-label" for="isAllergen">Alergen</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="isVegetarian" @bind="_ingredientIsVegetarian" />
+                <label class="form-check-label" for="isVegetarian">Wegetarianski</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="isVegan" @bind="_ingredientIsVegan" />
+                <label class="form-check-label" for="isVegan">Weganski</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="isGlutenFree" @bind="_ingredientIsGlutenFree" />
+                <label class="form-check-label" for="isGlutenFree">Bezglutenowy</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="isLactoseFree" @bind="_ingredientIsLactoseFree" />
+                <label class="form-check-label" for="isLactoseFree">Bezlaktozowy</label>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showIngredientModal = false">Anuluj</button>
+            <button class="btn btn-primary btn-sm" @onclick="SubmitIngredientSuggestion" disabled="@(string.IsNullOrWhiteSpace(_ingredientName) || _ingredientSubmitting)">
+                @if (_ingredientSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                Wyslij
+            </button>
+        </div>
+    </Modal>
+}
+
 @code {
     [Parameter] public string Slug { get; set; } = default!;
     @inject NavigationManager Navigation
@@ -194,6 +291,21 @@ else
     private Models.RestaurantDetailDto? _restaurant;
     private Models.PagedResult<Models.DishCardDto>? _dishes;
     private bool _loading = true;
+
+    private bool _showCorrectionModal;
+    private string _correctionIssueType = "";
+    private string? _correctionDescription;
+    private string? _correctionProposedValue;
+    private bool _correctionSubmitting;
+
+    private bool _showIngredientModal;
+    private string _ingredientName = "";
+    private bool _ingredientIsAllergen;
+    private bool _ingredientIsVegetarian = true;
+    private bool _ingredientIsVegan = true;
+    private bool _ingredientIsGlutenFree = true;
+    private bool _ingredientIsLactoseFree = true;
+    private bool _ingredientSubmitting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -227,5 +339,56 @@ else
 
         if (success)
             _restaurant.IsFavorite = !_restaurant.IsFavorite;
+    }
+
+    private async Task SubmitCorrection()
+    {
+        if (string.IsNullOrWhiteSpace(_correctionIssueType)) return;
+
+        _correctionSubmitting = true;
+        var dto = new CreateDataCorrectionDto(_correctionIssueType, _correctionDescription, _correctionProposedValue);
+        var success = await RestaurantService.SubmitCorrectionAsync(Slug, dto);
+        _correctionSubmitting = false;
+
+        if (success)
+        {
+            Toast.ShowSuccess("Poprawka zostala wyslana. Dziekujemy!");
+            _showCorrectionModal = false;
+            _correctionIssueType = "";
+            _correctionDescription = null;
+            _correctionProposedValue = null;
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie wyslac poprawki.");
+        }
+    }
+
+    private async Task SubmitIngredientSuggestion()
+    {
+        if (string.IsNullOrWhiteSpace(_ingredientName)) return;
+
+        _ingredientSubmitting = true;
+        var dto = new CreateIngredientSuggestionDto(
+            _ingredientName, _ingredientIsAllergen, _ingredientIsVegetarian,
+            _ingredientIsVegan, _ingredientIsGlutenFree, _ingredientIsLactoseFree);
+        var success = await RestaurantService.SuggestIngredientAsync(Slug, dto);
+        _ingredientSubmitting = false;
+
+        if (success)
+        {
+            Toast.ShowSuccess("Sugestia skladnika zostala wyslana. Dziekujemy!");
+            _showIngredientModal = false;
+            _ingredientName = "";
+            _ingredientIsAllergen = false;
+            _ingredientIsVegetarian = true;
+            _ingredientIsVegan = true;
+            _ingredientIsGlutenFree = true;
+            _ingredientIsLactoseFree = true;
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie wyslac sugestii.");
+        }
     }
 }

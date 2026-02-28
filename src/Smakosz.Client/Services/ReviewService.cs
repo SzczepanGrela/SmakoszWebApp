@@ -22,4 +22,11 @@ public class ReviewService : IReviewService
 
     public Task<PagedResult<ReviewCardDto>?> GetByUserAsync(string userSlug, int page = 1, int pageSize = 10)
         => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/users/{userSlug}/reviews?page={page}&pageSize={pageSize}");
+
+    public async Task<bool> ReportReviewAsync(Guid publicId, string reason, string? description)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/reviews/{publicId}/report",
+            new { Reason = reason, Description = description });
+        return response.Success;
+    }
 }

@@ -3,10 +3,12 @@ using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
 using Smakosz.Application.Features.Admin.Commands.ModerateReview;
 using Smakosz.Application.Features.Admin.Commands.ProcessEditRequest;
+using Smakosz.Application.Features.Admin.Commands.RespondToContact;
 using Smakosz.Application.Features.Admin.Commands.UpdateTicketStatus;
 using Smakosz.Application.Features.Admin.Queries.GetEditRequests;
 using Smakosz.Application.Features.Admin.Queries.GetPendingPhotos;
 using Smakosz.Application.Features.Admin.Queries.GetPendingReviews;
+using Smakosz.Application.Features.Admin.Queries.GetTicketDetail;
 using Smakosz.Application.Features.Admin.Queries.GetTickets;
 
 namespace Smakosz.API.Controllers;
@@ -26,9 +28,17 @@ public class AdminModerationController : ApiController
     public async Task<IActionResult> GetTickets(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] string? ticketType = null)
     {
-        var result = await _mediator.Send(new GetTicketsQuery(new PaginationParams(page, pageSize), status));
+        var result = await _mediator.Send(new GetTicketsQuery(new PaginationParams(page, pageSize), status, ticketType));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("tickets/{ticketId:int}")]
+    public async Task<IActionResult> GetTicketDetail(int ticketId)
+    {
+        var result = await _mediator.Send(new GetTicketDetailQuery(ticketId));
         return ToActionResult(result);
     }
 
@@ -36,6 +46,13 @@ public class AdminModerationController : ApiController
     public async Task<IActionResult> UpdateTicketStatus(int ticketId, [FromBody] UpdateTicketStatusRequest request)
     {
         var result = await _mediator.Send(new UpdateTicketStatusCommand(ticketId, request.Status));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("tickets/{ticketId:int}/respond")]
+    public async Task<IActionResult> RespondToContact(int ticketId, [FromBody] RespondToContactRequest request)
+    {
+        var result = await _mediator.Send(new RespondToContactCommand(ticketId, request.Response));
         return ToNoContentResult(result);
     }
 
@@ -89,6 +106,7 @@ public class AdminModerationController : ApiController
 }
 
 public record UpdateTicketStatusRequest(string Status);
+public record RespondToContactRequest(string Response);
 public record ModeratePhotoRequest(bool Approve, string? RejectionReason);
 public record ModerateReviewRequest(bool Approve, string? RejectionReason);
 public record ProcessEditRequestRequest(bool Approve, string? RejectionReason);

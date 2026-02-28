@@ -98,4 +98,10 @@ public class BusinessService : IBusinessService
         var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{publicId}/availability", new { IsAvailable = isAvailable });
         return response.Success;
     }
+
+    public async Task<bool> CreateEditRequestAsync(CreateEditRequestDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/business/edit-requests", dto);
+        return response.Success;
+    }
 }

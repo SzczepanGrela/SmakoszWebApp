@@ -16,4 +16,16 @@ public class RestaurantService : IRestaurantService
 
     public Task<PagedResult<DishCardDto>?> GetDishesAsync(string slug, int page = 1, int pageSize = 20)
         => _api.GetAsync<PagedResult<DishCardDto>>($"/api/restaurants/{slug}/dishes?page={page}&pageSize={pageSize}");
+
+    public async Task<bool> SubmitCorrectionAsync(string slug, CreateDataCorrectionDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/restaurants/{slug}/corrections", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> SuggestIngredientAsync(string slug, CreateIngredientSuggestionDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/restaurants/{slug}/ingredient-suggestions", dto);
+        return response.Success;
+    }
 }
