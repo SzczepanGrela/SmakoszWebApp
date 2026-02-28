@@ -13,7 +13,7 @@ public class StubFileStorageService : IFileStorageService
     {
         var key = $"{folder}/{fileName}";
         _logger.LogInformation("[Storage Stub] Uploaded {Key} ({Bytes} bytes)", key, file.Length);
-        var url = $"https://cdn.smakosz.pl/{key}";
+        var url = $"https://assets.smakosz.xyz/{key}";
         return Task.FromResult(new FileUploadResult(key, url, null, null, null, null));
     }
 
@@ -29,5 +29,5 @@ public class StubFileStorageService : IFileStorageService
         return Task.FromResult($"https://stub-cdn.local/{key}");
     }
 
-    public string GetPublicUrl(string key) => $"https://cdn.smakosz.pl/{key}";
+    public string GetPublicUrl(string key) => $"https://assets.smakosz.xyz/{key}";
 }
