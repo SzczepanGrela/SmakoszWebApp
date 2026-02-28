@@ -59,7 +59,7 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
         if (!Enum.TryParse<MediaEntityType>(request.EntityType, true, out var entityType))
             return DomainErrors.Media.InvalidFormat;
 
-        var folder = $"smakosz/images/{request.EntityType.ToLowerInvariant()}";
+        var folder = $"uploads/{request.EntityType.ToLowerInvariant()}";
         var slug = $"{Guid.NewGuid():N}";
 
         var result = await _storage.UploadAsync(request.File, slug, folder, cancellationToken);

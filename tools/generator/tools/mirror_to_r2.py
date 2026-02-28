@@ -5,9 +5,9 @@ This script creates a mirror of the local 'images/' directory in a Cloudflare R2
 under a specific prefix to keep mock data separate from production uploads.
 
 Path Structure:
-- smakosz/images/mock/     - Generated dishes, restaurants, avatars (SYNCED)
-- smakosz/images/ingredients/ - Shared ingredient icons (UPLOAD ONLY)
-- smakosz/images/{entity}/    - Real user uploads (NEVER TOUCHED)
+- seed/                    - Generated dishes, restaurants, avatars, hero (SYNCED)
+- seed/ingredients/        - Shared ingredient icons (UPLOAD ONLY)
+- uploads/{entity}/        - Real user uploads (NEVER TOUCHED)
 
 Features:
 - "Mirror" logic with prefix-scoped deletion (safe for other prefixes)
@@ -27,7 +27,7 @@ from pathlib import Path
 # Load environment variables first
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
 from tqdm import tqdm
 
@@ -45,9 +45,9 @@ logger = logging.getLogger(__name__)
 LOCAL_IMAGES_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
 WORKERS = 10
 
-# R2 Path Prefixes (v2 Architecture)
-MOCK_PREFIX = "smakosz/images/mock/"  # For generated mock data (dishes, restaurants, avatars)
-INGREDIENTS_PREFIX = "smakosz/images/ingredients/"  # For shared ingredient icons
+# R2 Path Prefixes (v3 Architecture)
+MOCK_PREFIX = "seed/"  # For generated mock data (dishes, restaurants, avatars, hero)
+INGREDIENTS_PREFIX = "seed/ingredients/"  # For shared ingredient icons
 
 class R2Mirror:
     def __init__(self, provider: CloudStorageProvider | None = None):
@@ -67,7 +67,7 @@ class R2Mirror:
         """Execute the Sync process with interactive mode selection."""
         print("\n--- R2 Sync Tool (v2 - Prefix Architecture) ---")
         print("1. Upload Only - Overwrites files, does NOT delete anything from R2.")
-        print("2. Mirror Mock (Full Sync) - Overwrites files and DELETES from R2 (ONLY smakosz/images/mock/).")
+        print("2. Mirror Mock (Full Sync) - Overwrites files and DELETES from R2 (ONLY seed/).")
         print(f"\nPrefix for mock data: {MOCK_PREFIX}")
         print(f"Prefix for ingredients: {INGREDIENTS_PREFIX}")
 
@@ -88,11 +88,11 @@ class R2Mirror:
                 rel_path = str(path.relative_to(LOCAL_IMAGES_DIR)).replace("\\", "/")
 
                 if rel_path.startswith("ingredients/"):
-                    # Ingredients go to smakosz/images/ingredients/
+                    # Ingredients go to seed/ingredients/
                     r2_key = INGREDIENTS_PREFIX + rel_path.replace("ingredients/", "")
                     ingredient_files[r2_key] = path
                 else:
-                    # Everything else (dishes, restaurants, avatars) goes to smakosz/images/mock/
+                    # Everything else (dishes, restaurants, avatars, hero) goes to seed/
                     r2_key = MOCK_PREFIX + rel_path
                     mock_files[r2_key] = path
 
