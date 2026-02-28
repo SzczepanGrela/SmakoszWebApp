@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 
 namespace Smakosz.Infrastructure.Services;
 
@@ -9,10 +10,12 @@ public class StubFileStorageService : IFileStorageService
 
     public StubFileStorageService(ILogger<StubFileStorageService> logger) => _logger = logger;
 
-    public Task<FileUploadResult> UploadAsync(Stream file, string fileName, string folder, CancellationToken ct = default)
+    public Task<FileUploadResult> UploadAsync(Stream file, string fileName, string folder,
+        IReadOnlyList<ImageVariant> variants, CancellationToken ct = default)
     {
         var key = $"{folder}/{fileName}";
-        _logger.LogInformation("[Storage Stub] Uploaded {Key} ({Bytes} bytes)", key, file.Length);
+        _logger.LogInformation("[Storage Stub] Uploaded {Key} ({Bytes} bytes, {VariantCount} variants)",
+            key, file.Length, variants.Count);
         var url = $"https://assets.smakosz.xyz/{key}";
         return Task.FromResult(new FileUploadResult(key, url, null, null, null, null));
     }

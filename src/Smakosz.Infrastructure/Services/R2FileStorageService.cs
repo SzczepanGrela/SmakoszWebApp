@@ -3,6 +3,7 @@ using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Infrastructure.Services;
@@ -31,7 +32,8 @@ public class R2FileStorageService : IFileStorageService
         _s3 = new AmazonS3Client(_options.AccessKey, _options.SecretKey, config);
     }
 
-    public async Task<FileUploadResult> UploadAsync(Stream file, string fileName, string folder, CancellationToken ct = default)
+    public async Task<FileUploadResult> UploadAsync(Stream file, string fileName, string folder,
+        IReadOnlyList<ImageVariant> variants, CancellationToken ct = default)
     {
         var baseName = Path.GetFileNameWithoutExtension(fileName);
         var baseKey = $"{folder}/{baseName}";
@@ -49,8 +51,8 @@ public class R2FileStorageService : IFileStorageService
             _logger.LogWarning(ex, "Failed to generate blurhash for {FileName}", fileName);
         }
 
-        // Upload all variants
-        foreach (var variant in ImageProcessingService.AllVariants)
+        // Upload requested variants
+        foreach (var variant in variants)
         {
             file.Position = 0;
             var (resized, _, _) = await _imageProcessor.ResizeToWebpAsync(file, variant.MaxWidth);
@@ -76,9 +78,11 @@ public class R2FileStorageService : IFileStorageService
         var baseName = Path.GetFileNameWithoutExtension(key);
         var folder = Path.GetDirectoryName(key)?.Replace('\\', '/') ?? "";
 
-        foreach (var variant in ImageProcessingService.AllVariants)
+        // Delete all possible variants
+        string[] suffixes = ["", "_thumb", "_tiny", "_hero"];
+        foreach (var suffix in suffixes)
         {
-            var variantKey = $"{folder}/{baseName}{variant.Suffix}.webp";
+            var variantKey = $"{folder}/{baseName}{suffix}.webp";
             try
             {
                 await _s3.DeleteObjectAsync(new DeleteObjectRequest
