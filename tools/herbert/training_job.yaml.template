@@ -1,3 +1,4 @@
+serviceAccount: <PROJECT_NUMBER>-compute@developer.gserviceaccount.com
 workerPoolSpecs:
   - machineSpec:
       machineType: n1-standard-4
@@ -14,7 +15,7 @@ workerPoolSpecs:
           set -e
           python -m venv --system-site-packages /tmp/venv
           source /tmp/venv/bin/activate
-          pip install --no-cache-dir "transformers==4.44.0" "accelerate==0.33.0" sacremoses python-json-logger
+          pip install --no-cache-dir "transformers==4.44.0" "accelerate==0.33.0" sacremoses python-json-logger boto3 google-cloud-secret-manager
           gsutil cp gs://<BUCKET>/code/train.py /tmp/train.py
           python /tmp/train.py \
             --train_data=gs://<BUCKET>/datasets/train.csv \
@@ -24,4 +25,5 @@ workerPoolSpecs:
             --epochs=3 \
             --batch_size=16 \
             --learning_rate=2e-5 \
-            --max_length=256
+            --max_length=256 \
+            --r2_prefix=herbert/v1

@@ -11,6 +11,11 @@ Usage:
 """
 
 import argparse
+import sys
+
+# Vertex AI buffers stdout - force line-by-line flushing
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 
 def download_from_gcs(gcs_path: str, local_path: str):
     from google.cloud import storage
@@ -46,6 +51,33 @@ def upload_to_gcs(local_path: str, gcs_path: str):
                 blob = bucket.blob(blob_path)
                 blob.upload_from_filename(str(file_path))
                 print(f"Uploaded {file_path}")
+
+def get_secret(secret_id: str) -> str:
+    from google.cloud import secretmanager
+
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/smakoszherbert/secrets/{secret_id}/versions/latest"
+    response = client.access_secret_version(request={"name": name})
+    return response.payload.data.decode("UTF-8").strip()
+
+def upload_to_r2(local_path: str, bucket: str, prefix: str):
+    from pathlib import Path
+    import boto3
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=get_secret("r2-endpoint"),
+        aws_access_key_id=get_secret("r2-access-key"),
+        aws_secret_access_key=get_secret("r2-secret-key"),
+    )
+
+    skip = {"training_args.bin", "metrics.txt"}
+    local_path = Path(local_path)
+    for file_path in local_path.rglob("*"):
+        if file_path.is_file() and file_path.name not in skip:
+            key = f"{prefix}/{file_path.relative_to(local_path)}"
+            s3.upload_file(str(file_path), bucket, key)
+            print(f"R2: uploaded {key}")
 
 def compute_metrics(eval_pred):
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support
@@ -95,6 +127,8 @@ def main():
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--learning_rate", type=float, default=2e-5)
     parser.add_argument("--max_length", type=int, default=256)
+    parser.add_argument("--r2_bucket", type=str, default="smakosz-models", help="R2 bucket name")
+    parser.add_argument("--r2_prefix", type=str, default=None, help="R2 prefix, e.g. herbert/v4 (requires GCP secrets: r2-endpoint, r2-access-key, r2-secret-key)")
     args = parser.parse_args()
 
     import os
@@ -124,20 +158,25 @@ def main():
     if test_df is not None:
         print(f"Test size: {len(test_df)}")
 
+    print("Loading tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
+    print("Tokenizing train set...")
     train_dataset = TokenizedDataset(
         train_df["text"].tolist(), train_df["label"].tolist(), tokenizer, args.max_length
     )
+    print("Tokenizing val set...")
     val_dataset = TokenizedDataset(
         val_df["text"].tolist(), val_df["label"].tolist(), tokenizer, args.max_length
     )
     test_dataset = None
     if test_df is not None:
+        print("Tokenizing test set...")
         test_dataset = TokenizedDataset(
             test_df["text"].tolist(), test_df["label"].tolist(), tokenizer, args.max_length
         )
 
+    print("Loading model...")
     model = AutoModelForSequenceClassification.from_pretrained(
         args.model_name,
         num_labels=2,
@@ -145,6 +184,7 @@ def main():
         label2id={"neutral": 0, "toxic": 1},
     )
 
+    print("Configuring trainer...")
     training_args = TrainingArguments(
         output_dir="/tmp/checkpoints",
         num_train_epochs=args.epochs,
@@ -156,7 +196,7 @@ def main():
         eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,
-        metric_for_best_model="eval_f1",
+        metric_for_best_model="f1",
         greater_is_better=True,
         fp16=torch.cuda.is_available(),
         gradient_accumulation_steps=2,
@@ -202,6 +242,12 @@ def main():
 
     print(f"Uploading model to {args.output_dir}...")
     upload_to_gcs(local_output, args.output_dir)
+
+    if args.r2_prefix:
+        print(f"Uploading model to R2 ({args.r2_bucket}/{args.r2_prefix})...")
+        upload_to_r2(local_output, args.r2_bucket, args.r2_prefix)
+    else:
+        print("--r2_prefix not set, skipping R2 upload.")
 
     print("Training completed!")
 
