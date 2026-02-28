@@ -1,5 +1,6 @@
 import json
 import random
+import unicodedata
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -8,6 +9,15 @@ import numpy as np
 from utils.blueprint_loader import BlueprintLoader
 
 from .core_rating_logic import calculate_food_score_polarized, sigmoid_stretch
+
+def _normalize_ingredient(name: str) -> str:
+    """Normalize ingredient name for comparison: strip, lowercase, remove Polish diacritics."""
+    # Strip whitespace and lowercase
+    name = name.strip().lower()
+    # Decompose Unicode characters, remove combining marks (diacritics), recompose
+    name = unicodedata.normalize("NFD", name)
+    name = "".join(c for c in name if unicodedata.category(c) != "Mn")
+    return unicodedata.normalize("NFC", name)
 
 class RatingComponentStrategy(ABC):
     """
@@ -202,16 +212,12 @@ class FoodRatingStrategy(RatingComponentStrategy):
             for ing in ingredients:
                 # Handle both simple list of strings and list of objects
                 ing_name = ing if isinstance(ing, str) else ing.get("name", "")
-                ing_name_lower = ing_name.lower()  # Robust matching
+                ing_normalized = _normalize_ingredient(ing_name)
 
-                # Check direct match or partial match in user prefs (which should be normalized in future)
-                # Currently Phase 4 generates keys, we try to match them.
-                # Since Phase 4 samples from Phase 1 ingredients, names should match if normalized.
-
-                # Try exact lower match first
+                # Match ingredient against user preference keys (both normalized)
                 pref_value = None
                 for k, v in user_prefs.items():
-                    if k.lower() == ing_name_lower:
+                    if _normalize_ingredient(k) == ing_normalized:
                         pref_value = v
                         break
 
