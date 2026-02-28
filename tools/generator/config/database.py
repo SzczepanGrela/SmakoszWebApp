@@ -11,14 +11,9 @@ from pathlib import Path
 try:
     from dotenv import load_dotenv
 
-    # Root monorepo (.env) -> fallback to local (.env in tools/generator/)
+    # Single .env at monorepo root
     root_env = Path(__file__).parent.parent.parent.parent / ".env"
-    local_env = Path(__file__).parent.parent / ".env"
-
-    if root_env.exists():
-        load_dotenv(root_env)
-    elif local_env.exists():
-        load_dotenv(local_env)
+    load_dotenv(root_env)
 except ImportError:
     pass
 
