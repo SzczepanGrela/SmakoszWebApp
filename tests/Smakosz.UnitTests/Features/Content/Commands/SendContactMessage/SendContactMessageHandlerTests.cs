@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Content.Commands.SendContactMessage;
@@ -12,6 +13,7 @@ public class SendContactMessageHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IDateTimeProvider _dateTime;
+    private readonly IEmailService _email;
     private readonly SendContactMessageHandler _handler;
 
     public SendContactMessageHandlerTests()
@@ -19,7 +21,9 @@ public class SendContactMessageHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _dateTime = Substitute.For<IDateTimeProvider>();
         _dateTime.UtcNow.Returns(new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        _handler = new SendContactMessageHandler(_db, _dateTime);
+        _email = Substitute.For<IEmailService>();
+        var logger = Substitute.For<ILogger<SendContactMessageHandler>>();
+        _handler = new SendContactMessageHandler(_db, _dateTime, _email, logger);
     }
 
     [Fact]
@@ -32,6 +36,20 @@ public class SendContactMessageHandlerTests
         result.IsError.Should().BeFalse();
         _sets.SystemTickets.Should().HaveCount(1);
         _sets.SystemTickets[0].TicketType.Should().Be(Domain.Enums.TicketType.Contact);
+    }
+
+    [Fact]
+    public async Task Handle_HappyPath_SendsConfirmationEmail()
+    {
+        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        await _email.Received(1).SendDigestAsync(
+            "jan@example.com",
+            Arg.Is<string>(s => s.Contains("potwierdzenie")),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
     }
 }
 
