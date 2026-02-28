@@ -8,6 +8,13 @@ public class HomeDataDto
     public List<DishCardDto> TopRatedDishes { get; set; } = [];
     public List<ReviewCardDto> RecentReviews { get; set; } = [];
     public List<string> PopularCategories { get; set; } = [];
+    public HeroImageDto? HeroImage { get; set; }
+}
+
+public class HeroImageDto
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Blurhash { get; set; }
 }
 
 public class StatsDto

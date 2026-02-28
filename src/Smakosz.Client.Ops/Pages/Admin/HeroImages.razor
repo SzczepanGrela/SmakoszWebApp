@@ -1,0 +1,95 @@
+@page "/admin/hero-images"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject IMediaService MediaService
+@inject ToastService Toast
+
+<PageTitle>Hero images - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-panorama me-2"></i>Hero images</h2>
+    <button class="btn btn-primary" @onclick="() => _showUpload = !_showUpload">
+        <i class="fa-solid fa-upload me-1"></i>Dodaj nowe
+    </button>
+</div>
+
+@if (_showUpload)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <ImageUpload EntityType="hero" OnImageUploaded="OnImageUploaded" />
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (!_images.Any())
+{
+    <EmptyState Icon="fa-solid fa-panorama" Title="Brak hero images"
+                Description="Dodaj zdjecia, ktore beda wyswietlane na stronie glownej." />
+}
+else
+{
+    <div class="row">
+        @foreach (var image in _images)
+        {
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card shadow-sm h-100">
+                    <img src="@image.Url" class="card-img-top" style="height:200px;object-fit:cover;" alt="Hero image" />
+                    <div class="card-body p-2">
+                        <small class="text-muted d-block mb-2">
+                            <i class="fa-solid fa-calendar me-1"></i>@(image.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")
+                        </small>
+                        <button class="btn btn-outline-danger btn-sm w-100" @onclick="() => DeleteImage(image.PublicId)"
+                                disabled="@_deleting">
+                            <i class="fa-solid fa-trash me-1"></i>Usun
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<AdminHeroImageDto> _images = [];
+    private bool _loading = true;
+    private bool _showUpload;
+    private bool _deleting;
+
+    protected override async Task OnInitializedAsync() => await LoadImages();
+
+    private async Task LoadImages()
+    {
+        _loading = true;
+        _images = await AdminService.GetHeroImagesAsync();
+        _loading = false;
+    }
+
+    private async Task OnImageUploaded(string url)
+    {
+        _showUpload = false;
+        Toast.ShowSuccess("Hero image dodane.");
+        await LoadImages();
+    }
+
+    private async Task DeleteImage(Guid publicId)
+    {
+        _deleting = true;
+        var success = await AdminService.DeleteHeroImageAsync(publicId);
+        if (success)
+        {
+            Toast.ShowSuccess("Hero image usuniete.");
+            await LoadImages();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie usunac obrazu.");
+        }
+        _deleting = false;
+    }
+}

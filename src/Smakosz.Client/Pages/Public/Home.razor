@@ -125,26 +125,13 @@ else if (_data != null)
     private bool _loading = true;
     private string _searchQuery = "";
 
-    // TODO: Replace hardcoded Unsplash URLs with images served from R2/API
-    // Requires: API endpoint for hero images, DB/config storage, dynamic Client loading
-    // Tracked as separate task - see plan "Home.razor hero images"
-    private static readonly string[] HeroImages =
-    {
-        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=2000&q=80",
-        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=2000&q=80",
-        "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=2000&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=2000&q=80",
-        "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=2000&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=2000&q=80",
-        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=2000&q=80",
-        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=2000&q=80"
-    };
-
-    private string _heroImage = HeroImages[Random.Shared.Next(HeroImages.Length)];
+    private string _heroImage = "/images/restaurant-placeholder.svg";
 
     protected override async Task OnInitializedAsync()
     {
         _data = await HomeService.GetHomeDataAsync();
+        if (_data?.HeroImage != null)
+            _heroImage = _data.HeroImage.Url;
         _loading = false;
     }
 

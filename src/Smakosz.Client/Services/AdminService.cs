@@ -165,4 +165,11 @@ public class AdminService : IAdminService
             new { Approve = approve, AdminNote = adminNote });
         return response.Success;
     }
+
+    // Hero Images
+    public async Task<List<AdminHeroImageDto>> GetHeroImagesAsync()
+        => await _api.GetAsync<List<AdminHeroImageDto>>("/api/admin/hero-images") ?? [];
+
+    public async Task<bool> DeleteHeroImageAsync(Guid publicId)
+        => await _api.DeleteAsync($"/api/media/{publicId}");
 }

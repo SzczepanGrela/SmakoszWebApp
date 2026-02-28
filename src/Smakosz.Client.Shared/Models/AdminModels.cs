@@ -151,6 +151,14 @@ public class AdminLogEntryDto
     public string? Exception { get; set; }
 }
 
+public class AdminHeroImageDto
+{
+    public Guid PublicId { get; set; }
+    public string Url { get; set; } = default!;
+    public string? Blurhash { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminIngredientSuggestionDto
 {
     public int SuggestionId { get; set; }

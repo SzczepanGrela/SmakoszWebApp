@@ -35,4 +35,6 @@ public interface IAdminService
     Task<bool> TriggerJobAsync(int id);
     Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
     Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null);
+    Task<List<AdminHeroImageDto>> GetHeroImagesAsync();
+    Task<bool> DeleteHeroImageAsync(Guid publicId);
 }

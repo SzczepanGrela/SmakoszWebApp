@@ -3,6 +3,7 @@ using ErrorOr;
 using MediatR;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -59,10 +60,14 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
         if (!Enum.TryParse<MediaEntityType>(request.EntityType, true, out var entityType))
             return DomainErrors.Media.InvalidFormat;
 
+        if (entityType == MediaEntityType.Hero && !_currentUser.IsAdmin)
+            return DomainErrors.Admin.Forbidden;
+
         var folder = $"uploads/{request.EntityType.ToLowerInvariant()}";
         var slug = $"{Guid.NewGuid():N}";
 
-        var result = await _storage.UploadAsync(request.File, slug, folder, cancellationToken);
+        var variants = ImageVariants.ForEntityType(entityType);
+        var result = await _storage.UploadAsync(request.File, slug, folder, variants, cancellationToken);
 
         var asset = new MediaAsset
         {

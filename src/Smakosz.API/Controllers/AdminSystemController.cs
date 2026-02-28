@@ -3,6 +3,7 @@ using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.TriggerJob;
 using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAiModels;
+using Smakosz.Application.Features.Admin.Queries.GetHeroImages;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetSystemLogs;
@@ -58,6 +59,13 @@ public class AdminSystemController : ApiController
     {
         var result = await _mediator.Send(new TriggerJobCommand(jobId));
         return ToNoContentResult(result);
+    }
+
+    [HttpGet("hero-images")]
+    public async Task<IActionResult> GetHeroImages()
+    {
+        var result = await _mediator.Send(new GetHeroImagesQuery());
+        return ToActionResult(result);
     }
 
     [HttpGet("ai-models")]
