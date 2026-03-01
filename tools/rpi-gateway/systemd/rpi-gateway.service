@@ -4,11 +4,11 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=rpi-gateway
-Group=rpi-gateway
-WorkingDirectory=/home/rpi-gateway
-EnvironmentFile=/home/rpi-gateway/.env
-ExecStart=/home/rpi-gateway/venv/bin/python /home/rpi-gateway/app.py
+User=smakosz-rpi-gateway
+Group=smakosz-rpi-gateway
+WorkingDirectory=/home/smakosz-rpi-gateway
+EnvironmentFile=/home/smakosz-rpi-gateway/.env
+ExecStart=/home/smakosz-rpi-gateway/venv/bin/python /home/smakosz-rpi-gateway/app.py
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

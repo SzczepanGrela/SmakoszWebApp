@@ -23,7 +23,7 @@ app = Flask(__name__)
 def require_token(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get("X-API-Token") or request.args.get("token")
+        token = request.headers.get("X-API-Token")
         if not token or token != config.API_TOKEN:
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
@@ -58,33 +58,41 @@ def get_blockers():
 
     try:
         client = docker.from_env()
-        try:
-            container = client.containers.get(config.DOCKER_CS2)
-            if container.status == "running":
-                blockers.append({
-                    "id": "cs2",
-                    "name": "CS2 server running",
-                    "detail": f"Container {config.DOCKER_CS2} status: {container.status}",
-                })
-        except docker.errors.NotFound:
-            pass
+        for name in config.DOCKER_BLOCKERS.split(","):
+            name = name.strip()
+            if not name:
+                continue
+            try:
+                container = client.containers.get(name)
+                if container.status == "running":
+                    blockers.append({
+                        "id": f"docker_{name}",
+                        "name": f"Container {name} running",
+                        "detail": f"Container {name} status: {container.status}",
+                    })
+            except docker.errors.NotFound:
+                pass
         client.close()
     except Exception as e:
         logger.warning("Failed to check Docker containers: %s", e)
 
-    try:
-        result = subprocess.run(
-            ["pgrep", "-f", config.PROC_AI],
-            capture_output=True, text=True, timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            blockers.append({
-                "id": "ai_training",
-                "name": "AI training active",
-                "detail": f"Process {config.PROC_AI} is running",
-            })
-    except Exception as e:
-        logger.warning("Failed to check AI process: %s", e)
+    for pattern in config.PROCESS_BLOCKERS.split(","):
+        pattern = pattern.strip()
+        if not pattern:
+            continue
+        try:
+            result = subprocess.run(
+                ["pgrep", "-f", pattern],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                blockers.append({
+                    "id": f"process_{pattern}",
+                    "name": f"Process {pattern} active",
+                    "detail": f"Matched by: pgrep -f {pattern}",
+                })
+        except Exception as e:
+            logger.warning("Failed to check process %s: %s", pattern, e)
 
     return blockers
 
@@ -208,6 +216,72 @@ def blockers():
         "blockers": b,
     })
 
+@app.route("/api/gpu-worker/start", methods=["POST"])
+@require_token
+def gpu_worker_start():
+    try:
+        client = docker.from_env()
+        try:
+            container = client.containers.get("gpu-worker")
+            if container.status == "running":
+                return jsonify({"success": True, "message": "Already running"})
+            container.start()
+            logger.info("gpu-worker container started")
+            return jsonify({"success": True, "message": "Container started"})
+        except docker.errors.NotFound:
+            logger.info("gpu-worker container not found, running docker compose up")
+            result = subprocess.run(
+                ["docker", "compose", "-f", "docker-compose.gpu.yml", "up", "-d"],
+                cwd=config.GPU_WORKER_COMPOSE_DIR,
+                capture_output=True, text=True, timeout=120,
+            )
+            if result.returncode == 0:
+                return jsonify({"success": True, "message": "Container created and started"})
+            logger.error("docker compose up failed: %s", result.stderr)
+            return jsonify({"success": False, "message": result.stderr}), 500
+        finally:
+            client.close()
+    except Exception as e:
+        logger.error("gpu-worker start failed: %s", e)
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/gpu-worker/stop", methods=["POST"])
+@require_token
+def gpu_worker_stop():
+    try:
+        client = docker.from_env()
+        try:
+            container = client.containers.get("gpu-worker")
+            if container.status != "running":
+                return jsonify({"success": True, "message": "Already stopped"})
+            container.stop()
+            logger.info("gpu-worker container stopped")
+            return jsonify({"success": True, "message": "Container stopped"})
+        except docker.errors.NotFound:
+            return jsonify({"success": True, "message": "Container not found"})
+        finally:
+            client.close()
+    except Exception as e:
+        logger.error("gpu-worker stop failed: %s", e)
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/api/gpu-worker/status")
+@require_token
+def gpu_worker_status():
+    try:
+        client = docker.from_env()
+        try:
+            container = client.containers.get("gpu-worker")
+            started_at = container.attrs.get("State", {}).get("StartedAt", "")
+            return jsonify({"status": container.status, "started_at": started_at})
+        except docker.errors.NotFound:
+            return jsonify({"status": "not_found", "started_at": None})
+        finally:
+            client.close()
+    except Exception as e:
+        logger.error("gpu-worker status check failed: %s", e)
+        return jsonify({"error": str(e)}), 503
+
 @app.route("/api/shutdown", methods=["POST"])
 @require_token
 def shutdown():
@@ -232,5 +306,6 @@ def shutdown():
         }), 500
 
 if __name__ == "__main__":
+    config.validate()
     logger.info("Starting homelab-api (port=%d)", config.PORT)
     app.run(host="0.0.0.0", port=config.PORT)

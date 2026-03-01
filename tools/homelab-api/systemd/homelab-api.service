@@ -4,11 +4,11 @@ After=network-online.target docker.service
 
 [Service]
 Type=simple
-User=homelab-api
-Group=homelab-api
-WorkingDirectory=/home/homelab-api
-EnvironmentFile=/home/homelab-api/.env
-ExecStart=/home/homelab-api/venv/bin/python /home/homelab-api/app.py
+User=smakosz-homelab-api
+Group=smakosz-homelab-api
+WorkingDirectory=/home/smakosz-homelab-api
+EnvironmentFile=/home/smakosz-homelab-api/.env
+ExecStart=/home/smakosz-homelab-api/venv/bin/python /home/smakosz-homelab-api/app.py
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=false
