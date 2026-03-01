@@ -7,17 +7,23 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - GPU_WORKER_API_URL=${GPU_WORKER_API_URL:-http://100.x.x.1:8080}
-      - GPU_WORKER_API_KEY=${WORKER_API_KEY}
+      - GPU_WORKER_API_URL=${GPU_WORKER_API_URL}
+      - GPU_WORKER_API_KEY=${GPU_WORKER_API_KEY}
       - GPU_WORKER_WORKER_ID=${GPU_WORKER_WORKER_ID:-gpu-worker}
-      - GPU_WORKER_R2_ENDPOINT=${R2_ENDPOINT}
-      - GPU_WORKER_R2_ACCESS_KEY=${R2_ACCESS_KEY}
-      - GPU_WORKER_R2_SECRET_KEY=${R2_SECRET_KEY}
+      - GPU_WORKER_R2_ENDPOINT=${GPU_WORKER_R2_ENDPOINT}
+      - GPU_WORKER_R2_ACCESS_KEY=${GPU_WORKER_R2_ACCESS_KEY}
+      - GPU_WORKER_R2_SECRET_KEY=${GPU_WORKER_R2_SECRET_KEY}
     ports:
       - "8000:8000"
     volumes:
       - ./model_cache:/app/model_cache
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: "no"
     deploy:
       resources:
         reservations:

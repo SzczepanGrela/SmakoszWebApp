@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # Auto-shutdown (safe-shutdown API on Ubuntu homelab)
     auto_shutdown: bool = True
-    shutdown_api_url: str = "http://100.102.102.102:5001"
+    shutdown_api_url: str = ""
     shutdown_api_token: str = ""
 
     # Idle detection - how many idle poll cycles before considering "done"

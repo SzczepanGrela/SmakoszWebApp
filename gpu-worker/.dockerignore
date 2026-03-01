@@ -1,0 +1,8 @@
+model_cache/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.template
+*.egg-info/
+.git/

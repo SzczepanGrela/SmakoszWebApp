@@ -207,10 +207,10 @@ class NcfTrainer:
 
         # Upload to R2
         model_url = ""
-        if self.model_manager._s3 is not None:
+        if self.model_manager.s3_client is not None:
             try:
                 key = upload_onnx_to_r2(
-                    self.model_manager._s3,
+                    self.model_manager.s3_client,
                     self.settings.r2_bucket,
                     onnx_path,
                     version,
