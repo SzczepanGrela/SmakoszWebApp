@@ -50,9 +50,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.AvatarBlurhash)
             .HasMaxLength(50);
 
-        builder.Property(x => x.DateOfBirth)
-            .HasColumnType("date");
-
         builder.Property(x => x.Role)
             .HasConversion(new SnakeCaseEnumConverter<UserRole>())
             .HasMaxLength(20)
@@ -89,9 +86,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(x => x.RestaurantId)
             .OnDelete(DeleteBehavior.ClientSetNull);
 
-        builder.HasOne(x => x.HomeCity)
+        builder.HasOne(x => x.SecretHomeCity)
             .WithMany()
-            .HasForeignKey(x => x.HomeCityId);
+            .HasForeignKey(x => x.SecretHomeCityId);
 
         builder.HasOne(x => x.NotificationSettings)
             .WithOne(ns => ns.User)
@@ -114,7 +111,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Slug)
             .IsUnique();
 
-        builder.HasIndex(x => x.HomeCityId);
+        builder.HasIndex(x => x.SecretHomeCityId);
         builder.HasIndex(x => x.Role);
 
         builder.HasIndex(x => x.Email)

@@ -11,7 +11,7 @@ public class DishTagConfiguration : IEntityTypeConfiguration<DishTag>
         builder.HasKey(x => new { x.DishId, x.TagId });
 
         builder.HasOne(x => x.Dish)
-            .WithMany()
+            .WithMany(d => d.DishTags)
             .HasForeignKey(x => x.DishId)
             .OnDelete(DeleteBehavior.Cascade);
 
