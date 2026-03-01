@@ -85,7 +85,7 @@ public class UserProfileService : IUserProfileService
     public Task<bool> UnfollowUserAsync(string slug)
         => _api.DeleteAsync($"/api/me/following/{slug}");
 
-    public Task<bool> RevokeSessionAsync(Guid sessionId)
+    public Task<bool> RevokeSessionAsync(long sessionId)
         => _api.DeleteAsync($"/api/me/sessions/{sessionId}");
 
     public async Task<bool> RevokeAllSessionsAsync()

@@ -21,7 +21,7 @@ public interface IUserProfileService
     Task<bool> UnfavoriteRestaurantAsync(string restaurantSlug);
     Task<bool> FollowUserAsync(string slug);
     Task<bool> UnfollowUserAsync(string slug);
-    Task<bool> RevokeSessionAsync(Guid sessionId);
+    Task<bool> RevokeSessionAsync(long sessionId);
     Task<bool> RevokeAllSessionsAsync();
     Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1);
 }

@@ -32,7 +32,6 @@ else
                     <th>Email</th>
                     <th>Rola</th>
                     <th>Status</th>
-                    <th>Recenzje</th>
                     <th>Dolaczyl</th>
                     <th></th>
                 </tr>
@@ -42,37 +41,36 @@ else
                 {
                     <tr>
                         <td class="fw-medium">
-                            <a href="/admin/users/@user.PublicId" class="text-decoration-none" style="color:var(--accent-color);">@user.Username</a>
+                            <a href="/admin/users/@user.UserId" class="text-decoration-none" style="color:var(--accent-color);">@user.Username</a>
                         </td>
                         <td>@user.Email @(user.EmailVerified ? "" : "(niezweryfikowany)")</td>
                         <td><span class="badge bg-info">@user.Role</span></td>
                         <td>
-                            @if (user.IsBanned)
+                            @if (user.Status == "Banned")
                             {
                                 <span class="badge bg-danger">Zbanowany</span>
                             }
-                            else if (user.IsActive)
+                            else if (user.Status == "Active")
                             {
                                 <span class="badge bg-success">Aktywny</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Nieaktywny</span>
+                                <span class="badge bg-secondary">@user.Status</span>
                             }
                         </td>
-                        <td>@user.ReviewCount</td>
-                        <td class="text-muted small">@user.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="text-muted small">@(user.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                @if (user.IsBanned)
+                                @if (user.Status == "Banned")
                                 {
-                                    <button class="btn btn-outline-success" @onclick='() => UserAction(user.PublicId, "unban")' title="Odbanuj">
+                                    <button class="btn btn-outline-success" @onclick='() => UserAction(user.UserId, "unban")' title="Odbanuj">
                                         <i class="fa-solid fa-unlock"></i>
                                     </button>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-outline-danger" @onclick='() => UserAction(user.PublicId, "ban")' title="Zbanuj">
+                                    <button class="btn btn-outline-danger" @onclick='() => UserAction(user.UserId, "ban")' title="Zbanuj">
                                         <i class="fa-solid fa-ban"></i>
                                     </button>
                                 }
@@ -107,7 +105,7 @@ else
     private async Task DoSearch() => await LoadPage(1);
     private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
 
-    private async Task UserAction(Guid id, string action)
+    private async Task UserAction(int id, string action)
     {
         var success = await AdminService.UpdateUserAsync(id, action);
         if (success) { Toast.ShowSuccess("Uzytkownik zaktualizowany."); await LoadPage(1); }

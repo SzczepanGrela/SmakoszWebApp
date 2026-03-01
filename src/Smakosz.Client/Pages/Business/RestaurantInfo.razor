@@ -29,19 +29,7 @@ else
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-medium">Nazwa restauracji</label>
-                    <input type="text" class="form-control" @bind="_restaurant.RestaurantName" />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-medium">Typ kuchni</label>
-                    <select class="form-select" @bind="_restaurant.CuisineType">
-                        <option value="">Wybierz...</option>
-                        <option>Polska</option>
-                        <option>Wloska</option>
-                        <option>Azjatycka</option>
-                        <option>Amerykanska</option>
-                        <option>Meksykanska</option>
-                        <option>Francuska</option>
-                    </select>
+                    <input type="text" class="form-control" @bind="_restaurant.Name" />
                 </div>
             </div>
             <div class="mb-3">
@@ -79,15 +67,6 @@ else
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-medium">Poziom cenowy</label>
-                    <select class="form-select" @bind="_restaurant.PriceLevel">
-                        <option value="1">$ - Budzetowy</option>
-                        <option value="2">$$ - Sredni</option>
-                        <option value="3">$$$ - Wyzszy</option>
-                        <option value="4">$$$$ - Premium</option>
-                    </select>
-                </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-medium">Zdjecie restauracji</label>
                     <ImageUpload EntityType="restaurant" CurrentImageUrl="@_restaurant.ImageUrl"

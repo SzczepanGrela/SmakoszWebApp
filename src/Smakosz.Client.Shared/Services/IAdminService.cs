@@ -18,8 +18,8 @@ public interface IAdminService
     Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1);
     Task<bool> ProcessEditRequestAsync(int id, string action, string? reason = null);
     Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null);
-    Task<AdminUserDto?> GetUserAsync(Guid publicId);
-    Task<bool> UpdateUserAsync(Guid publicId, string action);
+    Task<AdminUserDto?> GetUserAsync(int userId);
+    Task<bool> UpdateUserAsync(int userId, string action);
     Task<PagedResult<RestaurantCardDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
     Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null);
     Task<bool> CreateIngredientAsync(AdminIngredientDto dto);

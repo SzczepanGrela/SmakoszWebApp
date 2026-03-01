@@ -49,15 +49,14 @@
                             </div>
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center gap-2">
-                                    <strong class="@(!notification.IsRead ? "" : "fw-normal")">@notification.Title</strong>
+                                    <span class="@(!notification.IsRead ? "fw-bold" : "")">@notification.Message</span>
                                     @if (!notification.IsRead)
                                     {
                                         <span class="badge bg-primary rounded-pill" style="font-size:0.6rem;">Nowe</span>
                                     }
                                 </div>
-                                <p class="mb-1 text-muted small">@notification.Message</p>
                                 <small class="text-muted">
-                                    <i class="fa-regular fa-clock me-1"></i>@DateTimeHelper.TimeAgo(notification.CreatedAt)
+                                    <i class="fa-regular fa-clock me-1"></i>@(notification.CreatedAt.HasValue ? DateTimeHelper.TimeAgo(notification.CreatedAt.Value) : "")
                                 </small>
                             </div>
                         </div>
@@ -101,7 +100,7 @@
 
     private async Task MarkAsRead(NotificationDto notification)
     {
-        await NotificationService.MarkAsReadAsync(notification.Id);
+        await NotificationService.MarkAsReadAsync(notification.NotificationId);
         notification.IsRead = true;
     }
 
@@ -123,13 +122,8 @@
     {
         if (!notification.IsRead)
         {
-            await NotificationService.MarkAsReadAsync(notification.Id);
+            await NotificationService.MarkAsReadAsync(notification.NotificationId);
             notification.IsRead = true;
-        }
-
-        if (!string.IsNullOrEmpty(notification.ActionUrl))
-        {
-            Navigation.NavigateTo(notification.ActionUrl);
         }
     }
 

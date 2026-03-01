@@ -13,18 +13,19 @@ public class BusinessDashboardDto
 
 public class BusinessRestaurantDto
 {
-    public Guid PublicId { get; set; }
-    public string RestaurantName { get; set; } = default!;
+    public int RestaurantId { get; set; }
+    public string Name { get; set; } = default!;
+    public string Slug { get; set; } = default!;
     public string? Description { get; set; }
-    public string? CuisineType { get; set; }
-    public int? PriceLevel { get; set; }
     public string? Address { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Website { get; set; }
     public string? ImageUrl { get; set; }
     public int? CityId { get; set; }
-    public string? CityName { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public string Status { get; set; } = default!;
 }
 
 public class BusinessStatsDto
@@ -37,9 +38,10 @@ public class BusinessStatsDto
 
 public class RegistrationStatusDto
 {
+    public bool HasRestaurant { get; set; }
     public string Status { get; set; } = default!;
-    public string? Message { get; set; }
-    public DateTime SubmittedAt { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? RestaurantSlug { get; set; }
 }
 
 public class CityDto
@@ -50,10 +52,12 @@ public class CityDto
 
 public class EditRequestSummaryDto
 {
-    public Guid Id { get; set; }
-    public string FieldChanged { get; set; } = default!;
+    public int RequestId { get; set; }
+    public string ChangeType { get; set; } = default!;
     public string Status { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    public string? RejectionReason { get; set; }
 }
 
 public class BusinessDishDto

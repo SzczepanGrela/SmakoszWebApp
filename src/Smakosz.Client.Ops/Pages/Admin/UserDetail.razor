@@ -1,4 +1,4 @@
-@page "/admin/users/{Id:guid}"
+@page "/admin/users/{Id:int}"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
 @inject IAdminService AdminService
@@ -24,7 +24,7 @@ else
             <h2 class="fw-bold d-inline">@_user.Username</h2>
         </div>
         <div class="d-flex gap-2">
-            @if (_user.IsBanned)
+            @if (_user.Status == "Banned")
             {
                 <button class="btn btn-success btn-sm" @onclick='() => UserAction("unban")'>
                     <i class="fa-solid fa-unlock me-1"></i>Odbanuj
@@ -53,26 +53,14 @@ else
 
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
-                            @if (_user.IsBanned) { <span class="badge bg-danger">Zbanowany</span> }
-                            else if (_user.IsActive) { <span class="badge bg-success">Aktywny</span> }
-                            else { <span class="badge bg-secondary">Nieaktywny</span> }
+                            @if (_user.Status == "Banned") { <span class="badge bg-danger">Zbanowany</span> }
+                            else if (_user.Status == "Active") { <span class="badge bg-success">Aktywny</span> }
+                            else { <span class="badge bg-secondary">@_user.Status</span> }
                         </dd>
 
                         <dt class="col-sm-4">Rejestracja</dt>
-                        <dd class="col-sm-8">@_user.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
-
-                        <dt class="col-sm-4">Ostatnie logowanie</dt>
-                        <dd class="col-sm-8">@(_user.LastLoginAt?.ToString("dd.MM.yyyy HH:mm") ?? "Nigdy")</dd>
+                        <dd class="col-sm-8">@(_user.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
                     </dl>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header"><h5 class="mb-0">Statystyki</h5></div>
-                <div class="card-body text-center">
-                    <div class="fs-1 fw-bold" style="color:var(--accent-color);">@_user.ReviewCount</div>
-                    <small class="text-muted">Recenzji</small>
                 </div>
             </div>
         </div>
@@ -80,7 +68,7 @@ else
 }
 
 @code {
-    [Parameter] public Guid Id { get; set; }
+    [Parameter] public int Id { get; set; }
 
     private AdminUserDto? _user;
     private bool _loading = true;

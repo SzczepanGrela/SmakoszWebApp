@@ -4,34 +4,20 @@ public class AdminDashboardDto
 {
     public int TotalUsers { get; set; }
     public int TotalRestaurants { get; set; }
-    public int TotalDishes { get; set; }
     public int TotalReviews { get; set; }
-    public int PendingTickets { get; set; }
-    public int PendingPhotos { get; set; }
-    public int PendingReviews { get; set; }
-    public int PendingEditRequests { get; set; }
-    public List<AdminActivityDto> RecentActivity { get; set; } = [];
-}
-
-public class AdminActivityDto
-{
-    public string Type { get; set; } = default!;
-    public string Description { get; set; } = default!;
-    public DateTime CreatedAt { get; set; }
+    public int PendingReports { get; set; }
+    public int PendingCorrections { get; set; }
 }
 
 public class AdminUserDto
 {
-    public Guid PublicId { get; set; }
+    public int UserId { get; set; }
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string Role { get; set; } = default!;
-    public bool IsActive { get; set; }
-    public bool IsBanned { get; set; }
+    public string Status { get; set; } = default!;
     public bool EmailVerified { get; set; }
-    public int ReviewCount { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? LastLoginAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
 }
 
 public class AdminTicketDto
@@ -72,12 +58,11 @@ public class AdminReviewDto
 
 public class AdminReportDto
 {
-    public int Id { get; set; }
+    public int ReportId { get; set; }
     public string Reason { get; set; } = default!;
-    public string? Description { get; set; }
-    public string ReportedBy { get; set; } = default!;
+    public string ReporterUsername { get; set; } = default!;
     public string EntityType { get; set; } = default!;
-    public string EntityId { get; set; } = default!;
+    public int EntityId { get; set; }
     public string Status { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
 }
@@ -96,11 +81,12 @@ public class AdminEditRequestDto
 
 public class AdminIngredientDto
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = default!;
-    public string? Category { get; set; }
+    public int IngredientId { get; set; }
+    public string IngredientName { get; set; } = default!;
     public bool IsAllergen { get; set; }
-    public int UsageCount { get; set; }
+    public bool IsVegetarian { get; set; }
+    public bool IsVegan { get; set; }
+    public DateTime? CreatedAt { get; set; }
 }
 
 public class AdminCityDto
@@ -113,24 +99,21 @@ public class AdminCityDto
 
 public class AdminAiModelDto
 {
-    public string ModelName { get; set; } = default!;
-    public string Status { get; set; } = default!;
-    public string? Version { get; set; }
-    public DateTime? LastRun { get; set; }
-    public int ProcessedCount { get; set; }
-    public double? Accuracy { get; set; }
+    public string ModelType { get; set; } = default!;
+    public string ModelVersion { get; set; } = default!;
+    public int UsageCount { get; set; }
+    public DateTime? LastUsed { get; set; }
 }
 
 public class AdminJobDto
 {
-    public int Id { get; set; }
-    public string JobName { get; set; } = default!;
+    public int JobId { get; set; }
+    public string Type { get; set; } = default!;
     public string Status { get; set; } = default!;
-    public string? Schedule { get; set; }
-    public DateTime? LastRun { get; set; }
-    public DateTime? NextRun { get; set; }
-    public int SuccessCount { get; set; }
-    public int FailureCount { get; set; }
+    public int Priority { get; set; }
+    public int Progress { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
 }
 
 public class AdminSystemConfigDto
@@ -138,7 +121,8 @@ public class AdminSystemConfigDto
     public string Key { get; set; } = default!;
     public string Value { get; set; } = default!;
     public string? Description { get; set; }
-    public string? Category { get; set; }
+    public bool IsSecret { get; set; }
+    public bool IsPublic { get; set; }
 }
 
 public class AdminLogEntryDto

@@ -80,15 +80,15 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminUserDto>>($"/api/admin/users?page={page}&search={search}");
 
-    public Task<AdminUserDto?> GetUserAsync(Guid publicId)
-        => _api.GetAsync<AdminUserDto>($"/api/admin/users/{publicId}");
+    public Task<AdminUserDto?> GetUserAsync(int userId)
+        => _api.GetAsync<AdminUserDto>($"/api/admin/users/{userId}");
 
-    public async Task<bool> UpdateUserAsync(Guid publicId, string action)
+    public async Task<bool> UpdateUserAsync(int userId, string action)
     {
         var response = action switch
         {
-            "ban" => await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/ban", null),
-            "unban" => await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/unban", null),
+            "ban" => await _api.PostApiResponseAsync<object>($"/api/admin/users/{userId}/ban", null),
+            "unban" => await _api.PostApiResponseAsync<object>($"/api/admin/users/{userId}/unban", null),
             _ => new ApiResponse<object> { Success = false }
         };
         return response.Success;

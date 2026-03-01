@@ -111,20 +111,15 @@
                                 <div class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="fa-solid @GetDeviceIcon(session.Device) text-muted"></i>
-                                            <strong>@session.Device</strong>
+                                            <i class="fa-solid fa-desktop text-muted"></i>
+                                            <strong>Sesja #@session.SessionId</strong>
                                             @if (session.IsCurrent)
                                             {
                                                 <span class="badge bg-success">Obecna sesja</span>
                                             }
                                         </div>
                                         <small class="text-muted d-block mt-1">
-                                            @if (!string.IsNullOrEmpty(session.IpAddress))
-                                            {
-                                                <span>IP: @session.IpAddress</span>
-                                                <span class="mx-1">|</span>
-                                            }
-                                            Zalogowano: @session.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                            Zalogowano: @(session.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")
                                             <span class="mx-1">|</span>
                                             Wygasa: @session.ExpiresAt.ToString("dd.MM.yyyy HH:mm")
                                         </small>
@@ -209,7 +204,7 @@
         _changingPassword = false;
     }
 
-    private async Task RevokeSession(Guid sessionId)
+    private async Task RevokeSession(long sessionId)
     {
         var success = await UserProfileService.RevokeSessionAsync(sessionId);
         if (success)
@@ -235,16 +230,6 @@
         {
             Toast.ShowError("Nie udalo sie wylogowac sesji.");
         }
-    }
-
-    private static string GetDeviceIcon(string device)
-    {
-        var lower = device.ToLowerInvariant();
-        if (lower.Contains("mobile") || lower.Contains("android") || lower.Contains("iphone"))
-            return "fa-mobile-screen";
-        if (lower.Contains("tablet") || lower.Contains("ipad"))
-            return "fa-tablet-screen-button";
-        return "fa-desktop";
     }
 
     private class ChangePasswordModel

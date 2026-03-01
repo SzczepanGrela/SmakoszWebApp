@@ -6,6 +6,6 @@ public interface INotificationService
 {
     Task<PagedResult<NotificationDto>?> GetNotificationsAsync(int page = 1);
     Task<int> GetUnreadCountAsync();
-    Task MarkAsReadAsync(Guid id);
+    Task MarkAsReadAsync(int id);
     Task MarkAllAsReadAsync();
 }
