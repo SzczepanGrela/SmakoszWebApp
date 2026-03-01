@@ -7,6 +7,7 @@ using Smakosz.Application.Features.Admin.Commands.DeleteCity;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
+using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
 using Smakosz.Application.Features.Admin.Commands.UpdateReportStatus;
@@ -78,6 +79,13 @@ public class AdminController : ApiController
     {
         var result = await _mediator.Send(new GetAdminRestaurantsQuery(new PaginationParams(page, pageSize), search));
         return ToActionResult(result);
+    }
+
+    [HttpPost("restaurants/{publicId:guid}/verify")]
+    public async Task<IActionResult> VerifyRestaurant(Guid publicId)
+    {
+        var result = await _mediator.Send(new VerifyRestaurantCommand(publicId));
+        return ToNoContentResult(result);
     }
 
     [HttpGet("reports")]

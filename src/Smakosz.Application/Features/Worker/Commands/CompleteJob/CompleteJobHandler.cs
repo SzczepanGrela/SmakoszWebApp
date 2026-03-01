@@ -55,7 +55,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 await HandleImageModeration(job, request, now, cancellationToken);
                 break;
             case "ncf_training":
-                HandleNcfTraining(job, request, now);
+                await HandleNcfTraining(job, request, now, cancellationToken);
                 break;
         }
 
@@ -74,7 +74,11 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         var verdict = root.GetProperty("verdict").GetString() ?? "needs_review";
         var modelVersion = root.TryGetProperty("model_version", out var mv) ? mv.GetString() : null;
 
-        if (!string.IsNullOrEmpty(job.EntityId) && int.TryParse(job.EntityId, out var reviewId))
+        if (job.EntityType == "edit_request")
+        {
+            await HandleEditRequestModeration(job, toxicityScore, verdict, modelVersion, now, ct);
+        }
+        else if (!string.IsNullOrEmpty(job.EntityId) && int.TryParse(job.EntityId, out var reviewId))
         {
             var review = await _db.Reviews
                 .FirstOrDefaultAsync(r => r.ReviewId == reviewId, ct);
@@ -106,7 +110,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
         _db.ModerationLogs.Add(new ModerationLog
         {
-            EntityType = ModerationEntityType.Review,
+            EntityType = job.EntityType == "edit_request" ? ModerationEntityType.EditRequest : ModerationEntityType.Review,
             EntityId = int.TryParse(job.EntityId, out var eid) ? eid : 0,
             Actor = ModerationActor.Ai,
             Verdict = MapVerdict(verdict),
@@ -123,6 +127,60 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             Verdict = verdict,
             ProcessingTimeMs = request.ProcessingTimeMs
         });
+    }
+
+    private async Task HandleEditRequestModeration(SystemJob job, decimal toxicityScore, string verdict, string? modelVersion, DateTime now, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(job.EntityId) || !int.TryParse(job.EntityId, out var requestId))
+            return;
+
+        var editRequest = await _db.RestaurantEditRequests
+            .Include(er => er.Restaurant)
+            .FirstOrDefaultAsync(er => er.RequestId == requestId, ct);
+
+        if (editRequest is null)
+            return;
+
+        editRequest.AiVerdict = verdict;
+        editRequest.AiConfidence = 1.0m - toxicityScore;
+        editRequest.AiModelVersion = modelVersion;
+        editRequest.AiProcessedAt = now;
+
+        if (verdict == "approved" && toxicityScore < 0.3m)
+        {
+            editRequest.AutoApproved = true;
+            editRequest.AutoApproveReason = $"AI auto-approved: toxicity={toxicityScore:F3}";
+            editRequest.Status = EditRequestStatus.Approved;
+            editRequest.ResolvedAt = now;
+
+            if (!string.IsNullOrEmpty(editRequest.NewName))
+                editRequest.Restaurant.RestaurantName = editRequest.NewName;
+            if (!string.IsNullOrEmpty(editRequest.NewDescription))
+                editRequest.Restaurant.Description = editRequest.NewDescription;
+            if (!string.IsNullOrEmpty(editRequest.NewAddress))
+                editRequest.Restaurant.Address = editRequest.NewAddress;
+            if (!string.IsNullOrEmpty(editRequest.NewPhone))
+                editRequest.Restaurant.Phone = editRequest.NewPhone;
+            if (!string.IsNullOrEmpty(editRequest.NewWebsite))
+                editRequest.Restaurant.Website = editRequest.NewWebsite;
+
+            var relatedTicket = await _db.SystemTickets
+                .FirstOrDefaultAsync(t => t.TicketType == TicketType.EditRequest
+                    && t.ReferenceId == editRequest.RequestId
+                    && t.Status != TicketStatus.Resolved
+                    && t.Status != TicketStatus.Closed, ct);
+            if (relatedTicket != null)
+                relatedTicket.Status = TicketStatus.Resolved;
+
+            _db.Notifications.Add(new Domain.Entities.Notification
+            {
+                UserId = editRequest.UserId,
+                Type = NotificationType.System,
+                Title = "Edycja zatwierdzona",
+                Message = $"Twoje zmiany w restauracji \"{editRequest.Restaurant.RestaurantName}\" zostaly automatycznie zatwierdzone.",
+                CreatedAt = now
+            });
+        }
     }
 
     private async Task HandleImageModeration(SystemJob job, CompleteJobCommand request, DateTime now, CancellationToken ct)
@@ -157,6 +215,15 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                         asset.Status = MediaAssetStatus.Rejected;
                         break;
                 }
+
+                // Close related ticket
+                var relatedTicket = await _db.SystemTickets
+                    .FirstOrDefaultAsync(t => t.TicketType == TicketType.Photo
+                        && t.ReferenceId == assetId
+                        && t.Status != TicketStatus.Resolved
+                        && t.Status != TicketStatus.Closed, ct);
+                if (relatedTicket != null)
+                    relatedTicket.Status = TicketStatus.Resolved;
             }
         }
 
@@ -181,12 +248,42 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         });
     }
 
-    private void HandleNcfTraining(SystemJob job, CompleteJobCommand request, DateTime now)
+    private async Task HandleNcfTraining(SystemJob job, CompleteJobCommand request, DateTime now, CancellationToken ct)
     {
         using var doc = JsonDocument.Parse(request.Result);
         var root = doc.RootElement;
 
         var modelVersion = root.TryGetProperty("model_version", out var mv) ? mv.GetString() : null;
+
+        // Update system config with new NCF model version
+        if (!string.IsNullOrEmpty(modelVersion))
+        {
+            var versionConfig = await _db.SystemConfigs
+                .FirstOrDefaultAsync(c => c.Key == "ncf_model_version", ct);
+            if (versionConfig is not null)
+                versionConfig.Value = modelVersion;
+            else
+                _db.SystemConfigs.Add(new Domain.Entities.System.SystemConfig
+                {
+                    Key = "ncf_model_version",
+                    Value = modelVersion,
+                    Description = "Current NCF model version",
+                    UpdatedAt = now
+                });
+        }
+
+        var availableConfig = await _db.SystemConfigs
+            .FirstOrDefaultAsync(c => c.Key == "ncf_available", ct);
+        if (availableConfig is not null)
+            availableConfig.Value = "true";
+        else
+            _db.SystemConfigs.Add(new Domain.Entities.System.SystemConfig
+            {
+                Key = "ncf_available",
+                Value = "true",
+                Description = "Whether NCF recommendations are available",
+                UpdatedAt = now
+            });
 
         _db.AiLogs.Add(new AiLog
         {

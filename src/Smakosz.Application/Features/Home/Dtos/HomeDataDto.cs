@@ -19,6 +19,7 @@ public class HeroImageDto
 {
     public string Url { get; init; } = string.Empty;
     public string? Blurhash { get; init; }
+    public string? CreditText { get; init; }
 }
 
 public class StatsDto

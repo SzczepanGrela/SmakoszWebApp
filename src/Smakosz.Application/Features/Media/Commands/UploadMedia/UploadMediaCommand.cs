@@ -14,7 +14,8 @@ public record UploadMediaCommand(
     Stream File,
     string FileName,
     string EntityType,
-    int? EntityId
+    int? EntityId,
+    string? CreditText = null
 ) : IRequest<ErrorOr<UploadMediaResult>>;
 
 public class UploadMediaResult
@@ -78,7 +79,8 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
             Width = result.Width,
             Height = result.Height,
             Status = MediaAssetStatus.Pending,
-            UploadedBy = _currentUser.UserId.Value
+            UploadedBy = _currentUser.UserId.Value,
+            CreditText = request.CreditText
         };
 
         _db.MediaAssets.Add(asset);

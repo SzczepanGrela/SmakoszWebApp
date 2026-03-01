@@ -44,9 +44,11 @@ public class GetAdminRestaurantsHandler : IRequestHandler<GetAdminRestaurantsQue
             .Select(r => new AdminRestaurantDto
             {
                 RestaurantId = r.RestaurantId,
+                PublicId = r.PublicId,
                 Name = r.RestaurantName,
                 Slug = r.Slug ?? string.Empty,
                 Status = r.Status.ToString(),
+                IsVerified = r.IsVerified,
                 OwnerUsername = r.Owner != null ? r.Owner.Username : null,
                 AverageRating = (decimal)(r.AvgFoodScore ?? 0),
                 ReviewCount = _db.Reviews.Count(rv => rv.RestaurantId == r.RestaurantId && !rv.IsDeleted)

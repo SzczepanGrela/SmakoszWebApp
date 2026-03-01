@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -69,6 +70,28 @@ public class CreateEditRequestHandler : IRequestHandler<CreateEditRequestCommand
             Priority = 3,
             Description = $"Wniosek o edycje restauracji \"{restaurant.RestaurantName}\": {changeType}"
         });
+
+        var hasTextChanges = !string.IsNullOrEmpty(request.NewName) || !string.IsNullOrEmpty(request.NewDescription);
+        if (hasTextChanges)
+        {
+            _db.SystemJobs.Add(new SystemJob
+            {
+                Type = "text_moderation",
+                Status = JobStatus.Pending,
+                Priority = 5,
+                EntityId = editRequest.RequestId.ToString(),
+                EntityType = "edit_request",
+                Payload = JsonSerializer.Serialize(new
+                {
+                    edit_request_id = editRequest.RequestId,
+                    texts = new[]
+                    {
+                        request.NewName,
+                        request.NewDescription
+                    }.Where(t => !string.IsNullOrEmpty(t))
+                })
+            });
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

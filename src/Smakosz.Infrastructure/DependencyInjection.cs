@@ -64,6 +64,9 @@ public static class DependencyInjection
             services.AddScoped<IFileStorageService, StubFileStorageService>();
         }
 
+        // NCF Training
+        services.AddScoped<INcfTrainingService, NcfTrainingService>();
+
         return services;
     }
 }

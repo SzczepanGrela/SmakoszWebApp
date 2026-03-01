@@ -122,6 +122,9 @@ public static class DomainErrors
 
         public static readonly Error InvalidStatus =
             Error.Validation("REPORT_INVALID_STATUS", "Nieprawidłowy status zgłoszenia");
+
+        public static readonly Error InvalidReasonCode =
+            Error.Validation("REPORT_INVALID_REASON_CODE", "Nieprawidłowy kod powodu zgłoszenia");
     }
 
     public static class Media
@@ -158,6 +161,12 @@ public static class DomainErrors
     {
         public static readonly Error Forbidden =
             Error.Forbidden("ADMIN_FORBIDDEN", "Brak uprawnień do wykonania tej operacji");
+    }
+
+    public static class Social
+    {
+        public static readonly Error UserRoleOnly =
+            Error.Forbidden("SOCIAL_USER_ROLE_ONLY", "Tylko użytkownicy z rolą 'user' mogą wykonywać akcje społecznościowe");
     }
 
     public static class City

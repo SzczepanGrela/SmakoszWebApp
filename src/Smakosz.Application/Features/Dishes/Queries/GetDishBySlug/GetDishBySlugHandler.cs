@@ -24,6 +24,8 @@ public class GetDishBySlugHandler : IRequestHandler<GetDishBySlugQuery, ErrorOr<
             .AsNoTracking()
             .Include(d => d.Restaurant)
                 .ThenInclude(r => r!.City)
+            .Include(d => d.DishTags)
+                .ThenInclude(dt => dt.Tag)
             .FirstOrDefaultAsync(d => d.Slug == request.Slug, cancellationToken);
 
         if (dish is null)

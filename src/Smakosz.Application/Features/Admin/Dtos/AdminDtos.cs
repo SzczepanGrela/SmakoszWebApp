@@ -23,9 +23,11 @@ public class AdminUserDto
 public class AdminRestaurantDto
 {
     public int RestaurantId { get; init; }
+    public Guid PublicId { get; init; }
     public string Name { get; init; } = default!;
     public string Slug { get; init; } = default!;
     public string Status { get; init; } = default!;
+    public bool IsVerified { get; init; }
     public string? OwnerUsername { get; init; }
     public decimal AverageRating { get; init; }
     public int ReviewCount { get; init; }
