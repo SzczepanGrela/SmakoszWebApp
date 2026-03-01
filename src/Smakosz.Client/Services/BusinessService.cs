@@ -104,4 +104,10 @@ public class BusinessService : IBusinessService
         var response = await _api.PostApiResponseAsync<object>("/api/business/edit-requests", dto);
         return response.Success;
     }
+
+    public async Task<bool> SetDishIngredientsAsync(Guid publicId, List<int> ingredientIds)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{publicId}/ingredients", new { IngredientIds = ingredientIds });
+        return response.Success;
+    }
 }

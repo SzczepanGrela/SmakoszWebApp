@@ -27,6 +27,14 @@ public class BusinessDishDetailDto
     public bool IsSpicy { get; set; }
     public int ReviewCount { get; set; }
     public double? AvgRating { get; set; }
+    public List<DishIngredientItemDto> Ingredients { get; set; } = new();
+}
+
+public class DishIngredientItemDto
+{
+    public int IngredientId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsAllergen { get; set; }
 }
 
 public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetailQuery, ErrorOr<BusinessDishDetailDto>>
@@ -48,6 +56,8 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
         var dish = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
+            .Include(d => d.DishIngredients)
+                .ThenInclude(di => di.Ingredient)
             .Where(d => d.PublicId == request.PublicId)
             .Select(d => new
             {
@@ -67,7 +77,13 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
                 d.IsSpicy,
                 d.ReviewCount,
                 d.AvgRating,
-                OwnerId = d.Restaurant!.OwnerId
+                OwnerId = d.Restaurant!.OwnerId,
+                Ingredients = d.DishIngredients.Select(di => new DishIngredientItemDto
+                {
+                    IngredientId = di.IngredientId,
+                    Name = di.Ingredient.IngredientName,
+                    IsAllergen = di.Ingredient.IsAllergen
+                }).ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -94,7 +110,8 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
             IsLactoseFree = dish.IsLactoseFree,
             IsSpicy = dish.IsSpicy,
             ReviewCount = dish.ReviewCount,
-            AvgRating = dish.AvgRating
+            AvgRating = dish.AvgRating,
+            Ingredients = dish.Ingredients
         };
     }
 }

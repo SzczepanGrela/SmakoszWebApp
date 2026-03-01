@@ -7,6 +7,7 @@ using Smakosz.Application.Features.Business.Commands.DeleteMenuSection;
 using Smakosz.Application.Features.Business.Commands.RegisterBusiness;
 using Smakosz.Application.Features.Business.Commands.ReorderMenuSections;
 using Smakosz.Application.Features.Business.Commands.UpdateDish;
+using Smakosz.Application.Features.Business.Commands.SetDishIngredients;
 using Smakosz.Application.Features.Business.Commands.UpdateDishAvailability;
 using Smakosz.Application.Features.Business.Commands.UpdateMenuSection;
 using Smakosz.Application.Features.Business.Commands.UpdateOpeningHours;
@@ -171,6 +172,13 @@ public class BusinessController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpPut("dishes/{publicId:guid}/ingredients")]
+    public async Task<IActionResult> SetDishIngredients(Guid publicId, [FromBody] SetDishIngredientsRequest request)
+    {
+        var result = await _mediator.Send(new SetDishIngredientsCommand(publicId, request.IngredientIds));
+        return ToNoContentResult(result);
+    }
+
     [HttpGet("reviews")]
     public async Task<IActionResult> GetReviews([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -208,3 +216,4 @@ public record CreateEditRequestRequest(
 public record UpdateDishAvailabilityRequest(bool IsAvailable);
 public record UpdateMenuSectionRequest(string Name);
 public record UpdateDishRequest(string? Name, decimal? Price, string? Description, int? Calories, bool? IsAvailable);
+public record SetDishIngredientsRequest(List<int> IngredientIds);

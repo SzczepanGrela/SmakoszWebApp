@@ -75,6 +75,8 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
             EntityId = request.EntityId ?? 0,
             Url = result.PublicUrl,
             Blurhash = result.Blurhash,
+            Width = result.Width,
+            Height = result.Height,
             Status = MediaAssetStatus.Pending,
             UploadedBy = _currentUser.UserId.Value
         };

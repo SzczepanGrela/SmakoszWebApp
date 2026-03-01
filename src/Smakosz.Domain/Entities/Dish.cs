@@ -38,4 +38,5 @@ public class Dish : IAuditableEntity, IHasPublicId
 
     public Restaurant? Restaurant { get; set; }
     public DishVariant? Variant { get; set; }
+    public ICollection<DishIngredient> DishIngredients { get; set; } = new List<DishIngredient>();
 }

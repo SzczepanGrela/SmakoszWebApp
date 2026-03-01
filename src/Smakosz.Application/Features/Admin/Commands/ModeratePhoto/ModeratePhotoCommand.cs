@@ -35,6 +35,13 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 
         asset.Status = request.Approve ? MediaAssetStatus.Approved : MediaAssetStatus.Rejected;
 
+        if (request.Approve && asset.UploadedBy.HasValue)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == asset.UploadedBy.Value, cancellationToken);
+            if (user is not null)
+                user.PhotoCount++;
+        }
+
         if (!request.Approve)
             asset.RejectionReason = request.RejectionReason;
 

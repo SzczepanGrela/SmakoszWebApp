@@ -120,7 +120,7 @@ public class AdminController : ApiController
     public async Task<IActionResult> UpdateIngredient(int ingredientId, [FromBody] UpdateIngredientRequest request)
     {
         var result = await _mediator.Send(new UpdateIngredientCommand(
-            ingredientId, request.Name, request.IsAllergen, request.IsVegetarian, request.IsVegan));
+            ingredientId, request.Name, request.IsAllergen, request.IsVegetarian, request.IsVegan, request.IsGlutenFree, request.IsLactoseFree));
         return ToNoContentResult(result);
     }
 
@@ -191,7 +191,7 @@ public record CreateIngredientRequest(
     bool IsVegan,
     bool IsGlutenFree,
     bool IsLactoseFree);
-public record UpdateIngredientRequest(string? Name, bool? IsAllergen, bool? IsVegetarian, bool? IsVegan);
+public record UpdateIngredientRequest(string? Name, bool? IsAllergen, bool? IsVegetarian, bool? IsVegan, bool? IsGlutenFree, bool? IsLactoseFree);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
 public record ReviewIngredientSuggestionRequest(bool Approve, string? AdminNote);
