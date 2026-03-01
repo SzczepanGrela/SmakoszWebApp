@@ -44,5 +44,7 @@ public class DishBuilder
     public DishBuilder AsLactoseFree() { _dish.IsLactoseFree = true; return this; }
     public DishBuilder AsSpicy() { _dish.IsSpicy = true; return this; }
 
+    public DishBuilder WithDishTags(List<DishTag> tags) { _dish.DishTags = tags; return this; }
+
     public Dish Build() => _dish;
 }

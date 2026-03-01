@@ -70,4 +70,16 @@ public class FollowUserHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("USER_NOT_FOUND");
     }
+
+    [Fact]
+    public async Task Handle_NonUserRole_ReturnsUserRoleOnlyError()
+    {
+        var adminUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "Admin");
+        var handler = new FollowUserHandler(_db, adminUser);
+
+        var result = await handler.Handle(new FollowUserCommand("someone"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("SOCIAL_USER_ROLE_ONLY");
+    }
 }

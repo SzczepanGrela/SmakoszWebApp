@@ -57,4 +57,16 @@ public class UnfollowUserHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("FOLLOW_NOT_FOLLOWING");
     }
+
+    [Fact]
+    public async Task Handle_NonUserRole_ReturnsUserRoleOnlyError()
+    {
+        var adminUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "Admin");
+        var handler = new UnfollowUserHandler(_db, adminUser);
+
+        var result = await handler.Handle(new UnfollowUserCommand("someone"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("SOCIAL_USER_ROLE_ONLY");
+    }
 }

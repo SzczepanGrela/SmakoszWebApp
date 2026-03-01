@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FluentAssertions;
 using Smakosz.Application.Features.Dishes.Dtos;
 using Smakosz.Domain.Entities;
@@ -113,5 +114,22 @@ public class DishMappingExtensionsTests
 
         dto.RestaurantName.Should().Be(restaurant.RestaurantName);
         dto.CityName.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToDetailDto_WithTags_MapsTagsCorrectly()
+    {
+        var tag = new Tag { TagId = 1, TagName = "Ostre", Category = "Smak", DisplayColor = "#FF0000" };
+        var dishTag = new DishTag { DishId = 1, TagId = 1, Tag = tag };
+        var dish = new DishBuilder()
+            .WithDishTags(new List<DishTag> { dishTag })
+            .Build();
+
+        var dto = dish.ToDetailDto(false);
+
+        dto.Tags.Should().HaveCount(1);
+        dto.Tags[0].TagName.Should().Be("Ostre");
+        dto.Tags[0].Category.Should().Be("Smak");
+        dto.Tags[0].DisplayColor.Should().Be("#FF0000");
     }
 }
