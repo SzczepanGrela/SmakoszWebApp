@@ -6,11 +6,9 @@ including preference vectors, personal information, and profile data.
 """
 
 import random
-from datetime import date, timedelta
 
 from scipy.stats import beta as beta_dist
 
-from utils.distributions import sample_beta
 from utils.faker_instance import fake
 
 def generate_user_characteristics_vector() -> dict:
@@ -110,20 +108,3 @@ def generate_phone() -> str:
         str: Phone number (e.g., "+48 555 123 456")
     """
     return f"+48 {random.randint(500, 999)} {random.randint(100, 999)} {random.randint(100, 999)}"
-
-def generate_date_of_birth() -> date:
-    """
-    Generate a realistic date of birth.
-
-    Uses Beta distribution for age (18-70 years) with realistic clustering,
-    then adds random day variation for natural distribution.
-
-    Returns:
-        date: Date of birth
-    """
-    age = sample_beta(2, 3, 18, 70)
-    today = date.today()
-    years_ago = int(age)
-    days_variation = random.randint(0, 365)
-    birth_date = today - timedelta(days=years_ago * 365 + days_variation)
-    return birth_date

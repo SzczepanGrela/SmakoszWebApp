@@ -284,7 +284,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             dish_data = {
                 "public_id": str(uuid.uuid4()),
                 "restaurant_id": restaurant_id,
-                "variant_id": variant_id,
+                "secret_variant_id": variant_id,
                 "dish_name": dish_name,
                 "slug": _unique_slug(dish_name, used_slugs),
                 "price": price,

@@ -24,7 +24,6 @@ from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
 from utils.text_generator import slugify
 from utils.user_helpers import (
-    generate_date_of_birth,
     generate_full_name,
     generate_phone,
     generate_user_characteristics_vector,
@@ -206,11 +205,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "photo_count": 0,
                 "followers_count": 0,
                 "following_count": 0,
-                "newsletter_consent": True,
                 "password_hash": common_hash,
                 "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
                 "role": "restaurant",
-                "home_city_id": r_city_id,
+                "secret_home_city_id": r_city_id,
                 "restaurant_id": r_id,
                 "created_at": DateGenerator.to_sql_datetime(join_date),
                 "last_login_at": DateGenerator.to_sql_datetime(last_login),
@@ -224,7 +222,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "phone": phone,
                 "avatar_url": None,
                 "avatar_blurhash": None,
-                "date_of_birth": None,
                 "secret_total_review_count": 0,
                 "secret_travel_propensity": 0,
                 "secret_enjoyed_archetypes": json.dumps({}),
@@ -346,8 +343,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             avatar_url = None  # Frontend will generate UI Avatars from initials
             avatar_blurhash = None
 
-        date_of_birth = generate_date_of_birth()
-
         # Phase 5 will update last_login_at if user posted a review after this date
         days_since_join = (datetime.now() - join_date).days
         if days_since_join > 0:
@@ -356,7 +351,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             last_login = join_date
 
         is_verified = True
-        newsletter = random.random() < 0.40
         is_banned = random.random() < 0.002
         is_active = True
         is_deleted = False
@@ -392,11 +386,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "photo_count": 0,
                 "followers_count": 0,
                 "following_count": 0,
-                "newsletter_consent": newsletter,
                 "password_hash": common_hash,
                 "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
                 "role": role,
-                "home_city_id": city_id,
+                "secret_home_city_id": city_id,
                 "restaurant_id": None,
                 "created_at": DateGenerator.to_sql_datetime(join_date),
                 "last_login_at": DateGenerator.to_sql_datetime(last_login),
@@ -410,7 +403,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "phone": phone,
                 "avatar_url": avatar_url,
                 "avatar_blurhash": avatar_blurhash,
-                "date_of_birth": date_of_birth.isoformat(),
                 "secret_total_review_count": secret_total_review_count,
                 "secret_travel_propensity": round(mobility_factor, 3),
                 "secret_enjoyed_archetypes": json.dumps(enjoyed_archetypes),

@@ -14,14 +14,14 @@ class UserDAO:
     def get_all_users_for_social(db: DatabaseConnection) -> list[tuple[int, str, int, bool]]:
         """Fetch user data for social graph generation."""
         return db.fetch_all(
-            "SELECT user_id, username, home_city_id, secret_is_influencer FROM users WHERE role = 'user'"
+            "SELECT user_id, username, secret_home_city_id, secret_is_influencer FROM users WHERE role = 'user'"
         )
 
     @staticmethod
     def get_all_users_for_reviews(db: DatabaseConnection) -> list[tuple]:
         """Fetch comprehensive user data for review generation."""
         return db.fetch_all("""
-            SELECT user_id, home_city_id, secret_total_review_count, secret_travel_propensity,
+            SELECT user_id, secret_home_city_id, secret_total_review_count, secret_travel_propensity,
                    secret_enjoyed_archetypes, secret_ingredient_preferences,
                    secret_cleanliness_preference, secret_preferred_ambiance,
                    secret_mood_propensity, secret_cross_impact_factor,

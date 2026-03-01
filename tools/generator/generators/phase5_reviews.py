@@ -71,7 +71,7 @@ def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int):
                d.secret_base_price, d.secret_quality, d.secret_popularity_factor,
                d.secret_characteristics_vector, d.secret_penalty_vector, dv.variant_name
         FROM dishes d
-        JOIN dish_variants dv ON d.variant_id = dv.variant_id
+        JOIN dish_variants dv ON d.secret_variant_id = dv.variant_id
         JOIN dish_archetypes da ON dv.archetype_id = da.archetype_id
         WHERE d.restaurant_id = %s
     """,
