@@ -20,7 +20,8 @@ public interface IAdminService
     Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null);
     Task<AdminUserDto?> GetUserAsync(int userId);
     Task<bool> UpdateUserAsync(int userId, string action);
-    Task<PagedResult<RestaurantCardDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
+    Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
+    Task<bool> VerifyRestaurantAsync(Guid publicId);
     Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null);
     Task<bool> CreateIngredientAsync(AdminIngredientDto dto);
     Task<bool> UpdateIngredientAsync(int id, AdminIngredientDto dto);
@@ -35,6 +36,9 @@ public interface IAdminService
     Task<List<AdminAiModelDto>> GetAiModelsAsync();
     Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1);
     Task<bool> TriggerJobAsync(int id);
+    Task<bool> CreateJobAsync(CreateJobRequest request);
+    Task<bool> CancelJobAsync(int id);
+    Task<bool> ScheduleNcfTrainingAsync();
     Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
     Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null);
     Task<List<AdminHeroImageDto>> GetHeroImagesAsync();

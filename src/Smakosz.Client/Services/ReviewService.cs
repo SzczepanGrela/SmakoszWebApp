@@ -23,10 +23,13 @@ public class ReviewService : IReviewService
     public Task<PagedResult<ReviewCardDto>?> GetByUserAsync(string userSlug, int page = 1, int pageSize = 10)
         => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/users/{userSlug}/reviews?page={page}&pageSize={pageSize}");
 
-    public async Task<bool> ReportReviewAsync(Guid publicId, string reason, string? description)
+    public Task<List<ReportReasonDto>?> GetReportReasonsAsync()
+        => _api.GetAsync<List<ReportReasonDto>>("/api/reviews/report-reasons");
+
+    public async Task<bool> ReportReviewAsync(Guid publicId, List<string> reasonCodes, string? description)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/reviews/{publicId}/report",
-            new { Reason = reason, Description = description });
+            new { ReasonCodes = reasonCodes, Description = description });
         return response.Success;
     }
 }

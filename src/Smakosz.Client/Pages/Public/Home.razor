@@ -12,7 +12,7 @@
 else if (_data != null)
 {
     <!-- Hero Section -->
-    <HeroSection BackgroundUrl="@_heroImage">
+    <HeroSection BackgroundUrl="@_heroImage" CreditText="@_heroCreditText">
         <h1 class="display-4 fw-bold mb-3">Znajdz najlepszy smak w miescie</h1>
         <p class="lead mb-4">Najlepsze dania ze wszystkich restauracji.</p>
 
@@ -126,12 +126,16 @@ else if (_data != null)
     private string _searchQuery = "";
 
     private string _heroImage = "/images/restaurant-placeholder.svg";
+    private string? _heroCreditText;
 
     protected override async Task OnInitializedAsync()
     {
         _data = await HomeService.GetHomeDataAsync();
         if (_data?.HeroImage != null)
+        {
             _heroImage = _data.HeroImage.Url;
+            _heroCreditText = _data.HeroImage.CreditText;
+        }
         _loading = false;
     }
 

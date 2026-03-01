@@ -21,8 +21,9 @@ public class UpdateReviewDto
     public string VisitDate { get; set; } = default!;
 }
 
-public class CreateReportDto
+public class ReportReasonDto
 {
-    public string Reason { get; set; } = default!;
+    public string ReasonCode { get; set; } = default!;
+    public string LabelPl { get; set; } = default!;
     public string? Description { get; set; }
 }
