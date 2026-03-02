@@ -10,7 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="bunit" Version="1.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.*" />
+    <PackageReference Include="NSubstitute" Version="5.3.*" />
     <PackageReference Include="xunit" Version="2.9.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.*">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Smakosz.Client.Shared\Smakosz.Client.Shared.csproj" />
     <ProjectReference Include="..\..\src\Smakosz.Client\Smakosz.Client.csproj" />
+    <ProjectReference Include="..\..\src\Smakosz.Client.Ops\Smakosz.Client.Ops.csproj" />
   </ItemGroup>
 
 </Project>
