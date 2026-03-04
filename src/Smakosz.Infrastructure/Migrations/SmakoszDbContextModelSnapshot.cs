@@ -2461,6 +2461,89 @@ namespace Smakosz.Infrastructure.Migrations
                     b.ToTable("service_accounts", "system");
                 });
 
+            modelBuilder.Entity("Smakosz.Domain.Entities.System.SiteStats", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("AvgDishRating")
+                        .HasColumnType("double precision")
+                        .HasColumnName("avg_dish_rating");
+
+                    b.Property<double>("AvgRestaurantFoodScore")
+                        .HasColumnType("double precision")
+                        .HasColumnName("avg_restaurant_food_score");
+
+                    b.Property<string>("MostActiveCity")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("most_active_city");
+
+                    b.Property<string>("MostPopularCuisine")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("most_popular_cuisine");
+
+                    b.Property<int>("NewUsersThisMonth")
+                        .HasColumnType("integer")
+                        .HasColumnName("new_users_this_month");
+
+                    b.Property<int>("ReviewsThisWeek")
+                        .HasColumnType("integer")
+                        .HasColumnName("reviews_this_week");
+
+                    b.Property<int>("TotalDishes")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_dishes");
+
+                    b.Property<int>("TotalPhotos")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_photos");
+
+                    b.Property<int>("TotalRestaurants")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_restaurants");
+
+                    b.Property<int>("TotalReviews")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_reviews");
+
+                    b.Property<int>("TotalUsers")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_users");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_site_stats");
+
+                    b.ToTable("site_stats", "system");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AvgDishRating = 0.0,
+                            AvgRestaurantFoodScore = 0.0,
+                            NewUsersThisMonth = 0,
+                            ReviewsThisWeek = 0,
+                            TotalDishes = 0,
+                            TotalPhotos = 0,
+                            TotalRestaurants = 0,
+                            TotalReviews = 0,
+                            TotalUsers = 0,
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
+                });
+
             modelBuilder.Entity("Smakosz.Domain.Entities.System.SystemConfig", b =>
                 {
                     b.Property<string>("Key")

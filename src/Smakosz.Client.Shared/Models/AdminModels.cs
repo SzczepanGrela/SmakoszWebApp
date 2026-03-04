@@ -7,11 +7,15 @@ public class AdminDashboardDto
     public int TotalReviews { get; set; }
     public int PendingReports { get; set; }
     public int PendingCorrections { get; set; }
+    public int PendingPhotos { get; set; }
+    public int PendingReviews { get; set; }
+    public int OpenTickets { get; set; }
 }
 
 public class AdminUserDto
 {
     public int UserId { get; set; }
+    public Guid PublicId { get; set; }
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string Role { get; set; } = default!;
@@ -34,13 +38,18 @@ public class AdminTicketDto
 
 public class AdminPhotoDto
 {
-    public Guid Id { get; set; }
-    public string ImageUrl { get; set; } = default!;
-    public string Status { get; set; } = default!;
-    public string UploadedBy { get; set; } = default!;
+    public Guid PublicId { get; set; }
+    public string Url { get; set; } = default!;
+    public string? Status { get; set; }
+    public string? UploadedByUsername { get; set; }
     public string? EntityType { get; set; }
     public string? EntityName { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    // Aliases used by UI components
+    public Guid Id => PublicId;
+    public string ImageUrl => Url;
+    public string UploadedBy => UploadedByUsername ?? "Nieznany";
 }
 
 public class AdminReviewDto
@@ -136,11 +145,12 @@ public class AdminSystemConfigDto
 
 public class AdminLogEntryDto
 {
-    public DateTime Timestamp { get; set; }
+    public long Id { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public string Level { get; set; } = default!;
     public string Message { get; set; } = default!;
     public string? Source { get; set; }
-    public string? Exception { get; set; }
+    public string? Context { get; set; }
 }
 
 public class AdminRestaurantDto

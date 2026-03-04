@@ -15,7 +15,7 @@
                     @if (ShowDish)
                     {
                         <span class="text-muted mx-1">o</span>
-                        <a href="/dish/@Review.DishSlug" class="text-decoration-none" style="color:var(--accent-color);">@Review.DishName</a>
+                        <a href="/dish/@Review.DishSlug" class="text-decoration-none d-inline-block" style="color:var(--accent-color);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;" title="@Review.DishName">@Review.DishName</a>
                     }
                     @if (ShowRestaurant)
                     {
@@ -25,9 +25,9 @@
                 <div class="d-flex align-items-center gap-2">
                     @if (ShowActions)
                     {
-                        <AuthorizeView Roles="user">
+                        <AuthorizeView Roles="User">
                             <Authorized>
-                                <button class="btn btn-link btn-sm text-muted p-0" title="Zglos recenzje" @onclick="OpenReportModal">
+                                <button class="btn btn-link btn-sm text-muted p-0" title="Zgłoś recenzję" @onclick="OpenReportModal">
                                     <i class="fa-solid fa-flag"></i>
                                 </button>
                             </Authorized>
@@ -41,7 +41,7 @@
             </div>
             @if (!string.IsNullOrWhiteSpace(Review.Content))
             {
-                <p class="mt-2 mb-1 small">@Review.Content</p>
+                <p class="mt-2 mb-1 small @(Compact ? "review-content-clamp" : "")" style="overflow-wrap:break-word;word-break:break-word;">@Review.Content</p>
             }
         </div>
     </div>
@@ -49,13 +49,13 @@
 
 @if (_showReportModal)
 {
-    <Modal IsOpen="true" Title="Zglos recenzje" OnClose="() => _showReportModal = false">
+    <Modal IsOpen="true" Title="Zgłoś recenzję" OnClose="() => _showReportModal = false">
         <div class="mb-3">
-            <label class="form-label fw-bold">Powod zgloszenia *</label>
+            <label class="form-label fw-bold">Powód zgłoszenia *</label>
             @if (_reportReasons == null)
             {
                 <div class="text-center py-2">
-                    <span class="spinner-border spinner-border-sm"></span> Ladowanie...
+                    <span class="spinner-border spinner-border-sm"></span> Ładowanie...
                 </div>
             }
             else
@@ -79,7 +79,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Dodatkowy opis (opcjonalnie)</label>
-            <textarea class="form-control" rows="2" @bind="_reportDescription" placeholder="Dodatkowe szczegoly..."></textarea>
+            <textarea class="form-control" rows="2" @bind="_reportDescription" placeholder="Dodatkowe szczegóły..."></textarea>
         </div>
         <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showReportModal = false">Anuluj</button>
@@ -88,7 +88,7 @@
                 {
                     <span class="spinner-border spinner-border-sm me-1"></span>
                 }
-                Wyslij zgloszenie
+                Wyślij zgłoszenie
             </button>
         </div>
     </Modal>
@@ -99,6 +99,7 @@
     [Parameter] public bool ShowDish { get; set; } = true;
     [Parameter] public bool ShowRestaurant { get; set; } = true;
     [Parameter] public bool ShowActions { get; set; }
+    [Parameter] public bool Compact { get; set; }
 
     private bool _showReportModal;
     private List<Smakosz.Client.Models.ReportReasonDto>? _reportReasons;
@@ -132,14 +133,14 @@
 
         if (success)
         {
-            Toast.ShowSuccess("Zgloszenie zostalo wyslane.");
+            Toast.ShowSuccess("Zgłoszenie zostało wysłane.");
             _showReportModal = false;
             _selectedReasonCodes.Clear();
             _reportDescription = null;
         }
         else
         {
-            Toast.ShowError("Nie udalo sie wyslac zgloszenia.");
+            Toast.ShowError("Nie udało się wysłać zgłoszenia.");
         }
     }
 }

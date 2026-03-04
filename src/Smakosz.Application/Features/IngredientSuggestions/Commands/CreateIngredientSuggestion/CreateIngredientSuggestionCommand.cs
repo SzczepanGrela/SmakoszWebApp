@@ -34,6 +34,9 @@ public class CreateIngredientSuggestionHandler : IRequestHandler<CreateIngredien
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
+        if (_currentUser.Role is not "Restaurant" and not "Admin")
+            return DomainErrors.Admin.Forbidden;
+
         var restaurant = await _db.Restaurants
             .FirstOrDefaultAsync(r => r.Slug == request.RestaurantSlug, cancellationToken);
 
@@ -53,7 +56,7 @@ public class CreateIngredientSuggestionHandler : IRequestHandler<CreateIngredien
                 && s.Status == IngredientSuggestionStatus.Pending, cancellationToken);
 
         if (existsPending)
-            return Error.Conflict("SUGGESTION_ALREADY_EXISTS", "Taka sugestia skladnika juz istnieje");
+            return Error.Conflict("SUGGESTION_ALREADY_EXISTS", "Taka sugestia składnika już istnieje");
 
         var suggestion = new IngredientSuggestion
         {
@@ -78,7 +81,7 @@ public class CreateIngredientSuggestionHandler : IRequestHandler<CreateIngredien
             ReferenceId = suggestion.SuggestionId,
             Status = TicketStatus.Open,
             Priority = 3,
-            Description = $"Sugestia skladnika \"{request.SuggestedName}\" dla restauracji \"{restaurant.RestaurantName}\""
+            Description = $"Sugestia składnika \"{request.SuggestedName}\" dla restauracji \"{restaurant.RestaurantName}\""
         });
 
         await _db.SaveChangesAsync(cancellationToken);

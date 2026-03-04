@@ -77,6 +77,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         if (user.IsBanned)
             return DomainErrors.Auth.AccountBanned;
 
+        if (!user.EmailVerified)
+            return DomainErrors.Auth.EmailNotVerified;
+
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
@@ -84,6 +87,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         {
             UserId = user.UserId,
             RefreshTokenHash = refreshToken,
+            CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(request.RememberMe ? 30 : 7)
         };
 

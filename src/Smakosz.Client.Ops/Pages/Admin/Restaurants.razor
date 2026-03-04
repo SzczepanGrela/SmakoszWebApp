@@ -1,7 +1,8 @@
 @page "/admin/restaurants"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
+@inject ToastService Toast
 
 <PageTitle>Restauracje - Admin Smakosz</PageTitle>
 
@@ -30,7 +31,7 @@ else
                     <th>Nazwa</th>
                     <th>Status</th>
                     <th>Weryfikacja</th>
-                    <th>Wlasciciel</th>
+                    <th>Właściciel</th>
                     <th>Ocena</th>
                     <th>Recenzje</th>
                     <th></th>
@@ -58,7 +59,7 @@ else
                         <td>
                             @if (!r.IsVerified)
                             {
-                                <button class="btn btn-sm btn-success" @onclick="() => VerifyRestaurant(r)">
+                                <button class="btn btn-sm btn-success" disabled="@_verifying" @onclick="() => VerifyRestaurant(r)">
                                     <i class="fa-solid fa-check me-1"></i>Zweryfikuj
                                 </button>
                             }
@@ -79,6 +80,7 @@ else
     private PagedResult<AdminRestaurantDto>? _restaurants;
     private string _search = "";
     private bool _loading = true;
+    private bool _verifying;
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
@@ -91,11 +93,18 @@ else
 
     private async Task VerifyRestaurant(AdminRestaurantDto restaurant)
     {
+        _verifying = true;
         var success = await AdminService.VerifyRestaurantAsync(restaurant.PublicId);
+        _verifying = false;
         if (success)
         {
             restaurant.IsVerified = true;
             restaurant.Status = "Active";
+            Toast.ShowSuccess("Restauracja zweryfikowana.");
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zweryfikować restauracji.");
         }
     }
 

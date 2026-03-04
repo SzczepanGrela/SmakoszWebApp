@@ -1,16 +1,8 @@
-"""
-Dish Selector - Selects dishes from restaurant menu with realistic human behavior simulation.
-"""
-
 import math
 import random
 from typing import Any
 
 def select_dish_from_menu(user: dict[str, Any], restaurant_dishes: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """
-    Selects dish from menu using three decision modes:
-    15% random, 10% popularity-driven, 75% preference-based with flattened weights.
-    """
     if not restaurant_dishes:
         return None
 
@@ -64,7 +56,6 @@ def select_dish_from_menu(user: dict[str, Any], restaurant_dishes: list[dict[str
     if total_score == 0:
         return random.choice(dishes)
 
-    # Temperature scaling for flattened distribution
     temperature = 2.5
     exp_scores = [math.exp(s / temperature) for s in scores]
     total_exp = sum(exp_scores)

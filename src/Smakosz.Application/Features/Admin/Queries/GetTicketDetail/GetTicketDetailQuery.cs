@@ -24,7 +24,7 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
 
     public async Task<ErrorOr<AdminTicketDetailDto>> Handle(GetTicketDetailQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var ticket = await _db.SystemTickets

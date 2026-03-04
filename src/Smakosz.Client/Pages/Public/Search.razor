@@ -12,7 +12,7 @@
         <div class="col-md-8">
             <div class="input-group">
                 <input class="form-control" type="search" @bind="_query" @onkeydown="HandleKey"
-                       placeholder="Szukaj dan lub restauracji..." />
+                       placeholder="Szukaj dań lub restauracji..." />
                 <button class="btn btn-primary" @onclick="DoSearch">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
@@ -33,9 +33,9 @@
                     @foreach (var cuisine in _cuisineOptions)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked="@_selectedCuisines.Contains(cuisine)"
-                                   @onchange="e => ToggleCuisine(cuisine, (bool)e.Value!)" />
-                            <label class="form-check-label small">@cuisine</label>
+                            <input class="form-check-input" type="checkbox" checked="@_selectedCuisines.Contains(cuisine.Value)"
+                                   @onchange="e => ToggleCuisine(cuisine.Value, (bool)e.Value!)" />
+                            <label class="form-check-label small">@cuisine.Label</label>
                         </div>
                     }
                 </div>
@@ -44,9 +44,9 @@
                     @foreach (var diet in _dietaryOptions)
                     {
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet)"
-                                   @onchange="e => ToggleDietary(diet, (bool)e.Value!)" />
-                            <label class="form-check-label small">@diet</label>
+                            <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet.Value)"
+                                   @onchange="e => ToggleDietary(diet.Value, (bool)e.Value!)" />
+                            <label class="form-check-label small">@diet.Label</label>
                         </div>
                     }
                 </div>
@@ -64,6 +64,12 @@
                     </div>
                 }
                 <button class="btn btn-primary btn-sm w-100" @onclick="DoSearch">Zastosuj filtry</button>
+                @if (_selectedCuisines.Any() || _selectedDietary.Any() || !string.IsNullOrEmpty(_selectedCity))
+                {
+                    <button class="btn btn-outline-secondary btn-sm w-100 mt-2" @onclick="ClearFilters">
+                        <i class="fa-solid fa-xmark me-1"></i>Wyczyść filtry
+                    </button>
+                }
             </FilterPanel>
         </div>
 
@@ -75,8 +81,8 @@
             }
             else if (_result == null || (!_result.Restaurants.Any() && !_result.Dishes.Any()))
             {
-                <EmptyState Icon="fa-solid fa-magnifying-glass" Title="Brak wynikow"
-                            Description="Sprobuj zmienić kryteria wyszukiwania." />
+                <EmptyState Icon="fa-solid fa-magnifying-glass" Title="Brak wyników"
+                            Description="Spróbuj zmienić kryteria wyszukiwania." />
             }
             else
             {
@@ -113,38 +119,70 @@
 @code {
     [SupplyParameterFromQuery] public string? Query { get; set; }
     [SupplyParameterFromQuery] public string? Type { get; set; }
+    [SupplyParameterFromQuery] public string? Cuisines { get; set; }
+    [SupplyParameterFromQuery] public string? Dietary { get; set; }
+    [SupplyParameterFromQuery] public string? City { get; set; }
+    [SupplyParameterFromQuery] public string? Sort { get; set; }
+    [SupplyParameterFromQuery] public string? Tags { get; set; }
     [SupplyParameterFromQuery] public int Page { get; set; } = 1;
 
     private SearchResultDto? _result;
     private bool _loading = true;
     private string _query = "";
-    private string _type = "restaurants";
+    private string _type = "dishes";
     private string _sortBy = "rating";
     private int _page = 1;
     private string _selectedCity = "";
     private readonly HashSet<string> _selectedCuisines = [];
     private readonly HashSet<string> _selectedDietary = [];
+    private string? _selectedTags;
 
-    private List<string> _cuisineOptions = [];
-    private List<string> _dietaryOptions = [];
+    private List<FilterOption> _cuisineOptions = [];
+    private List<FilterOption> _dietaryOptions = [];
     private List<string> _cities = [];
 
-    private static readonly string[] _fallbackCuisines = { "Polska", "Wloska", "Azjatycka", "Amerykanska", "Meksykanska", "Francuska" };
-    private static readonly string[] _fallbackDietary = { "vegetarian", "vegan", "gluten_free", "lactose_free" };
+    private static readonly FilterOption[] _fallbackCuisines =
+    {
+        new() { Value = "Polska", Label = "Polska" }, new() { Value = "Wloska", Label = "Włoska" },
+        new() { Value = "Azjatycka", Label = "Azjatycka" }, new() { Value = "Amerykanska", Label = "Amerykańska" },
+        new() { Value = "Meksykanska", Label = "Meksykańska" }, new() { Value = "Francuska", Label = "Francuska" }
+    };
+    private static readonly FilterOption[] _fallbackDietary =
+    {
+        new() { Value = "vegetarian", Label = "Wegetariańskie" }, new() { Value = "vegan", Label = "Wegańskie" },
+        new() { Value = "gluten_free", Label = "Bezglutenowe" }, new() { Value = "lactose_free", Label = "Bezlaktozowe" }
+    };
 
     private static readonly List<SortOption> _sortOptions = new()
     {
         new() { Label = "Ocena", Value = "rating" },
         new() { Label = "Nazwa", Value = "name" },
         new() { Label = "Cena", Value = "price" },
-        new() { Label = "Popularnosc", Value = "trending" }
+        new() { Label = "Popularność", Value = "trending" }
     };
 
     protected override async Task OnInitializedAsync()
     {
         _query = Query ?? "";
-        _type = Type ?? "restaurants";
+        _type = Type ?? "dishes";
         _page = Page > 0 ? Page : 1;
+        _sortBy = Sort ?? "rating";
+        _selectedCity = City ?? "";
+
+        if (!string.IsNullOrWhiteSpace(Cuisines))
+        {
+            foreach (var c in Cuisines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                _selectedCuisines.Add(c);
+        }
+
+        if (!string.IsNullOrWhiteSpace(Dietary))
+        {
+            foreach (var d in Dietary.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                _selectedDietary.Add(d);
+        }
+
+        if (!string.IsNullOrWhiteSpace(Tags))
+            _selectedTags = Tags;
 
         var filtersTask = SearchService.GetFiltersAsync();
         var resultsTask = LoadResults();
@@ -171,7 +209,9 @@
         var cuisines = _selectedCuisines.Any() ? string.Join(",", _selectedCuisines) : null;
         var dietary = _selectedDietary.Any() ? string.Join(",", _selectedDietary) : null;
         var location = !string.IsNullOrEmpty(_selectedCity) ? _selectedCity : null;
-        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page);
+        var pageSize = _type == "dishes" ? 6 : 12;
+        var tags = !string.IsNullOrWhiteSpace(_selectedTags) ? _selectedTags : null;
+        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page, pageSize, tags: tags);
         _loading = false;
     }
 
@@ -183,17 +223,32 @@
     }
 
     private async Task ChangeType(string type) { _type = type; _page = 1; await LoadResults(); UpdateUrl(); }
-    private async Task ChangeSort(string sort) { _sortBy = sort; _page = 1; await LoadResults(); }
+    private async Task ChangeSort(string sort) { _sortBy = sort; _page = 1; await LoadResults(); UpdateUrl(); }
     private async Task GoToPage(int page) { _page = page; await LoadResults(); UpdateUrl(); }
-    private void HandleKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
+    private async Task HandleKey(KeyboardEventArgs e) { if (e.Key == "Enter") await DoSearch(); }
 
     private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); }
     private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); }
+
+    private async Task ClearFilters()
+    {
+        _selectedCuisines.Clear();
+        _selectedDietary.Clear();
+        _selectedCity = "";
+        _page = 1;
+        await LoadResults();
+        UpdateUrl();
+    }
 
     private void UpdateUrl()
     {
         var url = $"/search?type={_type}&page={_page}";
         if (!string.IsNullOrWhiteSpace(_query)) url += $"&query={Uri.EscapeDataString(_query)}";
+        if (_selectedCuisines.Any()) url += $"&cuisines={Uri.EscapeDataString(string.Join(",", _selectedCuisines))}";
+        if (_selectedDietary.Any()) url += $"&dietary={Uri.EscapeDataString(string.Join(",", _selectedDietary))}";
+        if (!string.IsNullOrEmpty(_selectedCity)) url += $"&city={Uri.EscapeDataString(_selectedCity)}";
+        if (_sortBy != "rating") url += $"&sort={_sortBy}";
+        if (!string.IsNullOrWhiteSpace(_selectedTags)) url += $"&tags={Uri.EscapeDataString(_selectedTags)}";
         Navigation.NavigateTo(url, replace: true);
     }
 }

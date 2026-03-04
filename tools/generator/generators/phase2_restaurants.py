@@ -180,7 +180,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 secret_price_multiplier = random.uniform(0.9, 1.3)
                 price_level = 2
                 base_quality_mean = 0.65
-            else:  # Fine Dining
+            else:
                 secret_price_multiplier = random.uniform(1.4, 2.5)
                 price_level = 3
                 base_quality_mean = 0.85
@@ -224,9 +224,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 phone_attempts += 1
             generated_phones.add(phone)
 
-            # Verification Status (B2B Security Model)
-            # 95%: verified (active/ghost)
-            # 5%: unverified (pending admin approval)
             is_verified = random.random() < 0.95
 
             primary_photo_metadata = photo_pools.get_restaurant_photo(theme, restaurant_id_counter)
@@ -244,7 +241,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "address": f"{fake.street_address()}, {city_name}",
                     "latitude": round(lat, 6),
                     "longitude": round(lon, 6),
-                    "geocode_source": "city_centroid",  # Centroid miasta + jitter (±0.05°)
+                    "geocode_source": "city_centroid",
                     "geocoded_at": DateGenerator.to_sql_datetime(created_date),
                     "phone": phone,
                     "website": f"https://{slugify(name)}.pl",
@@ -435,12 +432,12 @@ def _assign_opening_hours(db: DatabaseConnection):
     ):
         schedule = _get_schedule_for_theme(theme)
 
-        for day in range(1, 8):  # ISO 8601: 1=Mon, 7=Sun
+        for day in range(1, 8):
             open_time, close_time = schedule["weekday"]
 
-            if day in (5, 6):  # 5=Fri, 6=Sat
+            if day in (5, 6):
                 open_time, close_time = schedule["weekend"]
-            elif day == 7:  # 7=Sun
+            elif day == 7:
                 open_time, close_time = schedule.get("sunday", schedule["weekday"])
 
             hours_data.append(
@@ -461,7 +458,6 @@ def _get_schedule_for_theme(theme: str) -> dict:
         h = random.randint(start_hour_range, end_hour_range)
         m = random.choice(["00", "30"])
 
-        # Handle overflow for late night hours (e.g. 24 -> 00, 25 -> 01)
         if h >= 24:
             h = h - 24
 
@@ -484,7 +480,7 @@ def _get_schedule_for_theme(theme: str) -> dict:
         close_range = (22, 23)
     elif theme in ["Kebab", "Fast Food"]:
         open_range = (10, 11)
-        close_range = (23, 25)  # Allow late night up to 01:00 (25)
+        close_range = (23, 25)
 
     weekday_open = random_time(open_range[0], open_range[1])
     weekday_close = random_time(close_range[0], close_range[1])
@@ -503,7 +499,7 @@ def _get_schedule_for_theme(theme: str) -> dict:
     weekend_close = f"{we_close_h:02d}:{wc_m:02d}"
 
     sunday_close_h = wc_h - 1
-    if sunday_close_h < 0:  # If was 00:00, becomes 23:00
+    if sunday_close_h < 0:
         sunday_close_h += 24
 
     if sunday_close_h < 12 and sunday_close_h > 4:
@@ -518,17 +514,6 @@ def _get_schedule_for_theme(theme: str) -> dict:
     }
 
 class RestaurantsPhase(BasePhase):
-    """
-    Phase 2: Restaurants Generation
-
-    Generates restaurants with opening hours, menu sections, photos, and tags.
-
-    Dependencies:
-    - phase1_cities (requires cities table)
-
-    Required Tables: restaurants, restaurant_opening_hours, menu_sections
-    Estimated Duration: ~30 seconds (photo lookups)
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
         self.blueprints_dir = blueprints_dir
@@ -538,7 +523,7 @@ class RestaurantsPhase(BasePhase):
         return PhaseMetadata(
             phase_id="phase2_restaurants",
             display_name="Restaurants Generation",
-            dependencies=["phase1_cities"],  # Requires cities table
+            dependencies=["phase1_cities"],
             required_tables=["restaurants", "restaurant_opening_hours", "menu_sections"],
             cleanup_tables=["restaurants", "restaurant_opening_hours", "menu_sections", "restaurant_tags"],
             estimated_duration=30,
@@ -549,7 +534,6 @@ class RestaurantsPhase(BasePhase):
         logger.info("Phase 2: Generating restaurants...")
 
         try:
-            # Note: cleanup=False because DatabaseManager handles cleanup
             generate_restaurants(context.db, blueprints_dir=self.blueprints_dir, cleanup=False)
 
             restaurant_count = context.db.fetch_val("SELECT COUNT(*) FROM restaurants")
@@ -558,7 +542,7 @@ class RestaurantsPhase(BasePhase):
 
             duration = time.time() - start_time
             logger.info(
-                f"✓ Generated {restaurant_count} restaurants with "
+                f"[OK] Generated {restaurant_count} restaurants with "
                 f"{menu_sections_count} menu sections and "
                 f"{opening_hours_count} opening hours entries in {duration:.2f}s"
             )

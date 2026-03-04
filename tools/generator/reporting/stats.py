@@ -1,10 +1,3 @@
-"""
-Dataset Statistics for NCF Training Data Analysis.
-
-Collects, prints and exports statistics about generated data.
-Designed for engineering thesis on Neural Collaborative Filtering.
-"""
-
 import json
 import logging
 from datetime import datetime
@@ -15,14 +8,12 @@ from utils.db_connection import DatabaseConnection
 logger = logging.getLogger(__name__)
 
 class DatasetStatistics:
-    """Collects and reports dataset statistics relevant for NCF model training."""
 
     def __init__(self, db: DatabaseConnection):
         self.db = db
         self.stats: dict = {}
 
     def collect_all(self) -> dict:
-        """Run all statistics queries. Returns full stats dictionary."""
         logger.info("Collecting dataset statistics...")
 
         self.stats = {
@@ -42,10 +33,6 @@ class DatasetStatistics:
 
         logger.info("Statistics collection complete.")
         return self.stats
-
-    # ------------------------------------------------------------------
-    # Data collection methods
-    # ------------------------------------------------------------------
 
     def _row_counts(self) -> dict[str, int]:
         tables = [
@@ -291,22 +278,12 @@ class DatasetStatistics:
         return {"reviews_per_month": dict(rows)}
 
     def _integrity_checks(self) -> list[dict]:
-        """Run data integrity checks.
-
-        Each check returns a dict with:
-          - name: short label
-          - query: SQL that returns a single integer (0 = perfect)
-          - actual: query result
-          - expected: description of what the ideal value should be
-          - status: 'ok' or 'fail'
-        """
         num_users = self.db.fetch_val("SELECT COUNT(*) FROM users") or 0
         num_restaurants = self.db.fetch_val("SELECT COUNT(*) FROM restaurants") or 0
         num_dishes = self.db.fetch_val("SELECT COUNT(*) FROM dishes") or 0
         num_reviews = self.db.fetch_val("SELECT COUNT(*) FROM reviews") or 0
 
         checks: list[tuple[str, str, str, str]] = [
-            # --- Relational integrity ---
             (
                 "Restaurants without dishes",
                 """SELECT COUNT(*) FROM restaurants r
@@ -347,7 +324,6 @@ class DatasetStatistics:
                 "0",
                 "Every review must reference an existing user",
             ),
-            # --- NULL checks on required fields ---
             (
                 "Restaurants with NULL postal_code",
                 "SELECT COUNT(*) FROM restaurants WHERE postal_code IS NULL",
@@ -372,7 +348,6 @@ class DatasetStatistics:
                 "0",
                 "Every dish should have a photo URL",
             ),
-            # --- Counter sync consistency ---
             (
                 "Users with wrong review_count",
                 """SELECT COUNT(*) FROM (
@@ -397,7 +372,6 @@ class DatasetStatistics:
                 "0",
                 "dishes.review_count must match actual COUNT(reviews)",
             ),
-            # --- Volume sanity (scale with config) ---
             (
                 "Users without any reviews",
                 """SELECT COUNT(*) FROM users u
@@ -477,12 +451,7 @@ class DatasetStatistics:
 
         return results
 
-    # ------------------------------------------------------------------
-    # Output methods
-    # ------------------------------------------------------------------
-
     def print_report(self) -> None:
-        """Print formatted report to console via logger."""
         if not self.stats:
             logger.warning("No statistics collected. Run collect_all() first.")
             return
@@ -494,7 +463,6 @@ class DatasetStatistics:
             "=" * 80,
         ]
 
-        # Row counts
         rc = self.stats.get("row_counts", {})
         lines.append("")
         lines.append("ROW COUNTS")
@@ -502,7 +470,6 @@ class DatasetStatistics:
             val = "ERROR" if count == -1 else f"{count:,}"
             lines.append(f"  {table:<28}: {val}")
 
-        # Ratings
         ratings = self.stats.get("ratings", {})
         if "dish_rating" in ratings:
             dr = ratings["dish_rating"]
@@ -520,14 +487,12 @@ class DatasetStatistics:
                     bar_parts.append(f"{rating}:{'█' * bar_len}")
                 lines.append(f"  Histogram: {' '.join(bar_parts)}")
 
-        # Sub-ratings summary
         for col in ("service_rating", "cleanliness_rating", "ambiance_rating"):
             if col in ratings:
                 r = ratings[col]
                 label = col.replace("_rating", "").capitalize()
                 lines.append(f"  {label}: mean={r['mean']} std={r['std']} median={r['median']}")
 
-        # NCF matrix
         ncf = self.stats.get("ncf_matrix", {})
         if ncf:
             lines.append("")
@@ -537,7 +502,6 @@ class DatasetStatistics:
             lines.append(f"  Sparsity: {ncf['sparsity'] * 100:.2f}%  |  Density: {ncf['density'] * 100:.4f}%")
             lines.append(f"  Avg ratings/user: {ncf['avg_per_user']}  |  Avg ratings/dish: {ncf['avg_per_item']}")
 
-        # Cold start
         cs = self.stats.get("cold_start", {})
         if cs:
             u = cs.get("users", {})
@@ -556,7 +520,6 @@ class DatasetStatistics:
                 f"10+: {i.get('over_10', 0):,}"
             )
 
-        # User activity
         ua = self.stats.get("user_activity", {})
         if ua:
             lines.append("")
@@ -566,7 +529,6 @@ class DatasetStatistics:
                 f"  |  Min: {ua['min']}  |  Max: {ua['max']}"
             )
 
-        # Dish popularity
         dp = self.stats.get("dish_popularity", {})
         if dp:
             lines.append("DISH POPULARITY (reviews per dish)")
@@ -575,7 +537,6 @@ class DatasetStatistics:
                 f"  |  Min: {dp['min']}  |  Max: {dp['max']}"
             )
 
-        # Social graph
         sg = self.stats.get("social_graph", {})
         if sg:
             lines.append("")
@@ -595,7 +556,6 @@ class DatasetStatistics:
                 fv = sg["favorites"]
                 lines.append(f"  Favorites: {fv['total']:,} (avg {fv['avg_per_user']}/user, std {fv['std']})")
 
-        # Restaurant distribution
         rd = self.stats.get("restaurant_distribution", {})
         if rd:
             lines.append("")
@@ -614,7 +574,6 @@ class DatasetStatistics:
             if avg_r.get("mean"):
                 lines.append(f"  Avg restaurant rating: {avg_r['mean']} (std {avg_r['std']})")
 
-        # Moderation
         mod = self.stats.get("moderation", {})
         if mod:
             lines.append("")
@@ -625,7 +584,6 @@ class DatasetStatistics:
                 parts = [f"{s}: {c} ({c / total * 100:.1f}%)" for s, c in cs_data.items()]
                 lines.append(f"  Content status: {', '.join(parts)}")
 
-        # Temporal
         temporal = self.stats.get("temporal", {})
         rpm = temporal.get("reviews_per_month", {})
         if rpm:
@@ -635,7 +593,6 @@ class DatasetStatistics:
                 bar_len = int((count / max(rpm.values())) * 30) if rpm else 0
                 lines.append(f"  {month}: {count:>8,}  {'█' * bar_len}")
 
-        # Integrity checks
         integrity = self.stats.get("integrity", [])
         if integrity:
             passed = sum(1 for c in integrity if c["status"] == "ok")
@@ -658,7 +615,6 @@ class DatasetStatistics:
             logger.info(line)
 
     def save_json(self, path: str = "data/dataset_stats.json") -> None:
-        """Save full stats dictionary to JSON file."""
         if not self.stats:
             logger.warning("No statistics collected. Run collect_all() first.")
             return
@@ -672,16 +628,11 @@ class DatasetStatistics:
         logger.info(f"Statistics saved to {output_path}")
 
 def _r(value: float | None, decimals: int = 2) -> float | None:
-    """Round a float value, handling None."""
     if value is None:
         return None
     return round(value, decimals)
 
 def _evaluate_check(actual: int, expected: str) -> str:
-    """Evaluate an integrity check result against expected condition.
-
-    Expected formats: "0", "< 500", "> 10000"
-    """
     expected = expected.strip()
     if expected.startswith("<"):
         threshold = int(expected[1:].strip())

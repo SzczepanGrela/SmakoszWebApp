@@ -19,9 +19,15 @@ public class AppliedFiltersDto
 
 public class SearchFiltersDto
 {
-    public List<string> Cuisines { get; set; } = [];
-    public List<string> DietaryOptions { get; set; } = [];
+    public List<FilterOption> Cuisines { get; set; } = [];
+    public List<FilterOption> DietaryOptions { get; set; } = [];
     public List<string> Cities { get; set; } = [];
     public int MinPrice { get; set; }
     public int MaxPrice { get; set; }
+}
+
+public class FilterOption
+{
+    public string Value { get; set; } = default!;
+    public string Label { get; set; } = default!;
 }

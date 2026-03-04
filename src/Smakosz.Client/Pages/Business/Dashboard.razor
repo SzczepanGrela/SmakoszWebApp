@@ -1,13 +1,13 @@
 @page "/restaurant/dashboard"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 
 <PageTitle>Dashboard - Panel restauracji</PageTitle>
 
 @if (_loading)
 {
-    <LoadingSpinner Text="Ladowanie panelu..." />
+    <LoadingSpinner Text="Ładowanie panelu..." />
 }
 else if (_dashboard == null)
 {
@@ -33,7 +33,7 @@ else
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@(_dashboard.AvgRating?.ToString("F1") ?? "-")</div>
-                <small class="text-muted">Srednia ocena</small>
+                <small class="text-muted">Średnia ocena</small>
             </div>
         </div>
         <div class="col-md-4 mb-3">

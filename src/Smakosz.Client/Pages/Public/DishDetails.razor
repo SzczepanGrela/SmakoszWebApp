@@ -7,12 +7,12 @@
 
 @if (_loading)
 {
-    <LoadingSpinner Text="Ladowanie dania..." />
+    <LoadingSpinner Text="Ładowanie dania..." />
 }
 else if (_dish == null)
 {
     <div class="container mt-5">
-        <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Strona glowna" ActionUrl="/" />
+        <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Strona główna" ActionUrl="/" />
     </div>
 }
 else
@@ -59,9 +59,19 @@ else
                     }
                 </div>
 
-                <DietaryBadges IsVegan="@_dish.IsVegan" IsVegetarian="@_dish.IsVegetarian"
-                               IsGlutenFree="@_dish.IsGlutenFree" IsLactoseFree="@_dish.IsLactoseFree"
-                               Tags="@_dish.Tags" />
+                @if (_dish.Tags.Any(t => t.Category != "dietary" && t.Category != "spice"))
+                {
+                    <div class="dish-tags mt-1 d-flex flex-wrap gap-1">
+                        @foreach (var tag in _dish.Tags.Where(t => t.Category != "dietary" && t.Category != "spice"))
+                        {
+                            <a href="/search?type=dishes&tags=@Uri.EscapeDataString(tag.TagName)"
+                               class="badge text-decoration-none"
+                               style="background-color:@(tag.DisplayColor ?? "#6c757d");color:#fff;cursor:pointer;">
+                                @tag.TagName
+                            </a>
+                        }
+                    </div>
+                }
 
                 @if (!string.IsNullOrWhiteSpace(_dish.Description))
                 {
@@ -82,7 +92,7 @@ else
                 <div class="mt-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
-                        <AuthorizeView Roles="user">
+                        <AuthorizeView Roles="User">
                             <Authorized>
                                 <a href="/review/add?dish=@Slug" class="btn btn-primary btn-sm">
                                     <i class="fa-solid fa-pen me-1"></i>Ocen to danie
@@ -102,7 +112,7 @@ else
                     else
                     {
                         <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji"
-                                    Description="Badz pierwszym, ktory oceni to danie!" />
+                                    Description="Bądź pierwszym, który oceni to danie!" />
                     }
                 </div>
             </div>
@@ -134,19 +144,28 @@ else
                             <span><i class="fa-solid fa-location-dot me-1"></i>@_dish.CityName</span>
                         </div>
                     }
-                    @if (_dish.IsSpicy)
+                    @if (!_dish.IsVegetarian)
                     {
                         <div class="mb-3">
-                            <span class="badge bg-danger"><i class="fa-solid fa-pepper-hot me-1"></i>Ostre</span>
+                            <small class="text-muted d-block">Dieta</small>
+                            <span><i class="fa-solid fa-drumstick-bite me-1"></i>Zawiera mięso</span>
                         </div>
                     }
+                    <DietaryBadges IsVegan="@_dish.IsVegan" IsVegetarian="@_dish.IsVegetarian"
+                                   IsGlutenFree="@_dish.IsGlutenFree" IsLactoseFree="@_dish.IsLactoseFree"
+                                   IsSpicy="@_dish.IsSpicy" />
                     @if (!_dish.IsAvailable)
                     {
                         <div class="alert alert-warning small">
-                            <i class="fa-solid fa-circle-exclamation me-1"></i>To danie jest aktualnie niedostepne.
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>To danie jest aktualnie niedostępne.
                         </div>
                     }
                     <ShareButton Url="@Navigation.Uri" Title="@_dish.DishName" />
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="GetRandomDish">
+                            <i class="fa-solid fa-shuffle me-1"></i>Nowe losowe danie
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -161,8 +180,14 @@ else
     private Models.PagedResult<Models.ReviewCardDto>? _reviews;
     private bool _loading = true;
 
-    protected override async Task OnInitializedAsync()
+    private string? _lastSlug;
+
+    protected override async Task OnParametersSetAsync()
     {
+        if (Slug == _lastSlug) return;
+        _lastSlug = Slug;
+
+        _loading = true;
         _dish = await DishService.GetBySlugAsync(Slug);
         if (_dish != null)
             _reviews = await ReviewService.GetByDishAsync(Slug);
@@ -172,6 +197,13 @@ else
     private async Task LoadReviewPage(int page)
     {
         _reviews = await ReviewService.GetByDishAsync(Slug, page);
+    }
+
+    private async Task GetRandomDish()
+    {
+        var dish = await DishService.GetRandomAsync();
+        if (dish != null)
+            Navigation.NavigateTo($"/dish/{dish.Slug}");
     }
 
     private async Task ToggleSaveDish()

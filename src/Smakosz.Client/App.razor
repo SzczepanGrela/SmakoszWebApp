@@ -1,6 +1,12 @@
+@using System.Reflection
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
+@inject LazyAssemblyLoader LazyLoader
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly"
-            AdditionalAssemblies="new[] { typeof(Smakosz.Client.Ops._Imports).Assembly }">
+            AdditionalAssemblies="_lazyLoadedAssemblies"
+            OnNavigateAsync="OnNavigateAsync">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
                 <NotAuthorized>
@@ -34,12 +40,27 @@
                 <div class="container mt-5 text-center">
                     <i class="fa-solid fa-utensils" style="font-size:4rem;color:var(--primary-color);"></i>
                     <h1 class="mt-3">404</h1>
-                    <p class="lead">Tej strony nie znaleziono. Moze szukasz czegos smacznego?</p>
+                    <p class="lead">Tej strony nie znaleziono. Może szukasz czegoś smacznego?</p>
                     <a href="/" class="btn btn-primary">
-                        <i class="fa-solid fa-home me-1"></i> Strona glowna
+                        <i class="fa-solid fa-home me-1"></i> Strona główna
                     </a>
                 </div>
             </LayoutView>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    private List<Assembly> _lazyLoadedAssemblies = new();
+
+    private async Task OnNavigateAsync(NavigationContext context)
+    {
+        if (context.Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase)
+            && _lazyLoadedAssemblies.Count == 0)
+        {
+            var assemblies = await LazyLoader.LoadAssembliesAsync(
+                new[] { "Smakosz.Client.Ops.wasm" });
+            _lazyLoadedAssemblies.AddRange(assemblies);
+        }
+    }
+}

@@ -1,12 +1,12 @@
 @page "/restaurant/menu"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 @inject ToastService Toast
 
-<PageTitle>Zarzadzanie menu - Panel restauracji</PageTitle>
+<PageTitle>Zarządzanie menu - Panel restauracji</PageTitle>
 
-<h2 class="fw-bold mb-4"><i class="fa-solid fa-bars me-2"></i>Zarzadzanie menu</h2>
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-bars me-2"></i>Zarządzanie menu</h2>
 
 @if (_loading)
 {
@@ -24,14 +24,14 @@ else
             <h5 class="mb-0">Sekcje menu</h5>
         </div>
         <div class="card-body">
-            <p class="text-muted small mb-3">Zarzadzaj sekcjami menu. Uzyj strzalek aby zmieniac kolejnosc.</p>
+            <p class="text-muted small mb-3">Zarządzaj sekcjami menu. Użyj strzałek aby zmieniać kolejność.</p>
             <MenuSectionEditor Sections="@_sections" SectionsChanged="s => _sections = s" />
         </div>
     </div>
 
     <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
         @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz kolejnosc sekcji
+        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz kolejność sekcji
     </button>
 }
 
@@ -59,9 +59,9 @@ else
         _error = null;
         var success = await BusinessService.UpdateMenuSectionsAsync(_sections);
         if (success)
-            Toast.ShowSuccess("Kolejnosc sekcji zostala zaktualizowana.");
+            Toast.ShowSuccess("Kolejność sekcji została zaktualizowana.");
         else
-            _error = "Nie udalo sie zapisac zmian.";
+            _error = "Nie udało się zapisać zmian.";
         _saving = false;
     }
 }

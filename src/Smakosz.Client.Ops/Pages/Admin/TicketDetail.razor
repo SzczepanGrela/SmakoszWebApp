@@ -1,11 +1,11 @@
 @page "/admin/tickets/{Id:int}"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 @inject NavigationManager Nav
 
-<PageTitle>Zgloszenie #@Id - Admin Smakosz</PageTitle>
+<PageTitle>Zgłoszenie #@Id - Admin Smakosz</PageTitle>
 
 @if (_loading)
 {
@@ -13,7 +13,7 @@
 }
 else if (_detail == null)
 {
-    <EmptyState Icon="fa-solid fa-ticket" Title="Nie znaleziono zgloszenia" ActionText="Powrot do listy" ActionUrl="/admin/tickets" />
+    <EmptyState Icon="fa-solid fa-ticket" Title="Nie znaleziono zgłoszenia" ActionText="Powrót do listy" ActionUrl="/admin/tickets" />
 }
 else
 {
@@ -83,7 +83,7 @@ else
     {
         var c = _detail!.Contact;
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-envelope me-2"></i>Wiadomosc kontaktowa</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-envelope me-2"></i>Wiadomość kontaktowa</h5></div>
             <div class="card-body">
                 @if (c != null)
                 {
@@ -108,12 +108,12 @@ else
         @if (!IsResolved)
         {
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0">Odpowiedz</h5></div>
+                <div class="card-header"><h5 class="mb-0">Odpowiedź</h5></div>
                 <div class="card-body">
-                    <textarea class="form-control mb-3" rows="5" placeholder="Tresc odpowiedzi..." @bind="_responseText"></textarea>
+                    <textarea class="form-control mb-3" rows="5" placeholder="Treść odpowiedzi..." @bind="_responseText"></textarea>
                     <button class="btn btn-primary" disabled="@(_actionInProgress || string.IsNullOrWhiteSpace(_responseText))" @onclick="SendContactResponse">
                         @if (_actionInProgress) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                        <i class="fa-solid fa-paper-plane me-1"></i>Wyslij odpowiedz
+                        <i class="fa-solid fa-paper-plane me-1"></i>Wyślij odpowiedź
                     </button>
                 </div>
             </div>
@@ -125,27 +125,27 @@ else
         _actionInProgress = true;
         var ok = await AdminService.RespondToContactAsync(Id, _responseText);
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Odpowiedz wyslana, zgloszenie rozwiazane."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Nie udalo sie wyslac odpowiedzi.");
+        if (ok) { Toast.ShowSuccess("Odpowiedź wysłana, zgłoszenie rozwiązane."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Nie udało się wysłać odpowiedzi.");
     }
 
     private RenderFragment RenderPhotoPanel() => __builder =>
     {
         var p = _detail!.Photo;
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-image me-2"></i>Zdjecie do moderacji</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-image me-2"></i>Zdjęcie do moderacji</h5></div>
             <div class="card-body">
                 @if (p != null)
                 {
                     <div class="text-center mb-3">
-                        <img src="@p.Url" alt="Zdjecie" class="img-fluid rounded" style="max-height:400px;" />
+                        <img src="@p.Url" alt="Zdjęcie" class="img-fluid rounded" style="max-height:400px;" />
                     </div>
                     <dl class="row mb-0">
                         <dt class="col-sm-3">Typ encji</dt>
                         <dd class="col-sm-9">@p.EntityType</dd>
                         <dt class="col-sm-3">ID encji</dt>
                         <dd class="col-sm-9">@p.EntityId</dd>
-                        <dt class="col-sm-3">Przeslane przez</dt>
+                        <dt class="col-sm-3">Przesłane przez</dt>
                         <dd class="col-sm-9">@(p.UploadedByUsername ?? "-")</dd>
                         <dt class="col-sm-3">Data</dt>
                         <dd class="col-sm-9">@(p.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
@@ -153,7 +153,7 @@ else
                 }
                 else
                 {
-                    <p class="text-muted">Nie znaleziono powiazanego zdjecia.</p>
+                    <p class="text-muted">Nie znaleziono powiązanego zdjęcia.</p>
                 }
             </div>
         </div>
@@ -163,10 +163,10 @@ else
             @RenderRejectionInput()
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApprovePhoto">
-                    <i class="fa-solid fa-check me-1"></i>Zatwierdz
+                    <i class="fa-solid fa-check me-1"></i>Zatwierdź
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectPhoto">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -178,8 +178,8 @@ else
         var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, "approve");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zdjecie zatwierdzone."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        if (ok) { Toast.ShowSuccess("Zdjęcie zatwierdzone."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private async Task RejectPhoto()
@@ -188,8 +188,8 @@ else
         var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, "reject", _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zdjecie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        if (ok) { Toast.ShowSuccess("Zdjęcie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private RenderFragment RenderReviewPanel() => __builder =>
@@ -212,11 +212,11 @@ else
                         <dt class="col-sm-3">Data</dt>
                         <dd class="col-sm-9">@(r.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
                     </dl>
-                    <div class="p-3 bg-light rounded" style="white-space:pre-line;">@(r.Content ?? "(brak tresci)")</div>
+                    <div class="p-3 bg-light rounded" style="white-space:pre-line;">@(r.Content ?? "(brak treści)")</div>
                 }
                 else
                 {
-                    <p class="text-muted">Nie znaleziono powiazanej recenzji.</p>
+                    <p class="text-muted">Nie znaleziono powiązanej recenzji.</p>
                 }
             </div>
         </div>
@@ -226,10 +226,10 @@ else
             @RenderRejectionInput()
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApproveReview">
-                    <i class="fa-solid fa-check me-1"></i>Zatwierdz
+                    <i class="fa-solid fa-check me-1"></i>Zatwierdź
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectReview">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -242,7 +242,7 @@ else
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Recenzja zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private async Task RejectReview()
@@ -252,14 +252,14 @@ else
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Recenzja odrzucona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private RenderFragment RenderReportPanel() => __builder =>
     {
         var rp = _detail!.Report;
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-flag me-2"></i>Zgloszenie</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-flag me-2"></i>Zgłoszenie</h5></div>
             <div class="card-body">
                 @if (rp != null)
                 {
@@ -268,9 +268,9 @@ else
                         <dd class="col-sm-9">@rp.EntityType</dd>
                         <dt class="col-sm-3">ID encji</dt>
                         <dd class="col-sm-9">@rp.EntityId</dd>
-                        <dt class="col-sm-3">Powod</dt>
+                        <dt class="col-sm-3">Powód</dt>
                         <dd class="col-sm-9">@rp.Reason</dd>
-                        <dt class="col-sm-3">Zglaszajacy</dt>
+                        <dt class="col-sm-3">Zgłaszający</dt>
                         <dd class="col-sm-9">@(rp.ReporterUsername ?? "-")</dd>
                         <dt class="col-sm-3">Status</dt>
                         <dd class="col-sm-9"><StatusBadge Status="@rp.Status" /></dd>
@@ -278,7 +278,7 @@ else
                 }
                 else
                 {
-                    <p class="text-muted">Nie znaleziono powiazanego zgloszenia.</p>
+                    <p class="text-muted">Nie znaleziono powiązanego zgłoszenia.</p>
                 }
             </div>
         </div>
@@ -287,10 +287,10 @@ else
         {
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ResolveReport">
-                    <i class="fa-solid fa-check me-1"></i>Rozwiaz
+                    <i class="fa-solid fa-check me-1"></i>Rozwiąż
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectReport">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -302,8 +302,8 @@ else
         var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Resolved");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zgloszenie rozwiazane."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        if (ok) { Toast.ShowSuccess("Zgłoszenie rozwiązane."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private async Task RejectReport()
@@ -312,22 +312,22 @@ else
         var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Rejected");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Rejected");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zgloszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        if (ok) { Toast.ShowSuccess("Zgłoszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private RenderFragment RenderEditRequestPanel() => __builder =>
     {
         var er = _detail!.EditRequest;
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Prosba o edycje</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Prośba o edycję</h5></div>
             <div class="card-body">
                 @if (er != null)
                 {
                     <dl class="row mb-3">
                         <dt class="col-sm-3">Restauracja</dt>
                         <dd class="col-sm-9">@(er.RestaurantName ?? "-")</dd>
-                        <dt class="col-sm-3">Zglaszajacy</dt>
+                        <dt class="col-sm-3">Zgłaszający</dt>
                         <dd class="col-sm-9">@(er.Username ?? "-")</dd>
                         <dt class="col-sm-3">Typ zmiany</dt>
                         <dd class="col-sm-9">@er.ChangeType</dd>
@@ -338,7 +338,7 @@ else
                 }
                 else
                 {
-                    <p class="text-muted">Nie znaleziono powiazanej prosby o edycje.</p>
+                    <p class="text-muted">Nie znaleziono powiązanej prośby o edycję.</p>
                 }
             </div>
         </div>
@@ -348,10 +348,10 @@ else
             @RenderRejectionInput()
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApproveEditRequest">
-                    <i class="fa-solid fa-check me-1"></i>Zatwierdz
+                    <i class="fa-solid fa-check me-1"></i>Zatwierdź
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectEditRequest">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -364,7 +364,7 @@ else
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Edycja zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private async Task RejectEditRequest()
@@ -374,21 +374,21 @@ else
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Edycja odrzucona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private RenderFragment RenderSuggestionPanel() => __builder =>
     {
         var s = _detail!.Suggestion;
         <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-seedling me-2"></i>Sugestia skladnika</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-seedling me-2"></i>Sugestia składnika</h5></div>
             <div class="card-body">
                 @if (s != null)
                 {
                     <dl class="row mb-3">
                         <dt class="col-sm-3">Nazwa</dt>
                         <dd class="col-sm-9">@s.SuggestedName</dd>
-                        <dt class="col-sm-3">Sugerujacy</dt>
+                        <dt class="col-sm-3">Sugerujący</dt>
                         <dd class="col-sm-9">@(s.Username ?? "-")</dd>
                         <dt class="col-sm-3">Restauracja</dt>
                         <dd class="col-sm-9">@(s.RestaurantName ?? "-")</dd>
@@ -397,15 +397,15 @@ else
                     </dl>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         @if (s.IsAllergen) { <span class="badge bg-danger">Alergen</span> }
-                        @if (s.IsVegetarian) { <span class="badge bg-success">Wegetarianski</span> }
-                        @if (s.IsVegan) { <span class="badge bg-success">Weganski</span> }
+                        @if (s.IsVegetarian) { <span class="badge bg-success">Wegetariański</span> }
+                        @if (s.IsVegan) { <span class="badge bg-success">Wegański</span> }
                         @if (s.IsGlutenFree) { <span class="badge bg-info">Bezglutenowy</span> }
                         @if (s.IsLactoseFree) { <span class="badge bg-info">Bezlaktozowy</span> }
                     </div>
                 }
                 else
                 {
-                    <p class="text-muted">Nie znaleziono powiazanej sugestii.</p>
+                    <p class="text-muted">Nie znaleziono powiązanej sugestii.</p>
                 }
             </div>
         </div>
@@ -415,10 +415,10 @@ else
             @RenderRejectionInput()
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApproveSuggestion">
-                    <i class="fa-solid fa-check me-1"></i>Zatwierdz
+                    <i class="fa-solid fa-check me-1"></i>Zatwierdź
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectSuggestion">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -427,11 +427,11 @@ else
     private async Task ApproveSuggestion()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ReviewIngredientSuggestionAsync(_detail!.Suggestion!.SuggestionId, true, _rejectionReason);
+        var ok = await AdminService.ReviewIngredientSuggestionAsync(_detail!.Suggestion!.SuggestionId, true, null);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Sugestia zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private async Task RejectSuggestion()
@@ -441,7 +441,7 @@ else
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Sugestia odrzucona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad moderacji.");
+        else Toast.ShowError("Błąd moderacji.");
     }
 
     private RenderFragment RenderDataCorrectionPanel() => __builder =>
@@ -457,10 +457,10 @@ else
         {
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ResolveDataCorrection">
-                    <i class="fa-solid fa-check me-1"></i>Rozwiaz
+                    <i class="fa-solid fa-check me-1"></i>Rozwiąż
                 </button>
                 <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectDataCorrection">
-                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć
                 </button>
             </div>
         }
@@ -471,8 +471,8 @@ else
         _actionInProgress = true;
         var ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Korekta rozwiazana."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad.");
+        if (ok) { Toast.ShowSuccess("Korekta rozwiązana."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Błąd.");
     }
 
     private async Task RejectDataCorrection()
@@ -481,14 +481,14 @@ else
         var ok = await AdminService.UpdateTicketStatusAsync(Id, "Rejected");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Korekta odrzucona."); Nav.NavigateTo("/admin/tickets"); }
-        else Toast.ShowError("Blad.");
+        else Toast.ShowError("Błąd.");
     }
 
     private RenderFragment RenderRejectionInput() => __builder =>
     {
         <div class="mb-3">
-            <label class="form-label small text-muted">Powod / notatka (opcjonalnie)</label>
-            <textarea class="form-control" rows="2" @bind="_rejectionReason" placeholder="Powod odrzucenia lub notatka..."></textarea>
+            <label class="form-label small text-muted">Powód / notatka (opcjonalnie)</label>
+            <textarea class="form-control" rows="2" @bind="_rejectionReason" placeholder="Powód odrzucenia lub notatka..."></textarea>
         </div>
     };
 
@@ -503,10 +503,10 @@ else
     {
         "Contact" => "Kontakt",
         "ReviewContent" => "Recenzja",
-        "Photo" => "Zdjecie",
-        "Report" => "Zgloszenie",
+        "Photo" => "Zdjęcie",
+        "Report" => "Zgłoszenie",
         "EditRequest" => "Edycja",
-        "IngredientSuggestion" => "Skladnik",
+        "IngredientSuggestion" => "Składnik",
         "DataCorrection" => "Korekta",
         _ => type
     };

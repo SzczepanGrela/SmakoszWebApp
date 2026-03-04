@@ -9,19 +9,19 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0"><i class="fa-solid fa-user-group me-2"></i>Obserwowani</h1>
         <a href="/profile" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i>Powrot do profilu
+            <i class="fa-solid fa-arrow-left me-1"></i>Powrót do profilu
         </a>
     </div>
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie obserwowanych..." />
+        <LoadingSpinner Text="Ładowanie obserwowanych..." />
     }
     else if (_result == null || !_result.Data.Any())
     {
         <EmptyState Icon="fa-solid fa-user-group" Title="Nie obserwujesz nikogo"
-                    Description="Zacznij obserwowac innych uzytkownikow, aby widziec ich aktywnosc."
-                    ActionText="Szukaj uzytkownikow" ActionUrl="/search" />
+                    Description="Zacznij obserwować innych użytkowników, aby widzieć ich aktywność."
+                    ActionText="Szukaj użytkowników" ActionUrl="/search" />
     }
     else
     {

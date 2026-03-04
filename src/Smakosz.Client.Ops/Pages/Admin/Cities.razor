@@ -1,6 +1,6 @@
 @page "/admin/cities"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -110,7 +110,7 @@ else
             success = await AdminService.CreateCityAsync(_form);
 
         if (success) { Toast.ShowSuccess("Miasto zapisane."); _showForm = false; await LoadPage(1); }
-        else Toast.ShowError("Nie udalo sie zapisac.");
+        else Toast.ShowError("Nie udało się zapisać.");
     }
 
     private async Task DeleteCity(AdminCityDto city)

@@ -120,6 +120,8 @@ ipch/
 
 # Visual Studio Trace Files
 *.e2e
+# But keep E2E test project (*.e2e matches on case-insensitive Windows)
+!tests/Smakosz.E2E/
 
 # TFS 2012 Local Workspace
 $tf/
@@ -325,7 +327,9 @@ __pycache__/
 # ASP.NET Core secrets (real keys in appsettings.json, template committed)
 appsettings.json
 appsettings.Development.json
+appsettings.E2E.json
 !appsettings.json.template
+!appsettings.E2E.json.template
 
 # Launch settings (local dev only)
 **/Properties/launchSettings.json

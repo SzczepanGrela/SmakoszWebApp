@@ -1,10 +1,10 @@
 @page "/users/{Slug}/followers"
 @inject Smakosz.Client.Services.IUserProfileService UserProfileService
 
-<PageTitle>Obserwujacy - Smakosz</PageTitle>
+<PageTitle>Obserwujący - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <h2><i class="fa-solid fa-users me-2"></i>Obserwujacy @Slug</h2>
+    <h2><i class="fa-solid fa-users me-2"></i>Obserwujący @Slug</h2>
     @if (_loading)
     {
         <Smakosz.Client.Components.LoadingSpinner />
@@ -25,7 +25,7 @@
     }
     else
     {
-        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-users" Title="Brak obserwujacych" />
+        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-users" Title="Brak obserwujących" />
     }
 </div>
 

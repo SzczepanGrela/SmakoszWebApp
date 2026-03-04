@@ -132,7 +132,7 @@ public class DishDetailsTests : BunitTestBase
     [Fact]
     public void AuthenticatedUser_ShowsSaveButton()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var dishService = Services.GetRequiredService<IDishService>();
         var reviewService = Services.GetRequiredService<IReviewService>();
         dishService.GetBySlugAsync("pizza-margherita").Returns(CreateDish());
@@ -148,7 +148,7 @@ public class DishDetailsTests : BunitTestBase
     [Fact]
     public void AuthenticatedUser_ShowsAddReviewLink()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var dishService = Services.GetRequiredService<IDishService>();
         var reviewService = Services.GetRequiredService<IReviewService>();
         dishService.GetBySlugAsync("pizza-margherita").Returns(CreateDish());

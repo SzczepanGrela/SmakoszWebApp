@@ -1,12 +1,12 @@
 @page "/admin/photos"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
-<PageTitle>Moderacja zdjec - Admin Smakosz</PageTitle>
+<PageTitle>Moderacja zdjęć - Admin Smakosz</PageTitle>
 
-<h2 class="fw-bold mb-4"><i class="fa-solid fa-images me-2"></i>Moderacja zdjec</h2>
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-images me-2"></i>Moderacja zdjęć</h2>
 
 @if (_loading)
 {
@@ -14,7 +14,7 @@
 }
 else if (_photos == null || !_photos.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjec do moderacji" Description="Wszystkie zdjecia zostaly sprawdzone." />
+    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjęć do moderacji" Description="Wszystkie zdjęcia zostały sprawdzone." />
 }
 else
 {
@@ -23,7 +23,7 @@ else
         {
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card shadow-sm h-100">
-                    <img src="@photo.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover;" alt="Zdjecie do moderacji" />
+                    <img src="@photo.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover;" alt="Zdjęcie do moderacji" />
                     <div class="card-body">
                         <div class="small mb-2">
                             <div><i class="fa-solid fa-user me-1"></i>@photo.UploadedBy</div>
@@ -62,7 +62,7 @@ else
     private async Task ModeratePhoto(Guid id, string action, string? reason)
     {
         var success = await AdminService.ModeratePhotoAsync(id, action, reason);
-        if (success) { Toast.ShowSuccess(action == "approve" ? "Zdjecie zatwierdzone." : "Zdjecie odrzucone."); await LoadPage(1); }
+        if (success) { Toast.ShowSuccess(action == "approve" ? "Zdjęcie zatwierdzone." : "Zdjęcie odrzucone."); await LoadPage(1); }
         else Toast.ShowError("Operacja nieudana.");
     }
 }

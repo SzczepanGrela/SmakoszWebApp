@@ -18,5 +18,6 @@ public record SearchQuery(
     decimal? Lng = null,
     int Radius = 5,
     string SortBy = "rating",
-    string SortDir = "desc"
+    string SortDir = "desc",
+    string? Tags = null
 ) : IRequest<ErrorOr<SearchResultDto>>;

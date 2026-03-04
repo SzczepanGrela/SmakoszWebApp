@@ -7,7 +7,7 @@ public class JobsTests : BunitTestBase
 {
     public JobsTests()
     {
-        SetAuthenticatedUser("admin", "admin");
+        SetAuthenticatedUser("admin", "Admin");
     }
 
     private static PagedResult<AdminJobDto> CreateJobsPage() => new()

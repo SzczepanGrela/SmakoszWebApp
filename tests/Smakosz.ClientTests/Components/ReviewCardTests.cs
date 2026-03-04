@@ -83,7 +83,7 @@ public class ReviewCardTests : BunitTestBase
     [Fact]
     public void ShowActionsWithAuth_ReportButtonVisible()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var review = CreateReview();
 
         var cut = RenderComponent<ReviewCard>(p => p
@@ -107,7 +107,7 @@ public class ReviewCardTests : BunitTestBase
     [Fact]
     public async Task OpenReportModal_LoadsReasons()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var review = CreateReview();
 
         var reviewService = Services.GetRequiredService<IReviewService>();
@@ -131,7 +131,7 @@ public class ReviewCardTests : BunitTestBase
     [Fact]
     public async Task SubmitReport_CallsServiceAndShowsToast()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var review = CreateReview();
 
         var reviewService = Services.GetRequiredService<IReviewService>();

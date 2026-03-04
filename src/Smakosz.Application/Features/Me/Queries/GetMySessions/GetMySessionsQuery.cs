@@ -27,7 +27,7 @@ public class GetMySessionsHandler : IRequestHandler<GetMySessionsQuery, ErrorOr<
 
         var sessions = await _db.UserSessions
             .AsNoTracking()
-            .Where(s => s.UserId == _currentUser.UserId.Value && s.ExpiresAt > DateTime.UtcNow)
+            .Where(s => s.UserId == _currentUser.UserId.Value && s.ExpiresAt > DateTime.UtcNow && !s.IsRevoked)
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new SessionDto
             {

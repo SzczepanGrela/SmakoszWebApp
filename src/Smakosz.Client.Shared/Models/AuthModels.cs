@@ -43,6 +43,7 @@ public class UserProfileDto
 
 public class VerifyEmailRequest
 {
+    public string Email { get; set; } = default!;
     public string Code { get; set; } = default!;
 }
 

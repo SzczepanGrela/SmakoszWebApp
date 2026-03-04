@@ -19,7 +19,7 @@ public interface IAdminService
     Task<bool> ProcessEditRequestAsync(int id, string action, string? reason = null);
     Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null);
     Task<AdminUserDto?> GetUserAsync(int userId);
-    Task<bool> UpdateUserAsync(int userId, string action);
+    Task<bool> UpdateUserAsync(Guid publicId, string action);
     Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
     Task<bool> VerifyRestaurantAsync(Guid publicId);
     Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null);

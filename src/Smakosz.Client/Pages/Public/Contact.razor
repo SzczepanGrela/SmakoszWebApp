@@ -31,9 +31,9 @@
         </div>
         <div class="col-md-6">
             <div class="card p-4">
-                <h5 class="mb-3">Wyslij wiadomosc</h5>
+                <h5 class="mb-3">Wyślij wiadomość</h5>
                 <div class="mb-3">
-                    <label class="form-label">Imie</label>
+                    <label class="form-label">Imię</label>
                     <input class="form-control" @bind="_name" />
                 </div>
                 <div class="mb-3">
@@ -45,11 +45,11 @@
                     <input class="form-control" @bind="_subject" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Wiadomosc</label>
+                    <label class="form-label">Wiadomość</label>
                     <textarea class="form-control" rows="4" @bind="_message"></textarea>
                 </div>
                 <button class="btn btn-primary w-100" @onclick="Send">
-                    <i class="fa-solid fa-paper-plane me-1"></i>Wyslij
+                    <i class="fa-solid fa-paper-plane me-1"></i>Wyślij
                 </button>
             </div>
         </div>
@@ -68,7 +68,7 @@
     private async Task Send()
     {
         await ContentService.SendContactMessageAsync(_name, _email, _subject, _message);
-        Toast.ShowSuccess("Wiadomosc wyslana!");
+        Toast.ShowSuccess("Wiadomość wysłana!");
         _name = _email = _subject = _message = "";
     }
 }

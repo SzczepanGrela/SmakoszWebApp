@@ -8,7 +8,7 @@
 <div class="text-center mb-4">
     <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:var(--primary-color);"></i>
     <h4>Weryfikacja dwuetapowa</h4>
-    <p class="text-muted small">Wprowadz kod z aplikacji uwierzytelniajcej.</p>
+    <p class="text-muted small">Wprowadź kod z aplikacji uwierzytelniającej.</p>
 </div>
 
 @if (!string.IsNullOrEmpty(_error))
@@ -29,17 +29,17 @@
         <i class="fa-solid fa-rotate-right me-1"></i>
         @if (_resendCooldown > 0)
         {
-            <span>Wyslij ponownie (@_resendCooldown s)</span>
+            <span>Wyślij ponownie (@_resendCooldown s)</span>
         }
         else
         {
-            <span>Wyslij ponownie</span>
+            <span>Wyślij ponownie</span>
         }
     </button>
 </div>
 
 <div class="text-center mt-2">
-    <a href="/login" class="small"><i class="fa-solid fa-arrow-left me-1"></i>Powrot</a>
+    <a href="/login" class="small"><i class="fa-solid fa-arrow-left me-1"></i>Powrót</a>
 </div>
 
 @code {
@@ -61,7 +61,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nieprawidlowy kod.";
+            _error = result.Error?.Message ?? "Nieprawidłowy kod.";
         }
         _loading = false;
     }
@@ -76,7 +76,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udalo sie wyslac kodu.";
+            _error = result.Error?.Message ?? "Nie udało się wysłać kodu.";
         }
     }
 

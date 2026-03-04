@@ -19,21 +19,21 @@ public class SendContactMessageValidator : AbstractValidator<SendContactMessageC
     public SendContactMessageValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Imie jest wymagane")
-            .MaximumLength(100).WithMessage("Imie moze miec maksymalnie 100 znakow");
+            .NotEmpty().WithMessage("Imię jest wymagane")
+            .MaximumLength(100).WithMessage("Imię może mieć maksymalnie 100 znaków");
 
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email jest wymagany")
-            .EmailAddress().WithMessage("Nieprawidlowy format adresu email");
+            .EmailAddress().WithMessage("Nieprawidłowy format adresu email");
 
         RuleFor(x => x.Subject)
             .NotEmpty().WithMessage("Temat jest wymagany")
-            .MaximumLength(200).WithMessage("Temat moze miec maksymalnie 200 znakow");
+            .MaximumLength(200).WithMessage("Temat może mieć maksymalnie 200 znaków");
 
         RuleFor(x => x.Message)
-            .NotEmpty().WithMessage("Wiadomosc jest wymagana")
-            .MinimumLength(10).WithMessage("Wiadomosc musi miec co najmniej 10 znakow")
-            .MaximumLength(5000).WithMessage("Wiadomosc moze miec maksymalnie 5000 znakow");
+            .NotEmpty().WithMessage("Wiadomość jest wymagana")
+            .MinimumLength(10).WithMessage("Wiadomość musi mieć co najmniej 10 znaków")
+            .MaximumLength(5000).WithMessage("Wiadomość może mieć maksymalnie 5000 znaków");
     }
 }
 
@@ -74,14 +74,14 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
         // Send confirmation email to user (best-effort, ticket is already saved)
         try
         {
-            await _email.SendDigestAsync(request.Email, "Smakosz - potwierdzenie wiadomosci",
+            await _email.SendDigestAsync(request.Email, "Smakosz - potwierdzenie wiadomości",
                 $"""
-                <h2>Dziekujemy za kontakt!</h2>
-                <p>Czesc {request.Name},</p>
-                <p>Otrzymalismy Twoja wiadomosc dotyczaca: <strong>{request.Subject}</strong></p>
-                <p>Postaramy sie odpowiedziec jak najszybciej.</p>
+                <h2>Dziękujemy za kontakt!</h2>
+                <p>Cześć {request.Name},</p>
+                <p>Otrzymaliśmy Twoją wiadomość dotyczącą: <strong>{request.Subject}</strong></p>
+                <p>Postaramy się odpowiedzieć jak najszybciej.</p>
                 <br/>
-                <p>Pozdrawiamy,<br/>Zespol Smakosz</p>
+                <p>Pozdrawiamy,<br/>Zespół Smakosz</p>
                 """, cancellationToken);
         }
         catch (Exception ex)

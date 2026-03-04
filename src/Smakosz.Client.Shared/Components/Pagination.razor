@@ -2,25 +2,62 @@
 @if (Info != null && Info.TotalPages > 1)
 {
     <nav>
-        <ul class="pagination justify-content-center">
+        <ul class="pagination justify-content-center flex-wrap">
+            @* First page *@
+            <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(1)" title="Pierwsza strona">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+            </li>
+            @* Previous *@
             <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(Info.Page - 1)">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </li>
-            @for (int i = StartPage; i <= EndPage; i++)
+
+            @* Page numbers with ellipsis *@
+            @foreach (var item in GetPageNumbers())
             {
-                var pageNum = i;
-                <li class="page-item @(pageNum == Info.Page ? "active" : "")">
-                    <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                </li>
+                @if (item == -1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item @(item == Info.Page ? "active" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(item)">@item</button>
+                    </li>
+                }
             }
+
+            @* Next *@
             <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(Info.Page + 1)">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </li>
+            @* Last page *@
+            <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(Info.TotalPages)" title="Ostatnia strona">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
+            </li>
         </ul>
+
+        @* Page input *@
+        @if (Info.TotalPages > 5)
+        {
+            <div class="d-flex justify-content-center align-items-center gap-2 mt-1">
+                <small class="text-muted">Strona</small>
+                <input type="number" class="form-control form-control-sm" style="width:70px;text-align:center;"
+                       min="1" max="@Info.TotalPages" value="@Info.Page"
+                       @onchange="HandlePageInput" />
+                <small class="text-muted">z @Info.TotalPages</small>
+            </div>
+        }
     </nav>
 }
 
@@ -28,12 +65,38 @@
     [Parameter] public Smakosz.Client.Models.PaginationInfo? Info { get; set; }
     [Parameter] public EventCallback<int> OnPageChange { get; set; }
 
-    private int StartPage => Math.Max(1, Info!.Page - 2);
-    private int EndPage => Math.Min(Info!.TotalPages, Info.Page + 2);
+    private List<int> GetPageNumbers()
+    {
+        var pages = new List<int>();
+        var total = Info!.TotalPages;
+        var current = Info.Page;
+
+        pages.Add(1);
+
+        if (current > 3)
+            pages.Add(-1); // ellipsis
+
+        for (int i = Math.Max(2, current - 1); i <= Math.Min(total - 1, current + 1); i++)
+            pages.Add(i);
+
+        if (current < total - 2)
+            pages.Add(-1); // ellipsis
+
+        if (total > 1)
+            pages.Add(total);
+
+        return pages;
+    }
 
     private async Task GoToPage(int page)
     {
         if (page >= 1 && page <= Info!.TotalPages && page != Info.Page)
             await OnPageChange.InvokeAsync(page);
+    }
+
+    private async Task HandlePageInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var page))
+            await GoToPage(page);
     }
 }

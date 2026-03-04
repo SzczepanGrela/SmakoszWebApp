@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.PostgreSql;
 using Smakosz.Infrastructure;
+using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Orchestrator.Configuration;
@@ -12,6 +13,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // Infrastructure (DbContext, IFileStorageService, IEmailService, IDateTimeProvider)
 builder.Services.AddInfrastructure(connectionString, builder.Configuration);
+
+// Database logging (Hangfire not ignored - we want job error logs)
+builder.Logging.AddDatabaseLogger(opts => opts.IgnoredPrefixes = ["Microsoft", "System"]);
 
 // Concrete DbContext for UserReaperService (needs IgnoreQueryFilters)
 builder.Services.AddScoped<SmakoszDbContext>();
@@ -55,6 +59,7 @@ builder.Services.AddScoped<HeartbeatMonitorService>();
 builder.Services.AddScoped<NcfTrainingService>();
 builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
+builder.Services.AddScoped<SiteStatsService>();
 
 var app = builder.Build();
 
@@ -92,5 +97,8 @@ RecurringJob.AddOrUpdate<NcfTrainingService>(
 
 RecurringJob.AddOrUpdate<NotificationDigestService>(
     "notification-digest", x => x.SendAsync(CancellationToken.None), Cron.Daily(8), utc);
+
+RecurringJob.AddOrUpdate<SiteStatsService>(
+    "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
 
 await app.RunAsync();

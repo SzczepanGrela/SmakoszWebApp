@@ -14,7 +14,7 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260301121348_InitialCreate")]
+    [Migration("20260303141826_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

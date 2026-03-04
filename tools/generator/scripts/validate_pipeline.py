@@ -1,24 +1,10 @@
 #!/usr/bin/env python3
-"""
-Validate pipeline dependency graph.
-
-Checks for:
-- Circular dependencies
-- Missing phase registrations
-- Correct topological ordering
-- Provides visualization of dependency tree
-
-Usage:
-    python scripts/validate_pipeline.py
-    python scripts/validate_pipeline.py --verbose
-"""
 
 import argparse
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from generators import (
@@ -38,7 +24,6 @@ from orchestration import PhaseRegistry
 from utils.logging_config import LoggingConfig
 
 def setup_phase_registry() -> PhaseRegistry:
-    """Setup and register all phases."""
     registry = PhaseRegistry()
 
     registry.register(SystemConfigPhase())
@@ -56,14 +41,12 @@ def setup_phase_registry() -> PhaseRegistry:
     return registry
 
 def visualize_dependencies(registry: PhaseRegistry, verbose: bool = False):
-    """Visualize dependency tree."""
     print("\n" + "=" * 80)
     print("DEPENDENCY GRAPH")
     print("=" * 80)
 
     all_phases = registry.get_all()
 
-    # Build dependency map
     deps_map = {}
     reverse_deps = defaultdict(list)
 
@@ -74,7 +57,6 @@ def visualize_dependencies(registry: PhaseRegistry, verbose: bool = False):
         for dep in metadata.dependencies:
             reverse_deps[dep].append(metadata.phase_id)
 
-    # Print phases with their dependencies
     for phase in sorted(all_phases, key=lambda p: p.metadata.phase_id):
         metadata = phase.metadata
         phase_id = metadata.phase_id
@@ -89,7 +71,6 @@ def visualize_dependencies(registry: PhaseRegistry, verbose: bool = False):
             print(f"  Dependent Phases: {', '.join(reverse_deps[phase_id])}")
 
 def validate_dependency_resolution(registry: PhaseRegistry):
-    """Validate that all phases can be resolved without cycles."""
     print("\n" + "=" * 80)
     print("DEPENDENCY RESOLUTION VALIDATION")
     print("=" * 80)
@@ -97,7 +78,6 @@ def validate_dependency_resolution(registry: PhaseRegistry):
     all_phases = registry.get_all()
     all_phase_ids = [p.metadata.phase_id for p in all_phases]
 
-    # Test resolution for each phase
     errors = []
 
     for phase in all_phases:
@@ -108,11 +88,9 @@ def validate_dependency_resolution(registry: PhaseRegistry):
             print(f"\n[OK] {phase_id}")
             print(f"  Execution order: {' -> '.join(resolved)}")
 
-            # Validate that this phase is last
             if resolved[-1] != phase_id:
                 errors.append(f"  [FAIL] ERROR: {phase_id} not at end of resolution chain!")
 
-            # Validate dependencies come before this phase
             for dep in phase.metadata.dependencies:
                 if dep not in resolved:
                     errors.append(f"  [FAIL] ERROR: Dependency {dep} not in resolution chain!")
@@ -122,7 +100,6 @@ def validate_dependency_resolution(registry: PhaseRegistry):
         except Exception as e:
             errors.append(f"[FAIL] {phase_id}: FAILED - {e}")
 
-    # Test full pipeline resolution
     print("\n" + "-" * 80)
     print("FULL PIPELINE RESOLUTION")
     print("-" * 80)
@@ -135,7 +112,6 @@ def validate_dependency_resolution(registry: PhaseRegistry):
         for i, phase_id in enumerate(full_order, 1):
             print(f"    {i:2d}. {phase_id}")
 
-        # Validate no duplicates
         if len(full_order) != len(set(full_order)):
             errors.append("[FAIL] ERROR: Duplicate phases in resolution!")
 
@@ -145,14 +121,12 @@ def validate_dependency_resolution(registry: PhaseRegistry):
     return errors
 
 def check_missing_registrations(registry: PhaseRegistry):
-    """Check for missing phase registrations."""
     print("\n" + "=" * 80)
     print("REGISTRATION CHECK")
     print("=" * 80)
 
     all_phases = registry.get_all()
 
-    # Expected phases
     expected = {
         "phase0_config",
         "phase1_cities",
@@ -193,27 +167,21 @@ def main():
 
     args = parser.parse_args()
 
-    # Setup logging
-    LoggingConfig.setup(level="ERROR")  # Suppress logs during validation
+    LoggingConfig.setup(level="ERROR")
 
     print("=" * 80)
     print("PIPELINE VALIDATION TOOL")
     print("=" * 80)
 
     try:
-        # Setup registry
         registry = setup_phase_registry()
 
-        # 1. Check registrations
         missing, extra = check_missing_registrations(registry)
 
-        # 2. Visualize dependencies
         visualize_dependencies(registry, verbose=args.verbose)
 
-        # 3. Validate dependency resolution
         errors = validate_dependency_resolution(registry)
 
-        # Summary
         print("\n" + "=" * 80)
         print("VALIDATION SUMMARY")
         print("=" * 80)

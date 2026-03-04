@@ -1,12 +1,3 @@
-"""
-Shared constants for the MockDataFactory generator pipeline.
-
-These are the single source of truth for restaurant theme mappings and menu blueprints.
-Both the generators (phase2, phase3) and tools (verify_blueprints) import from here.
-"""
-
-# Maps Polish restaurant theme names (from blueprints/restaurant_types.json)
-# to English menu blueprint profile names used internally by the generator.
 THEME_TO_MENU_BLUEPRINT: dict[str, str] = {
     "Pizzeria": "Pizzeria",
     "Burgerownia": "Burger Bar",
@@ -36,12 +27,8 @@ THEME_TO_MENU_BLUEPRINT: dict[str, str] = {
     "Lodziarnia": "Ice Cream Shop",
     "Kanapkownia": "Sandwich Shop",
     "Wykwintna Restauracja": "Fine Dining",
-    # Fallback: any theme not listed -> "General"
 }
 
-# Maps English menu blueprint profile names to dish generation config.
-# Each entry specifies which dish archetypes are served and the statistical
-# parameters for how many dishes to generate (mean ± sigma).
 MENU_BLUEPRINTS: dict[str, dict] = {
     "Pizzeria": {"archetypes": ["Pizza", "Pasta", "Salad", "Deser"], "mean": 25, "sigma": 5},
     "Burger Bar": {"archetypes": ["Burger", "Steak", "Salad"], "mean": 15, "sigma": 3},

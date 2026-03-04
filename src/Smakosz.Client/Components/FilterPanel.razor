@@ -1,9 +1,21 @@
-<div class="filters-panel @(IsCollapsible ? "collapse-panel" : "")">
-    <h5 class="mb-3"><i class="fa-solid fa-filter me-2"></i>Filtry</h5>
-    @ChildContent
+<div class="filters-panel">
+    <div class="d-flex justify-content-between align-items-center mb-3 cursor-pointer" @onclick="Toggle">
+        <h5 class="mb-0"><i class="fa-solid fa-filter me-2"></i>Filtry</h5>
+        <i class="fa-solid @(_collapsed ? "fa-chevron-down" : "fa-chevron-up")"></i>
+    </div>
+    @if (!_collapsed)
+    {
+        @ChildContent
+    }
 </div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public bool IsCollapsible { get; set; }
+    [Parameter] public bool StartCollapsed { get; set; } = true;
+
+    private bool _collapsed;
+
+    protected override void OnInitialized() => _collapsed = StartCollapsed;
+
+    private void Toggle() => _collapsed = !_collapsed;
 }

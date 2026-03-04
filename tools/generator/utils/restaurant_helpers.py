@@ -1,36 +1,12 @@
-"""
-Restaurant Helper Functions
-
-This module contains utilities for generating restaurant-specific content,
-particularly restaurant name generation with uniqueness tracking.
-"""
-
 import random
 
 class RestaurantNameGenerator:
-    """
-    Generates unique restaurant names based on theme and city.
-
-    Maintains internal state to ensure name uniqueness across multiple
-    generation calls. Each instance tracks used names and counters.
-    """
 
     def __init__(self):
-        """Initialize the name generator with empty state."""
         self._used_restaurant_names = set()
         self._name_counter = {}
 
     def generate_name(self, theme: str, city: str) -> str:
-        """
-        Generate a unique restaurant name for the given theme and city.
-
-        Args:
-            theme: Restaurant theme (Pizzeria, Sushi Bar, etc.)
-            city: City name
-
-        Returns:
-            Unique restaurant name combining base name and city
-        """
         base_name = self._generate_base_name(theme)
 
         candidate = f"{base_name} {city}"
@@ -51,15 +27,6 @@ class RestaurantNameGenerator:
                 return candidate
 
     def _generate_base_name(self, theme: str) -> str:
-        """
-        Generate a theme-appropriate base restaurant name.
-
-        Args:
-            theme: Restaurant theme
-
-        Returns:
-            Base name without city suffix
-        """
         prefixes = ["Restauracja", "Bistro", "Gospoda", "Smaki", "Bar"]
         suffixes = [
             "Pod Aniołem",

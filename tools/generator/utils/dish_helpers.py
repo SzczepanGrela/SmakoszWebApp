@@ -1,29 +1,8 @@
-"""
-Dish Helper Functions
-
-This module contains utility functions for generating dish-specific content
-like descriptions and calorie calculations. These helpers are used by the
-Phase 3 dish generator to create realistic dish attributes.
-"""
-
 import random
 
 def generate_dish_description(
     dish_name: str, archetype: str, ingredients: list, quality: float, spiciness: float
 ) -> str:
-    """
-    Generates a Polish-language description for a dish based on its attributes.
-
-    Args:
-        dish_name: Name of the dish
-        archetype: Dish archetype (Pizza, Burger, Sushi, etc.)
-        ingredients: List of ingredient names
-        quality: Quality score (0.0-1.0)
-        spiciness: Spiciness level (0-10)
-
-    Returns:
-        A description string (max 500 characters)
-    """
     if quality >= 0.8:
         quality_adj = random.choice(["wyśmienite", "wyjątkowe", "premium", "perfekcyjne"])
     elif quality >= 0.6:
@@ -50,19 +29,13 @@ def generate_dish_description(
     elif spiciness >= 3:
         spice = ", średnio ostre"
 
-    key_ingredients = ", ".join(ingredients[:4]) if ingredients else "świeże składniki"
+    key_ingredients = ", ".join(i.replace("_", " ") for i in ingredients[:4]) if ingredients else "świeże składniki"
 
     description = f"{base}. {quality_adj.capitalize()} danie{spice}. Składniki: {key_ingredients}."
     return description[:500]
 
 def generate_dish_calories(archetype: str, price: float, richness: float) -> int:
-    """
-    Calculates estimated calories for a dish based on archetype and richness.
-    Uses base calories per 100g and estimated portion size.
-    Price is ignored (Mod 12).
-    """
 
-    # Base calories per 100g
     calories_per_100g = {
         "Pizza": 270,
         "Burger": 295,
@@ -83,7 +56,6 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
         "Dim Sum": 190,
     }
 
-    # Estimated portion sizes in grams
     portion_sizes = {
         "Pizza": 450,
         "Burger": 350,
@@ -107,11 +79,9 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
     base_cal_100g = calories_per_100g.get(archetype, 150)
     portion = portion_sizes.get(archetype, 300)
 
-    # Add variance to 100g value
     variance = random.uniform(0.9, 1.1)
 
-    # Richness impacts calorie density slightly
-    density_modifier = 0.9 + (richness * 0.2)  # 0.9 to 1.1
+    density_modifier = 0.9 + (richness * 0.2)
 
     final_cal_100g = base_cal_100g * variance * density_modifier
 

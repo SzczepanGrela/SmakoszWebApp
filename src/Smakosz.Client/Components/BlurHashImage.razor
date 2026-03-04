@@ -1,0 +1,42 @@
+@inject IJSRuntime JS
+
+<div class="blurhash-container position-relative" style="@ContainerStyle">
+    @if (!string.IsNullOrEmpty(BlurHash))
+    {
+        <canvas id="@_canvasId" width="@DecodeWidth" height="@DecodeHeight"
+                class="@($"position-absolute top-0 start-0 w-100 h-100 {(_loaded ? "d-none" : "")}")"
+                style="object-fit:cover;border-radius:inherit;"></canvas>
+    }
+    <img src="@Src" alt="@Alt" loading="lazy"
+         class="@($"{CssClass} {(_loaded || string.IsNullOrEmpty(BlurHash) ? "" : "opacity-0")}")"
+         style="transition:opacity 0.3s ease;@ImgStyle"
+         @onload="OnImageLoaded" />
+</div>
+
+@code {
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? BlurHash { get; set; }
+    [Parameter] public string? Alt { get; set; }
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public string ContainerStyle { get; set; } = "";
+    [Parameter] public string ImgStyle { get; set; } = "";
+    [Parameter] public int DecodeWidth { get; set; } = 32;
+    [Parameter] public int DecodeHeight { get; set; } = 32;
+
+    private string _canvasId = $"bh-{Guid.NewGuid():N}";
+    private bool _loaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(BlurHash))
+        {
+            await JS.InvokeVoidAsync("blurhashInterop.decode", _canvasId, BlurHash, DecodeWidth, DecodeHeight);
+        }
+    }
+
+    private void OnImageLoaded()
+    {
+        _loaded = true;
+        StateHasChanged();
+    }
+}

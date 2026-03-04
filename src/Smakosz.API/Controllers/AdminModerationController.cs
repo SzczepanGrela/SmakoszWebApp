@@ -5,15 +5,17 @@ using Smakosz.Application.Features.Admin.Commands.ModerateReview;
 using Smakosz.Application.Features.Admin.Commands.ProcessEditRequest;
 using Smakosz.Application.Features.Admin.Commands.RespondToContact;
 using Smakosz.Application.Features.Admin.Commands.UpdateTicketStatus;
+using Smakosz.Application.Features.Admin.Commands.UpdateReportStatus;
 using Smakosz.Application.Features.Admin.Queries.GetEditRequests;
 using Smakosz.Application.Features.Admin.Queries.GetPendingPhotos;
 using Smakosz.Application.Features.Admin.Queries.GetPendingReviews;
+using Smakosz.Application.Features.Admin.Queries.GetReports;
 using Smakosz.Application.Features.Admin.Queries.GetTicketDetail;
 using Smakosz.Application.Features.Admin.Queries.GetTickets;
 
 namespace Smakosz.API.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Moderator")]
 [Route("api/admin")]
 public class AdminModerationController : ApiController
 {
@@ -88,6 +90,23 @@ public class AdminModerationController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpGet("reports")]
+    public async Task<IActionResult> GetReports(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = null)
+    {
+        var result = await _mediator.Send(new GetReportsQuery(new PaginationParams(page, pageSize), status));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("reports/{reportId:int}/status")]
+    public async Task<IActionResult> UpdateReportStatus(int reportId, [FromBody] UpdateReportStatusRequest request)
+    {
+        var result = await _mediator.Send(new UpdateReportStatusCommand(reportId, request.Status));
+        return ToNoContentResult(result);
+    }
+
     [HttpGet("edit-requests")]
     public async Task<IActionResult> GetEditRequests(
         [FromQuery] int page = 1,
@@ -105,6 +124,7 @@ public class AdminModerationController : ApiController
     }
 }
 
+public record UpdateReportStatusRequest(string Status);
 public record UpdateTicketStatusRequest(string Status);
 public record RespondToContactRequest(string Response);
 public record ModeratePhotoRequest(bool Approve, string? RejectionReason);

@@ -54,30 +54,10 @@ public class DietaryBadgesTests : BunitTestBase
     }
 
     [Fact]
-    public void TagsWithDisplayColor_RenderCustomColorBadge()
+    public void SpicyFlag_RendersBadge()
     {
-        var tags = new List<TagDto>
-        {
-            new() { TagName = "Pikantne", DisplayColor = "#ff0000" }
-        };
-
-        var cut = RenderComponent<DietaryBadges>(p => p.Add(c => c.Tags, tags));
-
-        var badge = cut.Find(".badge");
-        badge.TextContent.Should().Contain("Pikantne");
-        badge.GetAttribute("style").Should().Contain("background-color:#ff0000");
-    }
-
-    [Fact]
-    public void TagsWithoutDisplayColor_RenderSecondaryBadge()
-    {
-        var tags = new List<TagDto>
-        {
-            new() { TagName = "Popularne" }
-        };
-
-        var cut = RenderComponent<DietaryBadges>(p => p.Add(c => c.Tags, tags));
-
-        cut.Find(".badge.bg-secondary").TextContent.Should().Contain("Popularne");
+        var cut = RenderComponent<DietaryBadges>(p => p.Add(c => c.IsSpicy, true));
+        cut.Markup.Should().Contain("Ostre");
+        cut.Find(".badge.bg-danger").Should().NotBeNull();
     }
 }

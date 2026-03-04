@@ -1,12 +1,20 @@
+@inject IJSRuntime JS
+
 <div class="hero-section text-center text-white d-flex align-items-center justify-content-center position-relative"
-     style="@(BackgroundUrl != null ? $"background-image:url('{BackgroundUrl}');" : "")">
-    <div class="container">
+     style="@GetBackgroundStyle()">
+    @if (!string.IsNullOrEmpty(BlurHash))
+    {
+        <canvas id="@_canvasId" width="32" height="18"
+                class="position-absolute top-0 start-0 w-100 h-100"
+                style="object-fit:cover;border-radius:inherit;z-index:0;transition:opacity 0.4s ease;pointer-events:none;@(_bgLoaded ? "opacity:0;" : "")"></canvas>
+    }
+    <div class="container" style="position:relative;z-index:1;">
         @ChildContent
     </div>
     @if (!string.IsNullOrEmpty(CreditText))
     {
         <span class="position-absolute bottom-0 end-0 m-2 px-2 py-1 small"
-              style="background:rgba(0,0,0,0.5);border-radius:4px;font-size:0.75rem;">
+              style="background:rgba(0,0,0,0.5);border-radius:4px;font-size:0.75rem;z-index:1;">
             @CreditText
         </span>
     }
@@ -14,6 +22,43 @@
 
 @code {
     [Parameter] public string? BackgroundUrl { get; set; }
+    [Parameter] public string? BlurHash { get; set; }
     [Parameter] public string? CreditText { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string _canvasId = $"hero-bh-{Guid.NewGuid():N}";
+    private bool _bgLoaded;
+
+    private string GetBackgroundStyle()
+    {
+        // When blurhash is available, don't set background-image until preloaded
+        if (!string.IsNullOrEmpty(BlurHash))
+        {
+            if (_bgLoaded && !string.IsNullOrEmpty(BackgroundUrl))
+                return $"background-image:url('{BackgroundUrl}');";
+            return "";
+        }
+        // No blurhash - set background immediately with fallback
+        if (!string.IsNullOrEmpty(BackgroundUrl))
+            return $"background-image:url('{BackgroundUrl}'), url('/images/restaurant-placeholder.svg');";
+        return "";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(BlurHash))
+        {
+            await JS.InvokeVoidAsync("blurhashInterop.decode", _canvasId, BlurHash, 32, 18);
+
+            if (!string.IsNullOrEmpty(BackgroundUrl))
+            {
+                var loaded = await JS.InvokeAsync<bool>("blurhashInterop.preloadImage", BackgroundUrl);
+                if (loaded)
+                {
+                    _bgLoaded = true;
+                    StateHasChanged();
+                }
+            }
+        }
+    }
 }

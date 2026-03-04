@@ -1,18 +1,3 @@
-"""
-Refresh Photo Index
-
-Synchronizes photo_index.json with actual files on disk:
-- Removes entries for deleted files
-- Adds new files found on disk with blurhash generation
-- Generates blurhash for existing entries missing it
-- Optionally renames files to standard format: foldername_001.webp
-
-Usage:
-    python tools/refresh_photo_index.py
-    python tools/refresh_photo_index.py --no-blurhash  # Skip blurhash generation
-    python tools/refresh_photo_index.py --rename       # Rename files to standard format
-"""
-
 import argparse
 import json
 import logging
@@ -22,11 +7,9 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-# Fix Windows console encoding for Polish characters
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config import PHOTO_CONFIG
 from tools.utils import slugify
@@ -41,27 +24,18 @@ DERIVED_SUFFIXES = {"_thumb", "_tiny", "_hero"}
 WORKERS = 8
 
 def is_original(path: Path) -> bool:
-    """Check if file is an original (not a derived _thumb/_tiny/_hero variant)."""
     return not any(path.stem.endswith(s) for s in DERIVED_SUFFIXES)
 
 def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
-    """
-    Rename original image files in folder to prefix_001.webp format.
-    Also renames associated derived files (_thumb, _tiny) to match.
-    Returns mapping of old_path -> new_path (relative).
-    """
     renames = {}
-    # Only rename originals - derived files follow their original
     originals = sorted([f for f in folder.iterdir() if f.suffix.lower() in IMAGE_EXTENSIONS and is_original(f)])
 
-    # Phase 1: rename originals to temp names to avoid collisions
-    temp_map: list[tuple[Path, str]] = []  # (temp_path, final_name)
+    temp_map: list[tuple[Path, str]] = []
     for idx, old_file in enumerate(originals, start=1):
         final_name = f"{prefix}_{idx:03d}.webp"
         temp_name = f"__temp_{idx:03d}.webp"
         temp_path = folder / temp_name
 
-        # Also find and rename associated derived files
         for suffix in DERIVED_SUFFIXES:
             derived = folder / f"{old_file.stem}{suffix}{old_file.suffix}"
             if derived.exists():
@@ -73,14 +47,12 @@ def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
         old_file.rename(temp_path)
         temp_map.append((temp_path, final_name))
 
-    # Phase 2: rename temp -> final
     for temp_path, final_name in temp_map:
         final_path = folder / final_name
         temp_path.rename(final_path)
 
-        # Rename derived temp files too
         idx_str = temp_path.stem.replace("__temp_", "")
-        base_name = final_path.stem  # e.g. prefix_001
+        base_name = final_path.stem
         for suffix in DERIVED_SUFFIXES:
             derived_temp = folder / f"__temp_{idx_str}{suffix}{temp_path.suffix}"
             if derived_temp.exists():
@@ -90,14 +62,9 @@ def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
     return renames
 
 def process_photo_entry(entry: dict, output_root: Path, generate_hash: bool) -> tuple[dict, bool]:
-    """
-    Process a photo entry, optionally generating blurhash.
-    Returns (updated_entry, was_updated).
-    """
     if not generate_hash:
         return entry, False
 
-    # Skip if already has blurhash
     if entry.get("blurhash") and entry.get("width") and entry.get("height"):
         return entry, False
 
@@ -119,12 +86,10 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     output_root = Path(str(PHOTO_CONFIG["output_dir"]))
     mgr = PhotoIndexManager(index_path)
 
-    # 0. Rename files first (before index sync)
     renamed_count = 0
     if rename_files:
         logger.info("Renaming files to standard format...")
 
-        # Dishes: dish/Category/Variant/ -> variant_001.webp
         dishes_dir = output_root / "dishes"
         if dishes_dir.exists():
             for category_dir in dishes_dir.iterdir():
@@ -139,7 +104,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         logger.info(f"[DISHES] {variant_dir.name}: {len(renames)} files")
                         renamed_count += len(renames)
 
-        # Restaurants: restaurants/Theme/ -> theme_001.webp
         rest_dir = output_root / "restaurants"
         if rest_dir.exists():
             for theme_dir in rest_dir.iterdir():
@@ -151,7 +115,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     logger.info(f"[RESTAURANTS] {theme_dir.name}: {len(renames)} files")
                     renamed_count += len(renames)
 
-        # Avatars: avatars/pool/ -> avatar_001.webp
         avatars_dir = output_root / "avatars" / "pool"
         if avatars_dir.exists():
             renames = rename_files_in_folder(avatars_dir, "avatar")
@@ -159,7 +122,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 logger.info(f"[AVATARS] pool: {len(renames)} files")
                 renamed_count += len(renames)
 
-        # Ingredients: ingredients/name/ -> name_001.webp (or single file name.webp)
         ing_dir = output_root / "ingredients"
         if ing_dir.exists():
             for ing_folder in ing_dir.iterdir():
@@ -170,12 +132,11 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         logger.info(f"[INGREDIENTS] {ing_folder.name}: {len(renames)} files")
                         renamed_count += len(renames)
 
-        # Hero: templates/hero/ -> hero_001.webp
-        hero_dir = output_root / "templates" / "hero"
+        hero_dir = output_root / "hero"
         if hero_dir.exists():
             renames = rename_files_in_folder(hero_dir, "hero")
             if renames:
-                logger.info(f"[HERO] templates/hero: {len(renames)} files")
+                logger.info(f"[HERO] hero: {len(renames)} files")
                 renamed_count += len(renames)
 
         logger.info(f"Total renamed: {renamed_count} files")
@@ -190,7 +151,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     added_count = 0
     blurhash_count = 0
 
-    # 1. Dishes
     dishes_dir = output_root / "dishes"
     if "dishes" not in index_data:
         index_data["dishes"] = {}
@@ -202,7 +162,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 for photo in photos:
                     indexed_dish_paths.add(photo["path"])
 
-        # Remove deleted files
         for category, variants in list(index_data["dishes"].items()):
             for variant, photos in list(variants.items()):
                 valid_photos = []
@@ -215,7 +174,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         removed_count += 1
                 variants[variant] = valid_photos
 
-        # Add new files
         for category_dir in dishes_dir.iterdir():
             if not category_dir.is_dir():
                 continue
@@ -244,7 +202,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                             logger.info(f"Added: {rel_path}")
                             added_count += 1
 
-    # 2. Restaurants
     restaurants_dir = output_root / "restaurants"
     if "restaurants" not in index_data:
         index_data["restaurants"] = {}
@@ -255,7 +212,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
             for photo in photos:
                 indexed_rest_paths.add(photo["path"])
 
-        # Remove deleted
         for theme, photos in list(index_data["restaurants"].items()):
             valid_photos = []
             for photo in photos:
@@ -267,7 +223,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     removed_count += 1
             index_data["restaurants"][theme] = valid_photos
 
-        # Add new files
         for theme_dir in restaurants_dir.iterdir():
             if not theme_dir.is_dir():
                 continue
@@ -288,7 +243,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         logger.info(f"Added: {rel_path}")
                         added_count += 1
 
-    # 3. Avatars
     avatars_dir = output_root / "avatars" / "pool"
     if "avatars" not in index_data:
         index_data["avatars"] = []
@@ -296,7 +250,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     if avatars_dir.exists():
         indexed_avatar_paths = {photo["path"] for photo in index_data["avatars"]}
 
-        # Remove deleted
         valid_avatars = []
         for photo in index_data["avatars"]:
             full_path = output_root / photo["path"]
@@ -307,7 +260,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                 removed_count += 1
         index_data["avatars"] = valid_avatars
 
-        # Add new files
         for img_file in avatars_dir.iterdir():
             if img_file.suffix.lower() in IMAGE_EXTENSIONS and is_original(img_file):
                 rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
@@ -320,7 +272,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     logger.info(f"Added: {rel_path}")
                     added_count += 1
 
-    # 4. Ingredients
     ingredients_dir = output_root / "ingredients"
     if "ingredients" not in index_data:
         index_data["ingredients"] = {}
@@ -328,7 +279,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
     if ingredients_dir.exists():
         indexed_ing_paths = {v["path"] for v in index_data["ingredients"].values()}
 
-        # Remove deleted
         keys_to_remove = []
         for ing_name, photo in index_data["ingredients"].items():
             full_path = output_root / photo["path"]
@@ -340,7 +290,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
         for k in keys_to_remove:
             del index_data["ingredients"][k]
 
-        # Add new files
         for img_file in ingredients_dir.iterdir():
             if img_file.suffix.lower() in IMAGE_EXTENSIONS:
                 rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
@@ -355,12 +304,10 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         logger.info(f"Added: {rel_path} (as '{ing_name}')")
                         added_count += 1
 
-    # 5. Hero images (separate hero_index.json)
-    hero_dir = output_root / "templates" / "hero"
+    hero_dir = output_root / "hero"
     hero_index_path = hero_dir / "hero_index.json"
 
     if hero_dir.exists():
-        # Load or create hero index
         if hero_index_path.exists():
             with open(hero_index_path, encoding="utf-8") as f:
                 hero_index = json.load(f)
@@ -369,7 +316,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
 
         indexed_hero_filenames = {img.get("filename") for img in hero_index.get("images", []) if img.get("filename")}
 
-        # Remove deleted files
         valid_images = []
         for img_entry in hero_index.get("images", []):
             filename = img_entry.get("filename")
@@ -382,7 +328,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     removed_count += 1
         hero_index["images"] = valid_images
 
-        # Add new files
         for img_file in hero_dir.iterdir():
             if img_file.suffix.lower() in IMAGE_EXTENSIONS:
                 filename = img_file.name
@@ -393,7 +338,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                         "credit_url": "",
                         "source": "unknown",
                     }
-                    # Generate blurhash if requested
                     if generate_hash:
                         hash_val, w, h = generate_blurhash(img_file)
                         if hash_val:
@@ -404,7 +348,6 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                     logger.info(f"Added hero: {filename}")
                     added_count += 1
 
-        # Generate blurhash for hero entries missing it
         if generate_hash:
             for img_entry in hero_index.get("images", []):
                 if not img_entry.get("blurhash"):
@@ -419,16 +362,13 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
                                 img_entry["height"] = h
                                 blurhash_count += 1
 
-        # Save hero index
         with open(hero_index_path, "w", encoding="utf-8") as f:
             json.dump(hero_index, f, indent=2, ensure_ascii=False)
 
-    # 6. Generate blurhash for existing entries missing it
     if generate_hash:
         logger.info("Generating missing blurhash...")
         entries_to_update = []
 
-        # Collect entries missing blurhash
         for _category, variants in index_data.get("dishes", {}).items():
             for _variant, photos in variants.items():
                 for photo in photos:
@@ -482,7 +422,6 @@ if __name__ == "__main__":
     parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
     args = parser.parse_args()
 
-    # Setup logging
     log_level = "DEBUG" if args.debug else "INFO"
     LoggingConfig.setup(level=log_level, quiet=args.quiet)
 

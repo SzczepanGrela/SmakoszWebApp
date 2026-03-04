@@ -8,7 +8,7 @@ public class AddReviewTests : BunitTestBase
 {
     public AddReviewTests()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
     }
 
     private static DishDetailDto CreateDish() => new()

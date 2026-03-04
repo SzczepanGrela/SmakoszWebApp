@@ -97,7 +97,7 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
             ReferenceId = report.ReportId,
             Status = TicketStatus.Open,
             Priority = ticketPriority,
-            Description = $"Zgloszenie recenzji #{review.ReviewId}: {reasonLabels}"
+            Description = $"Zgłoszenie recenzji #{review.ReviewId}: {reasonLabels}"
         });
 
         await _db.SaveChangesAsync(cancellationToken);

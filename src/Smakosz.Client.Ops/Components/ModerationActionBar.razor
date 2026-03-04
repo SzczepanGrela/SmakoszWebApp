@@ -4,18 +4,18 @@
     @if (!_showReason)
     {
         <button class="btn btn-success btn-sm" @onclick="HandleApprove">
-            <i class="fa-solid fa-check me-1"></i>Zatwierdz
+            <i class="fa-solid fa-check me-1"></i>Zatwierdź
         </button>
         <button class="btn btn-danger btn-sm" @onclick="() => _showReason = true">
-            <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+            <i class="fa-solid fa-xmark me-1"></i>Odrzuć
         </button>
     }
     else
     {
         <div class="input-group input-group-sm" style="max-width:400px;">
-            <input type="text" class="form-control" @bind="_reason" placeholder="Powod odrzucenia..." />
+            <input type="text" class="form-control" @bind="_reason" placeholder="Powód odrzucenia..." />
             <button class="btn btn-danger" @onclick="HandleReject">
-                <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                <i class="fa-solid fa-xmark me-1"></i>Odrzuć
             </button>
             <button class="btn btn-outline-secondary" @onclick="() => _showReason = false">
                 Anuluj

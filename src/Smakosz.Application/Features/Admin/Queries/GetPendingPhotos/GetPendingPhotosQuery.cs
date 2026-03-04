@@ -25,7 +25,7 @@ public class GetPendingPhotosHandler : IRequestHandler<GetPendingPhotosQuery, Er
 
     public async Task<ErrorOr<PagedResult<PhotoModerationDto>>> Handle(GetPendingPhotosQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.MediaAssets

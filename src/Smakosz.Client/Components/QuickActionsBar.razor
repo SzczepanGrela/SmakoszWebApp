@@ -1,13 +1,22 @@
 @inject Smakosz.Client.Services.IDishService DishService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <section class="quick-actions-bar">
     <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-primary btn-sm" @onclick="GetRandomDish">
             <i class="fa-solid fa-dice me-1"></i>Losowe danie
         </button>
-        <button class="btn btn-outline-info btn-sm" @onclick="NearbyRestaurants">
-            <i class="fa-solid fa-location-dot me-1"></i>W poblizu
+        <button class="btn btn-outline-info btn-sm" @onclick="NearbyRestaurants" disabled="@_locating">
+            @if (_locating)
+            {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            else
+            {
+                <i class="fa-solid fa-location-dot me-1"></i>
+            }
+            W poblizu
         </button>
         <AuthorizeView>
             <Authorized>
@@ -20,6 +29,8 @@
 </section>
 
 @code {
+    private bool _locating;
+
     private async Task GetRandomDish()
     {
         var dish = await DishService.GetRandomAsync();
@@ -27,8 +38,24 @@
             Navigation.NavigateTo($"/dish/{dish.Slug}");
     }
 
-    private void NearbyRestaurants()
+    private async Task NearbyRestaurants()
     {
-        Navigation.NavigateTo("/search?location=w+poblizu");
+        _locating = true;
+        try
+        {
+            var coords = await JS.InvokeAsync<double[]>("smakoszGeo.getPosition", TimeSpan.FromSeconds(10));
+            if (coords is { Length: 2 })
+                Navigation.NavigateTo($"/search?type=restaurants&lat={coords[0].ToString(System.Globalization.CultureInfo.InvariantCulture)}&lng={coords[1].ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            else
+                Navigation.NavigateTo("/search?type=restaurants");
+        }
+        catch
+        {
+            Navigation.NavigateTo("/search?type=restaurants");
+        }
+        finally
+        {
+            _locating = false;
+        }
     }
 }

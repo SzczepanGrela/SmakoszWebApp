@@ -1,21 +1,3 @@
-"""
-Unified Refetch Photos Tool
-
-Re-downloads photos for a specific dish, restaurant, or ingredient.
-Deletes existing photos in the target folder and downloads fresh ones from Pixabay.
-Automatically generates _thumb variants (except ingredients).
-
-Uses PixabayProvider directly - no Unsplash init/overhead.
-
-Usage:
-  python tools/refetch_photos.py dish   --category "Burger" --name "BBQ Burger"
-  python tools/refetch_photos.py dish   --category "Burger"                        # whole category
-  python tools/refetch_photos.py restaurant --name "Kebab"
-  python tools/refetch_photos.py restaurant --name "Kebab" --term "turkish doner restaurant"
-  python tools/refetch_photos.py restaurant --all
-  python tools/refetch_photos.py ingredient --name "Mozzarella"
-"""
-
 import argparse
 import json
 import logging
@@ -27,7 +9,6 @@ from pathlib import Path
 import requests
 from PIL import Image
 
-# Project root
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config import PHOTO_CONFIG
@@ -36,7 +17,6 @@ from tools.utils import slugify
 from utils.image_processor import resize_and_crop
 from utils.logging_config import LoggingConfig
 
-# ── Config ────────────────────────────────────────────────────────────────────
 OUTPUT_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
 SIZE_FULL = tuple(PHOTO_CONFIG.get("size_full", (1280, 960)))
 SIZE_THUMB = tuple(PHOTO_CONFIG.get("size_thumb", (200, 150)))
@@ -47,13 +27,9 @@ IMAGE_QUALITY = int(PHOTO_CONFIG.get("image_quality", 80))
 
 logger = logging.getLogger("refetch")
 
-# Single Pixabay provider - no Unsplash
 _pixabay = PixabayProvider()
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 def _generate_thumb(full_path: Path) -> None:
-    """Generate a _thumb variant from a full-size image."""
     thumb_path = full_path.parent / f"{full_path.stem}{SUFFIX_THUMB}{full_path.suffix}"
     try:
         img = Image.open(full_path)
@@ -70,20 +46,17 @@ def _load_blueprint(name: str) -> dict:
         return json.load(f)
 
 def _download_single(url: str, save_path: Path, target_size: tuple[int, int]) -> bool:
-    """Download a single image, resize/crop to target_size, save as WEBP."""
     try:
         resp = requests.get(url, timeout=15)
         if resp.status_code != 200:
             return False
 
-        # Save raw bytes to temp, open, process
         from io import BytesIO
 
         img = Image.open(BytesIO(resp.content))
         if img.mode != "RGB":
             img = img.convert("RGB")
 
-        # Skip images that are too small
         if img.width < target_size[0] // 2 or img.height < target_size[1] // 2:
             return False
 
@@ -94,7 +67,6 @@ def _download_single(url: str, save_path: Path, target_size: tuple[int, int]) ->
         logger.debug(f"  Download failed for {url}: {e}")
         return False
 
-# ── Core download logic ──────────────────────────────────────────────────────
 def _download_and_rename(
     target_dir: Path,
     search_term: str,
@@ -105,29 +77,11 @@ def _download_and_rename(
     pixabay_category: str | None = None,
     orientation: str = "horizontal",
 ) -> list[Path]:
-    """
-    Search Pixabay, download photos, rename to slug_NNN.webp, generate thumbs.
-
-    Args:
-        target_dir: Folder to save photos into (will be wiped first)
-        search_term: Pixabay search query
-        slug: Base name for files (e.g. 'kebab' -> kebab_001.webp)
-        count: Desired number of photos
-        target_size: (width, height) to resize to
-        generate_thumbs: Whether to create _thumb variants
-        pixabay_category: Pixabay category filter (e.g. 'places', 'food', 'buildings')
-        orientation: 'horizontal', 'vertical', or 'all'
-
-    Returns:
-        List of saved full-size file paths.
-    """
-    # 1. Clean existing
     if target_dir.exists():
         logger.info(f"  Cleaning:  Cleaning: {target_dir}")
         shutil.rmtree(target_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Search Pixabay (with optional category filter)
     logger.info(
         f"  Searching: Searching: '{search_term}'" + (f" [category={pixabay_category}]" if pixabay_category else "")
     )
@@ -139,7 +93,6 @@ def _download_and_rename(
 
     logger.info(f"  Candidates: {len(results)} candidates, downloading top {count}...")
 
-    # 3. Download sequentially, stop when we have enough
     final_files: list[Path] = []
     for result in results:
         if len(final_files) >= count:
@@ -157,7 +110,6 @@ def _download_and_rename(
     if len(final_files) < count:
         logger.warning(f"  WARNING: Only {len(final_files)} valid images (requested {count}).")
 
-    # 4. Thumbs
     if generate_thumbs and final_files:
         for fp in final_files:
             _generate_thumb(fp)
@@ -166,9 +118,7 @@ def _download_and_rename(
     logger.info(f"  Result: Result: {len(final_files)} photos" + (" + thumbs" if generate_thumbs else ""))
     return final_files
 
-# ── Entity-specific commands ──────────────────────────────────────────────────
 def refetch_dish(category: str, dish_name: str, term: str | None, count: int):
-    """Refetch photos for a single dish variant."""
     if not term:
         bp = _load_blueprint("dishes.json")
         variant_data = bp.get(category, {}).get("variants", {}).get(dish_name, {})
@@ -190,7 +140,6 @@ def refetch_dish(category: str, dish_name: str, term: str | None, count: int):
     )
 
 def refetch_dish_category(category: str, count: int):
-    """Refetch photos for all variants in a dish category."""
     bp = _load_blueprint("dishes.json")
     cat_data = bp.get(category)
     if not cat_data:
@@ -211,7 +160,6 @@ def refetch_dish_category(category: str, count: int):
             logger.error(f"Failed {dish_name}: {e}")
 
 def refetch_restaurant(theme_name: str, term: str | None, count: int):
-    """Refetch photos for a single restaurant theme."""
     if not term:
         bp = _load_blueprint("restaurant_types.json")
         theme_data = bp.get("RESTAURANT_THEMES", {}).get(theme_name, {})
@@ -232,7 +180,6 @@ def refetch_restaurant(theme_name: str, term: str | None, count: int):
     )
 
 def refetch_all_restaurants(count: int):
-    """Refetch photos for all restaurant themes."""
     bp = _load_blueprint("restaurant_types.json")
     themes = bp.get("RESTAURANT_THEMES", {})
     logger.info(f"Folder: All restaurants: {len(themes)} themes")
@@ -248,7 +195,6 @@ def refetch_all_restaurants(count: int):
             logger.error(f"Failed {theme_name}: {e}")
 
 def refetch_ingredient(ing_name: str, term: str | None, count: int):
-    """Refetch photos for a single ingredient."""
     if not term:
         bp = _load_blueprint("ingredient_pixabay_map.json")
         term = bp.get(ing_name)
@@ -266,11 +212,10 @@ def refetch_ingredient(ing_name: str, term: str | None, count: int):
         safe_name,
         count,
         target_size=SIZE_INGREDIENT,
-        generate_thumbs=False,  # ingredients don't use thumbs
+        generate_thumbs=False,
         orientation="all",
     )
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(
         description="Unified photo refetch tool for dishes, restaurants, and ingredients.",
@@ -289,37 +234,31 @@ After refetching, run:  python tools/refresh_photo_index.py
     )
     sub = parser.add_subparsers(dest="entity", required=True)
 
-    # ── dish ──────────────────────────────────────────────────
     p_dish = sub.add_parser("dish", help="Refetch dish photos")
     p_dish.add_argument("--category", required=True, help="Dish category (e.g. 'Burger')")
     p_dish.add_argument("--name", help="Specific variant (omit = whole category)")
     p_dish.add_argument("--term", help="Override Pixabay search term")
     p_dish.add_argument("--count", type=int, default=5, help="Photos per item (default: 5)")
 
-    # ── restaurant ────────────────────────────────────────────
     p_rest = sub.add_parser("restaurant", help="Refetch restaurant photos")
     p_rest.add_argument("--name", help="Theme name (e.g. 'Kebab')")
     p_rest.add_argument("--term", help="Override Pixabay search term")
     p_rest.add_argument("--all", action="store_true", help="Refetch ALL themes")
     p_rest.add_argument("--count", type=int, default=5, help="Photos per theme (default: 5)")
 
-    # ── ingredient ────────────────────────────────────────────
     p_ing = sub.add_parser("ingredient", help="Refetch ingredient photos")
     p_ing.add_argument("--name", required=True, help="Ingredient name")
     p_ing.add_argument("--term", help="Override Pixabay search term")
     p_ing.add_argument("--count", type=int, default=6, help="Photos (default: 6)")
 
-    # ── Global options ─────────────────────────────────────────
     parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
     parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
 
     args = parser.parse_args()
 
-    # Setup logging
     log_level = "DEBUG" if args.debug else "INFO"
     LoggingConfig.setup(level=log_level, quiet=args.quiet)
 
-    # ── Dispatch ──────────────────────────────────────────────
     if args.entity == "dish":
         if args.name:
             refetch_dish(args.category, args.name, args.term, args.count)

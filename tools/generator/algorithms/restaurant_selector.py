@@ -1,7 +1,3 @@
-"""
-Restaurant Selector - Selects restaurants for users based on popularity and preferences.
-"""
-
 import random
 from typing import Any
 
@@ -10,10 +6,6 @@ from utils.distributions import zipf_distribution
 def select_restaurants_for_user(
     user: dict[str, Any], all_restaurants: list[dict[str, Any]], city_id: int, count: int
 ) -> list[int]:
-    """
-    Selects restaurants for user based on anchor items strategy and theme preferences.
-    Regular users: 40% from TOP 20%. Power users: 80% from TOP 30%.
-    """
     city_restaurants = [r for r in all_restaurants if r["city_id"] == city_id]
     if not city_restaurants:
         return []
@@ -61,10 +53,6 @@ def select_restaurants_for_user(
     return selected[:count]
 
 def _select_with_theme_preference(restaurants: list[dict], enjoyed_themes: dict[str, float]) -> dict[str, Any] | None:
-    """
-    Selects restaurant with weighted preference for enjoyed themes.
-    Combines theme affinity with popularity score.
-    """
     if not restaurants:
         return None
 

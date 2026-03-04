@@ -9,7 +9,10 @@ public class ModerationVerdictConverter : ValueConverter<ModerationVerdict, stri
     {
         [ModerationVerdict.Approved] = "approve",
         [ModerationVerdict.Rejected] = "reject",
-        [ModerationVerdict.NeedsReview] = "needs_review"
+        [ModerationVerdict.NeedsReview] = "needs_review",
+        [ModerationVerdict.Banned] = "banned",
+        [ModerationVerdict.Unbanned] = "unbanned",
+        [ModerationVerdict.Resolved] = "resolved"
     };
 
     private static readonly Dictionary<string, ModerationVerdict> FromDb = ToDb

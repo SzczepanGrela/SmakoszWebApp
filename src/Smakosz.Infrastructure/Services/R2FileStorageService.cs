@@ -12,12 +12,12 @@ public class R2FileStorageService : IFileStorageService
 {
     private readonly AmazonS3Client _s3;
     private readonly R2Options _options;
-    private readonly ImageProcessingService _imageProcessor;
+    private readonly IImageProcessingService _imageProcessor;
     private readonly ILogger<R2FileStorageService> _logger;
 
     public R2FileStorageService(
         IOptions<R2Options> options,
-        ImageProcessingService imageProcessor,
+        IImageProcessingService imageProcessor,
         ILogger<R2FileStorageService> logger)
     {
         _options = options.Value;

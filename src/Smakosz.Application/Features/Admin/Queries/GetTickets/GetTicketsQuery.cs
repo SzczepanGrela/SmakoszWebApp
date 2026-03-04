@@ -25,7 +25,7 @@ public class GetTicketsHandler : IRequestHandler<GetTicketsQuery, ErrorOr<PagedR
 
     public async Task<ErrorOr<PagedResult<AdminTicketDto>>> Handle(GetTicketsQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.SystemTickets.AsNoTracking().AsQueryable();

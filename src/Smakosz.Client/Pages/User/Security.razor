@@ -3,10 +3,10 @@
 @inject IUserProfileService UserProfileService
 @inject ToastService Toast
 
-<PageTitle>Bezpieczenstwo - Smakosz</PageTitle>
+<PageTitle>Bezpieczeństwo - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo</h1>
+    <h1 class="mb-4"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo</h1>
 
     <div class="row">
         <!-- Sidebar navigation -->
@@ -19,7 +19,7 @@
                     <i class="fa-solid fa-gear me-2"></i>Ustawienia
                 </a>
                 <a href="/profile/security" class="list-group-item list-group-item-action active">
-                    <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                    <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo
                 </a>
                 <a href="/profile/notifications" class="list-group-item list-group-item-action">
                     <i class="fa-solid fa-bell me-2"></i>Powiadomienia
@@ -32,7 +32,7 @@
             <!-- Change password -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fa-solid fa-key me-2"></i>Zmiana hasla</h5>
+                    <h5 class="mb-0"><i class="fa-solid fa-key me-2"></i>Zmiana hasła</h5>
                 </div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(_passwordError))
@@ -44,36 +44,36 @@
                     @if (_passwordChanged)
                     {
                         <div class="alert alert-success">
-                            <i class="fa-solid fa-check me-2"></i>Haslo zostalo zmienione.
+                            <i class="fa-solid fa-check me-2"></i>Hasło zostało zmienione.
                         </div>
                     }
 
                     <EditForm Model="_passwordModel" OnValidSubmit="HandleChangePassword">
                         <div class="mb-3">
-                            <label class="form-label fw-medium">Obecne haslo</label>
+                            <label class="form-label fw-medium">Obecne hasło</label>
                             <PasswordInput Value="@_passwordModel.CurrentPassword"
                                            ValueChanged="v => _passwordModel.CurrentPassword = v"
-                                           Placeholder="Wprowadz obecne haslo" />
+                                           Placeholder="Wprowadź obecne hasło" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-medium">Nowe haslo</label>
+                            <label class="form-label fw-medium">Nowe hasło</label>
                             <PasswordInput Value="@_passwordModel.NewPassword"
                                            ValueChanged="v => _passwordModel.NewPassword = v"
-                                           Placeholder="Wprowadz nowe haslo" />
-                            <small class="text-muted">Minimum 8 znakow, wielka litera, cyfra i znak specjalny.</small>
+                                           Placeholder="Wprowadź nowe hasło" />
+                            <small class="text-muted">Minimum 8 znaków, wielka litera, cyfra i znak specjalny.</small>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-medium">Potwierdz nowe haslo</label>
+                            <label class="form-label fw-medium">Potwierdź nowe hasło</label>
                             <PasswordInput Value="@_passwordModel.ConfirmPassword"
                                            ValueChanged="v => _passwordModel.ConfirmPassword = v"
-                                           Placeholder="Powtorz nowe haslo" />
+                                           Placeholder="Powtórz nowe hasło" />
                         </div>
                         <button type="submit" class="btn btn-primary" disabled="@_changingPassword">
                             @if (_changingPassword)
                             {
                                 <span class="spinner-border spinner-border-sm me-2"></span>
                             }
-                            Zmien haslo
+                            Zmień hasło
                         </button>
                     </EditForm>
                 </div>
@@ -89,14 +89,14 @@
                             <i class="fa-solid fa-right-from-bracket me-1"></i>Wyloguj wszystkie inne
                         </button>
                         <button class="btn btn-outline-secondary btn-sm" @onclick="LoadSessions" disabled="@_loadingSessions">
-                            <i class="fa-solid fa-rotate me-1"></i>Odswiez
+                            <i class="fa-solid fa-rotate me-1"></i>Odśwież
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     @if (_loadingSessions)
                     {
-                        <LoadingSpinner Text="Ladowanie sesji..." />
+                        <LoadingSpinner Text="Ładowanie sesji..." />
                     }
                     else if (_sessions == null || !_sessions.Any())
                     {
@@ -168,22 +168,22 @@
 
         if (string.IsNullOrWhiteSpace(_passwordModel.CurrentPassword))
         {
-            _passwordError = "Wprowadz obecne haslo.";
+            _passwordError = "Wprowadź obecne hasło.";
             return;
         }
         if (string.IsNullOrWhiteSpace(_passwordModel.NewPassword))
         {
-            _passwordError = "Wprowadz nowe haslo.";
+            _passwordError = "Wprowadź nowe hasło.";
             return;
         }
         if (_passwordModel.NewPassword.Length < 8)
         {
-            _passwordError = "Nowe haslo musi miec co najmniej 8 znakow.";
+            _passwordError = "Nowe hasło musi mieć co najmniej 8 znaków.";
             return;
         }
         if (_passwordModel.NewPassword != _passwordModel.ConfirmPassword)
         {
-            _passwordError = "Hasla nie sa zgodne.";
+            _passwordError = "Hasła nie są zgodne.";
             return;
         }
 
@@ -195,11 +195,11 @@
         {
             _passwordChanged = true;
             _passwordModel = new ChangePasswordModel();
-            Toast.ShowSuccess("Haslo zostalo zmienione.");
+            Toast.ShowSuccess("Hasło zostało zmienione.");
         }
         else
         {
-            _passwordError = "Nie udalo sie zmienic hasla. Sprawdz, czy obecne haslo jest poprawne.";
+            _passwordError = "Nie udało się zmienić hasła. Sprawdź, czy obecne hasło jest poprawne.";
         }
         _changingPassword = false;
     }
@@ -209,12 +209,12 @@
         var success = await UserProfileService.RevokeSessionAsync(sessionId);
         if (success)
         {
-            Toast.ShowSuccess("Sesja zostala wylogowana.");
+            Toast.ShowSuccess("Sesja została wylogowana.");
             await LoadSessions();
         }
         else
         {
-            Toast.ShowError("Nie udalo sie wylogowac sesji.");
+            Toast.ShowError("Nie udało się wylogować sesji.");
         }
     }
 
@@ -223,12 +223,12 @@
         var success = await UserProfileService.RevokeAllSessionsAsync();
         if (success)
         {
-            Toast.ShowSuccess("Wszystkie inne sesje zostaly wylogowane.");
+            Toast.ShowSuccess("Wszystkie inne sesje zostały wylogowane.");
             await LoadSessions();
         }
         else
         {
-            Toast.ShowError("Nie udalo sie wylogowac sesji.");
+            Toast.ShowError("Nie udało się wylogować sesji.");
         }
     }
 

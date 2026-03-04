@@ -1,6 +1,6 @@
 @page "/restaurant/reviews"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 
 <PageTitle>Recenzje - Panel restauracji</PageTitle>
@@ -13,12 +13,12 @@
 }
 else if (_reviews == null || !_reviews.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji" Description="Gdy klienci dodadza recenzje, pojawia sie tutaj." />
+    <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji" Description="Gdy klienci dodadzą recenzje, pojawią się tutaj." />
 }
 else
 {
     <div class="mb-3">
-        <small class="text-muted">Laczna liczba recenzji: @_reviews.Pagination.TotalCount</small>
+        <small class="text-muted">Łączna liczba recenzji: @_reviews.Pagination.TotalCount</small>
     </div>
 
     @foreach (var review in _reviews.Data)
@@ -39,8 +39,8 @@ else
 
                 <div class="d-flex gap-3 mb-2 small">
                     <span><i class="fa-solid fa-utensils me-1"></i>Danie: @review.DishRating/10</span>
-                    <span><i class="fa-solid fa-bell-concierge me-1"></i>Obsluga: @review.ServiceRating/10</span>
-                    <span><i class="fa-solid fa-broom me-1"></i>Czystosc: @review.CleanlinessRating/10</span>
+                    <span><i class="fa-solid fa-bell-concierge me-1"></i>Obsługa: @review.ServiceRating/10</span>
+                    <span><i class="fa-solid fa-broom me-1"></i>Czystość: @review.CleanlinessRating/10</span>
                     <span><i class="fa-solid fa-couch me-1"></i>Atmosfera: @review.AmbianceRating/10</span>
                 </div>
 

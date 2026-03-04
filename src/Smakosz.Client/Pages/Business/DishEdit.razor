@@ -1,6 +1,6 @@
 @page "/restaurant/dishes/edit/{Id:guid}"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 @inject NavigationManager Navigation
 @inject ToastService Toast
@@ -15,7 +15,7 @@
 }
 else if (_dish == null)
 {
-    <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Powrot do listy" ActionUrl="/restaurant/dishes" />
+    <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Powrót do listy" ActionUrl="/restaurant/dishes" />
 }
 else
 {
@@ -39,7 +39,7 @@ else
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium">Cena (zl)</label>
+                            <label class="form-label fw-medium">Cena (zł)</label>
                             <input type="number" class="form-control" step="0.01" @bind="_dish.Price" />
                         </div>
                         <div class="col-md-6 mb-3">
@@ -48,7 +48,7 @@ else
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-medium">Zdjecie dania</label>
+                        <label class="form-label fw-medium">Zdjęcie dania</label>
                         <ImageUpload EntityType="dish" CurrentImageUrl="@_dish.ImageUrl"
                                      OnImageUploaded="url => _dish.ImageUrl = url" />
                     </div>
@@ -62,11 +62,11 @@ else
                         <div class="col-md-6">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" @bind="_dish.IsVegetarian" />
-                                <label class="form-check-label">Wegetarianskie</label>
+                                <label class="form-check-label">Wegetariańskie</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" @bind="_dish.IsVegan" />
-                                <label class="form-check-label">Weganskie</label>
+                                <label class="form-check-label">Wegańskie</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" @bind="_dish.IsGlutenFree" />
@@ -84,7 +84,7 @@ else
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" @bind="_dish.IsAvailable" />
-                                <label class="form-check-label">Dostepne</label>
+                                <label class="form-check-label">Dostępne</label>
                             </div>
                         </div>
                     </div>
@@ -99,7 +99,7 @@ else
                     <h6 class="fw-bold">@_dish.DishName</h6>
                     @if (_dish.Price.HasValue)
                     {
-                        <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zl</span>
+                        <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zł</span>
                     }
                     @if (_dish.AvgRating.HasValue)
                     {
@@ -115,7 +115,7 @@ else
 
     <div class="d-flex justify-content-between">
         <a href="/restaurant/dishes" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Powrot
+            <i class="fa-solid fa-arrow-left me-1"></i>Powrót
         </a>
         <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
             @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
@@ -151,12 +151,12 @@ else
         var success = await BusinessService.UpdateDishAsync(Id, _dish);
         if (success)
         {
-            Toast.ShowSuccess("Danie zostalo zaktualizowane.");
+            Toast.ShowSuccess("Danie zostało zaktualizowane.");
             Navigation.NavigateTo("/restaurant/dishes");
         }
         else
         {
-            _error = "Nie udalo sie zapisac zmian.";
+            _error = "Nie udało się zapisać zmian.";
         }
         _saving = false;
     }

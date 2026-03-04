@@ -26,7 +26,7 @@ public class AuthController : ApiController
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
         var result = await _mediator.Send(command);
-        return ToCreatedResult(result);
+        return ToNoContentResult(result);
     }
 
     [HttpPost("login")]
@@ -50,7 +50,6 @@ public class AuthController : ApiController
         return ToNoContentResult(result);
     }
 
-    [Authorize]
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailCommand command)
     {

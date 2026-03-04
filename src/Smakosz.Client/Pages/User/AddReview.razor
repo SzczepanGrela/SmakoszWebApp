@@ -1,17 +1,17 @@
 @page "/review/add"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "user")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "User")]
 @inject IReviewService ReviewService
 @inject IDishService DishService
 @inject ISearchService SearchService
 @inject NavigationManager Navigation
 @inject ToastService Toast
 
-<PageTitle>Dodaj recenzje - Smakosz</PageTitle>
+<PageTitle>Dodaj recenzję - Smakosz</PageTitle>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-4"><i class="fa-solid fa-pen-to-square me-2"></i>Dodaj recenzje</h1>
+            <h1 class="mb-4"><i class="fa-solid fa-pen-to-square me-2"></i>Dodaj recenzję</h1>
 
             @if (!string.IsNullOrEmpty(_error))
             {
@@ -22,7 +22,7 @@
 
             @if (_loadingDish)
             {
-                <LoadingSpinner Text="Ladowanie dania..." />
+                <LoadingSpinner Text="Ładowanie dania..." />
             }
             else
             {
@@ -69,7 +69,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" @bind="_dishSearchQuery"
                                            @onkeydown="HandleDishSearchKey"
-                                           placeholder="Wpisz nazwe dania..." />
+                                           placeholder="Wpisz nazwę dania..." />
                                     <button class="btn btn-outline-primary" @onclick="SearchDishes" disabled="@_searchingDishes">
                                         @if (_searchingDishes)
                                         {
@@ -106,7 +106,7 @@
                             }
                             else if (_dishSearchResults != null && !_dishSearchResults.Any())
                             {
-                                <p class="text-muted small mt-2">Nie znaleziono dan. Sprobuj innej frazy.</p>
+                                <p class="text-muted small mt-2">Nie znaleziono dań. Spróbuj innej frazy.</p>
                             }
                         }
                     </div>
@@ -122,9 +122,9 @@
                         <div class="card-body">
                             <RatingInput Label="Ocena dania" Value="@_model.DishRating"
                                          ValueChanged="v => _model.DishRating = v" />
-                            <RatingInput Label="Obsluga" Value="@_model.ServiceRating"
+                            <RatingInput Label="Obsługa" Value="@_model.ServiceRating"
                                          ValueChanged="v => _model.ServiceRating = v" />
-                            <RatingInput Label="Czystosc" Value="@_model.CleanlinessRating"
+                            <RatingInput Label="Czystość" Value="@_model.CleanlinessRating"
                                          ValueChanged="v => _model.CleanlinessRating = v" />
                             <RatingInput Label="Atmosfera" Value="@_model.AmbianceRating"
                                          ValueChanged="v => _model.AmbianceRating = v" />
@@ -133,13 +133,13 @@
 
                     <div class="card shadow-sm mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0"><i class="fa-solid fa-comment me-2"></i>Szczegoly</h5>
+                            <h5 class="mb-0"><i class="fa-solid fa-comment me-2"></i>Szczegóły</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label fw-medium">Tresc recenzji</label>
+                                <label class="form-label fw-medium">Treść recenzji</label>
                                 <textarea class="form-control" rows="5" @bind="_model.Content"
-                                          placeholder="Opisz swoje doswiadczenie... Co Ci smakowalo? Co mozna poprawic?"></textarea>
+                                          placeholder="Opisz swoje doświadczenie... Co Ci smakowało? Co można poprawić?"></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Data wizyty</label>
@@ -158,7 +158,7 @@
                             {
                                 <span class="spinner-border spinner-border-sm me-2"></span>
                             }
-                            <i class="fa-solid fa-paper-plane me-1"></i>Opublikuj recenzje
+                            <i class="fa-solid fa-paper-plane me-1"></i>Opublikuj recenzję
                         </button>
                     </div>
                 }
@@ -235,7 +235,7 @@
 
         if (_selectedDish == null || _model.DishPublicId == Guid.Empty)
         {
-            _error = "Wybierz danie, ktore chcesz ocenic.";
+            _error = "Wybierz danie, które chcesz ocenić.";
             return;
         }
         if (_model.DishRating < 1)
@@ -245,12 +245,12 @@
         }
         if (_model.ServiceRating < 1)
         {
-            _error = "Ocena obslugi jest wymagana (minimum 1).";
+            _error = "Ocena obsługi jest wymagana (minimum 1).";
             return;
         }
         if (_model.CleanlinessRating < 1)
         {
-            _error = "Ocena czystosci jest wymagana (minimum 1).";
+            _error = "Ocena czystości jest wymagana (minimum 1).";
             return;
         }
         if (_model.AmbianceRating < 1)
@@ -265,12 +265,12 @@
         var result = await ReviewService.CreateAsync(_model);
         if (result.Success)
         {
-            Toast.ShowSuccess("Recenzja zostala opublikowana!");
+            Toast.ShowSuccess("Recenzja została opublikowana!");
             Navigation.NavigateTo($"/dish/{_selectedDish.Slug}");
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udalo sie opublikowac recenzji. Sprobuj ponownie.";
+            _error = result.Error?.Message ?? "Nie udało się opublikować recenzji. Spróbuj ponownie.";
         }
         _submitting = false;
     }

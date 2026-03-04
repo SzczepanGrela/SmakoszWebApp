@@ -1,4 +1,4 @@
-<a href="/search?query=@Name" class="card category-card text-decoration-none">
+<a href="/search?cuisines=@Uri.EscapeDataString(Name)&type=dishes" class="card category-card text-decoration-none">
     <div class="card-body text-center py-3">
         @if (!string.IsNullOrEmpty(Icon))
         {

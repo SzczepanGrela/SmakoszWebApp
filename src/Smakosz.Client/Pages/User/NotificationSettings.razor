@@ -3,10 +3,10 @@
 @inject IUserProfileService UserProfileService
 @inject ToastService Toast
 
-<PageTitle>Ustawienia powiadomien - Smakosz</PageTitle>
+<PageTitle>Ustawienia powiadomień - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fa-solid fa-bell me-2"></i>Ustawienia powiadomien</h1>
+    <h1 class="mb-4"><i class="fa-solid fa-bell me-2"></i>Ustawienia powiadomień</h1>
 
     <div class="row">
         <!-- Sidebar navigation -->
@@ -19,7 +19,7 @@
                     <i class="fa-solid fa-gear me-2"></i>Ustawienia
                 </a>
                 <a href="/profile/security" class="list-group-item list-group-item-action">
-                    <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                    <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo
                 </a>
                 <a href="/profile/notifications" class="list-group-item list-group-item-action active">
                     <i class="fa-solid fa-bell me-2"></i>Powiadomienia
@@ -31,18 +31,18 @@
         <div class="col-lg-9">
             @if (_loading)
             {
-                <LoadingSpinner Text="Ladowanie ustawien powiadomien..." />
+                <LoadingSpinner Text="Ładowanie ustawień powiadomień..." />
             }
             else if (_settings == null)
             {
-                <EmptyState Icon="fa-solid fa-bell-slash" Title="Nie udalo sie zaladowac ustawien"
-                            Description="Sprobuj odswiezyc strone." />
+                <EmptyState Icon="fa-solid fa-bell-slash" Title="Nie udało się załadować ustawień"
+                            Description="Spróbuj odświeżyć stronę." />
             }
             else
             {
                 <div class="card shadow-sm">
                     <div class="card-header">
-                        <h5 class="mb-0">Preferencje powiadomien</h5>
+                        <h5 class="mb-0">Preferencje powiadomień</h5>
                     </div>
                     <div class="card-body">
                         @if (!string.IsNullOrEmpty(_error))
@@ -54,7 +54,7 @@
                         @if (_saved)
                         {
                             <div class="alert alert-success">
-                                <i class="fa-solid fa-check me-2"></i>Ustawienia zostaly zapisane.
+                                <i class="fa-solid fa-check me-2"></i>Ustawienia zostały zapisane.
                             </div>
                         }
 
@@ -65,7 +65,7 @@
                                     <div class="fw-medium">
                                         <i class="fa-solid fa-thumbs-up me-2 text-muted"></i>Polubienia
                                     </div>
-                                    <small class="text-muted">Powiadamiaj mnie, gdy ktos polubi moja recenzje.</small>
+                                    <small class="text-muted">Powiadamiaj mnie, gdy ktoś polubi moją recenzję.</small>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
@@ -78,9 +78,9 @@
                             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                                 <div>
                                     <div class="fw-medium">
-                                        <i class="fa-solid fa-user-plus me-2 text-muted"></i>Nowi obserwujacy
+                                        <i class="fa-solid fa-user-plus me-2 text-muted"></i>Nowi obserwujący
                                     </div>
-                                    <small class="text-muted">Powiadamiaj mnie, gdy ktos zacznie mnie obserwowac.</small>
+                                    <small class="text-muted">Powiadamiaj mnie, gdy ktoś zacznie mnie obserwować.</small>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
@@ -95,7 +95,7 @@
                                     <div class="fw-medium">
                                         <i class="fa-solid fa-circle-info me-2 text-muted"></i>Systemowe
                                     </div>
-                                    <small class="text-muted">Otrzymuj powiadomienia systemowe i wazne informacje.</small>
+                                    <small class="text-muted">Otrzymuj powiadomienia systemowe i ważne informacje.</small>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
@@ -144,11 +144,11 @@
         if (success)
         {
             _saved = true;
-            Toast.ShowSuccess("Ustawienia powiadomien zostaly zapisane.");
+            Toast.ShowSuccess("Ustawienia powiadomień zostały zapisane.");
         }
         else
         {
-            _error = "Nie udalo sie zapisac ustawien. Sprobuj ponownie.";
+            _error = "Nie udało się zapisać ustawień. Spróbuj ponownie.";
         }
         _saving = false;
     }

@@ -1,20 +1,11 @@
-"""
-Integration test for Phase 0 migration to new architecture.
-
-Validates that SystemConfigPhase produces identical results to legacy
-generate_system_config() function.
-"""
-
 from unittest.mock import MagicMock, Mock
 
 from generators.phase0_config import SystemConfigPhase
 from orchestration import ExecutionContext, PhaseRegistry, PhaseStatus
 
 class TestPhase0Migration:
-    """Test Phase 0 migration from function to BasePhase."""
 
     def test_system_config_phase_metadata(self):
-        """Test that SystemConfigPhase has correct metadata."""
         phase = SystemConfigPhase(blueprints_dir="blueprints")
         metadata = phase.metadata
 
@@ -25,16 +16,13 @@ class TestPhase0Migration:
         assert metadata.estimated_duration == 5
 
     def test_system_config_phase_execute_structure(self):
-        """Test that execute() returns proper PhaseResult structure."""
         phase = SystemConfigPhase(blueprints_dir="blueprints")
 
-        # Mock context
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 
         context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
-        # Mock file reading to avoid filesystem dependency
         import json
         from unittest.mock import mock_open, patch
 
@@ -45,7 +33,6 @@ class TestPhase0Migration:
         with patch("builtins.open", mock_open(read_data=json.dumps(mock_config))):
             result = phase.execute(context)
 
-        # Verify result structure
         assert result.phase_id == "phase0_config"
         assert result.status == PhaseStatus.COMPLETED
         assert result.duration_seconds >= 0
@@ -54,7 +41,6 @@ class TestPhase0Migration:
         assert result.error is None
 
     def test_system_config_phase_handles_missing_file(self):
-        """Test that phase handles missing blueprint file gracefully."""
         phase = SystemConfigPhase(blueprints_dir="nonexistent")
 
         mock_db = MagicMock()
@@ -62,29 +48,23 @@ class TestPhase0Migration:
 
         result = phase.execute(context)
 
-        # Should return FAILED status
         assert result.status == PhaseStatus.FAILED
         assert result.error is not None
         assert isinstance(result.error, FileNotFoundError)
 
     def test_phase_registry_integration(self):
-        """Test that SystemConfigPhase integrates with PhaseRegistry."""
         registry = PhaseRegistry()
         phase = SystemConfigPhase(blueprints_dir="blueprints")
 
-        # Should register without error
         registry.register(phase)
 
-        # Should be retrievable
         retrieved = registry.get("phase0_config")
         assert retrieved is phase
 
-        # Dependency resolution should work (no dependencies)
         resolved = registry.resolve_dependencies(["phase0_config"])
         assert resolved == ["phase0_config"]
 
     def test_execute_inserts_correct_data(self):
-        """Test that execute() inserts correct data structure into system.config."""
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 

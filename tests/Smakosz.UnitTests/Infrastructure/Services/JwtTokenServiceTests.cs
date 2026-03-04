@@ -60,7 +60,7 @@ public class JwtTokenServiceTests
         var jwt = handler.ReadJwtToken(token);
 
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == "42");
-        jwt.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "user");
+        jwt.Claims.Should().Contain(c => c.Type == ClaimTypes.Role && c.Value == "User");
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Email && c.Value == "jwt@test.com");
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Name && c.Value == "jwtuser");
     }

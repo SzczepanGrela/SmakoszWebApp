@@ -11,7 +11,6 @@ class DateGenerator:
 
     @staticmethod
     def ensure_naive(dt: Any) -> datetime:
-        """Ensure a datetime object is naive (no timezone)."""
         if dt is None:
             return None  # type: ignore[return-value]
         if not isinstance(dt, datetime):
@@ -94,10 +93,6 @@ class DateGenerator:
         return dates
 
     def generate_dates_skewed_to_end(self, count: int, start_date: datetime, end_date: datetime) -> list[datetime]:
-        """
-        Generate dates distributed between start_date and end_date,
-        heavily skewed towards end_date (recent times) using Beta distribution.
-        """
         if count <= 0:
             return []
 
@@ -144,5 +139,4 @@ class DateGenerator:
 
     @staticmethod
     def to_sql_date(dt: datetime) -> str:
-        """Convert datetime to SQL DATE format (YYYY-MM-DD)."""
         return dt.strftime("%Y-%m-%d")

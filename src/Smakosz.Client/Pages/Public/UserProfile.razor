@@ -1,47 +1,59 @@
 @page "/users/{Slug}"
 @inject Smakosz.Client.Services.IUserProfileService UserProfileService
 @inject Smakosz.Client.Services.IReviewService ReviewService
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(_profile?.Username ?? "Profil") - Smakosz</PageTitle>
 
 @if (_loading)
 {
-    <Smakosz.Client.Components.LoadingSpinner Text="Ladowanie profilu..." />
+    <Smakosz.Client.Components.LoadingSpinner Text="Ładowanie profilu..." />
 }
 else if (_profile == null)
 {
     <div class="container mt-5">
-        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono uzytkownika" ActionText="Strona glowna" ActionUrl="/" />
+        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono użytkownika" ActionText="Strona główna" ActionUrl="/" />
     </div>
 }
 else
 {
-    <div class="container mt-4">
-        <div class="profile-header text-center">
-            <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
-                 alt="@_profile.Username" class="profile-avatar rounded-circle mb-3" />
-            <h2>@_profile.Username</h2>
-            <div class="d-flex justify-content-center gap-4 mt-3">
-                <div class="text-center">
-                    <div class="fw-bold">@_profile.ReviewCount</div>
-                    <small class="text-muted">Recenzji</small>
-                </div>
-                <a href="/users/@Slug/followers" class="text-center text-decoration-none" style="color:var(--text-color);">
-                    <div class="fw-bold">@_profile.FollowersCount</div>
-                    <small class="text-muted">Obserwujacych</small>
-                </a>
-                <a href="/users/@Slug/following" class="text-center text-decoration-none" style="color:var(--text-color);">
-                    <div class="fw-bold">@_profile.FollowingCount</div>
-                    <small class="text-muted">Obserwuje</small>
-                </a>
-            </div>
-            <AuthorizeView Roles="user">
-                <Authorized>
-                    <div class="mt-3">
-                        <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowedByCurrentUser" OnToggle="ToggleFollow" />
+    <div class="container mt-4" style="max-width:800px;">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body text-center py-4">
+                <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
+                     alt="@_profile.Username" class="profile-avatar rounded-circle mb-3" />
+                <h2 class="mb-1">@_profile.Username</h2>
+                @if (_profile.CreatedAt.HasValue)
+                {
+                    <small class="text-muted d-block mb-3">
+                        <i class="fa-solid fa-calendar-days me-1"></i>Członek od @FormatJoinDate(_profile.CreatedAt.Value)
+                    </small>
+                }
+                <div class="d-flex justify-content-center gap-4 mt-2">
+                    <div class="text-center">
+                        <div class="fw-bold">@_profile.ReviewCount</div>
+                        <small class="text-muted">Recenzji</small>
                     </div>
-                </Authorized>
-            </AuthorizeView>
+                    <a href="/users/@Slug/followers" class="text-center text-decoration-none" style="color:var(--text-color);">
+                        <div class="fw-bold">@_profile.FollowersCount</div>
+                        <small class="text-muted">Obserwujących</small>
+                    </a>
+                    <a href="/users/@Slug/following" class="text-center text-decoration-none" style="color:var(--text-color);">
+                        <div class="fw-bold">@_profile.FollowingCount</div>
+                        <small class="text-muted">Obserwuje</small>
+                    </a>
+                </div>
+                @if (!_isOwnProfile)
+                {
+                    <AuthorizeView Roles="User">
+                        <Authorized>
+                            <div class="mt-3">
+                                <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowedByCurrentUser" OnToggle="ToggleFollow" />
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+                }
+            </div>
         </div>
 
         <Smakosz.Client.Components.SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
@@ -53,9 +65,14 @@ else
             }
             <Smakosz.Client.Components.Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviews" />
         }
+        else if (_isOwnProfile)
+        {
+            <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-comments" Title="Nie wystawiłeś jeszcze żadnej recenzji"
+                                                   Description="Pora to zmienić!" ActionText="Szukaj dań" ActionUrl="/search" />
+        }
         else
         {
-            <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji" />
+            <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-comments" Title="Ten użytkownik nie wystawił jeszcze żadnej recenzji" />
         }
     </div>
 }
@@ -65,10 +82,20 @@ else
     private Smakosz.Client.Models.UserPublicProfileDto? _profile;
     private Smakosz.Client.Models.PagedResult<Smakosz.Client.Models.ReviewCardDto>? _reviews;
     private bool _loading = true;
+    private bool _isOwnProfile;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var currentUsername = authState.User.Identity?.Name;
+
         _profile = await UserProfileService.GetUserProfileAsync(Slug);
+
+        if (_profile != null && currentUsername != null)
+        {
+            _isOwnProfile = string.Equals(_profile.Username, currentUsername, StringComparison.OrdinalIgnoreCase);
+        }
+
         await LoadReviews(1);
         _loading = false;
     }
@@ -92,5 +119,12 @@ else
             _profile.IsFollowedByCurrentUser = !_profile.IsFollowedByCurrentUser;
             _profile.FollowersCount += _profile.IsFollowedByCurrentUser ? 1 : -1;
         }
+    }
+
+    private static string FormatJoinDate(DateTime date)
+    {
+        var months = new[] { "", "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
+                             "lipca", "sierpnia", "września", "października", "listopada", "grudnia" };
+        return $"{months[date.Month]} {date.Year}";
     }
 }

@@ -25,7 +25,7 @@ public class GetPendingReviewsHandler : IRequestHandler<GetPendingReviewsQuery, 
 
     public async Task<ErrorOr<PagedResult<ReviewModerationDto>>> Handle(GetPendingReviewsQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.Reviews

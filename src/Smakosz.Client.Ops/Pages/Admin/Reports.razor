@@ -1,6 +1,6 @@
 @page "/admin/reports"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -10,8 +10,8 @@
     <h2 class="fw-bold mb-0"><i class="fa-solid fa-flag me-2"></i>Raporty</h2>
     <div class="btn-group btn-group-sm">
         <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
-        <button class="btn @(_statusFilter == "pending" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("pending")'>Oczekujace</button>
-        <button class="btn @(_statusFilter == "resolved" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("resolved")'>Rozwiazane</button>
+        <button class="btn @(_statusFilter == "pending" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("pending")'>Oczekujące</button>
+        <button class="btn @(_statusFilter == "resolved" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("resolved")'>Rozwiązane</button>
     </div>
 </div>
 
@@ -21,7 +21,7 @@
 }
 else if (_reports == null || !_reports.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-flag" Title="Brak raportow" />
+    <EmptyState Icon="fa-solid fa-flag" Title="Brak raportów" />
 }
 else
 {
@@ -29,9 +29,9 @@ else
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>Powod</th>
+                    <th>Powód</th>
                     <th>Typ</th>
-                    <th>Zglaszajacy</th>
+                    <th>Zgłaszający</th>
                     <th>Status</th>
                     <th>Data</th>
                     <th></th>
