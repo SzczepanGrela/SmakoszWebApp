@@ -13,16 +13,16 @@ public class ResendVerificationHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IEmailService _emailService;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
     private readonly ResendVerificationHandler _handler;
 
     public ResendVerificationHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _emailService = Substitute.For<IEmailService>();
-        _passwordHasher = Substitute.For<IPasswordHasher>();
-        _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
-        _handler = new ResendVerificationHandler(_db, _emailService, _passwordHasher);
+        _codeHasher = Substitute.For<ICodeHasher>();
+        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
+        _handler = new ResendVerificationHandler(_db, _emailService, _codeHasher);
     }
 
     [Fact]

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Infrastructure.Configuration;
+using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Infrastructure.Services;
 
@@ -22,6 +24,9 @@ public static class DependencyInjection
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<ICodeHasher>(sp =>
+            new HmacCodeHasher(configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("Jwt:Key is required for ICodeHasher")));
         services.AddScoped<IJwtTokenService>(sp =>
             new JwtTokenService(configuration));
         // Email - Brevo if configured, otherwise stub
@@ -56,7 +61,7 @@ public static class DependencyInjection
                 PublicUrl = r2Section["PublicUrl"] ?? string.Empty
             };
             services.AddSingleton(Microsoft.Extensions.Options.Options.Create(r2Options));
-            services.AddSingleton<ImageProcessingService>();
+            services.AddSingleton<IImageProcessingService, ImageProcessingService>();
             services.AddScoped<IFileStorageService, R2FileStorageService>();
         }
         else
@@ -68,5 +73,12 @@ public static class DependencyInjection
         services.AddScoped<INcfTrainingService, NcfTrainingService>();
 
         return services;
+    }
+
+    public static ILoggingBuilder AddSmakoszDbLogging(
+        this ILoggingBuilder builder,
+        Action<DbLoggerOptions>? configure = null)
+    {
+        return builder.AddDatabaseLogger(configure);
     }
 }

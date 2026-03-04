@@ -1,4 +1,3 @@
-using ErrorOr;
 using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
@@ -14,38 +13,33 @@ public class RegisterHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICodeHasher _codeHasher;
     private readonly ICurrentUserService _currentUser;
+    private readonly IEmailService _emailService;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _jwtTokenService = Substitute.For<IJwtTokenService>();
+        _codeHasher = Substitute.For<ICodeHasher>();
         _currentUser = Substitute.For<ICurrentUserService>();
+        _emailService = Substitute.For<IEmailService>();
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
-        _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
-        _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
+        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _jwtTokenService, _currentUser);
+        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService);
     }
 
     [Fact]
-    public async Task Handle_ValidCommand_ReturnsAuthResult()
+    public async Task Handle_ValidCommand_ReturnsSuccess()
     {
         var command = new RegisterCommand("newuser", "new@example.com", "Password123");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.AccessToken.Should().Be("access_token");
-        result.Value.RefreshToken.Should().Be("refresh_token");
-        result.Value.User.Username.Should().Be("newuser");
-        result.Value.User.Email.Should().Be("new@example.com");
-        result.Value.User.Role.Should().Be("User");
-        result.Value.User.EmailVerified.Should().BeFalse();
     }
 
     [Fact]
@@ -75,18 +69,7 @@ public class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task Handle_EmailStoredLowercase_NormalizesEmail()
-    {
-        var command = new RegisterCommand("newuser", "Test@Example.COM", "Password123");
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        result.IsError.Should().BeFalse();
-        result.Value.User.Email.Should().Be("test@example.com");
-    }
-
-    [Fact]
-    public async Task Handle_ValidCommand_HashesPassword()
+    public async Task Handle_ValidCommand_HashesPasswordWithPasswordHasher()
     {
         var command = new RegisterCommand("newuser", "new@example.com", "Password123");
 
@@ -96,13 +79,24 @@ public class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidCommand_SavesChangestwice()
+    public async Task Handle_ValidCommand_HashesCodeWithCodeHasher()
     {
         var command = new RegisterCommand("newuser", "new@example.com", "Password123");
 
         await _handler.Handle(command, CancellationToken.None);
 
-        // Assert - first SaveChanges for User, second for UserSession
-        await _db.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
+        // Assert - verification code is hashed with ICodeHasher, not IPasswordHasher
+        _codeHasher.Received(1).Hash(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task Handle_ValidCommand_SendsVerificationEmail()
+    {
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        await _emailService.Received(1).SendVerificationCodeAsync(
+            "new@example.com", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

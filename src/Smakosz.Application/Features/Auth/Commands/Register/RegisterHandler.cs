@@ -3,29 +3,30 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
-using Smakosz.Application.Features.Auth.Dtos;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Auth.Commands.Register;
 
-public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthResultDto>>
+public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICodeHasher _codeHasher;
     private readonly ICurrentUserService _currentUser;
+    private readonly IEmailService _emailService;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ICurrentUserService currentUser)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService)
     {
         _db = db;
         _passwordHasher = passwordHasher;
-        _jwtTokenService = jwtTokenService;
+        _codeHasher = codeHasher;
         _currentUser = currentUser;
+        _emailService = emailService;
     }
 
-    public async Task<ErrorOr<AuthResultDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var emailExists = await _db.Users
             .AnyAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
@@ -89,34 +90,30 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthResu
         _db.Users.Add(user);
         await _db.SaveChangesAsync(cancellationToken);
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
-
-        var session = new UserSession
+        // Generate and send verification code
+        var code = Random.Shared.Next(100000, 999999).ToString();
+        _db.VerificationCodes.Add(new VerificationCode
         {
             UserId = user.UserId,
-            RefreshTokenHash = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
-        };
-
-        _db.UserSessions.Add(session);
+            CodeHash = _codeHasher.Hash(code),
+            Type = VerificationCodeType.Register,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+        });
         await _db.SaveChangesAsync(cancellationToken);
 
-        return new AuthResultDto
+        await _emailService.SendVerificationCodeAsync(user.Email, code, cancellationToken);
+
+        _db.EmailLogs.Add(new EmailLog
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
-            User = new UserProfileDto
-            {
-                PublicId = user.PublicId,
-                Slug = user.Slug ?? string.Empty,
-                Username = user.Username,
-                Email = user.Email,
-                AvatarUrl = user.AvatarUrl,
-                Role = user.Role.ToString(),
-                EmailVerified = user.EmailVerified
-            }
-        };
+            Type = "Verification",
+            Recipient = user.Email,
+            Subject = "Weryfikacja email",
+            Status = "sent",
+            CreatedAt = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return Result.Success;
     }
 }

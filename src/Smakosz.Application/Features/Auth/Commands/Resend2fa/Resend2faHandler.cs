@@ -12,13 +12,13 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
 
-    public Resend2faHandler(ISmakoszDbContext db, IEmailService emailService, IPasswordHasher passwordHasher)
+    public Resend2faHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
     {
         _db = db;
         _emailService = emailService;
-        _passwordHasher = passwordHasher;
+        _codeHasher = codeHasher;
     }
 
     public async Task<ErrorOr<Success>> Handle(Resend2faCommand request, CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
         var verificationCode = new VerificationCode
         {
             UserId = user.UserId,
-            CodeHash = _passwordHasher.Hash(code),
+            CodeHash = _codeHasher.Hash(code),
             Type = VerificationCodeType.TwoFactorAuth,
             ExpiresAt = DateTime.UtcNow.AddMinutes(10)
         };
