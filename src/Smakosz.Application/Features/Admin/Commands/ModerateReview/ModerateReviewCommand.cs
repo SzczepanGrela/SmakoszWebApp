@@ -33,10 +33,35 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         if (review is null)
             return DomainErrors.Review.NotFound;
 
-        review.ContentStatus = request.Approve ? ReviewContentStatus.Approved : ReviewContentStatus.Rejected;
+        review.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
+        review.IsApproved = request.Approve;
 
         if (!request.Approve)
             review.ContentRejectionReason = request.RejectionReason;
+
+        // Upsert ModerationResult
+        var existing = await _db.ModerationResults
+            .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Review && r.EntityId == review.ReviewId, cancellationToken);
+        var now = DateTime.UtcNow;
+        if (existing is null)
+        {
+            _db.ModerationResults.Add(new ModerationResult
+            {
+                EntityType = ModerationEntityType.Review,
+                EntityId = review.ReviewId,
+                Status = review.ModerationStatus,
+                RejectionReason = request.RejectionReason,
+                ProcessedAt = now,
+                CreatedAt = now
+            });
+        }
+        else
+        {
+            existing.Status = review.ModerationStatus;
+            existing.RejectionReason = request.RejectionReason;
+            existing.ProcessedAt = now;
+            existing.UpdatedAt = now;
+        }
 
         _db.ModerationLogs.Add(new ModerationLog
         {

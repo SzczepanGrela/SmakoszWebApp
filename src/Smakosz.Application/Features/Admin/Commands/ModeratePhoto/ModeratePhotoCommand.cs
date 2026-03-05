@@ -33,7 +33,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
         if (asset is null)
             return DomainErrors.Photo.NotFound;
 
-        asset.Status = request.Approve ? MediaAssetStatus.Approved : MediaAssetStatus.Rejected;
+        asset.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
 
         if (request.Approve && asset.UploadedBy.HasValue)
         {
@@ -44,6 +44,30 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 
         if (!request.Approve)
             asset.RejectionReason = request.RejectionReason;
+
+        // Upsert ModerationResult
+        var existingResult = await _db.ModerationResults
+            .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Photo && r.EntityId == (int)asset.AssetId, cancellationToken);
+        var now = DateTime.UtcNow;
+        if (existingResult is null)
+        {
+            _db.ModerationResults.Add(new ModerationResult
+            {
+                EntityType = ModerationEntityType.Photo,
+                EntityId = (int)asset.AssetId,
+                Status = asset.ModerationStatus,
+                RejectionReason = request.RejectionReason,
+                ProcessedAt = now,
+                CreatedAt = now
+            });
+        }
+        else
+        {
+            existingResult.Status = asset.ModerationStatus;
+            existingResult.RejectionReason = request.RejectionReason;
+            existingResult.ProcessedAt = now;
+            existingResult.UpdatedAt = now;
+        }
 
         _db.ModerationLogs.Add(new ModerationLog
         {

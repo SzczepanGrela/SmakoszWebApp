@@ -56,6 +56,7 @@ public class RegisterBusinessHandler : IRequestHandler<RegisterBusinessCommand, 
             Email = request.Email,
             CityId = request.CityId,
             Status = RestaurantStatus.PendingVerification,
+            ModerationStatus = ContentModerationStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
 

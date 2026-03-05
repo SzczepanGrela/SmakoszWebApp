@@ -4,6 +4,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Business.Commands.UpdateDish;
 
@@ -41,11 +44,40 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (dish.Restaurant?.OwnerId != _currentUser.UserId.Value)
             return DomainErrors.Business.NotOwner;
 
-        if (request.Name is not null) dish.DishName = request.Name;
+        // Non-text fields - apply immediately
         if (request.Price.HasValue) dish.Price = request.Price.Value;
-        if (request.Description is not null) dish.Description = request.Description;
         if (request.Calories.HasValue) dish.Calories = request.Calories.Value;
         if (request.IsAvailable.HasValue) dish.IsAvailable = request.IsAvailable.Value;
+
+        // Text fields - pessimistic moderation via EditRequest
+        if (request.Name is not null || request.Description is not null)
+        {
+            var editRequest = new RestaurantEditRequest
+            {
+                RestaurantId = dish.Restaurant!.RestaurantId,
+                UserId = _currentUser.UserId.Value,
+                ChangeType = EditRequestChangeType.DishUpdate,
+                ChangeScope = EditRequestChangeScope.Dish,
+                TargetEntityId = dish.DishId,
+                Payload = "{}",
+                NewName = request.Name,
+                NewDescription = request.Description,
+                Status = EditRequestStatus.Pending,
+                ModerationStatus = ContentModerationStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.RestaurantEditRequests.Add(editRequest);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            _db.SystemTickets.Add(new SystemTicket
+            {
+                TicketType = TicketType.EditRequest,
+                ReferenceId = editRequest.RequestId,
+                Status = TicketStatus.Open,
+                Priority = 3,
+                Description = $"Edycja dania \"{dish.DishName}\" (via UpdateDish)"
+            });
+        }
 
         dish.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);

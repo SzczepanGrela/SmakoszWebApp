@@ -30,7 +30,8 @@ public class GetPendingPhotosHandler : IRequestHandler<GetPendingPhotosQuery, Er
 
         var query = _db.MediaAssets
             .AsNoTracking()
-            .Where(a => a.Status == MediaAssetStatus.Pending);
+            .Where(a => a.ModerationStatus == ContentModerationStatus.Pending
+                      || a.ModerationStatus == ContentModerationStatus.NeedsReview);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

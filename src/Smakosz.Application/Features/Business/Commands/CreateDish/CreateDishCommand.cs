@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Business.Commands.CreateDish;
 
@@ -46,6 +47,7 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
             Description = request.Description,
             Calories = request.Calories,
             IsAvailable = request.IsAvailable,
+            ModerationStatus = ContentModerationStatus.Pending,
             PublicId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow
         };
