@@ -30,7 +30,27 @@ public class GetPendingReviewsHandlerTests
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         var dish = new DishBuilder().WithId(1).WithRestaurant(restaurant).Build();
         var review = new ReviewBuilder().WithId(1).WithUserId(1).WithDishId(1).WithRestaurantId(1)
-            .WithContentStatus(ReviewContentStatus.Pending)
+            .WithContentStatus(ContentModerationStatus.Pending)
+            .WithUser(user).WithDish(dish).WithRestaurant(restaurant).Build();
+        _sets.Reviews.Add(review);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new GetPendingReviewsQuery(new PaginationParams(1, 20)), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Data.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task Handle_NeedsReviewReview_AppearsInResults()
+    {
+        var user = new UserBuilder().WithId(2).Build();
+        var restaurant = new RestaurantBuilder().WithId(2).Build();
+        var dish = new DishBuilder().WithId(2).WithRestaurant(restaurant).Build();
+        var review = new ReviewBuilder().WithId(2).WithUserId(2).WithDishId(2).WithRestaurantId(2)
+            .WithContentStatus(ContentModerationStatus.NeedsReview)
+            .WithIsApproved(null)
             .WithUser(user).WithDish(dish).WithRestaurant(restaurant).Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);

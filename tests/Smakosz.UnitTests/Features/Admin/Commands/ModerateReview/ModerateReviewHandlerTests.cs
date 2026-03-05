@@ -26,7 +26,7 @@ public class ModerateReviewHandlerTests
     public async Task Handle_Approve_SetsApprovedContentStatus()
     {
         var review = new ReviewBuilder().WithId(1).WithUserId(1)
-            .WithContentStatus(ReviewContentStatus.Pending).Build();
+            .WithContentStatus(ContentModerationStatus.Pending).Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -34,14 +34,14 @@ public class ModerateReviewHandlerTests
             new ModerateReviewCommand(review.PublicId, true, null), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        review.ContentStatus.Should().Be(ReviewContentStatus.Approved);
+        review.ModerationStatus.Should().Be(ContentModerationStatus.Approved);
     }
 
     [Fact]
     public async Task Handle_Reject_SetsRejectedAndNotifiesUser()
     {
         var review = new ReviewBuilder().WithId(1).WithUserId(1)
-            .WithContentStatus(ReviewContentStatus.Pending).Build();
+            .WithContentStatus(ContentModerationStatus.Pending).Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -49,7 +49,7 @@ public class ModerateReviewHandlerTests
             new ModerateReviewCommand(review.PublicId, false, "Inappropriate"), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        review.ContentStatus.Should().Be(ReviewContentStatus.Rejected);
+        review.ModerationStatus.Should().Be(ContentModerationStatus.Rejected);
         review.ContentRejectionReason.Should().Be("Inappropriate");
         _sets.Notifications.Should().HaveCount(1);
     }

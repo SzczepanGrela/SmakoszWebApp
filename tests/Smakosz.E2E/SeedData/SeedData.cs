@@ -267,7 +267,7 @@ public static class SeedData
             CleanlinessRating = 8,
             AmbianceRating = 8,
             Content = "Swietna pizza, ciasto idealne! Obsluga szybka i mila.",
-            ContentStatus = ReviewContentStatus.Approved,
+            ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
             IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),
@@ -285,7 +285,7 @@ public static class SeedData
             CleanlinessRating = 8,
             AmbianceRating = 7,
             Content = "Bardzo dobra margherita, chociaz moglaby byc bardziej chrupiaca.",
-            ContentStatus = ReviewContentStatus.Approved,
+            ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
             IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-14)),
@@ -303,7 +303,7 @@ public static class SeedData
             CleanlinessRating = 7,
             AmbianceRating = 7,
             Content = "Kebab byl bardzo smaczny i duzy. Mieso aromatyczne.",
-            ContentStatus = ReviewContentStatus.Approved,
+            ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
             IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-10)),
@@ -322,7 +322,7 @@ public static class SeedData
             AmbianceRating = 8,
             Content = "Pyszne tiramisu, najlepsze w miescie!",
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-3)),
-            ContentStatus = ReviewContentStatus.Pending,
+            ModerationStatus = ContentModerationStatus.Pending,
             IsVisible = false,
             CreatedAt = DateTime.UtcNow,
         };
@@ -369,7 +369,7 @@ public static class SeedData
             EntityId = 1, // Pizzeria Roma
             Url = "https://placeholder.test/pizza.jpg",
             UploadedBy = 2, // anna-nowak
-            Status = MediaAssetStatus.Pending,
+            ModerationStatus = ContentModerationStatus.Pending,
             CreatedAt = DateTime.UtcNow,
         };
         db.MediaAssets.Add(pendingPhoto);

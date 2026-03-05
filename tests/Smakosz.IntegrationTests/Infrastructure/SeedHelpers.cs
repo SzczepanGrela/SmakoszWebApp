@@ -156,7 +156,7 @@ public static class SeedHelpers
             CleanlinessRating = 8,
             AmbianceRating = 7,
             Content = "Swietna pizza, ciasto idealne!",
-            ContentStatus = ReviewContentStatus.Approved,
+            ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
             IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),

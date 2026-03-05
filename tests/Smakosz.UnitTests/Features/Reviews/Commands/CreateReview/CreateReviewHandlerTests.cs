@@ -129,7 +129,7 @@ public class CreateReviewHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.ContentStatus.Should().Be(ReviewContentStatus.Pending);
+        result.Value.ContentStatus.Should().Be(ContentModerationStatus.Pending);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class CreateReviewHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.ContentStatus.Should().Be(ReviewContentStatus.None);
+        result.Value.ContentStatus.Should().Be(ContentModerationStatus.None);
     }
 
     [Fact]

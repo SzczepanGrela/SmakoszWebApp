@@ -103,7 +103,7 @@ public class UpdateReviewHandlerTests
         var dish = new DishBuilder().Build();
         var review = new ReviewBuilder()
             .WithUser(user).WithDish(dish).WithRestaurant(restaurant)
-            .WithContentStatus(ReviewContentStatus.None)
+            .WithContentStatus(ContentModerationStatus.None)
             .Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -112,7 +112,7 @@ public class UpdateReviewHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.ContentStatus.Should().Be(ReviewContentStatus.Pending);
+        result.Value.ContentStatus.Should().Be(ContentModerationStatus.Pending);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class UpdateReviewHandlerTests
         var review = new ReviewBuilder()
             .WithUser(user).WithDish(dish).WithRestaurant(restaurant)
             .WithContent("Some content")
-            .WithContentStatus(ReviewContentStatus.Approved)
+            .WithContentStatus(ContentModerationStatus.Approved)
             .Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -133,6 +133,6 @@ public class UpdateReviewHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.ContentStatus.Should().Be(ReviewContentStatus.None);
+        result.Value.ContentStatus.Should().Be(ContentModerationStatus.None);
     }
 }

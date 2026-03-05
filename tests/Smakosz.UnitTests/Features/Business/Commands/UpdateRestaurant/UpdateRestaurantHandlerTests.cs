@@ -2,6 +2,7 @@ using FluentAssertions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.UpdateRestaurant;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 
 namespace Smakosz.UnitTests.Features.Business.Commands.UpdateRestaurant;
@@ -22,7 +23,7 @@ public class UpdateRestaurantHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidNameUpdate_UpdatesRestaurantName()
+    public async Task Handle_TextChange_CreatesEditRequest()
     {
         var restaurant = new Restaurant { RestaurantId = 1, OwnerId = 10, RestaurantName = "Old Name", Slug = "old-name" };
         _sets.Restaurants.Add(restaurant);
@@ -33,7 +34,11 @@ public class UpdateRestaurantHandlerTests
             CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        restaurant.RestaurantName.Should().Be("New Name");
+        restaurant.RestaurantName.Should().Be("Old Name", "text changes go through EditRequest, not applied directly");
+        _sets.RestaurantEditRequests.Should().ContainSingle();
+        _sets.RestaurantEditRequests[0].NewName.Should().Be("New Name");
+        _sets.RestaurantEditRequests[0].ModerationStatus.Should().Be(ContentModerationStatus.Pending);
+        _sets.SystemTickets.Should().ContainSingle();
     }
 
     [Fact]
@@ -48,7 +53,7 @@ public class UpdateRestaurantHandlerTests
     }
 
     [Fact]
-    public async Task Handle_NullFields_OnlyUpdatesNonNullFields()
+    public async Task Handle_NonTextFieldsOnly_AppliesImmediately()
     {
         var restaurant = new Restaurant
         {
@@ -72,10 +77,11 @@ public class UpdateRestaurantHandlerTests
         restaurant.Description.Should().Be("Original description");
         restaurant.Address.Should().Be("123 Original St");
         restaurant.Phone.Should().Be("+48111111111");
+        _sets.RestaurantEditRequests.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task Handle_AllFieldsProvided_UpdatesAllFields()
+    public async Task Handle_MixedFields_NonTextAppliedImmediately_TextCreatesEditRequest()
     {
         var restaurant = new Restaurant
         {
@@ -98,13 +104,20 @@ public class UpdateRestaurantHandlerTests
             CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        restaurant.RestaurantName.Should().Be("New");
-        restaurant.Description.Should().Be("New desc");
+
         restaurant.Address.Should().Be("New address");
         restaurant.Phone.Should().Be("+48999999999");
         restaurant.Email.Should().Be("new@example.com");
         restaurant.Website.Should().Be("http://new.com");
         restaurant.CityId.Should().Be(2);
+
+        restaurant.RestaurantName.Should().Be("Old");
+        restaurant.Description.Should().Be("Old desc");
+
+        _sets.RestaurantEditRequests.Should().ContainSingle();
+        _sets.RestaurantEditRequests[0].NewName.Should().Be("New");
+        _sets.RestaurantEditRequests[0].NewDescription.Should().Be("New desc");
+        _sets.RestaurantEditRequests[0].ModerationStatus.Should().Be(ContentModerationStatus.Pending);
     }
 
     [Fact]

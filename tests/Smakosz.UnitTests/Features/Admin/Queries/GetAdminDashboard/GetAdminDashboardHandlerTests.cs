@@ -30,8 +30,8 @@ public class GetAdminDashboardHandlerTests
         _sets.SiteStats.Add(new SiteStats { Id = 1, TotalUsers = 2, TotalRestaurants = 1, TotalReviews = 2 });
         _sets.Reports.Add(new Report { ReportId = 1, ReporterId = 1, EntityType = ReportEntityType.Review, EntityId = 1, Status = ReportStatus.Pending });
         _sets.Reports.Add(new Report { ReportId = 2, ReporterId = 2, EntityType = ReportEntityType.Review, EntityId = 2, Status = ReportStatus.Resolved });
-        _sets.MediaAssets.Add(new MediaAsset { AssetId = 1, Status = MediaAssetStatus.Pending, Url = "http://img.jpg" });
-        _sets.Reviews.Add(new ReviewBuilder().WithId(1).WithContentStatus(ReviewContentStatus.Pending).Build());
+        _sets.MediaAssets.Add(new MediaAsset { AssetId = 1, ModerationStatus = ContentModerationStatus.Pending, Url = "http://img.jpg" });
+        _sets.Reviews.Add(new ReviewBuilder().WithId(1).WithContentStatus(ContentModerationStatus.Pending).Build());
         _sets.SystemTickets.Add(new SystemTicket { TicketId = 1, TicketType = TicketType.Contact, Status = TicketStatus.Open, Priority = 3 });
         _sets.SystemTickets.Add(new SystemTicket { TicketId = 2, TicketType = TicketType.Photo, Status = TicketStatus.Resolved, Priority = 2 });
         DbContextMockFactory.Refresh(_db, _sets);
@@ -61,6 +61,23 @@ public class GetAdminDashboardHandlerTests
 
         result.IsError.Should().BeFalse();
         result.Value.TotalUsers.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task Handle_NeedsReviewItems_IncludedInPendingCounts()
+    {
+        _sets.SiteStats.Add(new SiteStats { Id = 1, TotalUsers = 1, TotalRestaurants = 1, TotalReviews = 2 });
+        _sets.MediaAssets.Add(new MediaAsset { AssetId = 10, ModerationStatus = ContentModerationStatus.NeedsReview, Url = "http://img.jpg" });
+        _sets.MediaAssets.Add(new MediaAsset { AssetId = 11, ModerationStatus = ContentModerationStatus.Pending, Url = "http://img2.jpg" });
+        _sets.Reviews.Add(new ReviewBuilder().WithId(10).WithContentStatus(ContentModerationStatus.NeedsReview).Build());
+        _sets.Reviews.Add(new ReviewBuilder().WithId(11).WithContentStatus(ContentModerationStatus.Pending).Build());
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetAdminDashboardQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.PendingPhotos.Should().Be(2);
+        result.Value.PendingReviews.Should().Be(2);
     }
 
     [Fact]

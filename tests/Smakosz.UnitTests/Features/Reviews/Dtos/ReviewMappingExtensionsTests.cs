@@ -31,7 +31,7 @@ public class ReviewMappingExtensionsTests
             .WithDish(dish)
             .WithDishRating(9)
             .WithContent("Excellent pizza!")
-            .WithContentStatus(ReviewContentStatus.Approved)
+            .WithContentStatus(ContentModerationStatus.Approved)
             .WithHelpfulCount(5)
             .Build();
 
@@ -43,7 +43,7 @@ public class ReviewMappingExtensionsTests
         dto.CleanlinessRating.Should().Be(review.CleanlinessRating);
         dto.AmbianceRating.Should().Be(review.AmbianceRating);
         dto.Content.Should().Be("Excellent pizza!");
-        dto.ContentStatus.Should().Be(ReviewContentStatus.Approved);
+        dto.ContentStatus.Should().Be(ContentModerationStatus.Approved);
         dto.VisitDate.Should().Be(review.VisitDate);
         dto.HelpfulCount.Should().Be(5);
         dto.IsHelpfulByMe.Should().BeTrue();

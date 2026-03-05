@@ -32,6 +32,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=smakosz_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    volumes:
+      - ncf-models:/models/ncf:ro
     ports:
       - "127.0.0.1:5000:8080"
     logging:
@@ -52,6 +54,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=smakosz_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    volumes:
+      - ncf-models:/models/ncf
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "127.0.0.1:8081:8080"
     logging:
@@ -75,6 +80,7 @@ services:
 
 volumes:
   pgdata:
+  ncf-models:
 
 networks:
   default:

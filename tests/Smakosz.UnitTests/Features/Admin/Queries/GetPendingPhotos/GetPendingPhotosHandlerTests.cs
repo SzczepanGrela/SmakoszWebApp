@@ -29,12 +29,29 @@ public class GetPendingPhotosHandlerTests
         _sets.MediaAssets.Add(new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            Url = "http://photo.jpg", Status = MediaAssetStatus.Pending, CreatedAt = DateTime.UtcNow
+            Url = "http://photo.jpg", ModerationStatus = ContentModerationStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         _sets.MediaAssets.Add(new MediaAsset
         {
             AssetId = 2, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            Url = "http://approved.jpg", Status = MediaAssetStatus.Approved, CreatedAt = DateTime.UtcNow
+            Url = "http://approved.jpg", ModerationStatus = ContentModerationStatus.Approved, CreatedAt = DateTime.UtcNow
+        });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new GetPendingPhotosQuery(new PaginationParams(1, 20)), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Data.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task Handle_NeedsReviewAsset_AppearsInResults()
+    {
+        _sets.MediaAssets.Add(new MediaAsset
+        {
+            AssetId = 10, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
+            Url = "http://uncertain.jpg", ModerationStatus = ContentModerationStatus.NeedsReview, CreatedAt = DateTime.UtcNow
         });
         DbContextMockFactory.Refresh(_db, _sets);
 

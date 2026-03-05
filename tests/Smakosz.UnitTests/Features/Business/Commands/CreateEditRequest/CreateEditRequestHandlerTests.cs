@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.CreateEditRequest;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -38,7 +39,7 @@ public class CreateEditRequestHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithTextChanges_CreatesTextModerationJob()
+    public async Task Handle_WithTextChanges_SetsModerationStatusPending()
     {
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         restaurant.OwnerId = 1;
@@ -50,7 +51,9 @@ public class CreateEditRequestHandlerTests
             CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        _sets.SystemJobs.Should().ContainSingle(j => j.Type == "text_moderation");
+        _sets.RestaurantEditRequests.Should().ContainSingle();
+        _sets.RestaurantEditRequests[0].ModerationStatus.Should().Be(ContentModerationStatus.Pending);
+        _sets.SystemJobs.Should().BeEmpty("batch aggregator creates jobs, not individual handlers");
     }
 
     [Fact]
