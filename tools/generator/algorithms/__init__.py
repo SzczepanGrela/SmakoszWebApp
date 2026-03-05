@@ -1,4 +1,4 @@
 from .dish_selector import select_dish_from_menu
-from .preference_calculator import calculate_affinity, calculate_direct_affinity
-from .rating_engine import calculate_review_ratings
+from .preference_calculator import calculate_affinity
+from .rating_strategies import calculate_review_ratings
 from .restaurant_selector import select_restaurants_for_user
