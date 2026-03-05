@@ -33,24 +33,13 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
         builder.Property(x => x.Blurhash)
             .HasMaxLength(50);
 
-        builder.Property(x => x.Status)
-            .HasConversion(new SnakeCaseEnumConverter<MediaAssetStatus>())
+        builder.Property(x => x.ModerationStatus)
+            .HasColumnName("status")
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
             .HasMaxLength(20);
 
         builder.Property(x => x.RejectionReason)
             .HasMaxLength(200);
-
-        builder.Property(x => x.AiNsfwScore)
-            .HasColumnType("numeric(5,4)");
-
-        builder.Property(x => x.AiOnTopicScore)
-            .HasColumnType("numeric(5,4)");
-
-        builder.Property(x => x.AiVerdict)
-            .HasMaxLength(20);
-
-        builder.Property(x => x.AiModelVersion)
-            .HasMaxLength(50);
 
         builder.Property(x => x.CreditText)
             .HasMaxLength(100);
@@ -86,8 +75,8 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
             .HasFilter("is_primary = true")
             .HasDatabaseName("ix_media_assets_primary");
 
-        builder.HasIndex(x => new { x.Status, x.CreatedAt })
-            .HasFilter("status = 'pending'")
+        builder.HasIndex(x => new { x.ModerationStatus, x.CreatedAt })
+            .HasFilter("status IN ('pending', 'needs_review')")
             .HasDatabaseName("ix_media_assets_moderation");
 
         builder.HasIndex(x => x.AssetId)

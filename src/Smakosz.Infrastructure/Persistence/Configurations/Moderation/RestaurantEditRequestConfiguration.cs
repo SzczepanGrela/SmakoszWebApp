@@ -55,17 +55,9 @@ public class RestaurantEditRequestConfiguration : IEntityTypeConfiguration<Resta
         builder.Property(x => x.NewImageBlurhash)
             .HasMaxLength(50);
 
-        builder.Property(x => x.AiVerdict)
+        builder.Property(x => x.ModerationStatus)
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
             .HasMaxLength(20);
-
-        builder.Property(x => x.AiConfidence)
-            .HasColumnType("numeric(5,4)");
-
-        builder.Property(x => x.AiModelVersion)
-            .HasMaxLength(50);
-
-        builder.Property(x => x.AutoApproveReason)
-            .HasMaxLength(255);
 
         builder.Property(x => x.AdminNote)
             .HasMaxLength(500);

@@ -19,15 +19,10 @@ public class Review : IAuditableEntity, ISoftDeletable, IHasPublicId, IVersioned
     public int AmbianceRating { get; set; }
     public string? Content { get; set; }
     public bool IsVisible { get; set; }
-    public ReviewContentStatus ContentStatus { get; set; } = ReviewContentStatus.None;
+    public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
     public string? ContentRejectionReason { get; set; }
     public int HelpfulCount { get; set; }
-    public bool IsApproved { get; set; } = true;
-    public decimal? AiToxicityScore { get; set; }
-    public decimal? AiSpamScore { get; set; }
-    public string? AiVerdict { get; set; }
-    public string? AiModelVersion { get; set; }
-    public DateTime? AiProcessedAt { get; set; }
+    public bool? IsApproved { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public int Version { get; set; } = 1;

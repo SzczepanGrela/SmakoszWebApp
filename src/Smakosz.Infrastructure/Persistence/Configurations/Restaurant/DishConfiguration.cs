@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
+using Smakosz.Infrastructure.Persistence.Converters;
 
 namespace Smakosz.Infrastructure.Persistence.Configurations.Restaurant;
 
@@ -43,6 +45,10 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
 
         builder.Property(x => x.ReviewCount)
             .HasDefaultValue(0);
+
+        builder.Property(x => x.ModerationStatus)
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
+            .HasMaxLength(20);
 
         builder.Property(x => x.SecretBasePrice)
             .HasColumnType("numeric(10,2)");

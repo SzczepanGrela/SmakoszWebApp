@@ -18,6 +18,9 @@ public class AiLogConfiguration : IEntityTypeConfiguration<AiLog>
         builder.Property(x => x.ModelType)
             .HasMaxLength(50);
 
+        builder.Property(x => x.ModelName)
+            .HasMaxLength(200);
+
         builder.Property(x => x.ModelVersion)
             .HasMaxLength(50);
 

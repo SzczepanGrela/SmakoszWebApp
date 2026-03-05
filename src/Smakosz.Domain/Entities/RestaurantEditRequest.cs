@@ -21,12 +21,7 @@ public class RestaurantEditRequest : IVersioned
     public string? NewWebsite { get; set; }
     public string? NewImageUrl { get; set; }
     public string? NewImageBlurhash { get; set; }
-    public string? AiVerdict { get; set; }
-    public decimal? AiConfidence { get; set; }
-    public string? AiModelVersion { get; set; }
-    public DateTime? AiProcessedAt { get; set; }
-    public bool AutoApproved { get; set; }
-    public string? AutoApproveReason { get; set; }
+    public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
     public int? ReviewedBy { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public string? RejectionReason { get; set; }

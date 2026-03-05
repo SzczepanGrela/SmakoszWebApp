@@ -8,5 +8,6 @@ public enum ModerationEntityType
     User,
     Report,
     Ticket,
-    Restaurant
+    Restaurant,
+    Dish
 }
