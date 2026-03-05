@@ -1,22 +1,23 @@
 {
-  "name": "Smakosz - Znajdz najlepszy smak w miescie",
+  "name": "Smakosz - Znajdź najlepszy smak w mieście",
   "short_name": "Smakosz",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#E8DDD0",
   "theme_color": "#D4A574",
-  "description": "System recenzji restauracji i dan. Odkrywaj nowe smaki, oceniaj dania i dziel sie opiniami.",
-  "_TODO_icons": "Replace placeholder icons (icon-192.png, icon-512.png) with final branded artwork",
+  "description": "System recenzji restauracji i dań. Odkrywaj nowe smaki, oceniaj dania i dziel się opiniami.",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "web-app-manifest-192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "web-app-manifest-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "sizes": "512x512"
+      "purpose": "any maskable"
     }
   ]
 }
