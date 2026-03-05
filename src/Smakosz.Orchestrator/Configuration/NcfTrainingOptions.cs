@@ -7,5 +7,5 @@ public class NcfTrainingOptions
     public int BatchSize { get; set; } = 256;
     public double LearningRate { get; set; } = 0.001;
     public int EmbeddingDim { get; set; } = 64;
-    public int ReviewWindowDays { get; set; } = 90;
+    public int ReviewWindowDays { get; set; } = 0; // 0 = all reviews (no time window filter)
 }

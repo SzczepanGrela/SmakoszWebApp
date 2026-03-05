@@ -6,9 +6,12 @@
     <RootNamespace>Smakosz.Orchestrator</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ErrorOr" Version="2.*" />
     <PackageReference Include="Hangfire.Core" Version="1.8.*" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.*" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.*" />
+    <PackageReference Include="MediatR" Version="12.*" />
+
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Smakosz.Application\Smakosz.Application.csproj" />

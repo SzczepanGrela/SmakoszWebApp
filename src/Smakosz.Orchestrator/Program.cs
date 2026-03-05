@@ -1,11 +1,13 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.Authentication;
 using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Orchestrator.Configuration;
 using Smakosz.Orchestrator.Jobs;
+using Smakosz.Orchestrator.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // Infrastructure (DbContext, IFileStorageService, IEmailService, IDateTimeProvider)
 builder.Services.AddInfrastructure(connectionString, builder.Configuration);
+
+// Application layer (MediatR + handlers from both assemblies)
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Smakosz.Application.DependencyInjection).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
 
 // Database logging (Hangfire not ignored - we want job error logs)
 builder.Logging.AddDatabaseLogger(opts => opts.IgnoredPrefixes = ["Microsoft", "System"]);
@@ -47,6 +56,16 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = ["default"];
 });
 
+// Controllers
+builder.Services.AddControllers();
+
+// Worker API Key authentication
+builder.Services.AddAuthentication("WorkerApiKey")
+    .AddScheme<AuthenticationSchemeOptions, WorkerApiKeyAuthHandler>("WorkerApiKey", null);
+
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("Worker", p => p.RequireRole("Worker")));
+
 // Job services
 builder.Services.AddScoped<SessionCleanupService>();
 builder.Services.AddScoped<NotificationCleanupService>();
@@ -60,8 +79,15 @@ builder.Services.AddScoped<NcfTrainingService>();
 builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
 builder.Services.AddScoped<SiteStatsService>();
+builder.Services.AddScoped<NcfModelActivationService>();
+builder.Services.AddScoped<ModerationBatchAggregatorService>();
+builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 app.MapHangfireDashboard("/hangfire");
 
@@ -100,5 +126,8 @@ RecurringJob.AddOrUpdate<NotificationDigestService>(
 
 RecurringJob.AddOrUpdate<SiteStatsService>(
     "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
+
+// Moderation aggregation is now on-demand (before NCF training WoL + admin trigger)
+RecurringJob.RemoveIfExists("moderation-aggregation");
 
 await app.RunAsync();
