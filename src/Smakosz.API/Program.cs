@@ -1,10 +1,10 @@
 using System.Text;
-using Microsoft.AspNetCore.Authentication;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Smakosz.API.Common;
-using Smakosz.API.Middleware;
 using Smakosz.API.Services;
 using Smakosz.Application;
 using Smakosz.Application.Common.Interfaces;
@@ -20,6 +20,16 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("DefaultConnection")!,
     builder.Configuration);
+
+// Hangfire client (no server - API only enqueues jobs to Orchestrator)
+builder.Services.AddHangfire(cfg => cfg
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(
+        builder.Configuration.GetConnectionString("DefaultConnection")!)));
+builder.Services.AddScoped<INcfTrainingService, HangfireNcfTrainingProxy>();
+builder.Services.AddScoped<IModerationAggregationService, HangfireModerationProxy>();
 
 // Database logging
 builder.Logging.AddDatabaseLogger();
@@ -47,15 +57,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ClockSkew = TimeSpan.Zero
         };
-    })
-    .AddScheme<AuthenticationSchemeOptions, WorkerApiKeyAuthHandler>("WorkerApiKey", null);
+    });
 
 // Authorization policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin", "Moderator"));
     options.AddPolicy("RestaurantOwner", p => p.RequireRole("Restaurant"));
-    options.AddPolicy("Worker", p => p.RequireRole("Worker"));
 });
 
 // Controllers

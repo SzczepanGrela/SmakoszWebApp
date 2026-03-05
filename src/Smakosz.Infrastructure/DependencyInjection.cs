@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Infrastructure.Configuration;
 using Smakosz.Infrastructure.Logging;
@@ -69,8 +70,26 @@ public static class DependencyInjection
             services.AddScoped<IFileStorageService, StubFileStorageService>();
         }
 
-        // NCF Training
-        services.AddScoped<INcfTrainingService, NcfTrainingService>();
+        // ONNX Recommendation - strategy pattern
+        services.Configure<OnnxOptions>(configuration.GetSection(OnnxOptions.SectionName));
+        services.AddSingleton<OnnxRecommendationService>();
+        services.AddSingleton<TrendingRecommendationService>();
+        services.AddSingleton<IRecommendationProvider>(sp =>
+        {
+            var onnx = sp.GetRequiredService<OnnxRecommendationService>();
+            if (onnx.IsAvailable)
+                return onnx;
+            return sp.GetRequiredService<TrendingRecommendationService>();
+        });
+
+        // NCF Model Storage - R2 Models bucket
+        var r2ModelsSection = configuration.GetSection(R2ModelOptions.SectionName);
+        var r2ModelsAccountId = r2ModelsSection["AccountId"];
+        if (!string.IsNullOrEmpty(r2ModelsAccountId))
+        {
+            services.Configure<R2ModelOptions>(r2ModelsSection);
+            services.AddSingleton<INcfModelStorageService, NcfModelStorageService>();
+        }
 
         return services;
     }
