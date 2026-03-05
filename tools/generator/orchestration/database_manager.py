@@ -7,56 +7,6 @@ from utils.db_connection import DatabaseConnection
 
 logger = logging.getLogger(__name__)
 
-class DatabaseCleanupStrategy:
-
-    @staticmethod
-    def query_based(db: DatabaseConnection) -> None:
-        logger.info("Querying database schema for table list...")
-
-        tables = db.fetch_all(
-            """
-            SELECT schemaname, tablename
-            FROM pg_tables
-            WHERE schemaname IN ('public', 'system')
-              AND tablename NOT LIKE '\\_\\_%' ESCAPE '\\'
-            ORDER BY tablename
-            """
-        )
-
-        if not tables:
-            logger.warning("No tables found in database!")
-            return
-
-        table_list = [f"{schema}.{table}" if schema == "system" else table for schema, table in tables]
-
-        logger.info(f"Found {len(table_list)} tables to truncate")
-
-        logger.debug("Disabling FK constraints...")
-        db.execute_query("SET session_replication_role = 'replica';")
-
-        try:
-            for table in table_list:
-                logger.debug(f"Truncating {table}...")
-                db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
-
-        finally:
-            logger.debug("Re-enabling FK constraints...")
-            db.execute_query("SET session_replication_role = 'origin';")
-
-        db.commit()
-        logger.info("Database cleanup completed")
-
-    @staticmethod
-    def cascade_truncate(db: DatabaseConnection, table_order: list[str]) -> None:
-        logger.info(f"Truncating {len(table_order)} tables with CASCADE...")
-
-        for table in table_order:
-            logger.debug(f"Truncating {table}...")
-            db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
-
-        db.commit()
-        logger.info("Database cleanup completed")
-
 class DatabaseManager:
 
     CLEANUP_TABLE_ORDER: ClassVar[list[str]] = [
@@ -111,12 +61,8 @@ class DatabaseManager:
         "cities",
     ]
 
-    def __init__(self, db: DatabaseConnection, strategy: str = "query_based"):
+    def __init__(self, db: DatabaseConnection):
         self.db = db
-        self.strategy = strategy
-
-        if strategy not in ("query_based", "cascade"):
-            raise ValueError(f"Unknown cleanup strategy: {strategy}. Must be 'query_based' or 'cascade'")
 
     def cleanup(self, confirm: bool = False, auto_confirm: bool = False) -> None:
         if not confirm:
@@ -129,7 +75,6 @@ class DatabaseManager:
                 response = "yes"
                 print("yes (auto-confirmed from env)")
             else:
-                # FIX: Actually read user input!
                 response = input().strip().lower()
 
             if response not in ("yes", "y"):
@@ -137,20 +82,61 @@ class DatabaseManager:
                 sys.exit(0)
 
         try:
-            if self.strategy == "query_based":
-                DatabaseCleanupStrategy.query_based(self.db)
-            elif self.strategy == "cascade":
-                DatabaseCleanupStrategy.cascade_truncate(self.db, self.CLEANUP_TABLE_ORDER)
+            self._cleanup_query_based()
         except Exception as e:
             logger.error(f"Database cleanup failed: {e}", exc_info=True)
+            logger.warning("Falling back to cascade strategy...")
+            try:
+                self._cleanup_cascade()
+            except Exception as e2:
+                logger.error(f"Cascade cleanup also failed: {e2}", exc_info=True)
+                raise
 
-            if self.strategy == "query_based":
-                logger.warning("Falling back to cascade strategy...")
-                try:
-                    DatabaseCleanupStrategy.cascade_truncate(self.db, self.CLEANUP_TABLE_ORDER)
-                except Exception as e2:
-                    logger.error(f"Cascade cleanup also failed: {e2}", exc_info=True)
-                    raise
+    def _cleanup_query_based(self) -> None:
+        logger.info("Querying database schema for table list...")
+
+        tables = self.db.fetch_all(
+            """
+            SELECT schemaname, tablename
+            FROM pg_tables
+            WHERE schemaname IN ('public', 'system')
+              AND tablename NOT LIKE '\\_\\_%' ESCAPE '\\'
+            ORDER BY tablename
+            """
+        )
+
+        if not tables:
+            logger.warning("No tables found in database!")
+            return
+
+        table_list = [f"{schema}.{table}" if schema == "system" else table for schema, table in tables]
+
+        logger.info(f"Found {len(table_list)} tables to truncate")
+
+        logger.debug("Disabling FK constraints...")
+        self.db.execute_query("SET session_replication_role = 'replica';")
+
+        try:
+            for table in table_list:
+                logger.debug(f"Truncating {table}...")
+                self.db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
+
+        finally:
+            logger.debug("Re-enabling FK constraints...")
+            self.db.execute_query("SET session_replication_role = 'origin';")
+
+        self.db.commit()
+        logger.info("Database cleanup completed")
+
+    def _cleanup_cascade(self) -> None:
+        logger.info(f"Truncating {len(self.CLEANUP_TABLE_ORDER)} tables with CASCADE...")
+
+        for table in self.CLEANUP_TABLE_ORDER:
+            logger.debug(f"Truncating {table}...")
+            self.db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
+
+        self.db.commit()
+        logger.info("Database cleanup completed")
 
     def get_statistics(self) -> dict[str, int]:
         tables = [

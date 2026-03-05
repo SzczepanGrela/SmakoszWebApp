@@ -76,3 +76,29 @@ MENU_BLUEPRINTS: dict[str, dict] = {
         "sigma": 10,
     },
 }
+
+MEAT_KEYWORDS: list[str] = [
+    "mięso", "kurczak", "wołowina", "wieprzowina", "boczek", "szynka", "kiełbasa",
+    "ryba", "łosoś", "tuńczyk", "krewetki",
+    "befsztyk", "polędwica", "antrykot", "rostbef", "stek",
+    "kaczka", "indyk", "jagnięcina", "cielęcina",
+    "dziczyzna", "królik", "wątroba", "wątróbka", "smalec", "słonina",
+    "pepperoni", "salami", "mortadela", "parówka", "flaki",
+    "żeberka", "skrzydełka", "kotlet", "schab", "karkówka", "łopatka", "bekon",
+    "chorizo", "prosciutto", "chashu", "homar", "krab", "małże", "kalmary",
+    "węgorz", "dorsz", "okoń", "pasztet", "klopsiki", "mielona",
+]
+
+DAIRY_KEYWORDS: list[str] = [
+    "ser", "mleko", "śmietana", "śmietanka", "masło", "jogurt", "kefir",
+    "mozzarella", "parmezan", "feta", "ricotta", "mascarpone",
+]
+
+EGG_KEYWORDS: list[str] = ["jajko", "jaja", "żółtko"]
+
+GLUTEN_KEYWORDS: list[str] = [
+    "mąka", "chleb", "makaron", "pszenica", "ciasto", "bułka", "tortilla", "pita",
+    "naleśnik", "pierogi", "kluski", "bagietka", "bajgiel", "panini",
+    "spaghetti", "penne", "fettuccine", "gnocchi", "ravioli",
+    "focaccia", "precel", "grzanki", "naan",
+]

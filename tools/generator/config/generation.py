@@ -23,6 +23,9 @@ GENERATION_CONFIG = {
     "restaurant_photos_per": (2, 3),
     "dish_photos_per": 1,
     "dishes_per_restaurant": {"mean": 15, "std": 5, "min": 5},
+    "review_commit_batch_size": 50,
+    "review_user_chunk_size": 100,
+    "dish_selection_temperature": 2.5,
 }
 
 REVIEW_LOCALITY = {"own_city": 0.85, "nearby_city": 0.10, "random_city": 0.05}

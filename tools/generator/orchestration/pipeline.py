@@ -51,7 +51,7 @@ class DataGenerationPipeline:
     ):
         self.context = context
         self.config = config
-        self.db_manager = DatabaseManager(context.db, strategy="query_based")
+        self.db_manager = DatabaseManager(context.db)
 
     def run(self, phase_ids: list[str] | None = None) -> PipelineResult:
         start_time = datetime.now()

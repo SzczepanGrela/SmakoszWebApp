@@ -33,53 +33,63 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     logger.info("Generating social graph...")
 
     if cleanup:
-        logger.info("Cleaning up old Phase 6 data...")
-        try:
-            db.execute_query("TRUNCATE TABLE user_follows RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE review_likes RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE notifications RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE search_histories RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE data_correction_requests RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE reports RESTART IDENTITY CASCADE")
-            db.commit()
-            logger.info("Cleanup complete.")
-        except Exception as e:
-            logger.error(f"Error during cleanup: {e}")
-            db.rollback()
-            raise e
+        _cleanup_social_data(db)
 
     loader = BlueprintLoader("blueprints")
     variant_blueprints = loader.load_blueprint("dishes.json")
     archetypes = list(variant_blueprints.keys())
 
-    logger.info("Generating user follows...")
-
     users = UserDAO.get_all_users_for_social(db)
-    user_ids = [int(u[0]) for u in users]
-
-    username_map = {int(u[0]): u[1] for u in users}
-
-    real_influencers = [int(u[0]) for u in users if u[3] is True]
-
-    users_by_city: dict[int, list[int]] = {}
-    for u_id, _, city_id, _ in users:
-        u_id_int = int(u_id)
-        if city_id not in users_by_city:
-            users_by_city[city_id] = []
-        users_by_city[city_id].append(u_id_int)
+    user_ids = [u.user_id for u in users]
 
     num_users = len(user_ids)
     if num_users < 2:
         return
 
-    if real_influencers:
-        top_1_percent = real_influencers
-    else:
-        top_1_percent = user_ids[: max(1, int(num_users * 0.01))]
+    username_map = {u.user_id: u.username for u in users}
+    real_influencers = [u.user_id for u in users if u.secret_is_influencer]
 
+    users_by_city: dict[int, list[int]] = {}
+    for u in users:
+        if u.secret_home_city_id not in users_by_city:
+            users_by_city[u.secret_home_city_id] = []
+        users_by_city[u.secret_home_city_id].append(u.user_id)
+
+    top_1_percent = real_influencers if real_influencers else user_ids[: max(1, int(num_users * 0.01))]
     top_10_percent = user_ids[: max(1, int(num_users * 0.10))]
 
-    user_tuples = [(int(u[0]), u[1], u[2]) for u in users]
+    _generate_follows(db, users, user_ids, username_map, users_by_city, top_1_percent, top_10_percent)
+    _generate_follow_notifications(db)
+    review_ids = _generate_review_likes(db, user_ids)
+    _generate_welcome_notifications(db, user_ids)
+    _generate_search_history(db, user_ids, archetypes)
+    _generate_correction_requests(db, user_ids)
+    _generate_favorite_restaurants(db, user_ids)
+    _generate_abuse_reports(db, user_ids, review_ids)
+
+    logger.info("Generated abuse reports successfully.")
+
+def _cleanup_social_data(db: DatabaseConnection):
+    logger.info("Cleaning up old Phase 6 data...")
+    try:
+        db.execute_query("TRUNCATE TABLE user_follows RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE review_likes RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE notifications RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE search_histories RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE data_correction_requests RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE reports RESTART IDENTITY CASCADE")
+        db.commit()
+        logger.info("Cleanup complete.")
+    except Exception as e:
+        logger.error(f"Error during cleanup: {e}")
+        db.rollback()
+        raise e
+
+def _generate_follows(db, users, user_ids, username_map, users_by_city, top_1_percent, top_10_percent):
+    logger.info("Generating user follows...")
+
+    user_tuples = [(u.user_id, u.username, u.secret_home_city_id) for u in users]
+    num_users = len(user_ids)
 
     total_cores = cpu_count()
     target_workers = int(total_cores * float(GENERATION_CONFIG.get("worker_cpu_usage_percent", 0.75)))  # type: ignore
@@ -93,7 +103,6 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     db_params = get_connection_params()
 
     follows_data = []
-    notifications_buffer: list = []
     total_follows = 0
 
     logger.info("Processing follows with chunked insertion...")
@@ -132,6 +141,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     logger.info(f"Generated {total_follows:,} follows")
 
+def _generate_follow_notifications(db: DatabaseConnection):
     logger.info("Generating follow notifications (bulk)...")
     db.execute_query("""
         INSERT INTO notifications (user_id, actor_id, type, title, message,
@@ -163,130 +173,133 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     db.commit()
     logger.info("Follow notifications generated.")
 
+def _generate_review_likes(db: DatabaseConnection, user_ids: list[int]) -> np.ndarray:
     logger.info("Generating review likes...")
-
     logger.info("Fetching review IDs...")
     reviews = ReviewDAO.get_all_reviews_basic(db)
 
     review_ids = np.array([])
     if not reviews:
         logger.warning("No reviews found, skipping likes generation")
-    else:
-        review_ids = np.array([row[0] for row in reviews])
-        review_authors = {int(row[0]): int(row[1]) for row in reviews}
-        num_reviews = len(review_ids)
+        return review_ids
 
-        logger.info(f"Found {num_reviews:,} reviews")
+    review_ids = np.array([row[0] for row in reviews])
+    review_authors = {int(row[0]): int(row[1]) for row in reviews}
+    num_reviews = len(review_ids)
 
-        total_target_likes = int(num_reviews * 5)
+    logger.info(f"Found {num_reviews:,} reviews")
 
-        logger.info(f"Generating ~{total_target_likes:,} likes with Zipf distribution...")
+    total_target_likes = int(num_reviews * 5)
+    logger.info(f"Generating ~{total_target_likes:,} likes with Zipf distribution...")
 
-        zipf_samples = np.random.zipf(a=2.0, size=num_reviews)
-        like_counts = np.clip(zipf_samples - 1, 0, 200).astype(int)
+    zipf_samples = np.random.zipf(a=2.0, size=num_reviews)
+    like_counts = np.clip(zipf_samples - 1, 0, 200).astype(int)
 
-        current_total = like_counts.sum()
-        if current_total > 0:
-            scale_factor = total_target_likes / current_total
-            like_counts = (like_counts * scale_factor).astype(int)
+    current_total = like_counts.sum()
+    if current_total > 0:
+        scale_factor = total_target_likes / current_total
+        like_counts = (like_counts * scale_factor).astype(int)
 
-        total_likes_needed = int(like_counts.sum())
-        logger.info(f"Total likes to generate: {total_likes_needed:,}")
+    total_likes_needed = int(like_counts.sum())
+    logger.info(f"Total likes to generate: {total_likes_needed:,}")
 
-        logger.info("Generating likes using fully vectorized operations...")
+    logger.info("Generating likes using fully vectorized operations...")
+    logger.info("Creating weighted review array...")
+    liked_review_ids = np.repeat(review_ids, like_counts)
 
-        logger.info("Creating weighted review array...")
-        liked_review_ids = np.repeat(review_ids, like_counts)
+    logger.info(f"Sampling {len(liked_review_ids):,} liker IDs...")
+    liker_user_ids = np.random.choice(user_ids, size=len(liked_review_ids), replace=True)
 
-        logger.info(f"Sampling {len(liked_review_ids):,} liker IDs...")
-        liker_user_ids = np.random.choice(user_ids, size=len(liked_review_ids), replace=True)
+    review_authors_array = np.array([review_authors[rid] for rid in review_ids])
+    liked_review_authors = np.repeat(review_authors_array, like_counts)
 
-        review_authors_array = np.array([review_authors[rid] for rid in review_ids])
-        liked_review_authors = np.repeat(review_authors_array, like_counts)
+    self_like_mask = liker_user_ids == liked_review_authors
+    valid_likes_mask = ~self_like_mask
 
-        self_like_mask = liker_user_ids == liked_review_authors
-        valid_likes_mask = ~self_like_mask
+    logger.info(f"Filtering self-likes: Removed {np.sum(self_like_mask):,} self-likes")
 
-        logger.info(f"Filtering self-likes: Removed {np.sum(self_like_mask):,} self-likes")
+    liker_user_ids = liker_user_ids[valid_likes_mask]
+    liked_review_ids = liked_review_ids[valid_likes_mask]
 
-        liker_user_ids = liker_user_ids[valid_likes_mask]
-        liked_review_ids = liked_review_ids[valid_likes_mask]
+    logger.info("Removing duplicate likes...")
+    likes_pairs = np.column_stack((liker_user_ids, liked_review_ids))
+    unique_likes_pairs = np.unique(likes_pairs, axis=0)
 
-        logger.info("Removing duplicate likes...")
-        likes_pairs = np.column_stack((liker_user_ids, liked_review_ids))
-        unique_likes_pairs = np.unique(likes_pairs, axis=0)
+    logger.info(f"Final unique likes: {len(unique_likes_pairs):,}")
+    logger.info("Inserting likes with chunked insertion...")
 
-        logger.info(f"Final unique likes: {len(unique_likes_pairs):,}")
+    chunk_size = 50000
+    total_likes_inserted = 0
 
-        logger.info("Inserting likes with chunked insertion...")
+    num_chunks = (len(unique_likes_pairs) + chunk_size - 1) // chunk_size
+    for chunk_start in tqdm(
+        range(0, len(unique_likes_pairs), chunk_size),
+        total=num_chunks,
+        desc="Inserting likes (chunks)",
+        unit=" chunk",
+        mininterval=0.5,
+        disable=LoggingConfig.is_quiet(),
+    ):
+        chunk_end = min(chunk_start + chunk_size, len(unique_likes_pairs))
+        chunk_pairs = unique_likes_pairs[chunk_start:chunk_end]
 
-        chunk_size = 50000
-        total_likes_inserted = 0
+        likes_chunk = [
+            {
+                "user_id": int(pair[0]),
+                "review_id": int(pair[1]),
+            }
+            for pair in chunk_pairs
+        ]
 
-        num_chunks = (len(unique_likes_pairs) + chunk_size - 1) // chunk_size
-        for chunk_start in tqdm(
-            range(0, len(unique_likes_pairs), chunk_size),
-            total=num_chunks,
-            desc="Inserting likes (chunks)",
-            unit=" chunk",
-            mininterval=0.5,
-            disable=LoggingConfig.is_quiet(),
-        ):
-            chunk_end = min(chunk_start + chunk_size, len(unique_likes_pairs))
-            chunk_pairs = unique_likes_pairs[chunk_start:chunk_end]
+        likes_chunk.sort(key=lambda x: x["review_id"])
+        db.insert_bulk("review_likes", likes_chunk)
+        total_likes_inserted += len(likes_chunk)
+        likes_chunk.clear()
 
-            likes_chunk = [
-                {
-                    "user_id": int(pair[0]),
-                    "review_id": int(pair[1]),
-                }
-                for pair in chunk_pairs
-            ]
+    logger.info(f"Generated {total_likes_inserted:,} likes")
 
-            likes_chunk.sort(key=lambda x: x["review_id"])
+    _generate_like_notifications(db)
 
-            db.insert_bulk("review_likes", likes_chunk)
-            total_likes_inserted += len(likes_chunk)
-            likes_chunk.clear()
+    return review_ids
 
-        logger.info(f"Generated {total_likes_inserted:,} likes")
+def _generate_like_notifications(db: DatabaseConnection):
+    logger.info("Generating notifications for likes (Bulk)...")
+    db.execute_query("""
+        INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority,
+                                   public_id, send_email, email_status, send_push, push_status, severity,
+                                   is_read, is_deleted, created_at)
+        SELECT
+            r.user_id,          -- Recipient
+            rl.user_id,         -- Actor
+            'like',
+            'Nowe polubienie',
+            'Użytkownik polubił Twoją recenzję.',
+            json_build_object(
+                'review_id', rl.review_id,
+                'target_type', 'review',
+                'dish_name', d.dish_name,
+                'restaurant_name', rest.restaurant_name
+            ),
+            1,
+            gen_random_uuid(),
+            false,
+            'none',
+            false,
+            'none',
+            'info',
+            false,
+            false,
+            NOW()
+        FROM review_likes rl
+        JOIN reviews r ON rl.review_id = r.review_id
+        JOIN dishes d ON r.dish_id = d.dish_id
+        JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+        WHERE r.user_id != rl.user_id
+    """)
+    db.commit()
+    logger.info("Notifications generated.")
 
-        logger.info("Generating notifications for likes (Bulk)...")
-        db.execute_query("""
-            INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority,
-                                       public_id, send_email, email_status, send_push, push_status, severity,
-                                       is_read, is_deleted, created_at)
-            SELECT
-                r.user_id,          -- Recipient
-                rl.user_id,         -- Actor
-                'like',
-                'Nowe polubienie',
-                'Użytkownik polubił Twoją recenzję.',
-                json_build_object(
-                    'review_id', rl.review_id,
-                    'target_type', 'review',
-                    'dish_name', d.dish_name,
-                    'restaurant_name', rest.restaurant_name
-                ),
-                1,
-                gen_random_uuid(),
-                false,
-                'none',
-                false,
-                'none',
-                'info',
-                false,
-                false,
-                NOW()
-            FROM review_likes rl
-            JOIN reviews r ON rl.review_id = r.review_id
-            JOIN dishes d ON r.dish_id = d.dish_id
-            JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
-            WHERE r.user_id != rl.user_id
-        """)
-        db.commit()
-        logger.info("Notifications generated.")
-
+def _generate_welcome_notifications(db: DatabaseConnection, user_ids: list[int]):
     logger.info("Generating system notifications...")
 
     num_welcome = int(len(user_ids) * 0.2)
@@ -317,15 +330,13 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         flush_notifications(db, notifications_buffer, threshold=5000)
 
     flush_notifications(db, notifications_buffer, force=True)
-
     logger.info(f"Generated {num_welcome:,} system welcome notifications")
 
+def _generate_search_history(db: DatabaseConnection, user_ids: list[int], archetypes: list[str]):
     logger.info("Generating search history...")
 
     cities = CityDAO.get_all_city_names(db)
     city_names = np.array([c[0] for c in cities])
-
-    search_data = []
 
     num_searchers = int(len(user_ids) * 0.4)
     active_searchers = np.random.choice(user_ids, size=num_searchers, replace=False)
@@ -337,6 +348,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
 
     search_types = np.random.random(total_searches)
 
+    search_data = []
     search_idx = 0
     for user_idx, user_id in enumerate(active_searchers):
         num_searches = int(search_counts[user_idx])
@@ -366,13 +378,13 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             db.insert_bulk("search_histories", chunk)
         logger.info(f"Generated {len(search_data):,} search history entries")
 
+def _generate_correction_requests(db: DatabaseConnection, user_ids: list[int]):
     logger.info("Generating data correction requests...")
 
     restaurants = RestaurantDAO.get_all_restaurant_ids(db)
     restaurant_ids = np.array([row[0] for row in restaurants])
 
     issue_types = ["hours", "address", "phone", "menu", "other"]
-
     num_requests = 200
 
     request_users = np.random.choice(user_ids, size=num_requests)
@@ -395,12 +407,15 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.insert_bulk("data_correction_requests", correction_data)
         logger.info(f"Generated {len(correction_data)} correction requests")
 
+def _generate_favorite_restaurants(db: DatabaseConnection, user_ids: list[int]):
     logger.info("Generating favorite restaurants...")
 
-    favorite_data = []
+    restaurants = RestaurantDAO.get_all_restaurant_ids(db)
+    restaurant_ids = np.array([row[0] for row in restaurants])
 
     active_users_subset = np.random.choice(user_ids, size=int(len(user_ids) * 0.10), replace=False)
 
+    favorite_data = []
     for u_id in active_users_subset:
         num_favs = random.randint(1, 3)
         picked_restaurants = np.random.choice(restaurant_ids, size=num_favs, replace=False)
@@ -417,46 +432,17 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.insert_bulk("favorite_restaurants", favorite_data)
         logger.info(f"Generated {len(favorite_data)} favorite restaurant entries")
 
+def _generate_abuse_reports(db: DatabaseConnection, user_ids: list[int], review_ids: np.ndarray):
     logger.info("Generating abuse reports (Many-to-Many Schema)...")
 
     logger.info("Seeding report reason definitions...")
     reason_definitions = [
-        {
-            "reason_code": "spam",
-            "label_pl": "Spam lub reklama",
-            "description": "Treści reklamowe, powtarzające się.",
-            "severity_score": 1,
-        },
-        {
-            "reason_code": "offensive",
-            "label_pl": "Treści obraźliwe",
-            "description": "Wulgaryzmy, mowa nienawiści.",
-            "severity_score": 3,
-        },
-        {
-            "reason_code": "fake",
-            "label_pl": "Fałszywa informacja",
-            "description": "Wprowadzanie w błąd, fake news.",
-            "severity_score": 2,
-        },
-        {
-            "reason_code": "irrelevant",
-            "label_pl": "Nie na temat",
-            "description": "Treść nie związana z restauracją.",
-            "severity_score": 1,
-        },
-        {
-            "reason_code": "harassment",
-            "label_pl": "Nękanie",
-            "description": "Ataki personalne na użytkowników/obsługę.",
-            "severity_score": 4,
-        },
-        {
-            "reason_code": "sexual",
-            "label_pl": "Treści seksualne",
-            "description": "Nagość, pornografia.",
-            "severity_score": 5,
-        },
+        {"reason_code": "spam", "label_pl": "Spam lub reklama", "description": "Treści reklamowe, powtarzające się.", "severity_score": 1},
+        {"reason_code": "offensive", "label_pl": "Treści obraźliwe", "description": "Wulgaryzmy, mowa nienawiści.", "severity_score": 3},
+        {"reason_code": "fake", "label_pl": "Fałszywa informacja", "description": "Wprowadzanie w błąd, fake news.", "severity_score": 2},
+        {"reason_code": "irrelevant", "label_pl": "Nie na temat", "description": "Treść nie związana z restauracją.", "severity_score": 1},
+        {"reason_code": "harassment", "label_pl": "Nękanie", "description": "Ataki personalne na użytkowników/obsługę.", "severity_score": 4},
+        {"reason_code": "sexual", "label_pl": "Treści seksualne", "description": "Nagość, pornografia.", "severity_score": 5},
     ]
 
     for r in reason_definitions:
@@ -516,14 +502,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         reporter_users_p = np.random.choice(user_ids, size=len(target_photos))
 
         for i, pid in enumerate(target_photos):
-            status = "pending"
-
             report_data = {
                 "reporter_id": int(reporter_users_p[i]),
                 "entity_type": "photo",
                 "entity_id": pid,
                 "description": "Nieodpowiednie zdjęcie (Auto-generated).",
-                "status": status,
+                "status": "pending",
                 "resolved_by_admin_id": None,
                 "resolved_at": None,
                 "version": 1,

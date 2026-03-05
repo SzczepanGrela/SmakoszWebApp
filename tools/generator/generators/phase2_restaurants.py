@@ -12,7 +12,7 @@ from generators.constants import THEME_TO_MENU_BLUEPRINT
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
-from utils.date_generator import DateGenerator
+from utils.date_generator import generate_restaurant_created_date, to_sql_datetime
 from utils.db_connection import DatabaseConnection
 from utils.distributions import sample_beta
 from utils.faker_instance import fake
@@ -70,6 +70,15 @@ def generate_restaurant_archetype_modifiers(menu_blueprint: str) -> dict[str, di
         modifiers[archetype] = arch_mods
 
     return modifiers
+
+def _calculate_tier_attributes(tier: str) -> dict:
+    """Return price_multiplier, price_level, and base_quality_mean for a restaurant tier."""
+    if tier == "Budget":
+        return {"price_multiplier": random.uniform(0.6, 0.9), "price_level": 1, "base_quality_mean": 0.4}
+    if tier == "Casual":
+        return {"price_multiplier": random.uniform(0.9, 1.3), "price_level": 2, "base_quality_mean": 0.65}
+    # Fine Dining
+    return {"price_multiplier": random.uniform(1.4, 2.5), "price_level": 3, "base_quality_mean": 0.85}
 
 def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprints", cleanup: bool = True):
     start_time = time.time()
@@ -135,7 +144,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
     logger.info(f"Target restaurants: {global_target}")
 
-    date_gen = DateGenerator()
     photo_pools = PhotoPools()
     name_generator = RestaurantNameGenerator()
 
@@ -167,25 +175,16 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             theme_info = theme_data.get(theme, {})
 
             name = name_generator.generate_name(theme, city_name)
-            created_date = date_gen.generate_restaurant_created_date()
+            created_date = generate_restaurant_created_date()
 
             probs = tier_config.get(theme, default_tier_probs)
             tier = random.choices(list(probs.keys()), weights=list(probs.values()), k=1)[0]
 
-            if tier == "Budget":
-                secret_price_multiplier = random.uniform(0.6, 0.9)
-                price_level = 1
-                base_quality_mean = 0.4
-            elif tier == "Casual":
-                secret_price_multiplier = random.uniform(0.9, 1.3)
-                price_level = 2
-                base_quality_mean = 0.65
-            else:
-                secret_price_multiplier = random.uniform(1.4, 2.5)
-                price_level = 3
-                base_quality_mean = 0.85
+            tier_attrs = _calculate_tier_attributes(tier)
+            secret_price_multiplier = tier_attrs["price_multiplier"]
+            price_level = tier_attrs["price_level"]
 
-            base_food_quality = max(0.1, min(1.0, random.gauss(base_quality_mean, 0.1)))
+            base_food_quality = max(0.1, min(1.0, random.gauss(tier_attrs["base_quality_mean"], 0.1)))
 
             secret_overall_food_quality = base_food_quality
             secret_service_quality = max(0.1, min(1.0, base_food_quality + random.gauss(0, 0.1)))
@@ -242,7 +241,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "latitude": round(lat, 6),
                     "longitude": round(lon, 6),
                     "geocode_source": "city_centroid",
-                    "geocoded_at": DateGenerator.to_sql_datetime(created_date),
+                    "geocoded_at": to_sql_datetime(created_date),
                     "phone": phone,
                     "website": f"https://{slugify(name)}.pl",
                     "description": _generate_description(theme, tier, city_name),
@@ -251,8 +250,8 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "status": status,
                     "is_verified": is_verified,
                     "owner_id": None,
-                    "created_at": DateGenerator.to_sql_datetime(created_date),
-                    "updated_at": DateGenerator.to_sql_datetime(created_date),
+                    "created_at": to_sql_datetime(created_date),
+                    "updated_at": to_sql_datetime(created_date),
                     "secret_price_multiplier": round(secret_price_multiplier, 3),
                     "secret_overall_food_quality": round(secret_overall_food_quality, 3),
                     "secret_service_quality": round(secret_service_quality, 3),
@@ -466,19 +465,19 @@ def _get_schedule_for_theme(theme: str) -> dict:
     open_range = (11, 13)
     close_range = (21, 23)
 
-    if theme in ["Pizzeria", "Italian", "Mexican", "Burger Bar"]:
+    if theme in ["Pizzeria", "Kuchnia Włoska", "Bar Meksykański", "Burgerownia"]:
         open_range = (11, 12)
         close_range = (22, 23)
-    elif theme in ["Sushi Bar", "Asian Fusion", "Seafood"]:
+    elif theme in ["Sushi Bar", "Kuchnia Azjatycka", "Restauracja z Owocami Morza", "Kuchnia Wietnamska", "Kuchnia Chińska", "Ramen Bar"]:
         open_range = (12, 14)
         close_range = (22, 23)
-    elif theme in ["Vegan Cafe", "French Bistro", "Breakfast Diner", "Bakery"]:
+    elif theme in ["Kawiarnia", "Francuskie Bistro", "Piekarnia z Kawiarnią"]:
         open_range = (7, 10)
         close_range = (18, 21)
-    elif theme in ["Steakhouse", "Fine Dining"]:
+    elif theme in ["Steakhouse", "Wykwintna Restauracja"]:
         open_range = (16, 17)
         close_range = (22, 23)
-    elif theme in ["Kebab", "Fast Food"]:
+    elif theme in ["Kebab", "Amerykański Diner"]:
         open_range = (10, 11)
         close_range = (23, 25)
 

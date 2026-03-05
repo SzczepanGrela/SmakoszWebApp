@@ -3,12 +3,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from orchestration.database_manager import (
-    DatabaseCleanupStrategy,
-    DatabaseManager,
-)
+from orchestration.database_manager import DatabaseManager
 
-class TestDatabaseCleanupStrategy:
+class TestDatabaseManagerCleanup:
 
     def test_query_based_cleanup_queries_schema(self):
         mock_db = Mock()
@@ -18,7 +15,8 @@ class TestDatabaseCleanupStrategy:
             ("system", "config"),
         ]
 
-        DatabaseCleanupStrategy.query_based(mock_db)
+        manager = DatabaseManager(mock_db)
+        manager._cleanup_query_based()
 
         assert mock_db.fetch_all.called
         query = mock_db.fetch_all.call_args[0][0]
@@ -33,7 +31,8 @@ class TestDatabaseCleanupStrategy:
             ("system", "config"),
         ]
 
-        DatabaseCleanupStrategy.query_based(mock_db)
+        manager = DatabaseManager(mock_db)
+        manager._cleanup_query_based()
 
         execute_calls = mock_db.execute_query.call_args_list
         truncate_calls = [call for call in execute_calls if "TRUNCATE" in str(call)]
@@ -43,7 +42,8 @@ class TestDatabaseCleanupStrategy:
         mock_db = Mock()
         mock_db.fetch_all.return_value = [("public", "users")]
 
-        DatabaseCleanupStrategy.query_based(mock_db)
+        manager = DatabaseManager(mock_db)
+        manager._cleanup_query_based()
 
         execute_calls = mock_db.execute_query.call_args_list
         assert any("session_replication_role" in str(call) and "replica" in str(call) for call in execute_calls)
@@ -52,7 +52,8 @@ class TestDatabaseCleanupStrategy:
         mock_db = Mock()
         mock_db.fetch_all.return_value = [("public", "users")]
 
-        DatabaseCleanupStrategy.query_based(mock_db)
+        manager = DatabaseManager(mock_db)
+        manager._cleanup_query_based()
 
         execute_calls = mock_db.execute_query.call_args_list
         assert any("session_replication_role" in str(call) and "origin" in str(call) for call in execute_calls)
@@ -66,8 +67,10 @@ class TestDatabaseCleanupStrategy:
             None,
         ]
 
+        manager = DatabaseManager(mock_db)
+
         with pytest.raises(Exception, match="TRUNCATE failed"):
-            DatabaseCleanupStrategy.query_based(mock_db)
+            manager._cleanup_query_based()
 
         execute_calls = mock_db.execute_query.call_args_list
         assert len(execute_calls) == 3
@@ -75,15 +78,10 @@ class TestDatabaseCleanupStrategy:
 
 class TestDatabaseManager:
 
-    def test_init_defaults_to_query_based(self):
+    def test_init_requires_only_db(self):
         mock_db = Mock()
         manager = DatabaseManager(mock_db)
-        assert manager.strategy == "query_based"
-
-    def test_init_accepts_custom_strategy(self):
-        mock_db = Mock()
-        manager = DatabaseManager(mock_db, strategy="cascade")
-        assert manager.strategy == "cascade"
+        assert manager.db is mock_db
 
     @patch("builtins.print")
     @patch("builtins.input", return_value="yes")
@@ -131,16 +129,35 @@ class TestDatabaseManager:
 
         assert mock_db.fetch_all.called
 
-    def test_cleanup_uses_query_based_strategy(self):
+    def test_cleanup_uses_query_based_by_default(self):
         mock_db = Mock()
         mock_db.fetch_all.return_value = [("public", "users")]
-        manager = DatabaseManager(mock_db, strategy="query_based")
+        manager = DatabaseManager(mock_db)
 
         manager.cleanup(confirm=True)
 
         assert mock_db.fetch_all.called
         query = mock_db.fetch_all.call_args[0][0]
         assert "pg_tables" in query
+
+    def test_cleanup_falls_back_to_cascade_on_error(self):
+        mock_db = Mock()
+        mock_db.fetch_all.return_value = [("public", "users")]
+        call_count = 0
+
+        def side_effect(query, *args):
+            nonlocal call_count
+            call_count += 1
+            if "replica" in str(query):
+                raise Exception("query_based failed")
+
+        mock_db.execute_query.side_effect = side_effect
+        manager = DatabaseManager(mock_db)
+
+        manager.cleanup(confirm=True)
+
+        truncate_calls = [c for c in mock_db.execute_query.call_args_list if "TRUNCATE" in str(c)]
+        assert len(truncate_calls) > 0
 
     def test_print_statistics_queries_table_counts(self):
         mock_db = Mock()
