@@ -1,17 +1,28 @@
-import json
 import logging
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-from api.client import WorkerApiClient
 from config import Settings
+from handlers.batch_mixin import BatchJobMixin
+from handlers.protocol import JobMapping, ModelRequirement
+from handlers.result import make_result
 from models.model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
 
-class TextModerator:
+class TextModerator(BatchJobMixin):
     """HerBERT-based toxicity detection."""
+
+    PHASE_NAME = "loading_herbert"
+    MODELS = [
+        ModelRequirement(name="herbert", hf_repo="allegro/herbert-base-cased", version_env_key="herbert_model_version"),
+    ]
+    JOB_MAPPINGS = [
+        JobMapping("text_moderation", "handle_job"),
+        JobMapping("text_moderation_batch", "handle_batch_job"),
+    ]
+    BATCH_INPUT_KEY = "text"
 
     def __init__(self, model_manager: ModelManager, settings: Settings, device: torch.device):
         self.device = device
@@ -47,11 +58,12 @@ class TextModerator:
         toxicity_score = round(toxicity_score, 4)
         verdict = self._apply_thresholds(toxicity_score, config)
 
-        return {
-            "toxicity_score": toxicity_score,
-            "verdict": verdict,
-            "model_version": self.settings.herbert_model_version,
-        }
+        return make_result(
+            model_name="allegro/herbert-base-cased",
+            model_version=self.settings.herbert_model_version,
+            verdict=verdict,
+            toxicity_score=toxicity_score,
+        )
 
     def _apply_thresholds(self, score: float, config: dict) -> str:
         approve = float(config.get("toxicThresholdApprove", 0.3))
@@ -62,9 +74,3 @@ class TextModerator:
         if score >= reject:
             return "rejected"
         return "needs_review"
-
-    def handle_job(self, job: dict, api: WorkerApiClient) -> dict:
-        payload = json.loads(job["payload"])
-        text = payload["text"]
-        config = api.get_config()
-        return self.predict(text, config)

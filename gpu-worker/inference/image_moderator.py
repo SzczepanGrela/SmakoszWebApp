@@ -1,5 +1,4 @@
 import io
-import json
 import logging
 
 import httpx
@@ -12,8 +11,10 @@ from transformers import (
     CLIPProcessor,
 )
 
-from api.client import WorkerApiClient
 from config import Settings
+from handlers.batch_mixin import BatchJobMixin
+from handlers.protocol import JobMapping, ModelRequirement
+from handlers.result import make_result
 from models.model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
@@ -32,8 +33,19 @@ GENERIC_PROMPTS = [
     "a selfie",
 ]
 
-class ImageModerator:
+class ImageModerator(BatchJobMixin):
     """NSFW detection + CLIP on-topic scoring."""
+
+    PHASE_NAME = "loading_nsfw_clip"
+    MODELS = [
+        ModelRequirement(name="nsfw", hf_repo="Marqo/nsfw-image-detection-384", version_env_key="nsfw_model_version"),
+        ModelRequirement(name="clip", hf_repo="openai/clip-vit-base-patch32", version_env_key="clip_model_version"),
+    ]
+    JOB_MAPPINGS = [
+        JobMapping("image_moderation", "handle_job"),
+        JobMapping("image_moderation_batch", "handle_batch_job"),
+    ]
+    BATCH_INPUT_KEY = "image_url"
 
     def __init__(self, model_manager: ModelManager, settings: Settings, device: torch.device):
         self.device = device
@@ -81,7 +93,7 @@ class ImageModerator:
 
         return round(nsfw_score, 4)
 
-    def _predict_on_topic(self, image: Image.Image) -> float:
+    def _predict_relevance(self, image: Image.Image) -> float:
         all_prompts = FOOD_PROMPTS + GENERIC_PROMPTS
         inputs = self.clip_processor(
             text=all_prompts,
@@ -102,32 +114,27 @@ class ImageModerator:
         image = self._download_image(image_url)
 
         nsfw_score = self._predict_nsfw(image)
-        on_topic_score = self._predict_on_topic(image)
+        relevance_score = self._predict_relevance(image)
 
-        verdict = self._apply_thresholds(nsfw_score, on_topic_score, config)
+        verdict = self._apply_thresholds(nsfw_score, relevance_score, config)
 
-        return {
-            "nsfw_score": nsfw_score,
-            "on_topic_score": on_topic_score,
-            "verdict": verdict,
-            "model_version": f"nsfw-{self.settings.nsfw_model_version}_clip-{self.settings.clip_model_version}",
-        }
+        return make_result(
+            model_name="Marqo/nsfw-image-detection-384, openai/clip-vit-base-patch32",
+            model_version=f"nsfw-{self.settings.nsfw_model_version}_clip-{self.settings.clip_model_version}",
+            verdict=verdict,
+            nsfw_score=nsfw_score,
+            relevance_score=relevance_score,
+        )
 
-    def _apply_thresholds(self, nsfw_score: float, on_topic_score: float, config: dict) -> str:
+    def _apply_thresholds(self, nsfw_score: float, relevance_score: float, config: dict) -> str:
         nsfw_reject = float(config.get("nsfwThresholdReject", 0.7))
         nsfw_approve = float(config.get("nsfwThresholdApprove", 0.2))
         on_topic_threshold = float(config.get("onTopicThreshold", 0.3))
 
         if nsfw_score >= nsfw_reject:
             return "rejected"
-        if on_topic_score < on_topic_threshold:
+        if relevance_score < on_topic_threshold:
             return "rejected"
         if nsfw_score <= nsfw_approve:
             return "approved"
         return "needs_review"
-
-    def handle_job(self, job: dict, api: WorkerApiClient) -> dict:
-        payload = json.loads(job["payload"])
-        image_url = payload["image_url"]
-        config = api.get_config()
-        return self.predict(image_url, config)

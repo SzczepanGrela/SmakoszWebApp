@@ -9,12 +9,6 @@ from config import Settings
 
 logger = logging.getLogger(__name__)
 
-HF_MODEL_MAPPING = {
-    "herbert": "allegro/herbert-base-cased",
-    "nsfw": "Marqo/nsfw-image-detection-384",
-    "clip": "openai/clip-vit-base-patch32",
-}
-
 class ModelManager:
     """Model management: R2 primary, HuggingFace fallback, local cache."""
 
@@ -22,6 +16,7 @@ class ModelManager:
         self._settings = settings
         self._cache_dir = cache_dir or Path("model_cache")
         self._cache_dir.mkdir(parents=True, exist_ok=True)
+        self._hf_mapping: dict[str, str] = {}
 
         self._s3 = None
         if settings.r2_endpoint and settings.r2_access_key:
@@ -53,6 +48,17 @@ class ModelManager:
             return r2_path
 
         return self._download_from_huggingface(model_name)
+
+    def register_models(self, models: list) -> None:
+        """Register HuggingFace mappings from handler ModelRequirements."""
+        for req in models:
+            existing = self._hf_mapping.get(req.name)
+            if existing and existing != req.hf_repo:
+                raise ValueError(
+                    f"Conflicting HF mapping for '{req.name}': "
+                    f"'{existing}' vs '{req.hf_repo}'"
+                )
+            self._hf_mapping[req.name] = req.hf_repo
 
     @property
     def s3_client(self):
@@ -96,7 +102,7 @@ class ModelManager:
             return None
 
     def _download_from_huggingface(self, model_name: str) -> str:
-        hf_repo = HF_MODEL_MAPPING.get(model_name)
+        hf_repo = self._hf_mapping.get(model_name)
         if not hf_repo:
             raise ValueError(f"No HuggingFace mapping for model: {model_name}")
         logger.info("Using HuggingFace model: %s -> %s", model_name, hf_repo)
