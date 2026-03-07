@@ -45,15 +45,36 @@ public class BusinessService : IBusinessService
     public Task<DishDetailDto?> GetDishAsync(Guid id)
         => _api.GetAsync<DishDetailDto>($"/api/business/dishes/{id}");
 
-    public async Task<bool> CreateDishAsync(DishDetailDto dish)
+    public async Task<List<BusinessMenuSectionDto>> GetBusinessMenuSectionsAsync()
+        => await _api.GetAsync<List<BusinessMenuSectionDto>>("/api/business/menu-sections") ?? [];
+
+    public async Task<bool> CreateDishAsync(DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/business/dishes", dish);
+        var response = await _api.PostApiResponseAsync<object>("/api/business/dishes", new
+        {
+            DishName = dish.DishName,
+            Price = dish.Price,
+            Description = dish.Description,
+            Calories = dish.Calories,
+            IsAvailable = dish.IsAvailable,
+            IngredientIds = ingredientIds,
+            SectionIds = sectionIds
+        });
         return response.Success;
     }
 
-    public async Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish)
+    public async Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null)
     {
-        var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{id}", dish);
+        var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{id}", new
+        {
+            DishName = dish.DishName,
+            Price = dish.Price,
+            Description = dish.Description,
+            Calories = dish.Calories,
+            IsAvailable = dish.IsAvailable,
+            IngredientIds = ingredientIds,
+            SectionIds = sectionIds
+        });
         return response.Success;
     }
 
@@ -108,6 +129,20 @@ public class BusinessService : IBusinessService
     public async Task<bool> SetDishIngredientsAsync(Guid publicId, List<int> ingredientIds)
     {
         var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{publicId}/ingredients", new { IngredientIds = ingredientIds });
+        return response.Success;
+    }
+
+    public async Task<bool> CreateIngredientSuggestionAsync(string restaurantSlug, string suggestedName)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/restaurants/{restaurantSlug}/ingredient-suggestions",
+            new { SuggestedName = suggestedName });
+        return response.Success;
+    }
+
+    public async Task<bool> ReorderMenuSectionsAsync(List<int> sectionIds)
+    {
+        var response = await _api.PutApiResponseAsync<object>("/api/business/menu-sections/reorder",
+            new { SectionIds = sectionIds });
         return response.Success;
     }
 }

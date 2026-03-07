@@ -193,10 +193,14 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null)
         => _api.GetAsync<PagedResult<AdminIngredientSuggestionDto>>($"/api/admin/ingredient-suggestions?page={page}&status={status}");
 
-    public async Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null)
+    public async Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null,
+        bool? isAllergen = null, bool? isVegetarian = null, bool? isVegan = null,
+        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/ingredient-suggestions/{id}/review",
-            new { Approve = approve, AdminNote = adminNote });
+            new { Approve = approve, AdminNote = adminNote,
+                IsAllergen = isAllergen, IsVegetarian = isVegetarian, IsVegan = isVegan,
+                IsGlutenFree = isGlutenFree, IsLactoseFree = isLactoseFree, IconUrl = iconUrl });
         return response.Success;
     }
 

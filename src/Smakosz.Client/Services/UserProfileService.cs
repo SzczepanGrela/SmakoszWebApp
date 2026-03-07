@@ -34,7 +34,8 @@ public class UserProfileService : IUserProfileService
         var response = await _api.PutApiResponseAsync<object>("/api/me", new
         {
             profile.Username,
-            Bio = (string?)null
+            Bio = (string?)null,
+            profile.AvatarUrl
         });
         return response.Success;
     }

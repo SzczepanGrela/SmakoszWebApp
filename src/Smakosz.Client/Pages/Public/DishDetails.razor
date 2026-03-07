@@ -88,6 +88,11 @@ else
                     </div>
                 }
 
+                @if (_dish.Ingredients?.Any() == true)
+                {
+                    <IngredientList Ingredients="@_dish.Ingredients" />
+                }
+
                 <!-- Reviews -->
                 <div class="mt-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">

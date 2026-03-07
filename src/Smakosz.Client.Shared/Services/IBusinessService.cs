@@ -13,8 +13,9 @@ public interface IBusinessService
     Task<bool> UpdateMenuSectionsAsync(List<MenuSectionDto> sections);
     Task<PagedResult<BusinessDishDto>?> GetDishesAsync(int page = 1);
     Task<DishDetailDto?> GetDishAsync(Guid id);
-    Task<bool> CreateDishAsync(DishDetailDto dish);
-    Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish);
+    Task<List<BusinessMenuSectionDto>> GetBusinessMenuSectionsAsync();
+    Task<bool> CreateDishAsync(DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null);
+    Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null);
     Task<bool> DeleteDishAsync(Guid id);
     Task<PagedResult<ReviewCardDto>?> GetReviewsAsync(int page = 1);
     Task<BusinessStatsDto?> GetStatsAsync();
@@ -27,6 +28,8 @@ public interface IBusinessService
     Task<bool> UpdateDishAvailabilityAsync(Guid publicId, bool isAvailable);
     Task<bool> CreateEditRequestAsync(CreateEditRequestDto dto);
     Task<bool> SetDishIngredientsAsync(Guid publicId, List<int> ingredientIds);
+    Task<bool> CreateIngredientSuggestionAsync(string restaurantSlug, string suggestedName);
+    Task<bool> ReorderMenuSectionsAsync(List<int> sectionIds);
 }
 
 public record CreateEditRequestDto(

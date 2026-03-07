@@ -1,0 +1,61 @@
+@namespace Smakosz.Client.Components
+@if (Ingredients?.Any() == true)
+{
+    <div class="mt-4">
+        <div class="d-flex align-items-center cursor-pointer" @onclick="Toggle" style="cursor:pointer;">
+            <h5 class="mb-0 me-2">Skladniki (@Ingredients.Count)</h5>
+            <i class="fa-solid @(_expanded ? "fa-chevron-up" : "fa-chevron-down") text-muted"></i>
+        </div>
+        @if (_expanded)
+        {
+            <div class="mt-2">
+                @foreach (var ingredient in Ingredients)
+                {
+                    <div class="d-flex align-items-center gap-2 py-1 border-bottom">
+                        @if (!string.IsNullOrEmpty(ingredient.IconUrl))
+                        {
+                            <img src="@ingredient.IconUrl" alt="" style="width:20px;height:20px;" />
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-leaf text-muted" style="width:20px;"></i>
+                        }
+                        <span>@ingredient.Name</span>
+                        @if (ingredient.IsAllergen)
+                        {
+                            <span class="badge bg-danger" style="font-size:0.65rem;">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>Alergen
+                            </span>
+                        }
+                        @if (!ingredient.IsVegetarian)
+                        {
+                            <span class="badge text-white" style="font-size:0.65rem;background-color:#8B4513;">
+                                <i class="fa-solid fa-drumstick-bite me-1"></i>Mieso
+                            </span>
+                        }
+                        @if (!ingredient.IsGlutenFree)
+                        {
+                            <span class="badge bg-warning text-dark" style="font-size:0.65rem;">
+                                <i class="fa-solid fa-wheat-awn me-1"></i>Gluten
+                            </span>
+                        }
+                        @if (!ingredient.IsLactoseFree)
+                        {
+                            <span class="badge bg-info" style="font-size:0.65rem;">
+                                <i class="fa-solid fa-droplet me-1"></i>Laktoza
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<DishIngredientDto>? Ingredients { get; set; }
+
+    private bool _expanded;
+
+    private void Toggle() => _expanded = !_expanded;
+}

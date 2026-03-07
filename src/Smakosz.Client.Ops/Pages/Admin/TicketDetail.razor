@@ -412,6 +412,41 @@ else
 
         @if (!IsResolved && s != null)
         {
+            <div class="card shadow-sm mb-3">
+                <div class="card-header"><h6 class="mb-0">Tagi dietetyczne (przy zatwierdzaniu)</h6></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium">URL ikony</label>
+                        <input type="text" class="form-control form-control-sm" @bind="_suggestionIconUrl" placeholder="https://..." />
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" @bind="_suggestionIsAllergen" />
+                                <label class="form-check-label small">Alergen</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" @bind="_suggestionIsVegetarian" />
+                                <label class="form-check-label small">Wegetariański</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" @bind="_suggestionIsVegan" />
+                                <label class="form-check-label small">Wegański</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" @bind="_suggestionIsGlutenFree" />
+                                <label class="form-check-label small">Bez glutenu</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox" @bind="_suggestionIsLactoseFree" />
+                                <label class="form-check-label small">Bez laktozy</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @RenderRejectionInput()
             <div class="d-flex gap-2">
                 <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApproveSuggestion">
@@ -424,10 +459,20 @@ else
         }
     };
 
+    private bool _suggestionIsAllergen;
+    private bool _suggestionIsVegetarian = true;
+    private bool _suggestionIsVegan = true;
+    private bool _suggestionIsGlutenFree = true;
+    private bool _suggestionIsLactoseFree = true;
+    private string? _suggestionIconUrl;
+
     private async Task ApproveSuggestion()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ReviewIngredientSuggestionAsync(_detail!.Suggestion!.SuggestionId, true, null);
+        var ok = await AdminService.ReviewIngredientSuggestionAsync(
+            _detail!.Suggestion!.SuggestionId, true, null,
+            _suggestionIsAllergen, _suggestionIsVegetarian, _suggestionIsVegan,
+            _suggestionIsGlutenFree, _suggestionIsLactoseFree, _suggestionIconUrl);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Sugestia zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }

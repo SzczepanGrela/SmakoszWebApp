@@ -1,0 +1,202 @@
+@page "/restaurant/menu-sections"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
+@inject IBusinessService BusinessService
+@inject ToastService Toast
+
+<PageTitle>Sekcje menu - Panel restauracji</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-bars me-2"></i>Sekcje menu</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <div class="row">
+        <div class="col-lg-8">
+            @if (_sections.Any())
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">#</th>
+                                    <th>Nazwa</th>
+                                    <th style="width:100px;">Dania</th>
+                                    <th style="width:180px;">Kolejnosc</th>
+                                    <th style="width:120px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < _sections.Count; i++)
+                                {
+                                    var ms = _sections[i];
+                                    var index = i;
+                                    <tr>
+                                        <td class="text-muted">@(i + 1)</td>
+                                        <td>
+                                            @if (_editingId == ms.MenuSectionId)
+                                            {
+                                                <input type="text" class="form-control form-control-sm" @bind="_editName" />
+                                            }
+                                            else
+                                            {
+                                                <span class="fw-medium">@ms.Name</span>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-secondary">@ms.DishCount</span></td>
+                                        <td>
+                                            <button class="btn btn-outline-secondary btn-sm me-1" disabled="@(index == 0)"
+                                                    @onclick="() => MoveUp(index)">
+                                                <i class="fa-solid fa-arrow-up"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm" disabled="@(index == _sections.Count - 1)"
+                                                    @onclick="() => MoveDown(index)">
+                                                <i class="fa-solid fa-arrow-down"></i>
+                                            </button>
+                                        </td>
+                                        <td class="text-end">
+                                            @if (_editingId == ms.MenuSectionId)
+                                            {
+                                                <button class="btn btn-success btn-sm me-1" @onclick="SaveEdit">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => StartEdit(ms)">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => Delete(ms)">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EmptyState Icon="fa-solid fa-bars" Title="Brak sekcji menu" Description="Dodaj pierwsza sekcje menu ponizej." />
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Dodaj nowa sekcje</h6>
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind="_newName" placeholder="Nazwa sekcji..." />
+                        <button class="btn btn-primary" @onclick="AddSection" disabled="@_saving">
+                            <i class="fa-solid fa-plus me-1"></i>Dodaj
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<BusinessMenuSectionDto> _sections = [];
+    private bool _loading = true;
+    private bool _saving;
+    private string _newName = "";
+    private int? _editingId;
+    private string _editName = "";
+
+    protected override async Task OnInitializedAsync() => await LoadSections();
+
+    private async Task LoadSections()
+    {
+        _loading = true;
+        _sections = await BusinessService.GetBusinessMenuSectionsAsync();
+        _loading = false;
+    }
+
+    private async Task AddSection()
+    {
+        if (string.IsNullOrWhiteSpace(_newName)) return;
+        _saving = true;
+        var success = await BusinessService.CreateMenuSectionAsync(_newName.Trim());
+        if (success)
+        {
+            Toast.ShowSuccess("Sekcja dodana.");
+            _newName = "";
+            await LoadSections();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie dodac sekcji.");
+        }
+        _saving = false;
+    }
+
+    private void StartEdit(BusinessMenuSectionDto item)
+    {
+        _editingId = item.MenuSectionId;
+        _editName = item.Name;
+    }
+
+    private void CancelEdit() => _editingId = null;
+
+    private async Task SaveEdit()
+    {
+        if (_editingId == null || string.IsNullOrWhiteSpace(_editName)) return;
+        var success = await BusinessService.UpdateMenuSectionAsync(_editingId.Value, _editName.Trim());
+        if (success)
+        {
+            Toast.ShowSuccess("Sekcja zaktualizowana.");
+            _editingId = null;
+            await LoadSections();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie zaktualizowac sekcji.");
+        }
+    }
+
+    private async Task Delete(BusinessMenuSectionDto item)
+    {
+        var success = await BusinessService.DeleteMenuSectionAsync(item.MenuSectionId);
+        if (success)
+        {
+            Toast.ShowSuccess("Sekcja usunieta.");
+            await LoadSections();
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie usunac sekcji.");
+        }
+    }
+
+    private async Task MoveUp(int index)
+    {
+        if (index <= 0) return;
+        (_sections[index], _sections[index - 1]) = (_sections[index - 1], _sections[index]);
+        await SaveOrder();
+    }
+
+    private async Task MoveDown(int index)
+    {
+        if (index >= _sections.Count - 1) return;
+        (_sections[index], _sections[index + 1]) = (_sections[index + 1], _sections[index]);
+        await SaveOrder();
+    }
+
+    private async Task SaveOrder()
+    {
+        var ids = _sections.Select(s => s.MenuSectionId).ToList();
+        var success = await BusinessService.ReorderMenuSectionsAsync(ids);
+        if (!success)
+            Toast.ShowError("Nie udalo sie zmienic kolejnosci.");
+    }
+}
