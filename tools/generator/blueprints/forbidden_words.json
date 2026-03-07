@@ -1,94 +1,109 @@
 {
     "FORBIDDEN_WORDS": {
-        "_description": "Seed data for system.forbidden_words table. Categories: profanity, reserved, offensive, trademark.",
+        "_description": "Seed data for system.forbidden_words table. First-line synchronous filter (Contains check). HerBERT handles context/intent as async second layer.",
+        "_warning": "Each word is matched via string.Contains() - use minimal roots that ONLY appear in profane words. Avoid roots matching innocent words (e.g. 'ass' in 'classic', 'dup' in 'duplikat', 'ruch' in 'ruchliwy', 'suk' in 'sukces', 'ciot' in 'ciotka').",
+
+        "_reserved_note": "Used ONLY for username validation (Register + UpdateProfile), NOT for review content. Contains() check on username - avoid short roots that appear in normal names (e.g. 'mod' in 'modelka', 'bot' in 'robotyk', 'info' in 'informatyk').",
         "reserved": [
             "admin",
             "administrator",
             "moderator",
-            "mod",
             "smakosz",
             "smakoszapp",
-            "smakosz_app",
-            "api",
-            "system",
-            "root",
             "superuser",
             "support",
-            "help",
-            "info",
-            "contact",
-            "null",
-            "undefined",
-            "none",
             "anonymous",
-            "test",
             "testuser",
-            "guest",
             "official",
-            "staff",
-            "team",
-            "bot",
-            "robot",
-            "service",
-            "delete",
             "deleted",
-            "banned",
-            "www",
-            "http",
-            "https",
-            "ftp"
+            "banned"
         ],
+
         "profanity_pl": [
-            "kurwa",
-            "kurwy",
-            "kurwe",
-            "kurwo",
+            "kurw",
+            "kurew",
+
             "chuj",
-            "chuja",
-            "chuje",
-            "pizda",
-            "pizdzie",
-            "pizdo",
-            "jebac",
-            "jebany",
-            "jebana",
-            "jebane",
-            "jebie",
+
+            "pizd",
+
+            "cipa",
+            "cipę",
+            "cipk",
+
+            "kutas",
+            "fiut",
+
+            "jeb",
+
             "pierdol",
-            "pierdole",
-            "pierdolony",
-            "pierdolona",
-            "skurwysyn",
-            "skurwiel",
-            "szmata",
-            "dziwka",
-            "suka",
-            "dupek",
+            "pierdal",
+
             "dupa",
             "dupie",
-            "gowno",
-            "gówno",
-            "spierdalaj",
-            "spierdolaj",
-            "spierdolil",
-            "wyjebac",
-            "wyjebany",
-            "odpierdol",
-            "zajebisty",
-            "zajebiste",
-            "zajebiście",
-            "kurczak",
-            "kurcze"
+            "dupek",
+
+            "gówn",
+            "gown",
+
+            "ruchać",
+            "ruchaj",
+
+            "dziwk",
+            "szmata",
+            "suka"
         ],
+
+        "profanity_en": [
+            "fuck",
+            "shit",
+            "bitch",
+            "cunt",
+            "whore",
+            "slut",
+            "piss",
+            "wanker",
+            "twat",
+            "bollocks",
+            "bastard",
+
+            "asshole",
+            "arsehole",
+            "dickhead",
+            "cocksucker"
+        ],
+
         "offensive": [
             "hitler",
             "nazi",
-            "nazista",
             "pedofil",
-            "gwalt",
-            "gwałt",
-            "rasista",
-            "rasizm"
+            "rasist",
+            "rasizm",
+
+            "nigger",
+            "nigga",
+
+            "faggot",
+
+            "pedał",
+            "ciota",
+
+            "cwel",
+
+            "kike",
+            "chink",
+
+            "retard"
+        ],
+
+        "_spam_note": "Regex patterns for catching spam links in review content. Category: Profanity, IsRegex: true. Not matched against usernames (those use Reserved|Offensive).",
+        "spam_patterns": [
+            "https?://",
+            "bit\\.ly",
+            "t\\.co",
+            "tinyurl",
+            "wa\\.me",
+            "t\\.me"
         ]
     }
 }
