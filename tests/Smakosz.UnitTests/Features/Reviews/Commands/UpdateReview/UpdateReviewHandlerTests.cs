@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Reviews.Commands.UpdateReview;
 using Smakosz.Domain.Enums;
@@ -13,13 +14,15 @@ public class UpdateReviewHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly UpdateReviewHandler _handler;
 
     public UpdateReviewHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new UpdateReviewHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new UpdateReviewHandler(_db, _currentUser, _forbiddenWords);
     }
 
     private UpdateReviewCommand ValidCommand(Guid reviewPublicId) => new(
@@ -58,7 +61,7 @@ public class UpdateReviewHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        var handler = new UpdateReviewHandler(_db, anonymousUser);
+        var handler = new UpdateReviewHandler(_db, anonymousUser, _forbiddenWords);
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
 

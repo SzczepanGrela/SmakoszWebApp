@@ -1,7 +1,9 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.UpdateMenuSection;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -13,17 +15,19 @@ public class UpdateMenuSectionHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly UpdateMenuSectionHandler _handler;
 
     public UpdateMenuSectionHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new UpdateMenuSectionHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new UpdateMenuSectionHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]
-    public async Task Handle_HappyPath_UpdatesSectionName()
+    public async Task Handle_HappyPath_CreatesEditRequestInsteadOfDirectEdit()
     {
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         restaurant.OwnerId = 1;
@@ -34,7 +38,14 @@ public class UpdateMenuSectionHandlerTests
         var result = await _handler.Handle(new UpdateMenuSectionCommand(1, "Desery"), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        section.SectionName.Should().Be("Desery");
+        section.SectionName.Should().Be("Zupy", "name should not change directly - goes through EditRequest");
+        _sets.RestaurantEditRequests.Should().ContainSingle();
+        var editRequest = _sets.RestaurantEditRequests[0];
+        editRequest.NewName.Should().Be("Desery");
+        editRequest.ChangeScope.Should().Be(EditRequestChangeScope.Section);
+        editRequest.TargetEntityId.Should().Be(1);
+        editRequest.ModerationStatus.Should().Be(ContentModerationStatus.Pending);
+        _sets.SystemTickets.Should().ContainSingle();
     }
 
     [Fact]

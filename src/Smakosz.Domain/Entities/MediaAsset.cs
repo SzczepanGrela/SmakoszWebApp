@@ -3,7 +3,7 @@ using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
 
-public class MediaAsset : IHasPublicId, IVersioned
+public class MediaAsset : IHasPublicId, IVersioned, IModerable
 {
     public long AssetId { get; set; }
     public Guid PublicId { get; set; }

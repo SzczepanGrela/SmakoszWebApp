@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Dishes.Dtos;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Dishes.Queries.GetDishBySlug;
 
@@ -24,9 +25,13 @@ public class GetDishBySlugHandler : IRequestHandler<GetDishBySlugQuery, ErrorOr<
             .AsNoTracking()
             .Include(d => d.Restaurant)
                 .ThenInclude(r => r!.City)
+            .Include(d => d.DishIngredients)
+                .ThenInclude(di => di.Ingredient)
             .Include(d => d.DishTags)
                 .ThenInclude(dt => dt.Tag)
-            .FirstOrDefaultAsync(d => d.Slug == request.Slug, cancellationToken);
+            .FirstOrDefaultAsync(d => d.Slug == request.Slug
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved),
+                cancellationToken);
 
         if (dish is null)
             return DomainErrors.Dish.NotFound;

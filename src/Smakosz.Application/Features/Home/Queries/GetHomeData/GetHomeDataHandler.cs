@@ -32,7 +32,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         var trendingRestaurants = await _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
-            .Where(r => r.Status == RestaurantStatus.Active)
+            .Where(r => r.Status == RestaurantStatus.Active
+                && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(r => r.TrendingScore)
             .Take(6)
             .Select(r => new RestaurantCardDto
@@ -54,7 +55,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         var trendingDishes = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
-            .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
+            .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(d => d.TrendingScore)
             .Take(12)
             .Select(d => new DishCardDto
@@ -79,7 +81,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         var topRatedDishes = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
-            .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
+            .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(d => d.AvgRating)
             .Take(12)
             .Select(d => new DishCardDto
@@ -106,7 +109,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Include(r => r.User)
             .Include(r => r.Dish)
             .Include(r => r.Restaurant)
-            .Where(r => !r.IsDeleted && r.IsVisible)
+            .Where(r => !r.IsDeleted && r.IsVisible
+                && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(r => r.CreatedAt)
             .Take(6)
             .Select(r => new ReviewCardDto

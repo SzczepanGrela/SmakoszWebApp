@@ -168,7 +168,9 @@ public class AdminController : ApiController
         [FromBody] ReviewIngredientSuggestionRequest request)
     {
         var result = await _mediator.Send(new ReviewIngredientSuggestionCommand(
-            suggestionId, request.Approve, request.AdminNote));
+            suggestionId, request.Approve, request.AdminNote,
+            request.IsAllergen, request.IsVegetarian, request.IsVegan,
+            request.IsGlutenFree, request.IsLactoseFree, request.IconUrl));
         return ToNoContentResult(result);
     }
 }
@@ -183,4 +185,12 @@ public record CreateIngredientRequest(
 public record UpdateIngredientRequest(string? Name, bool? IsAllergen, bool? IsVegetarian, bool? IsVegan, bool? IsGlutenFree, bool? IsLactoseFree);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
-public record ReviewIngredientSuggestionRequest(bool Approve, string? AdminNote);
+public record ReviewIngredientSuggestionRequest(
+    bool Approve,
+    string? AdminNote,
+    bool? IsAllergen = null,
+    bool? IsVegetarian = null,
+    bool? IsVegan = null,
+    bool? IsGlutenFree = null,
+    bool? IsLactoseFree = null,
+    string? IconUrl = null);

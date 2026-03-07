@@ -3,7 +3,7 @@ using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
 
-public class Review : IAuditableEntity, ISoftDeletable, IHasPublicId, IVersioned
+public class Review : IAuditableEntity, ISoftDeletable, IHasPublicId, IVersioned, IModerable
 {
     public int ReviewId { get; set; }
     public Guid PublicId { get; set; }

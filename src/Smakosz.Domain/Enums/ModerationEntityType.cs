@@ -9,5 +9,6 @@ public enum ModerationEntityType
     Report,
     Ticket,
     Restaurant,
-    Dish
+    Dish,
+    MenuSection
 }

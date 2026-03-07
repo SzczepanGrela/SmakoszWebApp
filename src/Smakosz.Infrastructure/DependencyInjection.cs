@@ -23,6 +23,8 @@ public static class DependencyInjection
                    .UseSnakeCaseNamingConvention());
 
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
+        services.AddMemoryCache();
+        services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ICodeHasher>(sp =>

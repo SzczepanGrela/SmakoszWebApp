@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Extensions;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 
@@ -15,23 +16,31 @@ public record CreateDishCommand(
     string? Description,
     int? Calories,
     bool IsAvailable,
-    List<int>? SectionIds) : IRequest<ErrorOr<int>>;
+    List<int>? SectionIds = null,
+    List<int>? IngredientIds = null) : IRequest<ErrorOr<int>>;
 
 public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public CreateDishHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public CreateDishHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<int>> Handle(CreateDishCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
+
+        if (await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        if (request.Description is not null && await _forbiddenWords.ContainsAsync(request.Description, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
 
         var restaurant = await _db.Restaurants
             .FirstOrDefaultAsync(r => r.OwnerId == _currentUser.UserId.Value, cancellationToken);
@@ -72,6 +81,27 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
                     CreatedAt = DateTime.UtcNow
                 });
             }
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
+        if (request.IngredientIds is { Count: > 0 })
+        {
+            var ingredients = await _db.Ingredients
+                .Where(i => request.IngredientIds.Contains(i.IngredientId))
+                .ToListAsync(cancellationToken);
+
+            foreach (var ingredient in ingredients)
+            {
+                _db.DishIngredients.Add(new DishIngredient
+                {
+                    DishId = dish.DishId,
+                    IngredientId = ingredient.IngredientId
+                });
+            }
+
+            DishDietaryExtensions.RecalculateDietaryFlags(dish, ingredients);
+            dish.IngredientsJson = DishDietaryExtensions.SerializeIngredientNames(ingredients);
 
             await _db.SaveChangesAsync(cancellationToken);
         }

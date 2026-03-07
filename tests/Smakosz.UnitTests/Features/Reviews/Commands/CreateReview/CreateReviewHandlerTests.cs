@@ -14,13 +14,15 @@ public class CreateReviewHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly CreateReviewHandler _handler;
 
     public CreateReviewHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new CreateReviewHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new CreateReviewHandler(_db, _currentUser, _forbiddenWords);
     }
 
     private CreateReviewCommand ValidCommand(Guid dishPublicId) => new(
@@ -76,7 +78,7 @@ public class CreateReviewHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        var handler = new CreateReviewHandler(_db, anonymousUser);
+        var handler = new CreateReviewHandler(_db, anonymousUser, _forbiddenWords);
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
 
@@ -155,7 +157,7 @@ public class CreateReviewHandlerTests
     public async Task Handle_NonUserRole_ReturnsUserRoleOnlyError()
     {
         var restaurantUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "restaurant");
-        var handler = new CreateReviewHandler(_db, restaurantUser);
+        var handler = new CreateReviewHandler(_db, restaurantUser, _forbiddenWords);
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
 

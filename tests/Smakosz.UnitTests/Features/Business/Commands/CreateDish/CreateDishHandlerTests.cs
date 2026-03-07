@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.CreateDish;
 using Smakosz.UnitTests.Common.TestInfrastructure;
@@ -12,13 +13,15 @@ public class CreateDishHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly CreateDishHandler _handler;
 
     public CreateDishHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 5, role: "Business", sessionId: 100);
-        _handler = new CreateDishHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new CreateDishHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]
@@ -36,7 +39,8 @@ public class CreateDishHandlerTests
                 Description: "Classic Italian pasta",
                 Calories: 650,
                 IsAvailable: true,
-                SectionIds: null),
+                SectionIds: null,
+                IngredientIds: null),
             CancellationToken.None);
 
         result.IsError.Should().BeFalse();
@@ -49,7 +53,7 @@ public class CreateDishHandlerTests
     public async Task Handle_NoRestaurant_ReturnsNotFoundError()
     {
         var result = await _handler.Handle(
-            new CreateDishCommand("Pasta", null, null, null, true, null),
+            new CreateDishCommand("Pasta", null, null, null, true, null, null),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();

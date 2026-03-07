@@ -14,11 +14,13 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public CreateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public CreateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<ReviewCardDto>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -45,12 +47,7 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
 
         if (!string.IsNullOrEmpty(request.Content))
         {
-            var contentLower = request.Content.ToLowerInvariant();
-            var hasForbiddenWord = await _db.ForbiddenWords
-                .Where(fw => fw.Category == ForbiddenWordCategory.Profanity || fw.Category == ForbiddenWordCategory.Offensive)
-                .AnyAsync(fw => !fw.IsRegex && contentLower.Contains(fw.Word.ToLower()), cancellationToken);
-
-            if (hasForbiddenWord)
+            if (await _forbiddenWords.ContainsAsync(request.Content, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
                 return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
         }
 

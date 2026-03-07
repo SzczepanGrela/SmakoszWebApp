@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.UpdateRestaurant;
 using Smakosz.Domain.Entities;
@@ -13,13 +14,15 @@ public class UpdateRestaurantHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly UpdateRestaurantHandler _handler;
 
     public UpdateRestaurantHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 10, role: "Business");
-        _handler = new UpdateRestaurantHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new UpdateRestaurantHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]
@@ -124,7 +127,7 @@ public class UpdateRestaurantHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsInvalidCredentials()
     {
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        var handler = new UpdateRestaurantHandler(_db, anonymousUser);
+        var handler = new UpdateRestaurantHandler(_db, anonymousUser, _forbiddenWords);
 
         var result = await handler.Handle(
             new UpdateRestaurantCommand("New Name", null, null, null, null, null, null),

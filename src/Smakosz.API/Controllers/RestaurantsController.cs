@@ -71,10 +71,10 @@ public class RestaurantsController : ApiController
     public async Task<IActionResult> CreateIngredientSuggestion(string slug, [FromBody] CreateIngredientSuggestionRequest request)
     {
         var result = await _mediator.Send(new CreateIngredientSuggestionCommand(
-            slug, request.SuggestedName, request.IsAllergen, request.IsVegetarian, request.IsVegan, request.IsGlutenFree, request.IsLactoseFree));
+            slug, request.SuggestedName));
         return ToNoContentResult(result);
     }
 }
 
 public record CreateCorrectionRequest(string IssueType, string? Description, string? ProposedValue);
-public record CreateIngredientSuggestionRequest(string SuggestedName, bool IsAllergen, bool IsVegetarian, bool IsVegan, bool IsGlutenFree, bool IsLactoseFree);
+public record CreateIngredientSuggestionRequest(string SuggestedName);

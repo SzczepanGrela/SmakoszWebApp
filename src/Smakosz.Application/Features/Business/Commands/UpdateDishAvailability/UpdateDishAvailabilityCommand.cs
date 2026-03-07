@@ -28,7 +28,7 @@ public class UpdateDishAvailabilityHandler : IRequestHandler<UpdateDishAvailabil
             .Include(d => d.Restaurant)
             .FirstOrDefaultAsync(d => d.PublicId == request.PublicId, cancellationToken);
 
-        if (dish is null)
+        if (dish?.Restaurant is null)
             return DomainErrors.Dish.NotFound;
 
         if (dish.Restaurant.OwnerId != _currentUser.UserId.Value)

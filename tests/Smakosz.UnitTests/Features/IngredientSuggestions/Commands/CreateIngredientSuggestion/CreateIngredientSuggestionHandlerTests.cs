@@ -19,7 +19,7 @@ public class CreateIngredientSuggestionHandlerTests
     public CreateIngredientSuggestionHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
-        _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
+        _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "Restaurant");
         _handler = new CreateIngredientSuggestionHandler(_db, _currentUser);
     }
 
@@ -31,7 +31,7 @@ public class CreateIngredientSuggestionHandlerTests
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(
-            new CreateIngredientSuggestionCommand("bella-italia", "Tofu", false, true, true, true, true),
+            new CreateIngredientSuggestionCommand("bella-italia", "Tofu"),
             CancellationToken.None);
 
         result.IsError.Should().BeFalse();
@@ -48,7 +48,7 @@ public class CreateIngredientSuggestionHandlerTests
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(
-            new CreateIngredientSuggestionCommand("bella-italia", "tofu", false, true, true, true, true),
+            new CreateIngredientSuggestionCommand("bella-italia", "tofu"),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();
@@ -68,7 +68,7 @@ public class CreateIngredientSuggestionHandlerTests
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(
-            new CreateIngredientSuggestionCommand("bella-italia", "tofu", false, true, true, true, true),
+            new CreateIngredientSuggestionCommand("bella-italia", "tofu"),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();
@@ -79,7 +79,7 @@ public class CreateIngredientSuggestionHandlerTests
     public async Task Handle_RestaurantNotFound_ReturnsError()
     {
         var result = await _handler.Handle(
-            new CreateIngredientSuggestionCommand("nonexistent", "Tofu", false, true, true, true, true),
+            new CreateIngredientSuggestionCommand("nonexistent", "Tofu"),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();

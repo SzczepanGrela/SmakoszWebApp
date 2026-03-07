@@ -11,7 +11,13 @@ namespace Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion
 public record ReviewIngredientSuggestionCommand(
     int SuggestionId,
     bool Approve,
-    string? AdminNote) : IRequest<ErrorOr<Success>>;
+    string? AdminNote,
+    bool? IsAllergen = null,
+    bool? IsVegetarian = null,
+    bool? IsVegan = null,
+    bool? IsGlutenFree = null,
+    bool? IsLactoseFree = null,
+    string? IconUrl = null) : IRequest<ErrorOr<Success>>;
 
 public class ReviewIngredientSuggestionHandler
     : IRequestHandler<ReviewIngredientSuggestionCommand, ErrorOr<Success>>
@@ -63,11 +69,12 @@ public class ReviewIngredientSuggestionHandler
                 var ingredient = new Ingredient
                 {
                     IngredientName = suggestion.SuggestedName,
-                    IsAllergen = suggestion.IsAllergen,
-                    IsVegetarian = suggestion.IsVegetarian,
-                    IsVegan = suggestion.IsVegan,
-                    IsGlutenFree = suggestion.IsGlutenFree,
-                    IsLactoseFree = suggestion.IsLactoseFree,
+                    IconUrl = request.IconUrl,
+                    IsAllergen = request.IsAllergen ?? false,
+                    IsVegetarian = request.IsVegetarian ?? true,
+                    IsVegan = request.IsVegan ?? true,
+                    IsGlutenFree = request.IsGlutenFree ?? true,
+                    IsLactoseFree = request.IsLactoseFree ?? true,
                     CreatedAt = _dateTime.UtcNow
                 };
 

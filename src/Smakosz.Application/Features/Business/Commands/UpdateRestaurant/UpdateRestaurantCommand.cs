@@ -22,17 +22,24 @@ public class UpdateRestaurantHandler : IRequestHandler<UpdateRestaurantCommand, 
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public UpdateRestaurantHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public UpdateRestaurantHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<Success>> Handle(UpdateRestaurantCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
+
+        if (request.Name is not null && await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        if (request.Description is not null && await _forbiddenWords.ContainsAsync(request.Description, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
 
         var restaurant = await _db.Restaurants
             .FirstOrDefaultAsync(r => r.OwnerId == _currentUser.UserId.Value, cancellationToken);

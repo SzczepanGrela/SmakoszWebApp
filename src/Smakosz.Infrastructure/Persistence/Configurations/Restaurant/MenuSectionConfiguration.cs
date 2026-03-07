@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
+using Smakosz.Infrastructure.Persistence.Converters;
 
 namespace Smakosz.Infrastructure.Persistence.Configurations.Restaurant;
 
@@ -16,6 +18,10 @@ public class MenuSectionConfiguration : IEntityTypeConfiguration<MenuSection>
 
         builder.Property(x => x.DisplayOrder)
             .HasDefaultValue(0);
+
+        builder.Property(x => x.ModerationStatus)
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
+            .HasMaxLength(20);
 
         builder.HasOne(x => x.Restaurant)
             .WithMany(r => r.MenuSections)

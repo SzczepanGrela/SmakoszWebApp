@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.UpdateDish;
 using Smakosz.Domain.Enums;
@@ -13,13 +14,15 @@ public class UpdateDishHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly UpdateDishHandler _handler;
 
     public UpdateDishHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new UpdateDishHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new UpdateDishHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]

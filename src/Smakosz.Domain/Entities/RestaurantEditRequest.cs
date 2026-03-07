@@ -3,7 +3,7 @@ using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
 
-public class RestaurantEditRequest : IVersioned
+public class RestaurantEditRequest : IVersioned, IModerable
 {
     public int RequestId { get; set; }
     public int RestaurantId { get; set; }

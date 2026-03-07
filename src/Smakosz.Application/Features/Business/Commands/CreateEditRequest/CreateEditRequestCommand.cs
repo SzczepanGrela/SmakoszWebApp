@@ -22,17 +22,24 @@ public class CreateEditRequestHandler : IRequestHandler<CreateEditRequestCommand
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public CreateEditRequestHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public CreateEditRequestHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<Success>> Handle(CreateEditRequestCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
+
+        if (request.NewName is not null && await _forbiddenWords.ContainsAsync(request.NewName, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        if (request.NewDescription is not null && await _forbiddenWords.ContainsAsync(request.NewDescription, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
 
         var restaurant = await _db.Restaurants
             .FirstOrDefaultAsync(r => r.OwnerId == _currentUser.UserId.Value, cancellationToken);

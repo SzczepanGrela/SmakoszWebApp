@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.RegisterBusiness;
 using Smakosz.Domain.Enums;
@@ -13,13 +14,15 @@ public class RegisterBusinessHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly RegisterBusinessHandler _handler;
 
     public RegisterBusinessHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 5, role: "User", sessionId: 100);
-        _handler = new RegisterBusinessHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new RegisterBusinessHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]

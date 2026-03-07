@@ -3,7 +3,7 @@ using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
 
-public class Dish : IAuditableEntity, IHasPublicId
+public class Dish : IAuditableEntity, IHasPublicId, IModerable
 {
     public int DishId { get; set; }
     public Guid PublicId { get; set; }

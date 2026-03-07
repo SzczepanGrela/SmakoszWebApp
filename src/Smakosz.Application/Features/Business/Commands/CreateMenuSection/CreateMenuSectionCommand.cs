@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Business.Commands.CreateMenuSection;
 
@@ -13,17 +14,22 @@ public class CreateMenuSectionHandler : IRequestHandler<CreateMenuSectionCommand
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public CreateMenuSectionHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public CreateMenuSectionHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<int>> Handle(CreateMenuSectionCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
+
+        if (await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
 
         var restaurant = await _db.Restaurants
             .FirstOrDefaultAsync(r => r.OwnerId == _currentUser.UserId.Value, cancellationToken);
@@ -40,7 +46,8 @@ public class CreateMenuSectionHandler : IRequestHandler<CreateMenuSectionCommand
         {
             RestaurantId = restaurant.RestaurantId,
             SectionName = request.Name,
-            DisplayOrder = maxOrder + 1
+            DisplayOrder = maxOrder + 1,
+            ModerationStatus = ContentModerationStatus.Pending
         };
 
         _db.MenuSections.Add(section);

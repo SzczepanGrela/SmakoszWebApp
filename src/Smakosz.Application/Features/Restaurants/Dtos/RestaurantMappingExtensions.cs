@@ -1,4 +1,5 @@
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Restaurants.Dtos;
 
@@ -56,11 +57,13 @@ public static class RestaurantMappingExtensions
                 CloseTime = h.CloseTime,
                 IsClosed = h.IsClosed
             }).ToList() ?? [],
-            MenuSections = r.MenuSections?.Select(s => new MenuSectionDto
-            {
-                SectionName = s.SectionName,
-                DisplayOrder = s.DisplayOrder
-            }).OrderBy(s => s.DisplayOrder).ToList() ?? []
+            MenuSections = r.MenuSections?
+                .Where(s => s.ModerationStatus == ContentModerationStatus.None || s.ModerationStatus == ContentModerationStatus.Approved)
+                .Select(s => new MenuSectionDto
+                {
+                    SectionName = s.SectionName,
+                    DisplayOrder = s.DisplayOrder
+                }).OrderBy(s => s.DisplayOrder).ToList() ?? []
         };
     }
 }

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.CreateEditRequest;
 using Smakosz.Domain.Enums;
@@ -13,13 +14,15 @@ public class CreateEditRequestHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly CreateEditRequestHandler _handler;
 
     public CreateEditRequestHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new CreateEditRequestHandler(_db, _currentUser);
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _handler = new CreateEditRequestHandler(_db, _currentUser, _forbiddenWords);
     }
 
     [Fact]
@@ -70,7 +73,7 @@ public class CreateEditRequestHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymous = MockExtensions.CreateAnonymousUser();
-        var handler = new CreateEditRequestHandler(_db, anonymous);
+        var handler = new CreateEditRequestHandler(_db, anonymous, _forbiddenWords);
 
         var result = await handler.Handle(
             new CreateEditRequestCommand("General", "{}", null, null, null, null, null), CancellationToken.None);
