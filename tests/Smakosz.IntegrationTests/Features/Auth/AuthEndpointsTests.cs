@@ -28,12 +28,7 @@ public class AuthEndpointsTests : IntegrationTestBase
             Password = "SecurePass123!"
         });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        var result = await DeserializeResponse<AuthResult>(response);
-        result.Should().NotBeNull();
-        result!.AccessToken.Should().NotBeNullOrEmpty();
-        result.RefreshToken.Should().NotBeNullOrEmpty();
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]

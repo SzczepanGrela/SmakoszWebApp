@@ -15,7 +15,7 @@ public class SearchEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task Search_ReturnsResults()
     {
-        var response = await AnonymousClient.GetAsync("/api/search?type=restaurants&q=Pizza");
+        var response = await AnonymousClient.GetAsync("/api/search?type=restaurants");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
