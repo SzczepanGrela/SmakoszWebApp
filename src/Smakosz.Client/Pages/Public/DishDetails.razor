@@ -1,4 +1,4 @@
-@page "/dish/{Slug}"
+@page "/dishes/{Slug}"
 @inject IDishService DishService
 @inject IReviewService ReviewService
 @inject IUserProfileService UserProfileService
@@ -32,7 +32,7 @@ else
                         <h1 class="mb-1">@_dish.DishName</h1>
                         @if (_dish.RestaurantName != null)
                         {
-                            <a href="/restaurant/@_dish.RestaurantSlug" class="text-decoration-none" style="color:var(--accent-color);">
+                            <a href="/restaurants/@_dish.RestaurantSlug" class="text-decoration-none" style="color:var(--accent-color);">
                                 <i class="fa-solid fa-store me-1"></i>@_dish.RestaurantName
                             </a>
                         }
@@ -130,7 +130,7 @@ else
                     {
                         <div class="mb-3">
                             <small class="text-muted d-block">Restauracja</small>
-                            <a href="/restaurant/@_dish.RestaurantSlug" class="fw-bold text-decoration-none" style="color:var(--accent-color);">
+                            <a href="/restaurants/@_dish.RestaurantSlug" class="fw-bold text-decoration-none" style="color:var(--accent-color);">
                                 @_dish.RestaurantName
                             </a>
                         </div>
@@ -208,7 +208,7 @@ else
     {
         var dish = await DishService.GetRandomAsync();
         if (dish != null)
-            Navigation.NavigateTo($"/dish/{dish.Slug}");
+            Navigation.NavigateTo($"/dishes/{dish.Slug}");
     }
 
     private async Task ToggleSaveDish()

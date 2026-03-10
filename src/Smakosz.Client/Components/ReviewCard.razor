@@ -15,7 +15,7 @@
                     @if (ShowDish)
                     {
                         <span class="text-muted mx-1">o</span>
-                        <a href="/dish/@Review.DishSlug" class="text-decoration-none d-inline-block" style="color:var(--accent-color);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;" title="@Review.DishName">@Review.DishName</a>
+                        <a href="/dishes/@Review.DishSlug" class="text-decoration-none d-inline-block" style="color:var(--accent-color);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;" title="@Review.DishName">@Review.DishName</a>
                     }
                     @if (ShowRestaurant)
                     {
@@ -43,6 +43,22 @@
             {
                 <p class="mt-2 mb-1 small @(Compact ? "review-content-clamp" : "")" style="overflow-wrap:break-word;word-break:break-word;">@Review.Content</p>
             }
+            <div class="mt-2 d-flex align-items-center gap-2">
+                <AuthorizeView Roles="User">
+                    <Authorized>
+                        <button class="btn btn-sm @(_isLiked ? "btn-danger" : "btn-outline-danger") review-like-btn"
+                                @onclick="ToggleLike" disabled="@_likeSubmitting">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                            <span class="ms-1">@_helpfulCount</span>
+                        </button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <span class="text-muted small">
+                            <i class="fa-solid fa-thumbs-up"></i> @Review.HelpfulCount
+                        </span>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
     </div>
 </div>
@@ -101,11 +117,38 @@
     [Parameter] public bool ShowActions { get; set; }
     [Parameter] public bool Compact { get; set; }
 
+    private bool _isLiked;
+    private int _helpfulCount;
+    private bool _likeSubmitting;
+
     private bool _showReportModal;
     private List<Smakosz.Client.Models.ReportReasonDto>? _reportReasons;
     private HashSet<string> _selectedReasonCodes = new();
     private string? _reportDescription;
     private bool _reportSubmitting;
+
+    protected override void OnParametersSet()
+    {
+        _isLiked = Review.IsHelpfulByMe;
+        _helpfulCount = Review.HelpfulCount;
+    }
+
+    private async Task ToggleLike()
+    {
+        _likeSubmitting = true;
+        var response = await ReviewService.ToggleLikeAsync(Review.PublicId);
+        _likeSubmitting = false;
+
+        if (response.Success && response.Data != null)
+        {
+            _isLiked = response.Data.IsLiked;
+            _helpfulCount = response.Data.HelpfulCount;
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zmienić polubienia.");
+        }
+    }
 
     private async Task OpenReportModal()
     {

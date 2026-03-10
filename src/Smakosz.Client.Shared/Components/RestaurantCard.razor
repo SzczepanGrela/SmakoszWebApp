@@ -1,7 +1,7 @@
 @namespace Smakosz.Client.Components
 @using Smakosz.Client.Helpers
 
-<a href="/restaurant/@Restaurant.Slug" class="text-decoration-none">
+<a href="/restaurants/@Restaurant.Slug" class="text-decoration-none">
     <div class="dish-card">
         <BlurHashImage Src="@ImageHelper.GetRestaurantImage(Restaurant.ImageUrl)" Alt="@Restaurant.RestaurantName"
                        BlurHash="@Restaurant.ImageBlurhash" CssClass="w-100" ImgStyle="height:180px;object-fit:cover;width:100%;" />

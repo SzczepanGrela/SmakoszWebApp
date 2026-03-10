@@ -41,7 +41,7 @@
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card shadow-sm h-100">
                         <!-- Dish card portion -->
-                        <a href="/dish/@item.Dish.Slug" class="text-decoration-none">
+                        <a href="/dishes/@item.Dish.Slug" class="text-decoration-none">
                             <div class="position-relative">
                                 <img src="@ImageHelper.GetDishImage(item.Dish.ImageUrl)"
                                      class="card-img-top" style="height:200px;object-fit:cover;"
@@ -52,7 +52,7 @@
                             </div>
                         </a>
                         <div class="card-body d-flex flex-column">
-                            <a href="/dish/@item.Dish.Slug" class="text-decoration-none" style="color:var(--text-color);">
+                            <a href="/dishes/@item.Dish.Slug" class="text-decoration-none" style="color:var(--text-color);">
                                 <h5 class="card-title mb-1">@item.Dish.DishName</h5>
                             </a>
                             @if (!string.IsNullOrEmpty(item.Dish.RestaurantName))
