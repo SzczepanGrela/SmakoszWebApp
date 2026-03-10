@@ -26,6 +26,6 @@ public class T19_OpeningHoursTest : SmakoszE2ETestBase
         await Expect(saveButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         await saveButton.ClickAsync();
 
-        await AssertToastAsync("Godziny otwarcia zostaly zaktualizowane");
+        await AssertToastAsync("Godziny otwarcia zostały zaktualizowane");
     }
 }

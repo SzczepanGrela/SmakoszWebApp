@@ -122,7 +122,7 @@ public class SmakoszE2ETestBase : PageTest
 
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Page.WaitForURLAsync(url => !url.Contains("/login"), new PageWaitForURLOptions
         {

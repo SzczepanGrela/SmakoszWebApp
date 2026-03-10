@@ -19,7 +19,7 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj się" }).ClickAsync();
 
         var redirectTask = Page.WaitForURLAsync(
             url => url.Contains("/verify-email"),
@@ -46,7 +46,7 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         await AssertPageContainsTextAsync("Dan");
         await AssertPageContainsTextAsync("Restauracji");
 
-        await NavigateAndWaitAsync("/restaurant/pizzeria-roma");
+        await NavigateAndWaitAsync("/restaurants/pizzeria-roma");
         await WaitForBlazorLoadedAsync();
 
         await AssertPageContainsTextAsync("Pizzeria Roma");
@@ -79,7 +79,7 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
             }
         };
 
-        await NavigateAndWaitAsync("/dish/tiramisu");
+        await NavigateAndWaitAsync("/dishes/tiramisu");
         await WaitForBlazorLoadedAsync();
 
         var addReviewLink = Page.GetByRole(AriaRole.Link, new() { Name = "Ocen to danie" });
@@ -107,17 +107,17 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(yesterday);
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzje" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();
 
         var reviewRedirectTask = Page.WaitForURLAsync(
-            url => url.Contains("/dish/tiramisu"),
+            url => url.Contains("/dishes/tiramisu"),
             new PageWaitForURLOptions { Timeout = 15_000 });
         var reviewErrorTask = Page.Locator(".alert-danger, .toast-error").First.WaitForAsync(
             new LocatorWaitForOptions { Timeout = 15_000 });
 
         await Task.WhenAny(reviewRedirectTask, reviewErrorTask);
 
-        if (!Page.Url.Contains("/dish/tiramisu"))
+        if (!Page.Url.Contains("/dishes/tiramisu"))
         {
             var errorText = await Page.Locator(".alert-danger, .toast-error").First.TextContentAsync();
             Assert.Fail($"Review submission failed: {errorText}\nAPI calls:\n{string.Join("\n", apiCalls)}");

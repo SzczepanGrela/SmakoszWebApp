@@ -12,7 +12,7 @@ public class T33_UserCorrectionTest : SmakoszE2ETestBase
     {
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/restaurant/pizzeria-roma");
+        await NavigateAndWaitAsync("/restaurants/pizzeria-roma");
         await WaitForBlazorLoadedAsync();
 
         // Look for "Zaproponuj poprawke" button
@@ -51,14 +51,14 @@ public class T33_UserCorrectionTest : SmakoszE2ETestBase
 
                 await Page.WaitForTimeoutAsync(500);
 
-                var sendButton = Page.Locator("button.btn-primary", new() { HasText = "Wyslij" }).First;
+                var sendButton = Page.Locator("button.btn-primary", new() { HasText = "Wyślij" }).First;
                 if (await sendButton.IsVisibleAsync())
                 {
                     await sendButton.ClickAsync();
                     await Page.WaitForTimeoutAsync(3000);
 
                     var successContent = await Page.ContentAsync();
-                    if (successContent.Contains("wyslana") || successContent.Contains("Dziekujemy") ||
+                    if (successContent.Contains("wysłana") || successContent.Contains("Dziękujemy") ||
                         successContent.Contains("poprawka"))
                     {
                         return; // Success via UI

@@ -21,7 +21,7 @@ public class T08_AdminBanUnbanTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         var heading = Page.Locator("h2").First;
-        await Expect(heading).ToContainTextAsync("Uzytkownicy",
+        await Expect(heading).ToContainTextAsync("Użytkownicy",
             new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
 
         await Page.Locator("table.table tbody tr").First.WaitForAsync(

@@ -37,13 +37,13 @@ public class T34_DishAvailabilityTest : SmakoszE2ETestBase
         await toggleCheckbox.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert toast "Danie zostalo ukryte."
-        await AssertToastAsync("Danie zostalo ukryte.");
+        // Assert toast "Danie zostało ukryte."
+        await AssertToastAsync("Danie zostało ukryte.");
 
         await toggleCheckbox.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert toast "Danie jest teraz dostepne."
-        await AssertToastAsync("Danie jest teraz dostepne.");
+        // Assert toast "Danie jest teraz dostępne."
+        await AssertToastAsync("Danie jest teraz dostępne.");
     }
 }

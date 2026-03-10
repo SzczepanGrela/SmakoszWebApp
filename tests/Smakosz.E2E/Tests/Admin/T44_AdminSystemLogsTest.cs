@@ -30,12 +30,12 @@ public class T44_AdminSystemLogsTest : SmakoszE2ETestBase
         Assert.That(allRowCount, Is.GreaterThanOrEqualTo(3),
             "Should have at least 3 log entries from seed data");
 
-        // Assert columns visible: Czas, Poziom, Wiadomosc, Zrodlo
+        // Assert columns visible: Czas, Poziom, Wiadomość, Źródło
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Czas"), Is.True, "Should show 'Czas' column");
         Assert.That(pageContent.Contains("Poziom"), Is.True, "Should show 'Poziom' column");
-        Assert.That(pageContent.Contains("Wiadomosc"), Is.True, "Should show 'Wiadomosc' column");
-        Assert.That(pageContent.Contains("Zrodlo"), Is.True, "Should show 'Zrodlo' column");
+        Assert.That(pageContent.Contains("Wiadomość"), Is.True, "Should show 'Wiadomość' column");
+        Assert.That(pageContent.Contains("Źródło"), Is.True, "Should show 'Źródło' column");
 
         var errorFilter = Page.Locator("button", new() { HasText = "Error" });
         await errorFilter.ClickAsync();

@@ -58,7 +58,7 @@ public class T15_DuplicateReviewTest : SmakoszE2ETestBase
             $"Error message should mention duplicate review. Got: {body}");
 
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
-        await NavigateAndWaitAsync("/dish/pizza-margherita");
+        await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
         var addReviewLink = Page.GetByRole(AriaRole.Link, new() { Name = "Ocen to danie" });

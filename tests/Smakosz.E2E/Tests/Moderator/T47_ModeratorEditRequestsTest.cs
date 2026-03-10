@@ -21,14 +21,14 @@ public class T47_ModeratorEditRequestsTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         // Assert heading - page is accessible
-        await AssertPageContainsTextAsync("Prosby o edycje");
+        await AssertPageContainsTextAsync("Prośby o edycję");
 
         // Assert no forbidden message
         var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("Nie masz uprawnien"), Is.False,
+        Assert.That(pageContent.Contains("Nie masz uprawnień"), Is.False,
             "Moderator should not see forbidden message");
 
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveCount = await approveButton.CountAsync();
 
         if (approveCount > 0)
@@ -44,7 +44,7 @@ public class T47_ModeratorEditRequestsTest : SmakoszE2ETestBase
             await WaitForBlazorLoadedAsync();
 
             // Assert toast
-            await AssertToastAsync("Prosba przetworzona.");
+            await AssertToastAsync("Prośba przetworzona.");
         }
         else
         {

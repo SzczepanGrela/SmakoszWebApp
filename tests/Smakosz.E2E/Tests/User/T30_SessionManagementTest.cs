@@ -17,7 +17,7 @@ public class T30_SessionManagementTest : SmakoszE2ETestBase
 
         // Assert heading
         Assert.That(
-            pageContent.Contains("Bezpieczenstwo") || pageContent.Contains("bezpieczenstwo") ||
+            pageContent.Contains("Bezpieczeństwo") || pageContent.Contains("bezpieczeństwo") ||
             pageContent.Contains("Security") || pageContent.Contains("Sesje"),
             Is.True,
             "Security page should show heading");

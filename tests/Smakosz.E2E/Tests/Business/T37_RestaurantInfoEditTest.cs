@@ -42,6 +42,6 @@ public class T37_RestaurantInfoEditTest : SmakoszE2ETestBase
         await Page.WaitForTimeoutAsync(3000);
 
         // Assert success
-        await AssertToastAsync("Informacje zostaly zaktualizowane.");
+        await AssertToastAsync("Informacje zostały zaktualizowane.");
     }
 }

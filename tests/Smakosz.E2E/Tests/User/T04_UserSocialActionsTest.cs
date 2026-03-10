@@ -27,11 +27,11 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
 
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/dish/tiramisu");
+        await NavigateAndWaitAsync("/dishes/tiramisu");
         await WaitForBlazorLoadedAsync();
 
         // Assert SaveDishButton is visible (unsaved state: btn-outline-danger btn-sm)
-        var saveButton = Page.Locator("button.btn-sm.btn-outline-danger").First;
+        var saveButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(saveButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         apiCalls.Clear();
@@ -39,7 +39,7 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(2000);
 
-        var savedButton = Page.Locator("button.btn-sm.btn-danger:not(.btn-outline-danger)").First;
+        var savedButton = Page.Locator("button.btn-danger:not(.btn-outline-danger)").First;
         var isSaved = await savedButton.IsVisibleAsync();
 
         if (!isSaved)
@@ -80,13 +80,13 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
             await AssertPageContainsTextAsync("anna-nowak");
         }
 
-        await NavigateAndWaitAsync("/dish/tiramisu");
+        await NavigateAndWaitAsync("/dishes/tiramisu");
         await WaitForBlazorLoadedAsync();
 
-        var unsaveButton = Page.Locator("button.btn-sm.btn-danger:not(.btn-outline-danger)").First;
+        var unsaveButton = Page.Locator("button.btn-danger:not(.btn-outline-danger)").First;
         await unsaveButton.ClickAsync();
 
-        var unsavedButton = Page.Locator("button.btn-sm.btn-outline-danger").First;
+        var unsavedButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(unsavedButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         await NavigateAndWaitAsync("/saved");

@@ -26,10 +26,10 @@ public class T46_ModeratorPhotoModerationTest : SmakoszE2ETestBase
 
         // Assert no forbidden text
         var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("Nie masz uprawnien") || pageContent.Contains("403"), Is.False,
+        Assert.That(pageContent.Contains("Nie masz uprawnień") || pageContent.Contains("403"), Is.False,
             "Moderator should not see forbidden message on photo moderation");
 
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveCount = await approveButton.CountAsync();
 
         if (approveCount > 0)
@@ -41,8 +41,8 @@ public class T46_ModeratorPhotoModerationTest : SmakoszE2ETestBase
             // Assert toast
             var contentAfterApprove = await Page.ContentAsync();
             Assert.That(
-                contentAfterApprove.Contains("zatwierdzone") || contentAfterApprove.Contains("Zatwierdzone") ||
-                contentAfterApprove.Contains("Brak zdjec"),
+                contentAfterApprove.Contains("zatwierdzone") || contentAfterApprove.Contains("Zatwierdźone") ||
+                contentAfterApprove.Contains("Brak zdjęć"),
                 Is.True,
                 "Photo should be approved or queue should be empty after approval");
         }

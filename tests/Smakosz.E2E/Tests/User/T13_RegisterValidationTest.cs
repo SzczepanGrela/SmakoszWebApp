@@ -13,7 +13,7 @@ public class T13_RegisterValidationTest : SmakoszE2ETestBase
         var usernameInput = Page.Locator("input[type='text']").First;
         var emailInput = Page.Locator("input[type='email']");
         var passwordInput = Page.Locator(".input-group input[type='password']");
-        var submitButton = Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj sie" });
+        var submitButton = Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj się" });
         var errorAlert = Page.Locator(".alert-danger").First;
 
         // Bypass HTML5 validation so we can test server-side validation

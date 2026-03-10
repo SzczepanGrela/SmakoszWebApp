@@ -11,18 +11,18 @@ public class T28_DishSaveFullCycleTest : SmakoszE2ETestBase
         // T04 uses tiramisu - T28 uses kebab-duzy for independence
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/dish/kebab-duzy");
+        await NavigateAndWaitAsync("/dishes/kebab-duzy");
         await WaitForBlazorLoadedAsync();
 
         // Assert save button visible (unsaved state: btn-outline-danger)
-        var saveButton = Page.Locator("button.btn-sm.btn-outline-danger").First;
+        var saveButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(saveButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         await saveButton.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
         // Assert button changed to saved state (btn-danger, not outline)
-        var savedButton = Page.Locator("button.btn-sm.btn-danger:not(.btn-outline-danger)").First;
+        var savedButton = Page.Locator("button.btn-danger:not(.btn-outline-danger)").First;
         await Expect(savedButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         await NavigateAndWaitAsync("/saved");
@@ -32,15 +32,15 @@ public class T28_DishSaveFullCycleTest : SmakoszE2ETestBase
         Assert.That(pageContent.Contains("Kebab") || pageContent.Contains("kebab"), Is.True,
             "Kebab should appear on saved dishes page after saving");
 
-        await NavigateAndWaitAsync("/dish/kebab-duzy");
+        await NavigateAndWaitAsync("/dishes/kebab-duzy");
         await WaitForBlazorLoadedAsync();
 
-        var unsaveButton = Page.Locator("button.btn-sm.btn-danger:not(.btn-outline-danger)").First;
+        var unsaveButton = Page.Locator("button.btn-danger:not(.btn-outline-danger)").First;
         await unsaveButton.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
         // Assert button reverted to outline
-        var unsavedButton = Page.Locator("button.btn-sm.btn-outline-danger").First;
+        var unsavedButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(unsavedButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         await NavigateAndWaitAsync("/saved");

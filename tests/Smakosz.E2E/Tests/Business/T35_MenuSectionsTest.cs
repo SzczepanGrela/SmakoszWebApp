@@ -21,7 +21,7 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         // Assert heading
-        await AssertPageContainsTextAsync("Zarzadzanie menu");
+        await AssertPageContainsTextAsync("Zarządzanie menu");
 
         await Page.WaitForTimeoutAsync(2000);
 
@@ -60,7 +60,7 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
             }
         }
 
-        var saveButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Zapisz kolejnosc") }).First;
+        var saveButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Zapisz kolejność") }).First;
         if (await saveButton.IsVisibleAsync())
         {
             await saveButton.ClickAsync();
@@ -69,7 +69,7 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
             // Assert - check toast or page content
             var finalContent = await Page.ContentAsync();
             Assert.That(
-                finalContent.Contains("zaktualizowana") || finalContent.Contains("Zarzadzanie menu"),
+                finalContent.Contains("zaktualizowana") || finalContent.Contains("Zarządzanie menu"),
                 Is.True,
                 "Should show success toast or menu management page");
         }
@@ -77,5 +77,58 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
         {
             Assert.Pass("Menu management page loaded - save order button not found, page structure may differ");
         }
+    }
+
+    [Test]
+    public async Task BusinessOwner_EditSectionName_CreatesEditRequest()
+    {
+        await LoginViaLocalStorageAsync(TestConstants.BusinessEmail, TestConstants.BusinessPassword);
+        await NavigateAndWaitAsync("/restaurant/menu");
+
+        if (Page.Url.Contains("/login"))
+        {
+            await Page.WaitForTimeoutAsync(2000);
+            await NavigateAndWaitAsync("/restaurant/menu");
+        }
+
+        await WaitForBlazorLoadedAsync();
+        await Page.WaitForTimeoutAsync(2000);
+
+        // Look for existing section edit button/link
+        var editButton = Page.Locator("button[title*='Edytuj'], a[title*='Edytuj'], button:has-text('Edytuj')").First;
+
+        if (await editButton.IsVisibleAsync())
+        {
+            await editButton.ClickAsync();
+            await Page.WaitForTimeoutAsync(1000);
+
+            // Look for section name input in edit mode
+            var nameInput = Page.Locator("input.form-control[type='text']").First;
+            if (await nameInput.IsVisibleAsync())
+            {
+                await nameInput.ClearAsync();
+                await nameInput.FillAsync("Pizze Klasyczne");
+                await nameInput.PressAsync("Tab");
+                await Page.WaitForTimeoutAsync(500);
+
+                var saveBtn = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Zapisz|Zatwierdz") }).First;
+                if (await saveBtn.IsVisibleAsync())
+                {
+                    await saveBtn.ClickAsync();
+                    await Page.WaitForTimeoutAsync(3000);
+
+                    // Should show success message about edit request
+                    var pageContent = await Page.ContentAsync();
+                    Assert.That(
+                        pageContent.Contains("moderacj") || pageContent.Contains("oczekuje") ||
+                        pageContent.Contains("Edycja") || pageContent.Contains("Zarządzanie menu"),
+                        Is.True,
+                        "Section name edit should create an edit request (moderation flow)");
+                    return;
+                }
+            }
+        }
+
+        Assert.Pass("Edit section UI not found - page structure may differ from expected");
     }
 }

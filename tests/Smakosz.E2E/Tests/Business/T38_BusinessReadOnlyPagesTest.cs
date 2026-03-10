@@ -24,10 +24,10 @@ public class T38_BusinessReadOnlyPagesTest : SmakoszE2ETestBase
 
         // Assert stat cards visible
         var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("Laczna liczba recenzji"), Is.True,
-            "Stats page should show 'Laczna liczba recenzji'");
-        Assert.That(pageContent.Contains("Srednia ocena"), Is.True,
-            "Stats page should show 'Srednia ocena'");
+        Assert.That(pageContent.Contains("Łączna liczba recenzji"), Is.True,
+            "Stats page should show 'Łączna liczba recenzji'");
+        Assert.That(pageContent.Contains("Średnia ocena"), Is.True,
+            "Stats page should show 'Średnia ocena'");
 
         // Assert stat values present (.fs-2.fw-bold elements)
         var statValues = Page.Locator(".fs-2.fw-bold");
@@ -42,7 +42,7 @@ public class T38_BusinessReadOnlyPagesTest : SmakoszE2ETestBase
 
         // Assert review cards or total count
         pageContent = await Page.ContentAsync();
-        var hasReviewData = pageContent.Contains("Laczna liczba recenzji") ||
+        var hasReviewData = pageContent.Contains("Łączna liczba recenzji") ||
                            pageContent.Contains("card-body") ||
                            pageContent.Contains("Danie:");
         Assert.That(hasReviewData, Is.True,

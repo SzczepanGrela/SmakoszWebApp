@@ -24,7 +24,7 @@ public class T42_AdminIngredientsTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         // Assert heading
-        await AssertPageContainsTextAsync("Skladniki");
+        await AssertPageContainsTextAsync("Składniki");
         await Page.WaitForTimeoutAsync(2000);
 
         using var http = new HttpClient();

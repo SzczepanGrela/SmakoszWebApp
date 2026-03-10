@@ -21,9 +21,9 @@ public class T36_PhotoUploadTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         // Assert heading
-        await AssertPageContainsTextAsync("Galeria zdjec");
+        await AssertPageContainsTextAsync("Galeria zdjęć");
 
-        var addButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Dodaj zdjecie") }).First;
+        var addButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Dodaj zdjęcie") }).First;
         await Expect(addButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         await addButton.ClickAsync();
         await Page.WaitForTimeoutAsync(1000);

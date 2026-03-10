@@ -74,7 +74,7 @@ public class T50_PhotoUploadModerationFlowTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveCount = await approveButton.CountAsync();
 
         if (approveCount > 0)
@@ -85,8 +85,8 @@ public class T50_PhotoUploadModerationFlowTest : SmakoszE2ETestBase
 
             var pageContent = await Page.ContentAsync();
             Assert.That(
-                pageContent.Contains("zatwierdzone") || pageContent.Contains("Zatwierdzone") ||
-                pageContent.Contains("Brak zdjec") || pageContent.Contains("zostaly sprawdzone"),
+                pageContent.Contains("zatwierdzone") || pageContent.Contains("Zatwierdźone") ||
+                pageContent.Contains("Brak zdjęć") || pageContent.Contains("zostały sprawdzone"),
                 Is.True,
                 "Photo should be approved and removed from queue");
         }

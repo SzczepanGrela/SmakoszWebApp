@@ -253,7 +253,61 @@ public static class SeedData
             ReviewCount = 0,
             CreatedAt = DateTime.UtcNow,
         };
-        db.Dishes.AddRange(margherita, pepperoni, kebabDuzy, tiramisu);
+        var pendingDish = new Dish
+        {
+            DishId = 5,
+            PublicId = Guid.NewGuid(),
+            DishName = "Pizza Testowa Pending",
+            Slug = "pizza-testowa-pending",
+            RestaurantId = 1,
+            Price = 32.00m,
+            Calories = 900,
+            Description = "Danie oczekujace na moderacje.",
+            IsAvailable = true,
+            ModerationStatus = ContentModerationStatus.Pending,
+            AvgRating = 0,
+            ReviewCount = 0,
+            CreatedAt = DateTime.UtcNow,
+        };
+        db.Dishes.AddRange(margherita, pepperoni, kebabDuzy, tiramisu, pendingDish);
+
+        var tagNaWynos = new Tag { TagId = 1, TagName = "Na wynos", Category = "feature", DisplayColor = "#28a745", CreatedAt = DateTime.UtcNow };
+        var tagSezonowe = new Tag { TagId = 2, TagName = "Sezonowe", Category = "feature", DisplayColor = "#fd7e14", CreatedAt = DateTime.UtcNow };
+        var tagNowosc = new Tag { TagId = 3, TagName = "Nowosc", Category = "feature", DisplayColor = "#007bff", CreatedAt = DateTime.UtcNow };
+        db.Tags.AddRange(tagNaWynos, tagSezonowe, tagNowosc);
+
+        db.DishTags.AddRange(
+            new DishTag { DishId = 1, TagId = 1 }, // Margherita -> Na wynos
+            new DishTag { DishId = 1, TagId = 2 }, // Margherita -> Sezonowe
+            new DishTag { DishId = 3, TagId = 1 }, // Kebab -> Na wynos
+            new DishTag { DishId = 4, TagId = 3 }); // Tiramisu -> Nowosc
+
+        var maka = new Ingredient { IngredientId = 1, IngredientName = "Maka pszenna", IsAllergen = true, IsGlutenFree = false, CreatedAt = DateTime.UtcNow };
+        var mozzarella = new Ingredient { IngredientId = 2, IngredientName = "Ser mozzarella", IsAllergen = true, IsLactoseFree = false, CreatedAt = DateTime.UtcNow };
+        var sosPomidorowy = new Ingredient { IngredientId = 3, IngredientName = "Sos pomidorowy", CreatedAt = DateTime.UtcNow };
+        var bazylia = new Ingredient { IngredientId = 4, IngredientName = "Bazylia", CreatedAt = DateTime.UtcNow };
+        var miesoWolowe = new Ingredient { IngredientId = 5, IngredientName = "Mieso wolowe", IsVegetarian = false, IsVegan = false, CreatedAt = DateTime.UtcNow };
+        db.Ingredients.AddRange(maka, mozzarella, sosPomidorowy, bazylia, miesoWolowe);
+
+        db.DishIngredients.AddRange(
+            new DishIngredient { DishId = 1, IngredientId = 1 }, // Margherita -> Maka
+            new DishIngredient { DishId = 1, IngredientId = 2 }, // Margherita -> Mozzarella
+            new DishIngredient { DishId = 1, IngredientId = 3 }, // Margherita -> Sos pomidorowy
+            new DishIngredient { DishId = 1, IngredientId = 4 }, // Margherita -> Bazylia
+            new DishIngredient { DishId = 3, IngredientId = 5 }, // Kebab -> Mieso wolowe
+            new DishIngredient { DishId = 3, IngredientId = 1 }); // Kebab -> Maka
+
+        db.ForbiddenWords.AddRange(
+            new ForbiddenWord { WordId = 1, Word = "kurwa", Category = ForbiddenWordCategory.Profanity, CreatedAt = DateTime.UtcNow },
+            new ForbiddenWord { WordId = 2, Word = "chuj", Category = ForbiddenWordCategory.Profanity, CreatedAt = DateTime.UtcNow },
+            new ForbiddenWord { WordId = 3, Word = "jebane", Category = ForbiddenWordCategory.Profanity, CreatedAt = DateTime.UtcNow },
+            new ForbiddenWord { WordId = 4, Word = "fuck", Category = ForbiddenWordCategory.Offensive, CreatedAt = DateTime.UtcNow },
+            new ForbiddenWord { WordId = 5, Word = "shit", Category = ForbiddenWordCategory.Offensive, CreatedAt = DateTime.UtcNow });
+
+        db.MenuSections.AddRange(
+            new MenuSection { SectionId = 1, RestaurantId = 1, SectionName = "Pizze", DisplayOrder = 1, ModerationStatus = ContentModerationStatus.Approved, CreatedAt = DateTime.UtcNow },
+            new MenuSection { SectionId = 2, RestaurantId = 1, SectionName = "Desery", DisplayOrder = 2, ModerationStatus = ContentModerationStatus.Approved, CreatedAt = DateTime.UtcNow },
+            new MenuSection { SectionId = 3, RestaurantId = 1, SectionName = "Sekcja Pending", DisplayOrder = 3, ModerationStatus = ContentModerationStatus.Pending, CreatedAt = DateTime.UtcNow });
 
         var review1 = new Review
         {
@@ -374,6 +428,19 @@ public static class SeedData
         };
         db.MediaAssets.Add(pendingPhoto);
 
+        var heroImage = new MediaAsset
+        {
+            AssetId = 100,
+            PublicId = Guid.NewGuid(),
+            EntityType = MediaEntityType.Hero,
+            Url = "/images/restaurant-placeholder.svg",
+            CreditText = "Test Hero Image",
+            ModerationStatus = ContentModerationStatus.Approved,
+            CreatedAt = DateTime.UtcNow,
+            Version = 1
+        };
+        db.MediaAssets.Add(heroImage);
+
         db.ReportReasonDefinitions.AddRange(
             new ReportReasonDefinition { ReasonCode = "spam", LabelPl = "Spam lub reklama", SeverityScore = 1, IsActive = true, CreatedAt = DateTime.UtcNow },
             new ReportReasonDefinition { ReasonCode = "offensive", LabelPl = "Obrazliwa tresc", SeverityScore = 3, IsActive = true, CreatedAt = DateTime.UtcNow });
@@ -456,6 +523,10 @@ public static class SeedData
             SELECT setval(pg_get_serial_sequence('system.jobs', 'job_id'), (SELECT COALESCE(MAX(job_id), 1) FROM system.jobs));
             SELECT setval(pg_get_serial_sequence('restaurant_edit_requests', 'request_id'), (SELECT COALESCE(MAX(request_id), 1) FROM restaurant_edit_requests));
             SELECT setval(pg_get_serial_sequence('user_sessions', 'user_session_id'), (SELECT COALESCE(MAX(user_session_id), 1) FROM user_sessions));
+            SELECT setval(pg_get_serial_sequence('system.forbidden_words', 'word_id'), (SELECT COALESCE(MAX(word_id), 1) FROM system.forbidden_words));
+            SELECT setval(pg_get_serial_sequence('menu_sections', 'section_id'), (SELECT COALESCE(MAX(section_id), 1) FROM menu_sections));
+            SELECT setval(pg_get_serial_sequence('tags', 'tag_id'), (SELECT COALESCE(MAX(tag_id), 1) FROM tags));
+            SELECT setval(pg_get_serial_sequence('ingredients', 'ingredient_id'), (SELECT COALESCE(MAX(ingredient_id), 1) FROM ingredients));
         ");
     }
 }

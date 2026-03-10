@@ -31,7 +31,7 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
         var messageArea = Page.Locator("textarea.form-control").First;
         await messageArea.FillAsync("Wiadomosc testowa z E2E.");
 
-        var submitButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Wyslij") }).First;
+        var submitButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Wyślij") }).First;
         await submitButton.ClickAsync();
 
         await Page.WaitForTimeoutAsync(3000);
@@ -39,8 +39,8 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
         // Assert success
         var pageContent = await Page.ContentAsync();
         Assert.That(
-            pageContent.Contains("wyslana") || pageContent.Contains("Wyslana") ||
-            pageContent.Contains("dziekujemy") || pageContent.Contains("Dziekujemy") ||
+            pageContent.Contains("wysłana") || pageContent.Contains("Wysłana") ||
+            pageContent.Contains("dziękujemy") || pageContent.Contains("Dziękujemy") ||
             pageContent.Contains("success") || pageContent.Contains("Sukces"),
             Is.True,
             "Contact form submission should show success feedback");

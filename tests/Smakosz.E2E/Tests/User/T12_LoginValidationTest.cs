@@ -12,7 +12,7 @@ public class T12_LoginValidationTest : SmakoszE2ETestBase
 
         await Page.Locator("input[type='email']").FillAsync("zly@email.com");
         await Page.Locator(".input-group input[type='password']").FillAsync("WrongPass123!");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         var errorAlert = Page.Locator(".alert-danger").First;
         await Expect(errorAlert).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
@@ -24,7 +24,7 @@ public class T12_LoginValidationTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(TestConstants.UserEmail);
         await Page.Locator(".input-group input[type='password']").ClearAsync();
         await Page.Locator(".input-group input[type='password']").FillAsync("ZleHaslo123!");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Expect(errorAlert).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         var errorText2 = await errorAlert.TextContentAsync();
@@ -35,7 +35,7 @@ public class T12_LoginValidationTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(TestConstants.BannedEmail);
         await Page.Locator(".input-group input[type='password']").ClearAsync();
         await Page.Locator(".input-group input[type='password']").FillAsync(TestConstants.BannedPassword);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Expect(errorAlert).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         var errorText3 = await errorAlert.TextContentAsync();

@@ -28,7 +28,7 @@ public class T11_BusinessDashboardTest : SmakoszE2ETestBase
         await Expect(recenzjeCard).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
-        var sredniaCard = Page.Locator("small.text-muted", new() { HasText = "Srednia ocena" });
+        var sredniaCard = Page.Locator("small.text-muted", new() { HasText = "Średnia ocena" });
         await Expect(sredniaCard).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 

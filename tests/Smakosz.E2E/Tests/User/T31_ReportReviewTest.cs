@@ -12,11 +12,11 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
     {
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/dish/pizza-margherita");
+        await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
         // Try to find report button (flag icon) on a review
-        var reportButton = Page.Locator("button .fa-flag, button.btn-outline-warning, [title*='Zglos']").First;
+        var reportButton = Page.Locator("button .fa-flag, button.btn-outline-warning, [title*='Zgłoś']").First;
         var reportButtonVisible = await reportButton.IsVisibleAsync();
 
         if (reportButtonVisible)
@@ -25,7 +25,7 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
             await Page.WaitForTimeoutAsync(1500);
 
             var modalContent = await Page.ContentAsync();
-            if (modalContent.Contains("Zglos") || modalContent.Contains("zglos"))
+            if (modalContent.Contains("Zgłoś") || modalContent.Contains("zgłoś"))
             {
                 var checkbox = Page.Locator("input.form-check-input").First;
                 if (await checkbox.IsVisibleAsync())
@@ -33,7 +33,7 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
                     await checkbox.CheckAsync();
                 }
 
-                var sendButton = Page.Locator("button.btn-danger", new() { HasText = "Wyslij" }).First;
+                var sendButton = Page.Locator("button.btn-danger", new() { HasText = "Wyślij" }).First;
                 if (await sendButton.IsVisibleAsync())
                 {
                     await sendButton.ClickAsync();

@@ -40,12 +40,12 @@ public class T49_UserCorrectionModeratorFlowTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        await AssertPageContainsTextAsync("Prosby o edycje");
+        await AssertPageContainsTextAsync("Prośby o edycję");
 
         await Page.WaitForTimeoutAsync(2000);
 
         // Look for pending request with approve button
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveVisible = await approveButton.IsVisibleAsync();
 
         if (approveVisible)
@@ -54,13 +54,13 @@ public class T49_UserCorrectionModeratorFlowTest : SmakoszE2ETestBase
             await Page.WaitForTimeoutAsync(3000);
             await WaitForBlazorLoadedAsync();
 
-            await AssertToastAsync("Prosba przetworzona.");
+            await AssertToastAsync("Prośba przetworzona.");
         }
         else
         {
             // May already have been processed by T47 - verify page access is ok
             var pageContent = await Page.ContentAsync();
-            Assert.That(pageContent.Contains("Nie masz uprawnien"), Is.False,
+            Assert.That(pageContent.Contains("Nie masz uprawnień"), Is.False,
                 "Moderator should have access to edit requests page");
             Assert.Pass("Correction created successfully, but edit request may have been processed by previous test");
         }
