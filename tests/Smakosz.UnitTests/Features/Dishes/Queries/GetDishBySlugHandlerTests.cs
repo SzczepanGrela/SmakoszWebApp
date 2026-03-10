@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Smakosz.Application.Features.Dishes.Queries.GetDishBySlug;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -87,5 +88,20 @@ public class GetDishBySlugHandlerTests
         var result = await _handler.Handle(new GetDishBySlugQuery("test-dish"), CancellationToken.None);
 
         result.Value.IsSaved.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Handle_PendingDish_ReturnsNotFound()
+    {
+        var restaurant = new RestaurantBuilder().Build();
+        var dish = new DishBuilder().WithSlug("pending-dish").WithRestaurant(restaurant).Build();
+        dish.ModerationStatus = ContentModerationStatus.Pending;
+        _sets.Dishes.Add(dish);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetDishBySlugQuery("pending-dish"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("DISH_NOT_FOUND");
     }
 }

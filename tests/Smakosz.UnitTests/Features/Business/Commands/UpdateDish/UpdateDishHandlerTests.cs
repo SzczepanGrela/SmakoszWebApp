@@ -113,4 +113,40 @@ public class UpdateDishHandlerTests
         dish.Calories.Should().Be(500);
         _sets.RestaurantEditRequests.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInName_ReturnsError()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        restaurant.OwnerId = 1;
+        var dish = new DishBuilder().WithId(1).WithRestaurant(restaurant).Build();
+        _sets.Dishes.Add(dish);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad Name", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new UpdateDishCommand(dish.PublicId, "Bad Name", null, null, null, null), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInDescription_ReturnsError()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        restaurant.OwnerId = 1;
+        var dish = new DishBuilder().WithId(1).WithRestaurant(restaurant).Build();
+        _sets.Dishes.Add(dish);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad desc", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new UpdateDishCommand(dish.PublicId, null, null, "Bad desc", null, null), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }

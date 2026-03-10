@@ -71,4 +71,21 @@ public class UpdateMenuSectionHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("MENU_SECTION_NOT_FOUND");
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInName_ReturnsError()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        restaurant.OwnerId = 1;
+        var section = new MenuSection { SectionId = 1, RestaurantId = 1, SectionName = "Zupy", Restaurant = restaurant };
+        _sets.MenuSections.Add(section);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad Name", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(new UpdateMenuSectionCommand(1, "Bad Name"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }

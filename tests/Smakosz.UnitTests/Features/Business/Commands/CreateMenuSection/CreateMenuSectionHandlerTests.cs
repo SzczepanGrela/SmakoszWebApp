@@ -87,4 +87,19 @@ public class CreateMenuSectionHandlerTests
         result.IsError.Should().BeFalse();
         _sets.MenuSections.Should().Contain(s => s.SectionName == "Desserts" && s.DisplayOrder == 3);
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInName_ReturnsError()
+    {
+        var restaurant = new Restaurant { RestaurantId = 1, OwnerId = 10, RestaurantName = "My Restaurant", Slug = "my-restaurant" };
+        _sets.Restaurants.Add(restaurant);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad Section", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(new CreateMenuSectionCommand("Bad Section"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }

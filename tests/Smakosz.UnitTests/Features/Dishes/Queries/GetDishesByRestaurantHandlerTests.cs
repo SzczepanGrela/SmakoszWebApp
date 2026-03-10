@@ -2,6 +2,7 @@ using FluentAssertions;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Dishes.Queries.GetDishesByRestaurant;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -96,5 +97,45 @@ public class GetDishesByRestaurantHandlerTests
             new GetDishesByRestaurantQuery("test", _defaultPagination), CancellationToken.None);
 
         result.Value.Data[0].IsSaved.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Handle_PendingDish_NotReturned()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).WithSlug("test").Build();
+        var approved = new DishBuilder().WithId(1).WithName("Approved").WithRestaurant(restaurant).Build();
+        approved.ModerationStatus = ContentModerationStatus.Approved;
+        var noneDish = new DishBuilder().WithId(2).WithName("None").WithRestaurant(restaurant).Build();
+        noneDish.ModerationStatus = ContentModerationStatus.None;
+        var pending = new DishBuilder().WithId(3).WithName("Pending").WithRestaurant(restaurant).Build();
+        pending.ModerationStatus = ContentModerationStatus.Pending;
+        _sets.Restaurants.Add(restaurant);
+        _sets.Dishes.AddRange(new[] { approved, noneDish, pending });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new GetDishesByRestaurantQuery("test", _defaultPagination), CancellationToken.None);
+
+        result.Value.Data.Should().HaveCount(2);
+        result.Value.Data.Select(d => d.DishName).Should().Contain("Approved").And.Contain("None");
+    }
+
+    [Fact]
+    public async Task Handle_RejectedDish_NotReturned()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).WithSlug("test").Build();
+        var approved = new DishBuilder().WithId(1).WithName("Approved").WithRestaurant(restaurant).Build();
+        approved.ModerationStatus = ContentModerationStatus.Approved;
+        var rejected = new DishBuilder().WithId(2).WithName("Rejected").WithRestaurant(restaurant).Build();
+        rejected.ModerationStatus = ContentModerationStatus.Rejected;
+        _sets.Restaurants.Add(restaurant);
+        _sets.Dishes.AddRange(new[] { approved, rejected });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new GetDishesByRestaurantQuery("test", _defaultPagination), CancellationToken.None);
+
+        result.Value.Data.Should().HaveCount(1);
+        result.Value.Data[0].DishName.Should().Be("Approved");
     }
 }

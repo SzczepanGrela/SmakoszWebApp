@@ -138,4 +138,24 @@ public class UpdateReviewHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.ContentStatus.Should().Be(ContentModerationStatus.None);
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInContent_ReturnsError()
+    {
+        var user = new UserBuilder().WithId(1).Build();
+        var restaurant = new RestaurantBuilder().Build();
+        var dish = new DishBuilder().Build();
+        var review = new ReviewBuilder()
+            .WithUser(user).WithDish(dish).WithRestaurant(restaurant).Build();
+        _sets.Reviews.Add(review);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad content here!", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+        var command = new UpdateReviewCommand(review.PublicId, 8, 7, 8, 7, "Bad content here!", DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)));
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }

@@ -81,4 +81,38 @@ public class CreateEditRequestHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("AUTH_INVALID_CREDENTIALS");
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInNewName_ReturnsError()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        restaurant.OwnerId = 1;
+        _sets.Restaurants.Add(restaurant);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad Name", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new CreateEditRequestCommand("General", "{}", "Bad Name", null, null, null, null), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInNewDescription_ReturnsError()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        restaurant.OwnerId = 1;
+        _sets.Restaurants.Add(restaurant);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _forbiddenWords.ContainsAsync("Bad desc", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new CreateEditRequestCommand("General", "{}", null, "Bad desc", null, null, null), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }
