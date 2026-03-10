@@ -21,6 +21,12 @@ public class ReviewCardDto
     public string RestaurantSlug { get; set; } = default!;
 }
 
+public class ToggleLikeResult
+{
+    public bool IsLiked { get; set; }
+    public int HelpfulCount { get; set; }
+}
+
 public class UserSummaryDto
 {
     public Guid PublicId { get; set; }

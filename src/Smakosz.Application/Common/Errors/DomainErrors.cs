@@ -229,6 +229,12 @@ public static class DomainErrors
             Error.NotFound("PHOTO_NOT_FOUND", "Zdjęcie nie zostało znalezione");
     }
 
+    public static class ReviewLike
+    {
+        public static readonly Error CannotLikeOwnReview =
+            Error.Validation("REVIEW_LIKE_CANNOT_LIKE_OWN", "Nie można polubić własnej recenzji");
+    }
+
     public static class ForbiddenWord
     {
         public static readonly Error UsernameContainsForbiddenWord =
