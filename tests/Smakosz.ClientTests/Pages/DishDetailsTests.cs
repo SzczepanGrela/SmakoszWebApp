@@ -52,7 +52,7 @@ public class DishDetailsTests : BunitTestBase
         dishService.GetBySlugAsync("pizza").Returns(new TaskCompletionSource<DishDetailDto?>().Task);
 
         var cut = RenderComponent<DishDetails>(p => p.Add(c => c.Slug, "pizza"));
-        cut.Markup.Should().Contain("Ladowanie dania...");
+        cut.Markup.Should().Contain("Ładowanie dania...");
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class DishDetailsTests : BunitTestBase
         var cut = RenderComponent<DishDetails>(p => p.Add(c => c.Slug, "pizza-margherita"));
         cut.WaitForState(() => cut.Markup.Contains("Pizza Margherita"));
 
-        cut.Find("a[href='/restaurant/pizzeria-roma']").Should().NotBeNull();
+        cut.Find("a[href='/restaurants/pizzeria-roma']").Should().NotBeNull();
     }
 
     [Fact]

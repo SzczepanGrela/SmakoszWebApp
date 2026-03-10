@@ -11,7 +11,7 @@ public class ShareButtonTests : BunitTestBase
             .Add(c => c.Url, "https://smakosz.pl/dish/pizza")
             .Add(c => c.Title, "Pizza Margherita"));
 
-        cut.Find("button").TextContent.Should().Contain("Udostepnij");
+        cut.Find("button").TextContent.Should().Contain("Udostępnij");
         cut.Find("i.fa-solid.fa-share-nodes").Should().NotBeNull();
     }
 

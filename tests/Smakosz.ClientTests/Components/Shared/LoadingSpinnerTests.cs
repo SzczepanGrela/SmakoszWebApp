@@ -10,7 +10,7 @@ public class LoadingSpinnerTests : BunitTestBase
         var cut = RenderComponent<LoadingSpinner>();
 
         cut.Find(".spinner-border").Should().NotBeNull();
-        cut.Find(".visually-hidden").TextContent.Should().Be("Ladowanie...");
+        cut.Find(".visually-hidden").TextContent.Should().Be("Ładowanie...");
     }
 
     [Fact]

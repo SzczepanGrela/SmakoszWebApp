@@ -52,7 +52,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(new TaskCompletionSource<HomeDataDto?>().Task);
 
         var cut = RenderComponent<Home>();
-        cut.Markup.Should().Contain("Ladowanie...");
+        cut.Markup.Should().Contain("Ładowanie...");
     }
 
     [Fact]
@@ -63,8 +63,8 @@ public class HomeTests : BunitTestBase
 
         var cut = RenderComponent<Home>();
 
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
-        cut.Markup.Should().Contain("Znajdz najlepszy smak w miescie");
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+        cut.Markup.Should().Contain("Znajdź najlepszy smak w mieście");
         cut.Markup.Should().Contain("Photo credit");
     }
 
@@ -75,7 +75,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
         cut.Markup.Should().Contain("150");
         cut.Markup.Should().Contain("25");
@@ -89,7 +89,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
         cut.Markup.Should().Contain("Teraz na topie");
         cut.Markup.Should().Contain("Pizza Margherita");
@@ -102,7 +102,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
         cut.Markup.Should().Contain("Wysoko oceniane");
         cut.Markup.Should().Contain("Tonkotsu Ramen");
@@ -115,7 +115,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
         cut.Markup.Should().Contain("Najnowsze opinie");
         cut.Markup.Should().Contain("Swietne!");
@@ -128,7 +128,7 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
         cut.Markup.Should().Contain("Popularne kategorie");
         cut.Markup.Should().Contain("Pizza");
@@ -142,12 +142,12 @@ public class HomeTests : BunitTestBase
         homeService.GetHomeDataAsync().Returns(CreateHomeData());
 
         var cut = RenderComponent<Home>();
-        cut.WaitForState(() => !cut.Markup.Contains("Ladowanie..."));
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
 
-        cut.Find("input[type='search']").Change("pizza");
+        cut.Find("input[type='search']").Input("pizza");
         cut.Find("button.btn-primary.btn-lg").Click();
 
         var nav = Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
-        nav.Uri.Should().Contain("/search?query=pizza");
+        nav.Uri.Should().Contain("/search?query=pizza&type=dishes");
     }
 }

@@ -22,7 +22,7 @@ public class RestaurantCardTests : BunitTestBase
         var restaurant = CreateRestaurant();
         var cut = RenderComponent<RestaurantCard>(p => p.Add(c => c.Restaurant, restaurant));
 
-        cut.Find("a").GetAttribute("href").Should().Be("/restaurant/pizzeria-roma");
+        cut.Find("a").GetAttribute("href").Should().Be("/restaurants/pizzeria-roma");
         cut.Markup.Should().Contain("Pizzeria Roma");
     }
 

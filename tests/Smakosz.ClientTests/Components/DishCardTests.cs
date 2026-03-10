@@ -25,7 +25,7 @@ public class DishCardTests : BunitTestBase
         var dish = CreateDish();
         var cut = RenderComponent<DishCard>(p => p.Add(c => c.Dish, dish));
 
-        cut.Find("a").GetAttribute("href").Should().Be("/dish/pizza-margherita");
+        cut.Find("a").GetAttribute("href").Should().Be("/dishes/pizza-margherita");
         cut.Markup.Should().Contain("Pizza Margherita");
     }
 
@@ -46,7 +46,7 @@ public class DishCardTests : BunitTestBase
         dish.Price = null;
         var cut = RenderComponent<DishCard>(p => p.Add(c => c.Dish, dish));
 
-        cut.FindAll("span.fw-bold").Should().BeEmpty();
+        cut.Markup.Should().NotContain("zl");
     }
 
     [Fact]

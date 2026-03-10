@@ -58,7 +58,7 @@ public class JobsTests : BunitTestBase
         });
 
         var cut = RenderComponent<Jobs>();
-        cut.WaitForState(() => cut.Markup.Contains("Brak zadan"));
+        cut.WaitForState(() => cut.Markup.Contains("Brak zadań"));
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class JobsTests : BunitTestBase
 
         cut.FindAll("button").First(b => b.TextContent.Contains("Nowe zadanie")).Click();
 
-        cut.FindAll("button").First(b => b.TextContent.Trim() == "Utworz").Click();
+        cut.FindAll("button").First(b => b.TextContent.Trim() == "Utwórz").Click();
 
         await adminService.Received(1).CreateJobAsync(Arg.Any<CreateJobRequest>());
     }

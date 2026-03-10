@@ -19,7 +19,7 @@ public class ImageUploadTests : BunitTestBase
         var cut = RenderComponent<ImageUpload>(p => p
             .Add(c => c.CurrentImageUrl, "/img/current.jpg"));
 
-        cut.Find("img[alt='Aktualne zdjecie']").GetAttribute("src")
+        cut.Find("img[alt='Aktualne zdjęcie']").GetAttribute("src")
             .Should().Be("/img/current.jpg");
     }
 

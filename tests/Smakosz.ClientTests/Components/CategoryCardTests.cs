@@ -9,7 +9,7 @@ public class CategoryCardTests : BunitTestBase
     {
         var cut = RenderComponent<CategoryCard>(p => p.Add(c => c.Name, "Pizza"));
 
-        cut.Find("a").GetAttribute("href").Should().Be("/search?query=Pizza");
+        cut.Find("a").GetAttribute("href").Should().Be("/search?cuisines=Pizza&type=dishes");
         cut.Markup.Should().Contain("Pizza");
     }
 

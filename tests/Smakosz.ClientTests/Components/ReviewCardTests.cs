@@ -45,7 +45,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.ShowDish, true));
 
         cut.Markup.Should().Contain("Pizza Margherita");
-        cut.Find("a[href='/dish/pizza-margherita']").Should().NotBeNull();
+        cut.Find("a[href='/dishes/pizza-margherita']").Should().NotBeNull();
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
-        cut.FindAll("button[title='Zglos recenzje']").Should().NotBeEmpty();
+        cut.FindAll("button[title='Zgłoś recenzję']").Should().NotBeEmpty();
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
-        cut.FindAll("button[title='Zglos recenzje']").Should().BeEmpty();
+        cut.FindAll("button[title='Zgłoś recenzję']").Should().BeEmpty();
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
-        cut.Find("button[title='Zglos recenzje']").Click();
+        cut.Find("button[title='Zgłoś recenzję']").Click();
 
         cut.WaitForState(() => cut.Markup.Contains("Spam"));
         cut.Markup.Should().Contain("Spam");
@@ -146,7 +146,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
-        cut.Find("button[title='Zglos recenzje']").Click();
+        cut.Find("button[title='Zgłoś recenzję']").Click();
         cut.WaitForState(() => cut.Markup.Contains("Spam"));
 
         cut.Find("input.form-check-input").Change(true);
