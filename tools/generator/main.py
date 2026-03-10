@@ -12,11 +12,13 @@ from generators import (
     ForbiddenWordsPhase,
     HeroImagesPhase,
     IngredientsPhase,
+    RejectionReasonsPhase,
     RestaurantsPhase,
     ReviewsPhase,
     SocialGraphPhase,
     SystemConfigPhase,
     TagsPhase,
+    TicketsPhase,
     UsersPhase,
 )
 from orchestration import (
@@ -34,6 +36,7 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
 
     registry.register(SystemConfigPhase(blueprints_dir=blueprints_dir))
     registry.register(ForbiddenWordsPhase(blueprints_dir=blueprints_dir))
+    registry.register(RejectionReasonsPhase())
 
     registry.register(CitiesPhase(blueprints_dir=blueprints_dir))
     registry.register(CuisineTypesPhase(blueprints_dir=blueprints_dir))
@@ -51,6 +54,8 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
 
     registry.register(SocialGraphPhase(blueprints_dir=blueprints_dir))
 
+    registry.register(TicketsPhase())
+
     return registry
 
 def print_statistics(db: DatabaseConnection):
@@ -62,6 +67,7 @@ def print_statistics(db: DatabaseConnection):
     tables = [
         "system.config",
         "system.forbidden_words",
+        "rejection_reasons",
         "cities",
         "cuisine_types",
         "ingredients",
@@ -70,9 +76,12 @@ def print_statistics(db: DatabaseConnection):
         "dishes",
         "users",
         "reviews",
+        "system.moderation_results",
         "user_follows",
         "review_likes",
         "notifications",
+        "restaurant_edit_requests",
+        "system.tickets",
     ]
 
     for table in tables:
@@ -90,7 +99,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --generate              Run full pipeline (Phase 0-6)
+  %(prog)s --generate              Run full pipeline (Phase 0-7)
   %(prog)s --phase phase3_dishes   Run single phase
   %(prog)s --phases 0-3            Run phase range (0 through 3)
   %(prog)s --no-cleanup            Skip database cleanup
@@ -162,6 +171,7 @@ Examples:
                     if start_num == 0:
                         phase_ids.append("phase0_config")
                         phase_ids.append("phase0_forbidden_words")
+                        phase_ids.append("phase0_rejection_reasons")
                         start_num = 1
 
                     phase_map = {
@@ -171,6 +181,7 @@ Examples:
                         4: ["phase4_users"],
                         5: ["phase5_reviews"],
                         6: ["phase6_social"],
+                        7: ["phase7_tickets"],
                     }
 
                     for phase_num in range(start_num, end_num + 1):
@@ -182,7 +193,7 @@ Examples:
                     logger.error(f"Invalid phase range format: {args.phases}. Use format '0-3'")
                     sys.exit(1)
             elif args.generate:
-                logger.info("Running full generation pipeline (Phase 0-6)")
+                logger.info("Running full generation pipeline (Phase 0-7)")
             elif args.stats:
                 logger.info("Running dataset statistics on existing data...")
                 ds = DatasetStatistics(db)

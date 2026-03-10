@@ -3,7 +3,7 @@ import logging
 import random
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from multiprocessing import Pool, cpu_count
 
 import numpy as np
@@ -66,8 +66,9 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     _generate_correction_requests(db, user_ids)
     _generate_favorite_restaurants(db, user_ids)
     _generate_abuse_reports(db, user_ids, review_ids)
+    _generate_edit_requests(db)
 
-    logger.info("Generated abuse reports successfully.")
+    logger.info("Phase 6 social data generation complete.")
 
 def _cleanup_social_data(db: DatabaseConnection):
     logger.info("Cleaning up old Phase 6 data...")
@@ -78,6 +79,7 @@ def _cleanup_social_data(db: DatabaseConnection):
         db.execute_query("TRUNCATE TABLE search_histories RESTART IDENTITY CASCADE")
         db.execute_query("TRUNCATE TABLE data_correction_requests RESTART IDENTITY CASCADE")
         db.execute_query("TRUNCATE TABLE reports RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE restaurant_edit_requests RESTART IDENTITY CASCADE")
         db.commit()
         logger.info("Cleanup complete.")
     except Exception as e:
@@ -525,6 +527,125 @@ def _generate_abuse_reports(db: DatabaseConnection, user_ids: list[int], review_
 
     logger.info("Generated abuse reports successfully.")
 
+def _generate_edit_requests(db: DatabaseConnection):
+    """Generate restaurant edit requests from business owners."""
+    logger.info("Generating restaurant edit requests...")
+
+    restaurants_with_owners = db.fetch_all("""
+        SELECT r.restaurant_id, r.user_id, r.restaurant_name, r.phone, r.description
+        FROM restaurants r
+        WHERE r.user_id IS NOT NULL
+    """)
+
+    if not restaurants_with_owners:
+        logger.warning("No restaurants with owners found, skipping edit requests.")
+        return
+
+    mod_users = db.fetch_all("SELECT user_id FROM users WHERE role IN ('admin', 'moderator')")
+    mod_ids = [u[0] for u in mod_users] if mod_users else []
+
+    selected = random.sample(restaurants_with_owners, min(int(len(restaurants_with_owners) * 0.3), len(restaurants_with_owners)))
+
+    change_types = ["info_update", "hours_update", "general"]
+    change_type_weights = [0.5, 0.3, 0.2]
+
+    descriptions_map = {
+        "info_update": [
+            "Aktualizacja numeru telefonu",
+            "Zmiana opisu restauracji",
+            "Aktualizacja adresu e-mail",
+            "Zmiana nazwy wyświetlanej",
+        ],
+        "hours_update": [
+            "Zmiana godzin otwarcia na weekend",
+            "Aktualizacja godzin w dni powszednie",
+            "Dodanie godzin nocnych",
+        ],
+        "general": [
+            "Prośba o zmianę kategorii kuchni",
+            "Aktualizacja informacji ogólnych",
+            "Zmiana zdjęcia głównego",
+        ],
+    }
+
+    edit_requests = []
+    now = datetime.now(timezone.utc)
+
+    for rest_row in selected:
+        restaurant_id = rest_row[0]
+        owner_id = rest_row[1]
+        num_requests = random.randint(1, 3)
+
+        for _ in range(num_requests):
+            change_type = random.choices(change_types, weights=change_type_weights, k=1)[0]
+            change_scope = "restaurant"
+
+            status_roll = random.random()
+            if status_roll < 0.60:
+                status = "approved"
+                moderation_status = "approved"
+            elif status_roll < 0.80:
+                status = "pending"
+                moderation_status = "pending"
+            elif status_roll < 0.90:
+                status = "rejected"
+                moderation_status = "rejected"
+            else:
+                status = "approved"
+                moderation_status = "approved"
+
+            reviewed_by = None
+            reviewed_at = None
+            resolved_by = None
+            resolved_at = None
+            rejection_reason = None
+
+            if status != "pending":
+                if mod_ids:
+                    reviewed_by = random.choice(mod_ids)
+                    resolved_by = reviewed_by
+                reviewed_at = now - timedelta(days=random.randint(1, 30))
+                resolved_at = reviewed_at
+
+            if status == "rejected":
+                rejection_reason = random.choice([
+                    "Brak uzasadnienia zmiany",
+                    "Nieprawidłowe dane kontaktowe",
+                    "Wniosek niezgodny z regulaminem",
+                ])
+
+            description = random.choice(descriptions_map[change_type])
+
+            payload = json.dumps({
+                "change_description": description,
+                "requested_fields": [change_type.replace("_update", "").replace("_", " ")],
+            })
+
+            created_at = now - timedelta(days=random.randint(1, 90))
+
+            edit_requests.append({
+                "restaurant_id": restaurant_id,
+                "user_id": owner_id,
+                "status": status,
+                "change_type": change_type,
+                "change_scope": change_scope,
+                "payload": payload,
+                "new_description": description if change_type == "info_update" else None,
+                "new_phone": f"+48 {random.randint(500, 799)} {random.randint(100, 999)} {random.randint(100, 999)}" if change_type == "info_update" and random.random() < 0.3 else None,
+                "moderation_status": moderation_status,
+                "reviewed_by": reviewed_by,
+                "reviewed_at": reviewed_at,
+                "rejection_reason": rejection_reason,
+                "created_at": created_at,
+                "resolved_at": resolved_at,
+                "resolved_by_admin_id": resolved_by,
+                "version": 1,
+            })
+
+    if edit_requests:
+        db.insert_bulk("restaurant_edit_requests", edit_requests)
+        logger.info(f"Generated {len(edit_requests)} restaurant edit requests")
+
 class SocialGraphPhase(BasePhase):
 
     def __init__(self, blueprints_dir: str = "blueprints"):
@@ -548,6 +669,7 @@ class SocialGraphPhase(BasePhase):
                 "data_correction_requests",
                 "reports",
                 "report_reason_assignments",
+                "restaurant_edit_requests",
             ],
             cleanup_tables=[
                 "user_follows",
@@ -556,6 +678,7 @@ class SocialGraphPhase(BasePhase):
                 "search_histories",
                 "data_correction_requests",
                 "reports",
+                "restaurant_edit_requests",
             ],
             estimated_duration=600,
         )
@@ -576,6 +699,7 @@ class SocialGraphPhase(BasePhase):
             favorites_count = context.db.fetch_val("SELECT COUNT(*) FROM favorite_restaurants") or 0
             corrections_count = context.db.fetch_val("SELECT COUNT(*) FROM data_correction_requests") or 0
             reports_count = context.db.fetch_val("SELECT COUNT(*) FROM reports") or 0
+            edit_requests_count = context.db.fetch_val("SELECT COUNT(*) FROM restaurant_edit_requests") or 0
 
             duration = time.time() - start_time
 
@@ -585,7 +709,8 @@ class SocialGraphPhase(BasePhase):
             )
             logger.info(
                 f"Additional: {search_count:,} searches, {favorites_count:,} favorites, "
-                f"{corrections_count:,} corrections, {reports_count:,} reports"
+                f"{corrections_count:,} corrections, {reports_count:,} reports, "
+                f"{edit_requests_count:,} edit requests"
             )
 
             return PhaseResult(
@@ -600,6 +725,7 @@ class SocialGraphPhase(BasePhase):
                     "favorite_restaurants": favorites_count,
                     "data_correction_requests": corrections_count,
                     "reports": reports_count,
+                    "restaurant_edit_requests": edit_requests_count,
                 },
                 error=None,
             )

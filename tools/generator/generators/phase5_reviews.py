@@ -447,7 +447,88 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     logger.info(
         f"Review Locality: Home={total_stats['home']}, Nearby={total_stats['nearby']}, Random={total_stats['random']}"
     )
+
+    _generate_moderation_results(db)
+
     logger.info("Phase 5 completed.")
+
+def _generate_moderation_results(db: DatabaseConnection):
+    """Generate moderation_results for all reviews and photos using bulk SQL."""
+    logger.info("Generating moderation results for reviews...")
+
+    db.execute_query("DELETE FROM system.moderation_results WHERE entity_type IN ('review', 'photo')")
+    db.commit()
+
+    db.execute_query("""
+        INSERT INTO system.moderation_results
+            (entity_type, entity_id, status, ai_verdict, ai_model_name, ai_model_version,
+             scores, auto_approved, auto_approve_reason, processed_at, created_at)
+        SELECT
+            'review',
+            r.review_id,
+            CASE
+                WHEN r.content_status = 'approved' THEN 'approved'
+                WHEN r.content_status = 'pending' THEN 'pending'
+                ELSE 'approved'
+            END,
+            r.ai_verdict,
+            'text-moderation-v1',
+            r.ai_model_version,
+            json_build_object(
+                'ToxicityScore', r.ai_toxicity_score,
+                'NsfwScore', 0.0,
+                'RelevanceScore', 1.0,
+                'Confidence', CASE WHEN r.ai_verdict = 'approved' THEN 0.95 ELSE 0.5 END
+            )::jsonb,
+            CASE WHEN r.content_status = 'approved' THEN true ELSE false END,
+            CASE WHEN r.content_status = 'approved' THEN 'AI auto-approved (toxicity below threshold)' ELSE NULL END,
+            r.ai_processed_at,
+            r.created_at
+        FROM reviews r
+        WHERE r.content_status != 'none'
+    """)
+    db.commit()
+
+    review_mod_count = db.fetch_val(
+        "SELECT COUNT(*) FROM system.moderation_results WHERE entity_type = 'review'"
+    ) or 0
+    logger.info(f"Generated {review_mod_count:,} review moderation results")
+
+    logger.info("Generating moderation results for photos...")
+    db.execute_query("""
+        INSERT INTO system.moderation_results
+            (entity_type, entity_id, status, ai_verdict, ai_model_name, ai_model_version,
+             scores, auto_approved, auto_approve_reason, processed_at, created_at)
+        SELECT
+            'photo',
+            ma.asset_id,
+            CASE
+                WHEN ma.status = 'approved' THEN 'approved'
+                WHEN ma.status = 'pending' THEN 'pending'
+                ELSE 'approved'
+            END,
+            ma.ai_verdict,
+            'image-moderation-v1',
+            ma.ai_model_version,
+            json_build_object(
+                'ToxicityScore', 0.0,
+                'NsfwScore', ma.ai_nsfw_score,
+                'RelevanceScore', ma.ai_on_topic_score,
+                'Confidence', CASE WHEN ma.ai_verdict = 'approved' THEN 0.95 ELSE 0.5 END
+            )::jsonb,
+            CASE WHEN ma.status = 'approved' THEN true ELSE false END,
+            CASE WHEN ma.status = 'approved' THEN 'AI auto-approved (NSFW below threshold)' ELSE NULL END,
+            ma.ai_processed_at,
+            ma.created_at
+        FROM media_assets ma
+        WHERE ma.entity_type = 'review'
+    """)
+    db.commit()
+
+    photo_mod_count = db.fetch_val(
+        "SELECT COUNT(*) FROM system.moderation_results WHERE entity_type = 'photo'"
+    ) or 0
+    logger.info(f"Generated {photo_mod_count:,} photo moderation results")
 
 class ReviewsPhase(BasePhase):
 
@@ -464,8 +545,8 @@ class ReviewsPhase(BasePhase):
                 "phase2_restaurants",
                 "phase3_dishes",
             ],
-            required_tables=["reviews", "media_assets"],
-            cleanup_tables=["reviews", "review_likes", "media_assets", "system.moderation_logs"],
+            required_tables=["reviews", "media_assets", "system.moderation_results"],
+            cleanup_tables=["reviews", "review_likes", "media_assets", "system.moderation_logs", "system.moderation_results"],
             estimated_duration=300,
         )
 
