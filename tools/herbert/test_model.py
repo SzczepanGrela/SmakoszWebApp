@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-Test fine-tuned HerBERT locally. Inference matches gpu-worker text_moderator.py.
-
-Usage:
-    python tools/herbert/test_model.py
-    python tools/herbert/test_model.py --model-path ./herbert-v1
-"""
-
 import argparse
 
 TEST_TEXTS = [

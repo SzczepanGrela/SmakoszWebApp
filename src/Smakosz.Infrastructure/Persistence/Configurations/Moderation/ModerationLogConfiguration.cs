@@ -43,7 +43,6 @@ public class ModerationLogConfiguration : IEntityTypeConfiguration<ModerationLog
             .HasForeignKey(x => x.ProcessedBy)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => new { x.EntityType, x.EntityId, x.CreatedAt })
             .IsDescending(false, false, true);
 

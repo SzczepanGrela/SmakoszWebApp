@@ -36,7 +36,6 @@ public class AiLogConfiguration : IEntityTypeConfiguration<AiLog>
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 
-        // Indexes
         builder.HasIndex(x => new { x.EntityType, x.EntityId });
 
         builder.HasIndex(x => new { x.ModelType, x.CreatedAt })

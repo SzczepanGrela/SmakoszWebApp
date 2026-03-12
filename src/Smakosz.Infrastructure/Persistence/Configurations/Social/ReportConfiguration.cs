@@ -39,7 +39,6 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
             .WithMany()
             .HasForeignKey(x => x.ResolvedByAdminId);
 
-        // Indexes
         builder.HasIndex(x => new { x.Status, x.CreatedAt })
             .IsDescending(false, true);
 

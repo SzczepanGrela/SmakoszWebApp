@@ -1,10 +1,3 @@
-"""
-EvaluationDAO - read-only data access for evaluation pipeline.
-
-All methods are static and take a DatabaseConnection instance.
-Filters out entities without secret fields (manually added data).
-"""
-
 import logging
 
 from utils.db_connection import DatabaseConnection
@@ -15,7 +8,6 @@ logger = logging.getLogger(__name__)
 class EvaluationDAO:
     @staticmethod
     def get_test_users(db: DatabaseConnection, min_reviews: int = 3) -> list[dict]:
-        """Load users that have at least `min_reviews` reviews and valid secret fields."""
         rows = db.fetch_all(
             """
             SELECT u.user_id,
@@ -51,12 +43,6 @@ class EvaluationDAO:
 
     @staticmethod
     def get_all_dishes_enriched(db: DatabaseConnection) -> list[dict]:
-        """
-        Build enriched dish dicts with identical keys to phase5_reviews.
-
-        Key detail: uses "ingredients" (list[str]) NOT "ingredients_json" -
-        this means FoodRatingStrategy.ingredient_modifier stays 0 (same as generator).
-        """
         rows = db.fetch_all(
             """
             SELECT d.dish_id, d.dish_name, d.secret_archetype,
@@ -74,7 +60,6 @@ class EvaluationDAO:
         if not dish_ids:
             return []
 
-        # Fetch ingredients in bulk
         placeholders = ",".join(["%s"] * len(dish_ids))
         all_ingredients = db.fetch_all(
             f"""
@@ -118,7 +103,6 @@ class EvaluationDAO:
 
     @staticmethod
     def get_all_restaurants_enriched(db: DatabaseConnection) -> list[dict]:
-        """Load restaurants with secret quality fields."""
         rows = db.fetch_all(
             """
             SELECT r.restaurant_id, r.restaurant_name, r.price_level,
@@ -148,7 +132,6 @@ class EvaluationDAO:
 
     @staticmethod
     def get_user_reviewed_dishes(db: DatabaseConnection, user_id: int) -> set[int]:
-        """Get set of dish_ids that a user has already reviewed."""
         rows = db.fetch_all(
             "SELECT DISTINCT dish_id FROM reviews WHERE user_id = %s",
             (user_id,),

@@ -10,7 +10,6 @@ from config import Settings
 logger = logging.getLogger(__name__)
 
 def request_shutdown(settings: Settings) -> bool:
-    """Call safe-shutdown API on Ubuntu homelab."""
     try:
         resp = httpx.post(
             f"{settings.shutdown_api_url}/api/shutdown",
@@ -29,8 +28,6 @@ def request_shutdown(settings: Settings) -> bool:
     return False
 
 class WorkerApiClient:
-    """HTTP client with auth headers, retry, and timeout."""
-
     def __init__(self, settings: Settings):
         self._settings = settings
         self._client = httpx.Client(

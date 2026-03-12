@@ -558,7 +558,6 @@ class PixabayDownloader:
 
         for query in avatar_queries:
             logger.info(f"Query: '{query}' (target: {per_query_target})")
-            # Use mixed search (Pixabay + Unsplash) for better variety (portraits!)
             urls = self.search_mixed_urls(query, per_query_target, orientation="vertical", pixabay_ratio=0.4)
 
             for i, url in enumerate(urls):

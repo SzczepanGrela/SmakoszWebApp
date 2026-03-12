@@ -71,7 +71,6 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
         _db.SystemTickets.Add(ticket);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Send confirmation email to user (best-effort, ticket is already saved)
         try
         {
             await _email.SendDigestAsync(request.Email, "Smakosz - potwierdzenie wiadomości",

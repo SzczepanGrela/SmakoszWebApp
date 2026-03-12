@@ -18,7 +18,6 @@ def drain_jobs(
     first_job: dict,
     settings: Settings,
 ) -> int:
-    """Process all pending jobs of given type. Returns count processed."""
     processed = 0
     job = first_job
 

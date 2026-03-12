@@ -15,13 +15,11 @@ using Smakosz.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Application & Infrastructure layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("DefaultConnection")!,
     builder.Configuration);
 
-// Hangfire client (no server - API only enqueues jobs to Orchestrator)
 builder.Services.AddHangfire(cfg => cfg
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
@@ -31,14 +29,11 @@ builder.Services.AddHangfire(cfg => cfg
 builder.Services.AddScoped<INcfTrainingService, HangfireNcfTrainingProxy>();
 builder.Services.AddScoped<IModerationAggregationService, HangfireModerationProxy>();
 
-// Database logging
 builder.Logging.AddDatabaseLogger();
 
-// HttpContext accessor + CurrentUserService
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
@@ -59,17 +54,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Authorization policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin", "Moderator"));
     options.AddPolicy("RestaurantOwner", p => p.RequireRole("Restaurant"));
 });
 
-// Controllers
 builder.Services.AddControllers();
 
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -106,7 +98,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// CORS
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
@@ -121,7 +112,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Auto-migrate database and apply SQL objects in development
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -130,7 +120,6 @@ if (app.Environment.IsDevelopment())
     await db.ApplySqlObjectsAsync();
 }
 
-// Middleware pipeline
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())

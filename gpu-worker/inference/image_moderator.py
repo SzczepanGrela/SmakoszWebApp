@@ -34,8 +34,6 @@ GENERIC_PROMPTS = [
 ]
 
 class ImageModerator(BatchJobMixin):
-    """NSFW detection + CLIP on-topic scoring."""
-
     PHASE_NAME = "loading_nsfw_clip"
     MODELS = [
         ModelRequirement(name="nsfw", hf_repo="Marqo/nsfw-image-detection-384", version_env_key="nsfw_model_version"),
@@ -51,14 +49,12 @@ class ImageModerator(BatchJobMixin):
         self.device = device
         self.settings = settings
 
-        # NSFW model
         nsfw_path = model_manager.get_model_path("nsfw", settings.nsfw_model_version)
         logger.info("Loading NSFW model from: %s", nsfw_path)
         self.nsfw_processor = AutoImageProcessor.from_pretrained(nsfw_path)
         self.nsfw_model = AutoModelForImageClassification.from_pretrained(nsfw_path)
         self.nsfw_model.to(device).eval()
 
-        # CLIP model
         clip_path = model_manager.get_model_path("clip", settings.clip_model_version)
         logger.info("Loading CLIP model from: %s", clip_path)
         self.clip_model = CLIPModel.from_pretrained(clip_path)

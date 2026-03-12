@@ -45,7 +45,6 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
         if (!request.Approve)
             asset.RejectionReason = request.RejectionReason;
 
-        // Upsert ModerationResult
         var existingResult = await _db.ModerationResults
             .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Photo && r.EntityId == (int)asset.AssetId, cancellationToken);
         var now = DateTime.UtcNow;

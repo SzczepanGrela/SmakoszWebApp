@@ -32,7 +32,6 @@ public class ImageProcessingService : IImageProcessingService
         input.Position = 0;
         using var image = await Image.LoadAsync<SixLabors.ImageSharp.PixelFormats.Rgb24>(input);
 
-        // Resize to small for blurhash
         image.Mutate(x => x.Resize(32, 32));
 
         return Blurhash.ImageSharp.Blurhasher.Encode(image, 4, 3);

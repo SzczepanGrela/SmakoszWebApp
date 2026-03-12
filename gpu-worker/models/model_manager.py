@@ -10,8 +10,6 @@ from config import Settings
 logger = logging.getLogger(__name__)
 
 class ModelManager:
-    """Model management: R2 primary, HuggingFace fallback, local cache."""
-
     def __init__(self, settings: Settings, cache_dir: Path | None = None):
         self._settings = settings
         self._cache_dir = cache_dir or Path("model_cache")
@@ -32,12 +30,6 @@ class ModelManager:
                 logger.warning("Failed to initialize R2 client, will use HuggingFace only")
 
     def get_model_path(self, model_name: str, version: str) -> Path | str:
-        """
-        1. Check local cache: model_cache/{model_name}/{version}/
-        2. If missing -> download from R2: {bucket}/{model_name}/{version}/
-        3. If R2 fails -> download from HuggingFace (returns HF repo name for from_pretrained)
-        4. Return path to cache or HF repo name
-        """
         cache_path = self._cache_dir / model_name / version
         if cache_path.exists() and any(cache_path.iterdir()):
             logger.info("Using cached model: %s/%s", model_name, version)
@@ -50,7 +42,6 @@ class ModelManager:
         return self._download_from_huggingface(model_name)
 
     def register_models(self, models: list) -> None:
-        """Register HuggingFace mappings from handler ModelRequirements."""
         for req in models:
             existing = self._hf_mapping.get(req.name)
             if existing and existing != req.hf_repo:

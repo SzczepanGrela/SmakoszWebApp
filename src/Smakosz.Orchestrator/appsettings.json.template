@@ -19,7 +19,8 @@
     "NodeId": "gpu-worker"
   },
   "RpiGateway": {
-    "Url": "http://100.x.x.2:5000"
+    "Url": "http://100.x.x.2:5000",
+    "ApiToken": "<RPI_GATEWAY_API_TOKEN>"
   },
   "NcfTraining": {
     "Epochs": 50,

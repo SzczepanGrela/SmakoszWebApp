@@ -55,12 +55,10 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (dish.Restaurant?.OwnerId != _currentUser.UserId.Value)
             return DomainErrors.Business.NotOwner;
 
-        // Non-text fields - apply immediately
         if (request.Price.HasValue) dish.Price = request.Price.Value;
         if (request.Calories.HasValue) dish.Calories = request.Calories.Value;
         if (request.IsAvailable.HasValue) dish.IsAvailable = request.IsAvailable.Value;
 
-        // Text fields - forbidden words check + pessimistic moderation via EditRequest
         if (request.Name is not null && await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
             return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
         if (request.Description is not null && await _forbiddenWords.ContainsAsync(request.Description, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))

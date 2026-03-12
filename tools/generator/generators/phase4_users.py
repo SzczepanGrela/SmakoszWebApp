@@ -77,7 +77,6 @@ def allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints"):
 def _generate_user_attributes(
     role: str, all_archetypes: list[str], ingredient_names: list[str]
 ) -> dict:
-    """Generate secret user attributes based on role. Returns dict of secret fields."""
     if role != "user":
         return {
             "is_power_user": False,
@@ -178,7 +177,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
     photo_pools = PhotoPools()
 
-    # Password: "Password123!" - reused for all 50k users (acceptable for mock data)
     common_hash = generate_argon2_hash("Password123!")
     logger.info(f"Generated common Argon2id hash for 'Password123!': {common_hash[:40]}...")
 

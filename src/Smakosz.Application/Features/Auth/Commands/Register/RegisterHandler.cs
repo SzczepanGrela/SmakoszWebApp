@@ -87,7 +87,6 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
         _db.Users.Add(user);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Generate and send verification code
         var code = Random.Shared.Next(100000, 999999).ToString();
         _db.VerificationCodes.Add(new VerificationCode
         {

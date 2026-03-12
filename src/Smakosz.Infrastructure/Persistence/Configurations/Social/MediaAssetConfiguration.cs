@@ -53,7 +53,6 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
             .HasForeignKey(x => x.UploadedBy)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 

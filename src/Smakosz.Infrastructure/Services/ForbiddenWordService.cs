@@ -34,14 +34,12 @@ public class ForbiddenWordService : IForbiddenWordService
         var filtered = words.Where(w => categories.Contains(w.Category)).ToList();
         var textLower = text.ToLowerInvariant();
 
-        // Plain text matches
         foreach (var word in filtered.Where(w => !w.IsRegex))
         {
             if (textLower.Contains(word.Word.ToLowerInvariant(), StringComparison.Ordinal))
                 return true;
         }
 
-        // Regex matches
         foreach (var word in filtered.Where(w => w.IsRegex))
         {
             try

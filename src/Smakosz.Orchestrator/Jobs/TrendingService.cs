@@ -17,7 +17,6 @@ public class TrendingService
 
     public async Task RecalculateAsync(CancellationToken ct)
     {
-        // Global priors for Bayesian Average
         var globalStats = await _db.Reviews
             .GroupBy(_ => 1)
             .Select(g => new
@@ -37,7 +36,6 @@ public class TrendingService
         double c = globalStats.C;
         double m = globalStats.M;
 
-        // Restaurant trending scores
         var restaurantStats = await _db.Reviews
             .GroupBy(r => r.RestaurantId)
             .Select(g => new
@@ -62,7 +60,6 @@ public class TrendingService
             }
         }
 
-        // Dish trending scores
         var dishStats = await _db.Reviews
             .GroupBy(r => r.DishId)
             .Select(g => new

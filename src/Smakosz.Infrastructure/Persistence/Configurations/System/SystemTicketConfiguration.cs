@@ -43,13 +43,11 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
             .HasDefaultValue(1)
             .IsConcurrencyToken();
 
-        // Cross-schema FK to public.users
         builder.HasOne(x => x.AssignedAdmin)
             .WithMany()
             .HasForeignKey(x => x.AssignedAdminId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => new { x.TicketType, x.ReferenceId });
 
         builder.HasIndex(x => new { x.Status, x.Priority })

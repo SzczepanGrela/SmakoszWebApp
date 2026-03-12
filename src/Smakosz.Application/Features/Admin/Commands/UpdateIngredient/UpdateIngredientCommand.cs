@@ -72,7 +72,6 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
             NewValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan, ingredient.IsGlutenFree, ingredient.IsLactoseFree })
         });
 
-        // Recalculate dietary flags for all dishes that use this ingredient
         var affectedDishes = await _db.DishIngredients
             .Include(di => di.Dish)
             .Where(di => di.IngredientId == ingredient.IngredientId)

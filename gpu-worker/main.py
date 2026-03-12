@@ -26,7 +26,6 @@ def resolve_device(device_setting: str) -> torch.device:
     return torch.device(device_setting)
 
 def _free_vram() -> None:
-    """Release GPU memory after unloading a model."""
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     gc.collect()
@@ -37,7 +36,6 @@ def batch_run(
     settings: Settings,
     device: torch.device,
 ) -> None:
-    """Process all jobs in phases (one per handler class), then shutdown."""
 
     idle_count = 0
 
@@ -48,7 +46,6 @@ def batch_run(
             job_mappings = handler_cls.JOB_MAPPINGS
             model_names = [m.name for m in handler_cls.MODELS]
 
-            # Peek: is there any job across this phase's types?
             first_jobs: dict[str, dict] = {}
             for mapping in job_mappings:
                 try:
@@ -61,7 +58,6 @@ def batch_run(
             if not first_jobs:
                 continue
 
-            # Lazy load model for this phase
             set_current_phase(handler_cls.PHASE_NAME)
             phase_label = job_mappings[0].job_type.rsplit("_batch", 1)[0]
             logger.info("Loading model for phase: %s", phase_label)
@@ -74,7 +70,6 @@ def batch_run(
 
             set_models_loaded(model_names)
 
-            # Drain all job types in this phase
             for mapping in job_mappings:
                 handler_fn = getattr(handler_instance, mapping.method, None)
                 if handler_fn is None:
@@ -96,7 +91,6 @@ def batch_run(
                 logger.info("Phase %s/%s: processed %d jobs", phase_label, mapping.job_type, processed)
                 any_processed = any_processed or (processed > 0)
 
-            # Unload model and free VRAM
             del handler_instance
             _free_vram()
             set_models_loaded([])
@@ -132,7 +126,6 @@ def legacy_continuous_run(
     settings: Settings,
     device: torch.device,
 ) -> None:
-    """Original behavior: load all models upfront, poll indefinitely."""
     loaded_models: list[str] = []
     handlers: dict = {}
 
@@ -170,7 +163,6 @@ def main() -> None:
 
     model_manager = ModelManager(settings)
 
-    # Register HF mappings from all handlers
     for handler_cls in HANDLER_CLASSES:
         model_manager.register_models(handler_cls.MODELS)
 

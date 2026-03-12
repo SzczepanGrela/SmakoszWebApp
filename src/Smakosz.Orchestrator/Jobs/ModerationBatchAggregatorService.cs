@@ -46,7 +46,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
         {
             var items = new List<BatchItem>();
 
-            // Reviews with pending text moderation
             var pendingReviews = await _db.Reviews
                 .Where(r => r.ModerationStatus == ContentModerationStatus.Pending && !r.IsDeleted && r.Content != null)
                 .OrderBy(r => r.CreatedAt)
@@ -60,7 +59,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 if (items.Count >= BatchSize) break;
             }
 
-            // Edit requests with pending moderation
             if (items.Count < BatchSize)
             {
                 var pendingEdits = await _db.RestaurantEditRequests
@@ -79,7 +77,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 }
             }
 
-            // Dishes with pending moderation (from CreateDish; UpdateDish goes through EditRequest)
             if (items.Count < BatchSize)
             {
                 var pendingDishes = await _db.Dishes
@@ -99,7 +96,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 }
             }
 
-            // Restaurants with pending moderation
             if (items.Count < BatchSize)
             {
                 var pendingRestaurants = await _db.Restaurants
@@ -119,7 +115,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 }
             }
 
-            // MenuSections with pending moderation
             if (items.Count < BatchSize)
             {
                 var pendingSections = await _db.MenuSections
@@ -139,7 +134,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             if (items.Count == 0)
                 break;
 
-            // Build payload
             var payloadItems = items.Select(item => new Dictionary<string, object>
             {
                 ["entity_type"] = item.EntityType,
@@ -156,7 +150,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 Payload = JsonSerializer.Serialize(new { items = payloadItems })
             });
 
-            // Mark entities as Processing
             await MarkAsProcessingAsync(items, ct);
 
             await _db.SaveChangesAsync(ct);
@@ -196,7 +189,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 Payload = JsonSerializer.Serialize(new { items = payloadItems })
             });
 
-            // Mark as Processing
             var assetIds = pendingAssets.Select(a => a.AssetId).ToList();
             var assets = await _db.MediaAssets
                 .Where(a => assetIds.Contains(a.AssetId))

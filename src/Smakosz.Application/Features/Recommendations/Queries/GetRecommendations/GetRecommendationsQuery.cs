@@ -48,7 +48,6 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
         var dishQuery = _db.Dishes.AsNoTracking()
             .Where(d => d.IsAvailable && d.Restaurant != null);
 
-        // For authenticated users, get reviewed dish IDs for exclusion
         HashSet<int>? reviewedDishIds = null;
         if (_currentUser.UserId.HasValue)
         {
@@ -59,7 +58,6 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
                 .ToHashSet();
         }
 
-        // Always fetch trending
         var trendingQuery = dishQuery;
         if (reviewedDishIds is not null)
             trendingQuery = trendingQuery.Where(d => !reviewedDishIds.Contains(d.DishId));
@@ -87,10 +85,8 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
             Personalized = new List<RecommendedDishDto>()
         };
 
-        // Try personalized recommendations
         if (_currentUser.UserId.HasValue && _provider.IsAvailable)
         {
-            // Check minimum reviews (cold start)
             var minReviewsConfig = await _db.SystemConfigs
                 .FirstOrDefaultAsync(c => c.Key == "min_reviews_for_recommendations", cancellationToken);
             var minReviews = minReviewsConfig is not null
@@ -113,7 +109,6 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
                     var personalized = await _provider.GetPersonalizedAsync(
                         _currentUser.UserId.Value, 12, cancellationToken);
 
-                    // Filter out already reviewed dishes
                     if (reviewedDishIds is not null)
                         personalized = personalized.Where(p => !reviewedDishIds.Contains(p.DishId)).ToList();
 
@@ -136,7 +131,6 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
                             })
                             .ToListAsync(cancellationToken);
 
-                        // Apply NCF scores and re-sort
                         foreach (var dish in dishes)
                         {
                             if (scoreMap.TryGetValue(dish.DishId, out var score))

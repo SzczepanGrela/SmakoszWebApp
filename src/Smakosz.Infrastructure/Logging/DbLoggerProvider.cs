@@ -58,7 +58,6 @@ public sealed class DbLoggerProvider : ILoggerProvider, IAsyncDisposable
         }
         catch
         {
-            // Logging failures must never crash the application
         }
     }
 

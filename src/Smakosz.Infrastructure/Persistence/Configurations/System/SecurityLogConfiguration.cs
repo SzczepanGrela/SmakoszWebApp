@@ -40,13 +40,11 @@ public class SecurityLogConfiguration : IEntityTypeConfiguration<SecurityLog>
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 
-        // Cross-schema FK to public.users
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => new { x.UserId, x.CreatedAt })
             .IsDescending(false, true);
 

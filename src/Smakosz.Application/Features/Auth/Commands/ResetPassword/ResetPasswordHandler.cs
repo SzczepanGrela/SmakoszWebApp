@@ -38,7 +38,6 @@ public class ResetPasswordHandler : IRequestHandler<ResetPasswordCommand, ErrorO
         if (verificationCode is null || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
             return DomainErrors.Auth.InvalidVerificationCode;
 
-        // Remove used code
         _db.VerificationCodes.Remove(verificationCode);
 
         user.PasswordHash = _passwordHasher.Hash(request.NewPassword);

@@ -42,7 +42,6 @@ public class DeleteMediaHandler : IRequestHandler<DeleteMediaCommand, ErrorOr<De
         }
         catch
         {
-            // Storage deletion is best-effort; continue with DB removal
         }
 
         _db.MediaAssets.Remove(asset);

@@ -4,7 +4,6 @@ using Smakosz.Application.Common.Interfaces;
 using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Infrastructure.Services;
-//todo: zamienić proste html ciała na bardziej rozbudowane maile.
 public class BrevoEmailService : IEmailService
 {
     private const string ApiUrl = "https://api.brevo.com/v3/smtp/email";

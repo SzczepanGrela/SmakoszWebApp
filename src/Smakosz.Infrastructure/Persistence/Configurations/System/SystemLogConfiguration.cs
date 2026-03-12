@@ -34,7 +34,6 @@ public class SystemLogConfiguration : IEntityTypeConfiguration<SystemLog>
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 
-        // Indexes
         builder.HasIndex(x => x.CreatedAt)
             .IsDescending(true);
 

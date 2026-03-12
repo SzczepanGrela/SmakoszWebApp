@@ -26,7 +26,6 @@ public class ForbiddenWordConfiguration : IEntityTypeConfiguration<ForbiddenWord
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 
-        // Cross-schema FK to public.users
         builder.HasOne(x => x.AddedByUser)
             .WithMany()
             .HasForeignKey(x => x.AddedBy)

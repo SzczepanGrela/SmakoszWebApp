@@ -532,7 +532,6 @@ def _generate_abuse_reports(db: DatabaseConnection, user_ids: list[int], review_
     logger.info("Generated abuse reports successfully.")
 
 def _generate_edit_requests(db: DatabaseConnection):
-    """Generate restaurant edit requests from business owners."""
     logger.info("Generating restaurant edit requests...")
 
     restaurants_with_owners = db.fetch_all("""

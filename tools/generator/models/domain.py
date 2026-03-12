@@ -20,11 +20,9 @@ class UserForReview:
     join_date: datetime | None
     secret_characteristics_vector: dict
     secret_rating_baseline: float
-    # Derived from secret_characteristics_vector
     secret_spice_preference: float
     secret_richness_preference: float
     secret_texture_preference: float
-    # Hardcoded defaults (kept for compatibility with review_service)
     secret_price_preference_range: float = 35.0
     secret_price_tolerance_above: float = 2.0
     secret_price_tolerance_below: float = 0.5

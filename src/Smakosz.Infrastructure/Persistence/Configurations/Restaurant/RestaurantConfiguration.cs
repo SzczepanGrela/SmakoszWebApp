@@ -86,7 +86,6 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
         builder.Property(x => x.SecretMenuBlueprint)
             .HasMaxLength(100);
 
-        // FK
         builder.HasOne(x => x.City)
             .WithMany()
             .HasForeignKey(x => x.CityId);
@@ -96,7 +95,6 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 

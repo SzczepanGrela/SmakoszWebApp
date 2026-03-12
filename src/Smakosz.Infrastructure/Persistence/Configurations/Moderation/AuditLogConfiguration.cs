@@ -40,7 +40,6 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(x => x.NewValues)
             .HasColumnType("jsonb");
 
-        // Indexes
         builder.HasIndex(x => new { x.TableName, x.RecordId });
 
         builder.HasIndex(x => x.ChangedAt)

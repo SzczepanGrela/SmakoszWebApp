@@ -66,7 +66,6 @@ public class RestaurantEditRequestConfiguration : IEntityTypeConfiguration<Resta
             .HasDefaultValue(1)
             .IsConcurrencyToken();
 
-        // FK
         builder.HasOne(x => x.Restaurant)
             .WithMany()
             .HasForeignKey(x => x.RestaurantId)
@@ -86,7 +85,6 @@ public class RestaurantEditRequestConfiguration : IEntityTypeConfiguration<Resta
             .HasForeignKey(x => x.ResolvedByAdminId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => x.Status)
             .HasFilter("status = 'pending'")
             .HasDatabaseName("ix_restaurant_edit_requests_status");

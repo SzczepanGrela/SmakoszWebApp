@@ -65,7 +65,6 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasForeignKey(x => x.ActorId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 

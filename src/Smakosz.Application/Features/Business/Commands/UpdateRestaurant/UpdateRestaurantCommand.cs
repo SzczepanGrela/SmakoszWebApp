@@ -49,14 +49,12 @@ public class UpdateRestaurantHandler : IRequestHandler<UpdateRestaurantCommand, 
 
         var hasTextChanges = request.Name is not null || request.Description is not null;
 
-        // Non-text changes - apply immediately
         if (request.Address is not null) restaurant.Address = request.Address;
         if (request.Phone is not null) restaurant.Phone = request.Phone;
         if (request.Email is not null) restaurant.Email = request.Email;
         if (request.Website is not null) restaurant.Website = request.Website;
         if (request.CityId.HasValue) restaurant.CityId = request.CityId.Value;
 
-        // Text changes - delegate to EditRequest flow (pessimistic: changes after approval)
         if (hasTextChanges)
         {
             var editRequest = new RestaurantEditRequest

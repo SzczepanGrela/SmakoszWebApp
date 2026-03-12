@@ -46,7 +46,6 @@ public class AdminPhotoDto
     public string? EntityName { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    // Aliases used by UI components
     public Guid Id => PublicId;
     public string ImageUrl => Url;
     public string UploadedBy => UploadedByUsername ?? "Nieznany";

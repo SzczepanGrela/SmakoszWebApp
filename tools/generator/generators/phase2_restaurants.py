@@ -72,12 +72,10 @@ def generate_restaurant_archetype_modifiers(menu_blueprint: str) -> dict[str, di
     return modifiers
 
 def _calculate_tier_attributes(tier: str) -> dict:
-    """Return price_multiplier, price_level, and base_quality_mean for a restaurant tier."""
     if tier == "Budget":
         return {"price_multiplier": random.uniform(0.6, 0.9), "price_level": 1, "base_quality_mean": 0.4}
     if tier == "Casual":
         return {"price_multiplier": random.uniform(0.9, 1.3), "price_level": 2, "base_quality_mean": 0.65}
-    # Fine Dining
     return {"price_multiplier": random.uniform(1.4, 2.5), "price_level": 3, "base_quality_mean": 0.85}
 
 def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprints", cleanup: bool = True):

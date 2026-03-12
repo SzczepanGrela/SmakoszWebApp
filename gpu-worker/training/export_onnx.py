@@ -10,7 +10,6 @@ def export_to_onnx(
     output_path: Path,
     embedding_dim: int,
 ) -> Path:
-    """Export a trained NCF model to ONNX format."""
     model.eval()
     device = next(model.parameters()).device
 
@@ -38,14 +37,12 @@ def export_to_onnx(
     return onnx_path
 
 def upload_onnx_to_r2(s3_client, bucket: str, onnx_path: Path, version: str) -> str:
-    """Upload ONNX model to R2 and return the key."""
     key = f"models/ncf/{version}/ncf_model.onnx"
     s3_client.upload_file(str(onnx_path), bucket, key)
     logger.info("Uploaded ONNX model to R2: %s", key)
     return key
 
 def upload_mapping_to_r2(s3_client, bucket: str, mapping_path: Path, version: str) -> str:
-    """Upload mapping.json to R2 and return the key."""
     key = f"models/ncf/{version}/mapping.json"
     s3_client.upload_file(str(mapping_path), bucket, key)
     logger.info("Uploaded mapping to R2: %s", key)

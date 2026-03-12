@@ -45,7 +45,6 @@ public class StuckJobsRecoveryService
                 job.ErrorMessage = "Exceeded max attempts after being stuck in Processing";
                 job.FinishedAt = now;
 
-                // Reset ModerationStatus for entities in failed batch jobs
                 if (BatchJobTypes.Contains(job.Type) && !string.IsNullOrEmpty(job.Payload))
                     await ResetBatchModerationStatusAsync(job, ct);
             }

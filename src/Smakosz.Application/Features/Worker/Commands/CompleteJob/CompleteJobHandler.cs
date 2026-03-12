@@ -254,7 +254,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                         break;
                 }
 
-                // Close related ticket only for definitive verdicts
                 if (verdict is "approved" or "rejected")
                 {
                     var relatedTicket = await _db.SystemTickets
@@ -301,7 +300,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
         var modelVersion = root.TryGetProperty("model_version", out var mv) ? mv.GetString() : null;
 
-        // Update system config with new NCF model version
         if (!string.IsNullOrEmpty(modelVersion))
         {
             var versionConfig = await _db.SystemConfigs
@@ -328,7 +326,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             ProcessingTimeMs = request.ProcessingTimeMs
         });
 
-        // Publish event for model activation (download, smoke test, symlink, restart)
         if (!string.IsNullOrEmpty(modelVersion))
             await _mediator.Publish(new NcfTrainingCompletedNotification(modelVersion), ct);
     }
@@ -446,7 +443,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
             if (editRequest.ChangeScope == EditRequestChangeScope.Dish && editRequest.TargetEntityId.HasValue)
             {
-                // Dish edit: apply text changes to the target dish
                 var dish = await _db.Dishes.FirstOrDefaultAsync(d => d.DishId == editRequest.TargetEntityId.Value, ct);
                 if (dish is not null)
                 {
@@ -458,7 +454,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             }
             else if (editRequest.ChangeScope == EditRequestChangeScope.Section && editRequest.TargetEntityId.HasValue)
             {
-                // Section edit: apply name change to the target menu section
                 var section = await _db.MenuSections.FirstOrDefaultAsync(
                     ms => ms.SectionId == editRequest.TargetEntityId.Value, ct);
                 if (section is not null && !string.IsNullOrEmpty(editRequest.NewName))
@@ -466,7 +461,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             }
             else
             {
-                // Restaurant edit: apply changes to the restaurant
                 if (!string.IsNullOrEmpty(editRequest.NewName))
                     editRequest.Restaurant.RestaurantName = editRequest.NewName;
                 if (!string.IsNullOrEmpty(editRequest.NewDescription))
@@ -507,8 +501,6 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
     private async Task ApplyTextModerationToDish(int dishId, string verdict, DateTime now, CancellationToken ct)
     {
-        // Backward compat: dish text moderation now goes through EditRequest.
-        // This handles old jobs that may still reference dishes directly.
         var dish = await _db.Dishes.FirstOrDefaultAsync(d => d.DishId == dishId, ct);
         if (dish is null) return;
 

@@ -45,10 +45,11 @@ public class WorkerController : OrchestratorController
         var result = await _mediator.Send(new GetNextJobQuery(type, GetWorkerId()));
 
         if (result.IsError)
+        {
+            if (result.FirstError.Code == "Job.NoPending")
+                return NoContent();
             return ToActionResult(result);
-
-        if (result.Value is null)
-            return NoContent();
+        }
 
         return ToActionResult(result!);
     }

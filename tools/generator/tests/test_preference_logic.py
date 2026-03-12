@@ -157,7 +157,6 @@ def test_culinary_aberration_penalized():
 
     neutral_user = {"physics_temperature": {"value": 0.5, "tolerance": 0.3}}
 
-    # Ice cream archetype: MUST be cold (base temp 0.1)
     ice_cream_base = {"physics_temperature": 0.1}
     ice_cream_weights = {"physics_temperature": 0.1, "_default": 1.0}
 

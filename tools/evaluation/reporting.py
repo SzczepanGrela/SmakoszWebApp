@@ -1,7 +1,3 @@
-"""
-Evaluation report - collect results, print to console, save to JSON.
-"""
-
 import json
 import logging
 from datetime import datetime
@@ -10,8 +6,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 class EvaluationReport:
-    """Collects evaluation metrics and outputs a formatted report."""
-
     def __init__(self):
         self.data: dict = {}
 
@@ -32,7 +26,6 @@ class EvaluationReport:
         users_skipped: int,
         pairs_evaluated: int,
     ) -> dict:
-        """Assemble all metrics into a single report dictionary."""
         self.data = {
             "generated_at": datetime.now().isoformat(),
             "model_path": model_path,
@@ -58,7 +51,6 @@ class EvaluationReport:
         return self.data
 
     def print_report(self) -> None:
-        """Print a human-readable evaluation report to the logger."""
         if not self.data:
             logger.warning("No data collected. Run collect() first.")
             return
@@ -108,7 +100,6 @@ class EvaluationReport:
             logger.info(line)
 
     def save_json(self, path: str) -> None:
-        """Save the full report to a JSON file."""
         if not self.data:
             logger.warning("No data collected. Run collect() first.")
             return
