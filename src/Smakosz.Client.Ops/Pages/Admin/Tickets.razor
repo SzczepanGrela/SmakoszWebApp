@@ -60,7 +60,7 @@ else
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge @PriorityBadge(ticket.Priority)">P@ticket.Priority</span>
+                        <span class="badge @PriorityBadge(ticket.Priority)">@PriorityLabel(ticket.Priority)</span>
                         <StatusBadge Status="@ticket.Status" />
                     </div>
                 </div>
@@ -118,6 +118,13 @@ else
         1 => "bg-danger",
         2 => "bg-warning text-dark",
         _ => "bg-secondary"
+    };
+
+    private static string PriorityLabel(int priority) => priority switch
+    {
+        1 => "Wysoki",
+        2 => "Normalny",
+        _ => "Niski"
     };
 
     private static string TicketTypeLabel(string type) => type switch

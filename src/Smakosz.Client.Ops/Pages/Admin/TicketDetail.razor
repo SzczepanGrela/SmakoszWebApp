@@ -25,7 +25,7 @@ else
             <h2 class="fw-bold mb-0">#@_detail.TicketId</h2>
             <span class="badge bg-info">@TicketTypeLabel(_detail.TicketType)</span>
             <StatusBadge Status="@_detail.Status" />
-            <span class="badge @PriorityBadge(_detail.Priority)">P@_detail.Priority</span>
+            <span class="badge @PriorityBadge(_detail.Priority)">@PriorityLabel(_detail.Priority)</span>
         </div>
         <div class="small text-muted text-end">
             <div><i class="fa-solid fa-calendar me-1"></i>@(_detail.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</div>
@@ -542,6 +542,13 @@ else
         1 => "bg-danger",
         2 => "bg-warning text-dark",
         _ => "bg-secondary"
+    };
+
+    private static string PriorityLabel(int priority) => priority switch
+    {
+        1 => "Wysoki",
+        2 => "Normalny",
+        _ => "Niski"
     };
 
     private static string TicketTypeLabel(string type) => type switch

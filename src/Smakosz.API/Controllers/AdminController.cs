@@ -10,7 +10,6 @@ using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
-using Smakosz.Application.Features.Admin.Queries.GetAdminDashboard;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
@@ -29,14 +28,6 @@ public class AdminController : ApiController
     public AdminController(IMediator mediator)
     {
         _mediator = mediator;
-    }
-
-    [Authorize(Roles = "Admin,Moderator")]
-    [HttpGet("dashboard")]
-    public async Task<IActionResult> GetDashboard()
-    {
-        var result = await _mediator.Send(new GetAdminDashboardQuery());
-        return ToActionResult(result);
     }
 
     [HttpGet("users")]

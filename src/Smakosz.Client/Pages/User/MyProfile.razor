@@ -51,7 +51,7 @@
                         </div>
 
                         <small class="text-muted">
-                            <i class="fa-solid fa-calendar me-1"></i>Dołączył/a @_profile.CreatedAt?.ToString("MMMM yyyy", new System.Globalization.CultureInfo("pl-PL"))
+                            <i class="fa-solid fa-calendar me-1"></i>Dołączył/a @FormatPolishDate(_profile.CreatedAt)
                         </small>
                     </div>
                 </div>
@@ -217,6 +217,14 @@
         }
         _editMode = false;
         _error = null;
+    }
+
+    private static string FormatPolishDate(DateTime? date)
+    {
+        if (date == null) return "";
+        string[] months = ["", "styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec",
+                           "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"];
+        return $"{months[date.Value.Month]} {date.Value.Year}";
     }
 
     private async Task HandleSave()

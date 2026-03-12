@@ -29,6 +29,7 @@ namespace Smakosz.Infrastructure.Migrations
                     log_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     model_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    model_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     model_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     entity_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     entity_id = table.Column<int>(type: "integer", nullable: true),
@@ -208,6 +209,32 @@ namespace Smakosz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "moderation_results",
+                schema: "system",
+                columns: table => new
+                {
+                    result_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    entity_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    entity_id = table.Column<int>(type: "integer", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ai_verdict = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    ai_model_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    ai_model_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    scores = table.Column<string>(type: "jsonb", nullable: true),
+                    rejection_reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    auto_approved = table.Column<bool>(type: "boolean", nullable: false),
+                    auto_approve_reason = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_moderation_results", x => x.result_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "nodes",
                 schema: "system",
                 columns: table => new
@@ -287,6 +314,31 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_service_accounts", x => x.account_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "site_stats",
+                schema: "system",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    total_dishes = table.Column<int>(type: "integer", nullable: false),
+                    total_restaurants = table.Column<int>(type: "integer", nullable: false),
+                    total_reviews = table.Column<int>(type: "integer", nullable: false),
+                    total_users = table.Column<int>(type: "integer", nullable: false),
+                    total_photos = table.Column<int>(type: "integer", nullable: false),
+                    reviews_this_week = table.Column<int>(type: "integer", nullable: false),
+                    new_users_this_month = table.Column<int>(type: "integer", nullable: false),
+                    avg_dish_rating = table.Column<double>(type: "double precision", nullable: false),
+                    avg_restaurant_food_score = table.Column<double>(type: "double precision", nullable: false),
+                    most_popular_cuisine = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    most_active_city = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_site_stats", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -510,6 +562,7 @@ namespace Smakosz.Infrastructure.Migrations
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_rating = table.Column<double>(type: "double precision", nullable: true),
                     review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     secret_variant_id = table.Column<int>(type: "integer", nullable: true),
                     secret_base_price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
@@ -611,11 +664,6 @@ namespace Smakosz.Infrastructure.Migrations
                     uploaded_by = table.Column<int>(type: "integer", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    ai_nsfw_score = table.Column<decimal>(type: "numeric(5,4)", nullable: true),
-                    ai_on_topic_score = table.Column<decimal>(type: "numeric(5,4)", nullable: true),
-                    ai_verdict = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    ai_model_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    ai_processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     credit_text = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
                 },
@@ -633,7 +681,8 @@ namespace Smakosz.Infrastructure.Migrations
                     restaurant_id = table.Column<int>(type: "integer", nullable: false),
                     section_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -773,12 +822,7 @@ namespace Smakosz.Infrastructure.Migrations
                     new_website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     new_image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     new_image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    ai_verdict = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    ai_confidence = table.Column<decimal>(type: "numeric(5,4)", nullable: true),
-                    ai_model_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    ai_processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    auto_approved = table.Column<bool>(type: "boolean", nullable: false),
-                    auto_approve_reason = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     reviewed_by = table.Column<int>(type: "integer", nullable: true),
                     reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     rejection_reason = table.Column<string>(type: "text", nullable: true),
@@ -865,6 +909,7 @@ namespace Smakosz.Infrastructure.Migrations
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     verified_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     verified_by = table.Column<int>(type: "integer", nullable: true),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     secret_price_multiplier = table.Column<double>(type: "double precision", nullable: true),
                     secret_overall_food_quality = table.Column<double>(type: "double precision", nullable: true),
                     secret_service_quality = table.Column<double>(type: "double precision", nullable: true),
@@ -969,12 +1014,7 @@ namespace Smakosz.Infrastructure.Migrations
                     content_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     content_rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     helpful_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    is_approved = table.Column<bool>(type: "boolean", nullable: false),
-                    ai_toxicity_score = table.Column<decimal>(type: "numeric(5,4)", nullable: true),
-                    ai_spam_score = table.Column<decimal>(type: "numeric(5,4)", nullable: true),
-                    ai_verdict = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    ai_model_version = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    ai_processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    is_approved = table.Column<bool>(type: "boolean", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -1226,6 +1266,12 @@ namespace Smakosz.Infrastructure.Migrations
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                schema: "system",
+                table: "site_stats",
+                columns: new[] { "id", "avg_dish_rating", "avg_restaurant_food_score", "most_active_city", "most_popular_cuisine", "new_users_this_month", "reviews_this_week", "total_dishes", "total_photos", "total_restaurants", "total_reviews", "total_users" },
+                values: new object[] { 1, 0.0, 0.0, null, null, 0, 0, 0, 0, 0, 0, 0 });
 
             migrationBuilder.CreateIndex(
                 name: "ix_ai_logs_entity_type_entity_id",
@@ -1501,7 +1547,7 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_media_assets_moderation",
                 table: "media_assets",
                 columns: new[] { "status", "created_at" },
-                filter: "status = 'pending'");
+                filter: "status IN ('pending', 'needs_review')");
 
             migrationBuilder.CreateIndex(
                 name: "ix_media_assets_primary",
@@ -1551,6 +1597,19 @@ namespace Smakosz.Infrastructure.Migrations
                 columns: new[] { "processed_by", "created_at" },
                 descending: new[] { false, true },
                 filter: "processed_by IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_moderation_results_entity_type_entity_id",
+                schema: "system",
+                table: "moderation_results",
+                columns: new[] { "entity_type", "entity_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_moderation_results_status_processed_at",
+                schema: "system",
+                table: "moderation_results",
+                columns: new[] { "status", "processed_at" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_nodes_node_type_status_last_heartbeat",
@@ -1752,7 +1811,7 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_reviews_content_status",
                 table: "reviews",
                 columns: new[] { "content_status", "created_at" },
-                filter: "content_status = 'pending'");
+                filter: "content_status IN ('pending', 'needs_review')");
 
             migrationBuilder.CreateIndex(
                 name: "ix_reviews_dish_id_created_at",
@@ -2247,6 +2306,10 @@ namespace Smakosz.Infrastructure.Migrations
                 schema: "system");
 
             migrationBuilder.DropTable(
+                name: "moderation_results",
+                schema: "system");
+
+            migrationBuilder.DropTable(
                 name: "notifications");
 
             migrationBuilder.DropTable(
@@ -2283,6 +2346,10 @@ namespace Smakosz.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "service_accounts",
+                schema: "system");
+
+            migrationBuilder.DropTable(
+                name: "site_stats",
                 schema: "system");
 
             migrationBuilder.DropTable(
