@@ -117,7 +117,11 @@ Examples:
             registry = setup_phase_registry()
             context = ExecutionContext(db=db, config=GENERATION_CONFIG, phase_registry=registry)
 
-            pipeline_config = PipelineConfig(cleanup_before_run=not args.no_cleanup, continue_on_error=False)
+            pipeline_config = PipelineConfig(
+                cleanup_before_run=not args.no_cleanup,
+                continue_on_error=False,
+                selective_mode=True,
+            )
 
             pipeline = DataGenerationPipeline(context, pipeline_config)
             result = pipeline.run(phase_ids=[args.phase_id])
@@ -134,7 +138,7 @@ Examples:
                 logger.info(f"Duration: {phase_result.duration_seconds:.2f}s")
                 logger.info(f"Entities: {phase_result.entities_generated}")
             else:
-                logger.error(f"✗ FAILED after {duration}")
+                logger.error(f"[FAIL] FAILED after {duration}")
                 if result.phase_results:
                     phase_result = result.phase_results[0]
                     if phase_result.error:

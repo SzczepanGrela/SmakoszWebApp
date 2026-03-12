@@ -164,7 +164,7 @@ class CounterSync:
                 most_popular_cuisine, most_active_city, updated_at)
             VALUES (1,
                 (SELECT COUNT(*) FROM dishes),
-                (SELECT COUNT(*) FROM restaurants WHERE status = 0),
+                (SELECT COUNT(*) FROM restaurants WHERE status = 'active'),
                 (SELECT COUNT(*) FROM reviews WHERE is_deleted = false),
                 (SELECT COUNT(*) FROM users WHERE is_active AND NOT is_deleted),
                 (SELECT COUNT(*) FROM media_assets WHERE status = 'approved'),
@@ -175,7 +175,7 @@ class CounterSync:
                 COALESCE((SELECT AVG(avg_food_score) FROM restaurants
                     WHERE avg_food_score IS NOT NULL), 0),
                 (SELECT cuisine_type FROM restaurants
-                    WHERE status = 0 AND cuisine_type IS NOT NULL
+                    WHERE status = 'active' AND cuisine_type IS NOT NULL
                     GROUP BY cuisine_type ORDER BY COUNT(*) DESC LIMIT 1),
                 (SELECT c.city_name FROM reviews r
                     JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id

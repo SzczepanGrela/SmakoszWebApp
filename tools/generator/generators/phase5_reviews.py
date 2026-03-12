@@ -466,23 +466,23 @@ def _generate_moderation_results(db: DatabaseConnection):
         SELECT
             'review',
             r.review_id,
+            r.content_status,
             CASE
                 WHEN r.content_status = 'approved' THEN 'approved'
-                WHEN r.content_status = 'pending' THEN 'pending'
+                WHEN r.content_status = 'pending' THEN 'needs_review'
                 ELSE 'approved'
             END,
-            r.ai_verdict,
             'text-moderation-v1',
-            r.ai_model_version,
+            'mockHerbert-v1',
             json_build_object(
-                'ToxicityScore', r.ai_toxicity_score,
+                'ToxicityScore', CASE WHEN r.content_status = 'pending' THEN round((random() * 0.4 + 0.3)::numeric, 4) ELSE round((random() * 0.1)::numeric, 4) END,
                 'NsfwScore', 0.0,
                 'RelevanceScore', 1.0,
-                'Confidence', CASE WHEN r.ai_verdict = 'approved' THEN 0.95 ELSE 0.5 END
+                'Confidence', CASE WHEN r.content_status = 'approved' THEN 0.95 ELSE 0.5 END
             )::jsonb,
             CASE WHEN r.content_status = 'approved' THEN true ELSE false END,
             CASE WHEN r.content_status = 'approved' THEN 'AI auto-approved (toxicity below threshold)' ELSE NULL END,
-            r.ai_processed_at,
+            r.created_at,
             r.created_at
         FROM reviews r
         WHERE r.content_status != 'none'
@@ -502,23 +502,23 @@ def _generate_moderation_results(db: DatabaseConnection):
         SELECT
             'photo',
             ma.asset_id,
+            ma.status,
             CASE
                 WHEN ma.status = 'approved' THEN 'approved'
-                WHEN ma.status = 'pending' THEN 'pending'
+                WHEN ma.status = 'pending' THEN 'needs_review'
                 ELSE 'approved'
             END,
-            ma.ai_verdict,
             'image-moderation-v1',
-            ma.ai_model_version,
+            'mockNSFW-v1/mockCLIP-v1',
             json_build_object(
                 'ToxicityScore', 0.0,
-                'NsfwScore', ma.ai_nsfw_score,
-                'RelevanceScore', ma.ai_on_topic_score,
-                'Confidence', CASE WHEN ma.ai_verdict = 'approved' THEN 0.95 ELSE 0.5 END
+                'NsfwScore', CASE WHEN ma.status = 'pending' THEN round((random() * 0.3 + 0.3)::numeric, 4) ELSE round((random() * 0.05)::numeric, 4) END,
+                'RelevanceScore', CASE WHEN ma.status = 'pending' THEN round((random() * 0.2 + 0.3)::numeric, 4) ELSE round((random() * 0.19 + 0.8)::numeric, 4) END,
+                'Confidence', CASE WHEN ma.status = 'approved' THEN 0.95 ELSE 0.5 END
             )::jsonb,
             CASE WHEN ma.status = 'approved' THEN true ELSE false END,
             CASE WHEN ma.status = 'approved' THEN 'AI auto-approved (NSFW below threshold)' ELSE NULL END,
-            ma.ai_processed_at,
+            ma.created_at,
             ma.created_at
         FROM media_assets ma
         WHERE ma.entity_type = 'review'

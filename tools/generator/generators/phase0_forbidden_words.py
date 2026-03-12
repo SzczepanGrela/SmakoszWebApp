@@ -83,7 +83,7 @@ class ForbiddenWordsPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Phase 0 (forbidden words) failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Phase 0 (forbidden words) failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,

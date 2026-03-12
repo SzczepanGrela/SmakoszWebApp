@@ -16,6 +16,7 @@ class PipelineConfig:
     cleanup_before_run: bool = True
     continue_on_error: bool = False
     dry_run: bool = False
+    selective_mode: bool = False
 
 @dataclass
 class PipelineResult:
@@ -73,7 +74,16 @@ class DataGenerationPipeline:
             logger.info(f"Running SELECTED phases: {phase_ids}")
 
         try:
-            sorted_phase_ids = self.context.phase_registry.resolve_dependencies(phase_ids)
+            if self.config.selective_mode:
+                sorted_phase_ids = self.context.phase_registry.sort_phases(phase_ids)
+                logger.info(f"[Selective] Running: {sorted_phase_ids}")
+
+                downstream = self.context.phase_registry.resolve_downstream(sorted_phase_ids)
+                all_phases_to_clean = sorted_phase_ids + downstream
+                logger.info(f"[Selective] Downstream phases (cleanup only): {downstream}")
+            else:
+                sorted_phase_ids = self.context.phase_registry.resolve_dependencies(phase_ids)
+                all_phases_to_clean = None
             logger.info(f"Resolved execution order: {sorted_phase_ids}")
         except ValueError as e:
             logger.error(f"Dependency resolution failed: {e}")
@@ -88,7 +98,13 @@ class DataGenerationPipeline:
             logger.info("DATABASE CLEANUP")
             logger.info("=" * 80)
             try:
-                self.db_manager.cleanup(auto_confirm=True)
+                if self.config.selective_mode:
+                    cleanup_tables = self.context.phase_registry.get_cleanup_tables_for_phases(
+                        all_phases_to_clean
+                    )
+                    self.db_manager.cleanup_selective(cleanup_tables)
+                else:
+                    self.db_manager.cleanup(auto_confirm=True)
             except Exception as e:
                 logger.error(f"Database cleanup failed: {e}", exc_info=True)
                 return PipelineResult(
@@ -120,7 +136,7 @@ class DataGenerationPipeline:
                     self.context.mark_completed(phase_id)
                     logger.info(f"[OK] Phase {phase_id} completed in {result.duration_seconds:.2f}s")
                 elif result.status == PhaseStatus.SKIPPED:
-                    logger.info(f"⊘ Phase {phase_id} skipped")
+                    logger.info(f"[SKIP] Phase {phase_id} skipped")
         finally:
             if not self.config.dry_run:
                 logger.info("Re-enabling triggers (session_replication_role = 'origin')")
@@ -182,7 +198,7 @@ class DataGenerationPipeline:
         try:
             if not self.config.dry_run:
                 logger.debug("Validating prerequisites...")
-                phase.validate_prerequisites(self.context)
+                phase.validate_prerequisites(self.context, selective=self.config.selective_mode)
 
             if self.config.dry_run:
                 logger.info(f"[DRY RUN] Would execute {phase_id}")

@@ -67,6 +67,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     _generate_favorite_restaurants(db, user_ids)
     _generate_abuse_reports(db, user_ids, review_ids)
     _generate_edit_requests(db)
+    _generate_ingredient_suggestions(db)
+    _generate_banned_identifiers(db)
 
     logger.info("Phase 6 social data generation complete.")
 
@@ -80,6 +82,8 @@ def _cleanup_social_data(db: DatabaseConnection):
         db.execute_query("TRUNCATE TABLE data_correction_requests RESTART IDENTITY CASCADE")
         db.execute_query("TRUNCATE TABLE reports RESTART IDENTITY CASCADE")
         db.execute_query("TRUNCATE TABLE restaurant_edit_requests RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE ingredient_suggestions RESTART IDENTITY CASCADE")
+        db.execute_query("TRUNCATE TABLE system.banned_identifiers RESTART IDENTITY CASCADE")
         db.commit()
         logger.info("Cleanup complete.")
     except Exception as e:
@@ -532,9 +536,9 @@ def _generate_edit_requests(db: DatabaseConnection):
     logger.info("Generating restaurant edit requests...")
 
     restaurants_with_owners = db.fetch_all("""
-        SELECT r.restaurant_id, r.user_id, r.restaurant_name, r.phone, r.description
+        SELECT r.restaurant_id, r.owner_id, r.restaurant_name, r.phone, r.description
         FROM restaurants r
-        WHERE r.user_id IS NOT NULL
+        WHERE r.owner_id IS NOT NULL
     """)
 
     if not restaurants_with_owners:
@@ -646,6 +650,147 @@ def _generate_edit_requests(db: DatabaseConnection):
         db.insert_bulk("restaurant_edit_requests", edit_requests)
         logger.info(f"Generated {len(edit_requests)} restaurant edit requests")
 
+def _generate_ingredient_suggestions(db: DatabaseConnection):
+    logger.info("Generating ingredient suggestions...")
+
+    restaurants_with_owners = db.fetch_all(
+        "SELECT restaurant_id, owner_id FROM restaurants WHERE owner_id IS NOT NULL"
+    )
+    if not restaurants_with_owners:
+        logger.warning("No restaurants with owners found, skipping ingredient suggestions.")
+        return
+
+    existing_ingredients = db.fetch_all("SELECT ingredient_id FROM ingredients")
+    ingredient_ids = [row[0] for row in existing_ingredients] if existing_ingredients else []
+
+    mod_users = db.fetch_all("SELECT user_id FROM users WHERE role IN ('admin', 'moderator')")
+    admin_ids = [u[0] for u in mod_users] if mod_users else []
+
+    suggested_ingredients = [
+        {"name": "Tofu wędzone", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Ser halloumi", "is_allergen": True, "is_vegan": False, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": False},
+        {"name": "Masło orzechowe", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Tempeh", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Mąka kokosowa", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Kiełbasa krakowska", "is_allergen": False, "is_vegan": False, "is_vegetarian": False, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Seitan", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": False, "is_lactose_free": True},
+        {"name": "Mleko owsiane", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": False, "is_lactose_free": True},
+        {"name": "Tahini", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Kapusta kiszona", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Sos sriracha", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Mozzarella di bufala", "is_allergen": True, "is_vegan": False, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": False},
+        {"name": "Jackfruit", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Pasta miso", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": False, "is_lactose_free": True},
+        {"name": "Grzyby shiitake", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Krewetki tygrysie", "is_allergen": True, "is_vegan": False, "is_vegetarian": False, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Mascarpone", "is_allergen": True, "is_vegan": False, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": False},
+        {"name": "Awokado", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Harissa", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Edamame", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Pesto bazyliowe", "is_allergen": True, "is_vegan": False, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": False},
+        {"name": "Boczek wędzony", "is_allergen": False, "is_vegan": False, "is_vegetarian": False, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Quinoa", "is_allergen": False, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+        {"name": "Gorgonzola", "is_allergen": True, "is_vegan": False, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": False},
+        {"name": "Kimchi", "is_allergen": True, "is_vegan": True, "is_vegetarian": True, "is_gluten_free": True, "is_lactose_free": True},
+    ]
+
+    rejection_notes = [
+        "Składnik już istnieje w bazie pod inną nazwą",
+        "Zbyt ogólna nazwa - proszę doprecyzować",
+        "Brak potwierdzenia zastosowania w menu",
+        "Nazwa niezgodna z konwencją nazewnictwa",
+    ]
+
+    now = datetime.now(timezone.utc)
+    suggestions_data = []
+
+    for ingredient in suggested_ingredients:
+        rest_row = random.choice(restaurants_with_owners)
+        restaurant_id = rest_row[0]
+        user_id = rest_row[1]
+
+        created_at = now - timedelta(days=random.randint(1, 90))
+
+        status_roll = random.random()
+        if status_roll < 0.40:
+            status = "pending"
+        elif status_roll < 0.70:
+            status = "approved"
+        elif status_roll < 0.85:
+            status = "rejected"
+        else:
+            status = "merged"
+
+        reviewed_by_admin_id = None
+        reviewed_at = None
+        admin_note = None
+        merged_ingredient_id = None
+
+        if status != "pending":
+            if admin_ids:
+                reviewed_by_admin_id = random.choice(admin_ids)
+            reviewed_at = created_at + timedelta(days=random.randint(1, 14))
+
+        if status == "rejected":
+            admin_note = random.choice(rejection_notes)
+
+        if status == "merged" and ingredient_ids:
+            merged_ingredient_id = random.choice(ingredient_ids)
+
+        suggestions_data.append({
+            "user_id": user_id,
+            "restaurant_id": restaurant_id,
+            "suggested_name": ingredient["name"],
+            "icon_url": None,
+            "icon_blurhash": None,
+            "is_allergen": ingredient["is_allergen"],
+            "is_vegetarian": ingredient["is_vegetarian"],
+            "is_vegan": ingredient["is_vegan"],
+            "is_gluten_free": ingredient["is_gluten_free"],
+            "is_lactose_free": ingredient["is_lactose_free"],
+            "status": status,
+            "admin_note": admin_note,
+            "reviewed_by_admin_id": reviewed_by_admin_id,
+            "created_at": created_at,
+            "reviewed_at": reviewed_at,
+            "merged_ingredient_id": merged_ingredient_id,
+            "version": 1,
+        })
+
+    if suggestions_data:
+        db.insert_bulk("ingredient_suggestions", suggestions_data)
+        logger.info(f"Generated {len(suggestions_data)} ingredient suggestions")
+
+def _generate_banned_identifiers(db: DatabaseConnection):
+    logger.info("Generating banned identifiers...")
+
+    admin_row = db.fetch_one("SELECT user_id FROM users WHERE role = 'admin' LIMIT 1")
+    if not admin_row:
+        logger.warning("No admin user found, skipping banned identifiers.")
+        return
+
+    admin_id = admin_row[0]
+    now = datetime.now(timezone.utc)
+
+    banned_emails = [
+        {"type": "email", "value": "spammer@example.com", "reason": "Spam i fałszywe recenzje"},
+        {"type": "email", "value": "troll@fakeemail.net", "reason": "Wielokrotne naruszenia regulaminu"},
+    ]
+
+    for entry in banned_emails:
+        banned_at = now - timedelta(days=random.randint(7, 60))
+        db.execute_query(
+            """
+            INSERT INTO system.banned_identifiers (type, value, reason, banned_by, banned_at, expires_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (type, value) DO NOTHING
+            """,
+            (entry["type"], entry["value"], entry["reason"], admin_id, banned_at, None),
+        )
+
+    db.commit()
+    logger.info(f"Generated {len(banned_emails)} banned identifiers")
+
 class SocialGraphPhase(BasePhase):
 
     def __init__(self, blueprints_dir: str = "blueprints"):
@@ -670,6 +815,8 @@ class SocialGraphPhase(BasePhase):
                 "reports",
                 "report_reason_assignments",
                 "restaurant_edit_requests",
+                "ingredient_suggestions",
+                "system.banned_identifiers",
             ],
             cleanup_tables=[
                 "user_follows",
@@ -679,6 +826,8 @@ class SocialGraphPhase(BasePhase):
                 "data_correction_requests",
                 "reports",
                 "restaurant_edit_requests",
+                "ingredient_suggestions",
+                "system.banned_identifiers",
             ],
             estimated_duration=600,
         )
@@ -700,6 +849,8 @@ class SocialGraphPhase(BasePhase):
             corrections_count = context.db.fetch_val("SELECT COUNT(*) FROM data_correction_requests") or 0
             reports_count = context.db.fetch_val("SELECT COUNT(*) FROM reports") or 0
             edit_requests_count = context.db.fetch_val("SELECT COUNT(*) FROM restaurant_edit_requests") or 0
+            suggestions_count = context.db.fetch_val("SELECT COUNT(*) FROM ingredient_suggestions") or 0
+            banned_count = context.db.fetch_val("SELECT COUNT(*) FROM system.banned_identifiers") or 0
 
             duration = time.time() - start_time
 
@@ -711,6 +862,9 @@ class SocialGraphPhase(BasePhase):
                 f"Additional: {search_count:,} searches, {favorites_count:,} favorites, "
                 f"{corrections_count:,} corrections, {reports_count:,} reports, "
                 f"{edit_requests_count:,} edit requests"
+            )
+            logger.info(
+                f"New: {suggestions_count:,} ingredient suggestions, {banned_count:,} banned identifiers"
             )
 
             return PhaseResult(
@@ -726,6 +880,8 @@ class SocialGraphPhase(BasePhase):
                     "data_correction_requests": corrections_count,
                     "reports": reports_count,
                     "restaurant_edit_requests": edit_requests_count,
+                    "ingredient_suggestions": suggestions_count,
+                    "banned_identifiers": banned_count,
                 },
                 error=None,
             )

@@ -99,18 +99,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --generate              Run full pipeline (Phase 0-7)
-  %(prog)s --phase phase3_dishes   Run single phase
-  %(prog)s --phases 0-3            Run phase range (0 through 3)
-  %(prog)s --no-cleanup            Skip database cleanup
-  %(prog)s -v --generate           Verbose logging
-  %(prog)s --stats                 Dataset statistics only (no generation)
-  %(prog)s --generate --stats      Generate + print NCF statistics
+  %(prog)s --generate                          Run full pipeline (Phase 0-7)
+  %(prog)s --phase phase7_tickets              Run ONLY phase7 (selective cleanup)
+  %(prog)s --phase phase4_users --phase phase5  Multiple phases (selective)
+  %(prog)s --from phase5_reviews               Run phase5 and all downstream
+  %(prog)s --phases 0-3                        Run phase range (0 through 3)
+  %(prog)s --phase phase7 --no-cleanup         Run phase7 without cleanup
+  %(prog)s -v --generate                       Verbose logging
+  %(prog)s --stats                             Dataset statistics only
         """,
     )
 
     parser.add_argument("--generate", action="store_true", help="Run full generation pipeline")
-    parser.add_argument("--phase", type=str, help="Run single phase (e.g., phase2_restaurants)")
+    parser.add_argument("--phase", type=str, action="append", help="Run specific phase selectively (repeatable)")
+    parser.add_argument("--from", type=str, dest="from_phase", help="Run from phase X onwards (selective)")
     parser.add_argument("--phases", type=str, help="Run phase range (e.g., 0-3)")
 
     parser.add_argument("--users", type=int, help="Override number of users to generate")
@@ -122,6 +124,15 @@ Examples:
     parser.add_argument("--debug", "-d", action="store_true", help="Show DEBUG logs (most verbose)")
 
     args = parser.parse_args()
+
+    exclusive_count = sum([
+        args.generate,
+        args.phase is not None,
+        args.from_phase is not None,
+        args.phases is not None,
+    ])
+    if exclusive_count > 1:
+        parser.error("Flags --generate, --phase, --from, and --phases are mutually exclusive.")
 
     if args.debug:
         log_level = "DEBUG"
@@ -154,13 +165,18 @@ Examples:
             registry = setup_phase_registry(blueprints_dir="blueprints")
             context = ExecutionContext(db=db, config=config, phase_registry=registry)
 
-            pipeline_config = PipelineConfig(cleanup_before_run=not args.no_cleanup, continue_on_error=False)
-
             phase_ids = None
+            is_selective = False
 
             if args.phase:
-                phase_ids = [args.phase]
-                logger.info(f"Running single phase: {args.phase}")
+                phase_ids = args.phase
+                is_selective = True
+                logger.info(f"[Selective] Running phases: {phase_ids}")
+            elif args.from_phase:
+                downstream = registry.resolve_downstream([args.from_phase])
+                phase_ids = registry.sort_phases([args.from_phase] + downstream)
+                is_selective = True
+                logger.info(f"[Selective] Running from {args.from_phase}: {phase_ids}")
             elif args.phases:
                 try:
                     start_phase, end_phase = args.phases.split("-")
@@ -188,7 +204,8 @@ Examples:
                         if phase_num in phase_map:
                             phase_ids.extend(phase_map[phase_num])
 
-                    logger.info(f"Running phase range {args.phases}: {len(phase_ids)} phases")
+                    is_selective = True
+                    logger.info(f"[Selective] Running phase range {args.phases}: {len(phase_ids)} phases")
                 except ValueError:
                     logger.error(f"Invalid phase range format: {args.phases}. Use format '0-3'")
                     sys.exit(1)
@@ -204,6 +221,12 @@ Examples:
             else:
                 parser.print_help()
                 sys.exit(0)
+
+            pipeline_config = PipelineConfig(
+                cleanup_before_run=not args.no_cleanup,
+                continue_on_error=False,
+                selective_mode=is_selective,
+            )
 
             pipeline = DataGenerationPipeline(context, pipeline_config)
             result = pipeline.run(phase_ids=phase_ids)
@@ -230,7 +253,7 @@ Examples:
                         f"({phase_result.status.value})"
                     )
             else:
-                logger.error(f"✗ FAILED after {duration}")
+                logger.error(f"[FAIL] FAILED after {duration}")
                 logger.error(f"Failed phases: {result.failed_phases}")
                 for phase_result in result.phase_results:
                     if phase_result.error:
