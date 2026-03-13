@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using ErrorOr;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,8 @@ namespace Smakosz.Orchestrator.Jobs;
 public class NcfTrainingService : INcfTrainingService
 {
     private readonly ISmakoszDbContext _db;
-    private readonly IFileStorageService _storage;
+    private readonly INcfModelStorageService _modelStorage;
+    private readonly IBackgroundJobClient _jobs;
     private readonly IHttpClientFactory _httpFactory;
     private readonly IDateTimeProvider _clock;
     private readonly NcfTrainingOptions _options;
@@ -23,7 +25,8 @@ public class NcfTrainingService : INcfTrainingService
 
     public NcfTrainingService(
         ISmakoszDbContext db,
-        IFileStorageService storage,
+        INcfModelStorageService modelStorage,
+        IBackgroundJobClient jobs,
         IHttpClientFactory httpFactory,
         IDateTimeProvider clock,
         IOptions<NcfTrainingOptions> options,
@@ -31,7 +34,8 @@ public class NcfTrainingService : INcfTrainingService
         ILogger<NcfTrainingService> logger)
     {
         _db = db;
-        _storage = storage;
+        _modelStorage = modelStorage;
+        _jobs = jobs;
         _httpFactory = httpFactory;
         _clock = clock;
         _options = options.Value;
@@ -43,7 +47,6 @@ public class NcfTrainingService : INcfTrainingService
     {
         var query = _db.Reviews.AsQueryable();
 
-        // ReviewWindowDays=0 means all reviews (no time filter)
         if (_options.ReviewWindowDays > 0)
         {
             var since = _clock.UtcNow.AddDays(-_options.ReviewWindowDays);
@@ -66,7 +69,6 @@ public class NcfTrainingService : INcfTrainingService
                 $"Za mało recenzji do treningu NCF: {reviews.Count} (wymagane min. 100)");
         }
 
-        // Build CSV
         var csv = new StringBuilder();
         csv.AppendLine("user_id,dish_id,rating");
         foreach (var r in reviews)
@@ -76,9 +78,8 @@ public class NcfTrainingService : INcfTrainingService
         var key = $"ncf-training/reviews_{now:yyyyMMdd_HHmmss}.csv";
 
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv.ToString()));
-        var csvUrl = await _storage.UploadRawAsync(stream, key, "text/csv", ct);
+        var csvUrl = await _modelStorage.UploadTrainingDataAsync(stream, key, ct);
 
-        // Create SystemJob
         var payload = JsonSerializer.Serialize(new
         {
             csv_url = csvUrl,
@@ -100,11 +101,9 @@ public class NcfTrainingService : INcfTrainingService
 
         await _db.SaveChangesAsync(ct);
 
-        // Aggregate pending moderations before GPU wake-up
         _logger.LogInformation("ncf-training: aggregating pending moderations before GPU wake-up");
         await _moderationService.AggregateAsync(ct);
 
-        // Check GPU health & wake if offline
         var gpuClient = _httpFactory.CreateClient("GpuWorker");
         try
         {
@@ -116,6 +115,8 @@ public class NcfTrainingService : INcfTrainingService
         {
             await WakeGpuAsync(ct);
         }
+
+        _jobs.Enqueue<INcfModelStorageService>(x => x.CleanupOldFilesAsync("ncf-training/", 2, CancellationToken.None));
 
         _logger.LogInformation(
             "ncf-training: scheduled job with {Reviews} reviews, CSV at {Key}",

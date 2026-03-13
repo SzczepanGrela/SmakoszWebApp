@@ -5,6 +5,7 @@ import logging
 import time
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 import torch
@@ -20,8 +21,6 @@ from training.export_onnx import export_to_onnx, upload_onnx_to_r2, upload_mappi
 logger = logging.getLogger(__name__)
 
 class NcfModel(nn.Module):
-    """Neural Collaborative Filtering model."""
-
     def __init__(self, num_users: int, num_dishes: int, embedding_dim: int):
         super().__init__()
         self.user_embedding = nn.Embedding(num_users, embedding_dim)
@@ -46,8 +45,6 @@ class NcfModel(nn.Module):
         return self.mlp(x).squeeze(-1)
 
 class NcfTrainer:
-    """Neural Collaborative Filtering - training + ONNX export."""
-
     PHASE_NAME = "loading_ncf"
     MODELS: list[ModelRequirement] = []
     JOB_MAPPINGS = [JobMapping("ncf_training", "train")]
@@ -58,9 +55,20 @@ class NcfTrainer:
         self.device = device
 
     def _download_csv(self, csv_url: str) -> list[dict]:
-        resp = httpx.get(csv_url, timeout=120.0, follow_redirects=True)
-        resp.raise_for_status()
-        reader = csv.DictReader(io.StringIO(resp.text))
+        if csv_url.startswith("s3://"):
+            parsed = urlparse(csv_url)
+            bucket = parsed.netloc
+            key = parsed.path.lstrip("/")
+            s3 = self.model_manager.s3_client
+            if s3 is None:
+                raise RuntimeError("S3 client not configured, cannot download from s3:// URL")
+            response = s3.get_object(Bucket=bucket, Key=key)
+            text = response["Body"].read().decode("utf-8")
+        else:
+            resp = httpx.get(csv_url, timeout=120.0, follow_redirects=True)
+            resp.raise_for_status()
+            text = resp.text
+        reader = csv.DictReader(io.StringIO(text))
         return list(reader)
 
     def _prepare_data(self, rows: list[dict]) -> tuple:
@@ -117,7 +125,6 @@ class NcfTrainer:
         user_ids, dish_ids, ratings, num_users, num_dishes, user_map, dish_map = self._prepare_data(rows)
         logger.info("Users: %d, Dishes: %d", num_users, num_dishes)
 
-        # Train/validation split (90/10)
         n = len(ratings)
         if n < 10:
             raise ValueError(f"Dataset too small for training: {n} rows (minimum: 10)")
@@ -161,7 +168,6 @@ class NcfTrainer:
             avg_loss = epoch_loss / len(train_loader)
             final_loss = avg_loss
 
-            # Validation
             model.eval()
             val_errors = []
             with torch.no_grad():
@@ -196,12 +202,10 @@ class NcfTrainer:
                 message=f"Epoch {epoch}/{epochs} - loss: {avg_loss:.4f}",
             )
 
-        # Export to ONNX
         version = datetime.utcnow().strftime("v%Y%m%d_%H%M%S")
         export_dir = Path("model_cache") / "ncf" / version
         onnx_path = export_to_onnx(model, export_dir, embedding_dim)
 
-        # Export ID mapping for evaluation
         mapping = {
             "user_map": {str(k): v for k, v in user_map.items()},
             "dish_map": {str(k): v for k, v in dish_map.items()},
@@ -210,7 +214,6 @@ class NcfTrainer:
         mapping_path.write_text(json.dumps(mapping))
         logger.info("ID mapping exported to %s", mapping_path)
 
-        # Upload to R2
         model_url = ""
         if self.model_manager.s3_client is not None:
             try:
@@ -222,7 +225,6 @@ class NcfTrainer:
                 )
                 model_url = f"r2://{self.settings.r2_bucket}/{key}"
 
-                # Upload mapping.json alongside model
                 upload_mapping_to_r2(
                     self.model_manager.s3_client,
                     self.settings.r2_bucket,
