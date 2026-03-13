@@ -379,7 +379,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/_archive/SmakoszWebApp/PracaInżynierska (5).pdf
+/_archive/
 
 .claude/
 
@@ -391,7 +391,6 @@ tools/generator/config/db_config.ini
 .idea/
 
 # MONOREPO - Removed / obsolete paths
-# Old MockDataFactory directory (contents moved to tools/generator/)
 /MockDataFactory/
 # Windows nul artifact
 /nul
