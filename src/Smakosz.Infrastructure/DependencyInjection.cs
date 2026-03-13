@@ -28,11 +28,10 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ICodeHasher>(sp =>
-            new HmacCodeHasher(configuration["Jwt:Key"]
-                ?? throw new InvalidOperationException("Jwt:Key is required for ICodeHasher")));
+            new HmacCodeHasher(configuration["Jwt:Secret"]
+                ?? throw new InvalidOperationException("Jwt:Secret is required for ICodeHasher")));
         services.AddScoped<IJwtTokenService>(sp =>
             new JwtTokenService(configuration));
-        // Email - Brevo if configured, otherwise stub
         var brevoApiKey = configuration.GetSection(BrevoOptions.SectionName)["ApiKey"];
         if (!string.IsNullOrEmpty(brevoApiKey))
         {
@@ -50,7 +49,6 @@ public static class DependencyInjection
             services.AddScoped<IEmailService, StubEmailService>();
         }
 
-        // File storage - R2 if configured, otherwise stub
         var r2Section = configuration.GetSection(R2Options.SectionName);
         var r2AccountId = r2Section["AccountId"];
         if (!string.IsNullOrEmpty(r2AccountId))
@@ -72,7 +70,6 @@ public static class DependencyInjection
             services.AddScoped<IFileStorageService, StubFileStorageService>();
         }
 
-        // ONNX Recommendation - strategy pattern
         services.Configure<OnnxOptions>(configuration.GetSection(OnnxOptions.SectionName));
         services.AddSingleton<OnnxRecommendationService>();
         services.AddSingleton<TrendingRecommendationService>();
@@ -84,7 +81,6 @@ public static class DependencyInjection
             return sp.GetRequiredService<TrendingRecommendationService>();
         });
 
-        // NCF Model Storage - R2 Models bucket
         var r2ModelsSection = configuration.GetSection(R2ModelOptions.SectionName);
         var r2ModelsAccountId = r2ModelsSection["AccountId"];
         if (!string.IsNullOrEmpty(r2ModelsAccountId))

@@ -41,7 +41,6 @@ public class R2FileStorageService : IFileStorageService
         string? thumbUrl = null, tinyUrl = null, heroUrl = null, blurhash = null;
         int? mainWidth = null, mainHeight = null;
 
-        // Generate blurhash from original
         try
         {
             file.Position = 0;
@@ -52,13 +51,11 @@ public class R2FileStorageService : IFileStorageService
             _logger.LogWarning(ex, "Failed to generate blurhash for {FileName}", fileName);
         }
 
-        // Upload requested variants
         foreach (var variant in variants)
         {
             file.Position = 0;
             var (resized, width, height) = await _imageProcessor.ResizeToWebpAsync(file, variant.MaxWidth);
 
-            // Capture dimensions from the first variant as the main dimensions
             mainWidth ??= width;
             mainHeight ??= height;
 
@@ -83,7 +80,6 @@ public class R2FileStorageService : IFileStorageService
         var baseName = Path.GetFileNameWithoutExtension(key);
         var folder = Path.GetDirectoryName(key)?.Replace('\\', '/') ?? "";
 
-        // Delete all possible variants
         string[] suffixes = ["", "_thumb", "_tiny", "_hero"];
         foreach (var suffix in suffixes)
         {
@@ -113,14 +109,18 @@ public class R2FileStorageService : IFileStorageService
 
     private async Task UploadToR2Async(Stream stream, string key, string contentType, CancellationToken ct)
     {
+        var length = stream.CanSeek ? stream.Length : 0;
+
         await _s3.PutObjectAsync(new PutObjectRequest
         {
             BucketName = _options.BucketName,
             Key = key,
             InputStream = stream,
-            ContentType = contentType
+            ContentType = contentType,
+            DisablePayloadSigning = true,
+            DisableDefaultChecksumValidation = true
         }, ct);
 
-        _logger.LogDebug("Uploaded {Key} to R2 ({Bytes} bytes)", key, stream.Length);
+        _logger.LogDebug("Uploaded {Key} to R2 ({Bytes} bytes)", key, length);
     }
 }
