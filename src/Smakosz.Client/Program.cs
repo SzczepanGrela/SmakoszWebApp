@@ -9,7 +9,6 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// HttpClient with auth handler
 builder.Services.AddScoped<AuthTokenHandler>();
 builder.Services.AddHttpClient("SmakoszAPI", client =>
 {
@@ -19,21 +18,16 @@ builder.Services.AddHttpClient("SmakoszAPI", client =>
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("SmakoszAPI"));
 
-// Blazored.LocalStorage
 builder.Services.AddBlazoredLocalStorage();
 
-// Auth
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<JwtAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthStateProvider>());
 
-// API Client
 builder.Services.AddScoped<SmakoszApiClient>();
 
-// Toast service
 builder.Services.AddScoped<ToastService>();
 
-// Real API services
 builder.Services.AddScoped<IHomeService, HomeService>();
 builder.Services.AddScoped<IDishService, DishService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
@@ -41,7 +35,6 @@ builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
-// Real API services (continued)
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();

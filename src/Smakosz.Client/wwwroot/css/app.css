@@ -1,8 +1,3 @@
-/* ========================================================================
-   Smakosz App CSS - ported from _archive/SmakoszWebApp/wwwroot/css/site.css
-   All 989 lines preserved + Blazor-specific additions
-   ======================================================================== */
-
 /* Food-themed color palette */
 :root {
     --primary-color: #D4A574;        /* Warm honey */
@@ -129,6 +124,15 @@ body {
 .dish-card .card-body .fw-bold {
     white-space: nowrap;
     flex-shrink: 0;
+}
+
+.dish-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.dish-card-footer {
+    margin-top: auto;
 }
 
 .dish-tags {
@@ -390,6 +394,8 @@ main {
     overflow-y: auto;
     box-shadow: 0 2px 8px var(--shadow-color);
     border: 1px solid var(--primary-color);
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 /* Upload area */
@@ -483,6 +489,15 @@ main {
     border-top: 1px solid var(--primary-color);
 }
 
+.footer a {
+    display: inline-block;
+    padding-block: 0.25rem;
+}
+
+.review-card a {
+    padding-block: 0.125rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .hero-section {
@@ -504,11 +519,6 @@ main {
     .admin-sidebar {
         position: static;
         height: auto;
-    }
-
-    .filters-panel {
-        position: static;
-        margin-bottom: 20px;
     }
 
     .dish-details-panel {
@@ -705,12 +715,10 @@ main {
     border-radius: 2px;
 }
 
-/* Shimmer animation removed - was too distracting */
-
-/* Horizontal Carousel (Netflix-style) */
+/* Horizontal Carousel */
 .carousel-wrapper {
     position: relative;
-    margin: 0 -0.5rem;
+    overflow: hidden;
 }
 
 .carousel-track {
@@ -1008,6 +1016,7 @@ a[href^="tel:"]:hover {
     border-radius: 6px;
     font-weight: 500;
     transition: all 0.2s ease;
+    min-height: 44px;
 }
 
 .btn:hover {
@@ -1018,6 +1027,10 @@ a[href^="tel:"]:hover {
     font-size: 0.875rem;
 }
 
+.btn-sm {
+    min-height: 36px;
+}
+
 .btn-sm i {
     font-size: 0.75rem;
 }
@@ -1026,14 +1039,34 @@ a[href^="tel:"]:hover {
     font-size: 1rem;
 }
 
+/* Touch-target: pagination */
+.page-link {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Touch-target: form inputs */
+.form-control, .form-select {
+    min-height: 44px;
+}
+.form-control-sm, .form-select-sm {
+    min-height: 36px;
+}
+
+/* Touch-target: checkbox */
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 1.25rem;
+}
+
 /* Z-index utilities */
 .z-index-1 {
     z-index: 1;
 }
-
-/* ========================================================================
-   Blazor-specific additions
-   ======================================================================== */
 
 /* Blazor validation */
 .validation-message {
@@ -1214,13 +1247,11 @@ a[href^="tel:"]:hover {
     cursor: pointer;
 }
 
-/* Hero text overflow fix */
 .hero-section .display-4 {
     white-space: normal;
     overflow: visible;
 }
 
-/* Admin dashboard overflow fix */
 .admin-content {
     overflow: hidden;
     min-width: 0;
@@ -1230,15 +1261,35 @@ a[href^="tel:"]:hover {
     min-width: 0;
 }
 
-/* Prevent horizontal overflow on admin dashboard */
 .admin-stat-card,
 .data-table {
     overflow-x: auto;
 }
 
-/* Mobile fixes (≤480px) */
-@media (max-width: 480px) {
-    /* Bug 1: Hero stats overflow */
+@media (max-width: 1200px) {
+    .hero-section .display-4 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .filters-panel {
+        position: static;
+        margin-bottom: 20px;
+    }
+
+    .restaurant-header {
+        height: 250px;
+    }
+
+    .restaurant-header h1, .restaurant-header h2 {
+        font-size: 1.5rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+}
+
+@media (max-width: 576px) {
     .hero-section .stats-container {
         gap: 0.5rem !important;
         padding: 0.75rem;
@@ -1252,33 +1303,69 @@ a[href^="tel:"]:hover {
         font-size: 1.3rem;
     }
 
-    /* Bug 2: Search sort button overflow */
     .search-controls {
         flex-wrap: wrap;
     }
 
-    /* Bug 3: 10-star rating overflow */
     .rating-stars.stars-lg i {
-        font-size: 1rem;
-        margin-right: 2px;
-    }
-
-    .rating-stars.stars-lg {
-        gap: 0.125rem;
-    }
-
-    /* Review card rating stars overflow */
-    .review-card .rating-stars i {
-        font-size: 0.7rem;
+        font-size: 0.85rem;
         margin-right: 1px;
     }
 
-    .review-card .rating-stars {
+    .rating-stars.stars-lg {
         gap: 0.1rem;
     }
 
-    /* Carousel wrapper overflow */
-    .carousel-wrapper {
-        overflow: hidden;
+    .review-card .rating-stars i {
+        font-size: 0.65rem;
+        margin-right: 0px;
+    }
+
+    .review-card .rating-stars {
+        gap: 0.05rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .rating-stars.stars-lg i {
+        font-size: 0.7rem;
+    }
+
+    .rating-stars-interactive .interactive-star {
+        font-size: 1rem;
+    }
+
+    .rating-stars-interactive {
+        gap: 0.1rem;
+    }
+}
+
+.offcanvas {
+    background-color: var(--card-bg);
+    border-right: 1px solid var(--primary-color);
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.offcanvas .nav-link {
+    color: var(--text-color);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.15);
+}
+
+.offcanvas .nav-link:hover {
+    background-color: var(--hover-color);
+}
+
+.offcanvas .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+@supports (-webkit-touch-callout: none) {
+    .hero-section {
+        background-attachment: scroll;
     }
 }
