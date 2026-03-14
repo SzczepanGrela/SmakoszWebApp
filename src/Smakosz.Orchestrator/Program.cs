@@ -80,6 +80,7 @@ builder.Services.AddScoped<HeartbeatMonitorService>();
 builder.Services.AddScoped<NcfTrainingService>();
 builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
+builder.Services.AddScoped<PushNotificationDispatchService>();
 builder.Services.AddScoped<SiteStatsService>();
 builder.Services.AddScoped<NcfModelActivationService>();
 builder.Services.AddScoped<ModerationBatchAggregatorService>();
@@ -124,6 +125,9 @@ RecurringJob.AddOrUpdate<NcfTrainingService>(
 
 RecurringJob.AddOrUpdate<NotificationDigestService>(
     "notification-digest", x => x.SendAsync(CancellationToken.None), Cron.Daily(8), utc);
+
+RecurringJob.AddOrUpdate<PushNotificationDispatchService>(
+    "push-dispatch", x => x.SendAsync(CancellationToken.None), Cron.Minutely, utc);
 
 RecurringJob.AddOrUpdate<SiteStatsService>(
     "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
