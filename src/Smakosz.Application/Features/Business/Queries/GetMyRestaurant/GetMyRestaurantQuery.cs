@@ -42,8 +42,6 @@ public class GetMyRestaurantHandler : IRequestHandler<GetMyRestaurantQuery, Erro
             Phone = restaurant.Phone,
             Email = restaurant.Email,
             Website = restaurant.Website,
-            Latitude = restaurant.Latitude,
-            Longitude = restaurant.Longitude,
             ImageUrl = restaurant.ImageUrl,
             CityId = restaurant.CityId,
             Status = restaurant.Status.ToString()

@@ -46,8 +46,6 @@ public static class RestaurantMappingExtensions
             Phone = r.Phone,
             Email = r.Email,
             Website = r.Website,
-            Latitude = r.Latitude,
-            Longitude = r.Longitude,
             IsVerified = r.IsVerified,
             IsFavorite = isFavorite,
             OpeningHours = r.OpeningHours?.Select(h => new OpeningHoursDto

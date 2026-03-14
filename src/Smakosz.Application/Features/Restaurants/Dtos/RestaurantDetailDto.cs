@@ -21,8 +21,6 @@ public class RestaurantDetailDto
     public string? Phone { get; init; }
     public string? Email { get; init; }
     public string? Website { get; init; }
-    public decimal? Latitude { get; init; }
-    public decimal? Longitude { get; init; }
     public bool IsVerified { get; init; }
     public bool IsFavorite { get; init; }
     public required List<OpeningHoursDto> OpeningHours { get; init; }
