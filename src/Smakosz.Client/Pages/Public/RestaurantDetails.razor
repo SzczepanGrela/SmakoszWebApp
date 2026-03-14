@@ -1,6 +1,7 @@
 @page "/restaurants/{Slug}"
 @inject IRestaurantService RestaurantService
 @inject IUserProfileService UserProfileService
+@inject IConfiguration Configuration
 @inject ToastService Toast
 
 <PageTitle>@(_restaurant?.RestaurantName ?? "Restauracja") - Smakosz</PageTitle>
@@ -148,10 +149,15 @@ else
             <div class="col-lg-4">
                 <div class="dish-details-panel mb-4">
                     <h5 class="mb-3">Informacje kontaktowe</h5>
-                    @if (_restaurant.Address != null)
+                    @if (!string.IsNullOrWhiteSpace(_restaurant.Address))
                     {
                         <div class="mb-2">
                             <i class="fa-solid fa-location-dot me-2"></i>@_restaurant.Address
+                        </div>
+                        <div class="mb-2">
+                            <a href="@GetGoogleMapsSearchUrl()" target="_blank" rel="noopener noreferrer">
+                                <i class="fa-solid fa-map me-1"></i>Pokaż na mapie
+                            </a>
                         </div>
                     }
                     @if (_restaurant.Phone != null)
@@ -206,7 +212,7 @@ else
 
                 @if (_restaurant.OpeningHours.Any())
                 {
-                    <div class="dish-details-panel">
+                    <div class="dish-details-panel mb-4">
                         <h5 class="mb-3"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h5>
                         @foreach (var hours in _restaurant.OpeningHours.OrderBy(h => h.DayOfWeek == 0 ? 7 : h.DayOfWeek))
                         {
@@ -215,6 +221,17 @@ else
                                 <span>@(hours.IsClosed ? "Zamknięte" : $"{FormatTime(hours.OpenTime)} - {FormatTime(hours.CloseTime)}")</span>
                             </div>
                         }
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_restaurant.Address) && !string.IsNullOrWhiteSpace(_mapsEmbedApiKey))
+                {
+                    <div class="dish-details-panel mb-4">
+                        <h5 class="mb-3"><i class="fa-solid fa-map-location-dot me-2"></i>Lokalizacja</h5>
+                        <iframe width="100%" height="250" style="border:0; border-radius:8px;"
+                                loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                                src="@GetGoogleMapsEmbedUrl()">
+                        </iframe>
                     </div>
                 }
             </div>
@@ -306,6 +323,7 @@ else
     private Models.RestaurantDetailDto? _restaurant;
     private Models.PagedResult<Models.DishCardDto>? _dishes;
     private bool _loading = true;
+    private string? _mapsEmbedApiKey;
 
     private bool _showCorrectionModal;
     private string _correctionIssueType = "";
@@ -324,6 +342,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _mapsEmbedApiKey = Configuration["GoogleMaps:EmbedApiKey"];
         _restaurant = await RestaurantService.GetBySlugAsync(Slug);
         if (_restaurant != null)
             _dishes = await RestaurantService.GetDishesAsync(Slug);
@@ -334,6 +353,22 @@ else
     {
         _dishes = await RestaurantService.GetDishesAsync(Slug, page);
     }
+
+    private string GetEncodedAddress()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_restaurant?.Address))
+            parts.Add(_restaurant.Address);
+        if (!string.IsNullOrWhiteSpace(_restaurant?.CityName))
+            parts.Add(_restaurant.CityName);
+        return Uri.EscapeDataString(string.Join(", ", parts));
+    }
+
+    private string GetGoogleMapsSearchUrl()
+        => $"https://www.google.com/maps/search/?api=1&query={GetEncodedAddress()}";
+
+    private string GetGoogleMapsEmbedUrl()
+        => $"https://www.google.com/maps/embed/v1/place?key={_mapsEmbedApiKey}&q={GetEncodedAddress()}";
 
     private static string FormatScore(double? score) => score.HasValue ? score.Value.ToString("F1") : "-";
 
