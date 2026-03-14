@@ -504,6 +504,21 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow,
         });
 
+        db.AuditLogs.AddRange(
+            new AuditLog { TableName = "config", RecordId = 1, Operation = AuditOperation.Insert, ChangedBy = "admin (4)", ChangedAt = DateTime.UtcNow, NewValues = "{\"key\":\"test\",\"value\":\"1\"}" },
+            new AuditLog { TableName = "cities", RecordId = 1, Operation = AuditOperation.Update, ChangedBy = "admin (4)", ChangedAt = DateTime.UtcNow.AddHours(-1), OldValues = "{\"name\":\"Wawa\"}", NewValues = "{\"name\":\"Warszawa\"}" },
+            new AuditLog { TableName = "ingredients", RecordId = 1, Operation = AuditOperation.Delete, ChangedBy = "admin (4)", ChangedAt = DateTime.UtcNow.AddHours(-2), OldValues = "{\"name\":\"test\"}" });
+
+        db.SecurityLogs.AddRange(
+            new SecurityLog { EventType = SecurityEventType.FailedLogin, Email = "hacker@test.com", IpAddress = "192.168.1.100", UserAgent = "Mozilla/5.0", CreatedAt = DateTime.UtcNow },
+            new SecurityLog { EventType = SecurityEventType.PasswordChanged, Email = "jan.kowalski@gmail.com", UserId = 1, IpAddress = "10.0.0.50", CreatedAt = DateTime.UtcNow.AddHours(-1) },
+            new SecurityLog { EventType = SecurityEventType.BannedRegistration, Email = "zbanowany@smakosz.test", IpAddress = "10.0.0.1", CreatedAt = DateTime.UtcNow.AddHours(-2) });
+
+        db.SystemNodes.AddRange(
+            new SystemNode { NodeId = "api-main", NodeType = NodeType.Api, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.1", LastHeartbeat = DateTime.UtcNow },
+            new SystemNode { NodeId = "gpu-worker-1", NodeType = NodeType.Gpu, Role = NodeRole.Worker, Status = "offline", GpuName = "RTX 3060", GpuMemoryTotal = 12288, GpuMemoryUsed = 0, LastHeartbeat = DateTime.UtcNow.AddDays(-1) },
+            new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.2", LastHeartbeat = DateTime.UtcNow });
+
         // Second save: link marco to his restaurant (breaks circular dependency)
         marco.RestaurantId = 1;
         await db.SaveChangesAsync();
@@ -527,6 +542,8 @@ public static class SeedData
             SELECT setval(pg_get_serial_sequence('menu_sections', 'section_id'), (SELECT COALESCE(MAX(section_id), 1) FROM menu_sections));
             SELECT setval(pg_get_serial_sequence('tags', 'tag_id'), (SELECT COALESCE(MAX(tag_id), 1) FROM tags));
             SELECT setval(pg_get_serial_sequence('ingredients', 'ingredient_id'), (SELECT COALESCE(MAX(ingredient_id), 1) FROM ingredients));
+            SELECT setval(pg_get_serial_sequence('audit_logs', 'audit_log_id'), (SELECT COALESCE(MAX(audit_log_id), 1) FROM audit_logs));
+            SELECT setval(pg_get_serial_sequence('system.security_logs', 'log_id'), (SELECT COALESCE(MAX(log_id), 1) FROM system.security_logs));
         ");
     }
 }
