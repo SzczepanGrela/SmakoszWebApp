@@ -29,6 +29,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = TestAuthHelper.JwtAudience,
                 ["Brevo:ApiKey"] = "",
                 ["R2:AccountId"] = "",
+                ["Vapid:PublicKey"] = "",
             };
 
             config.AddInMemoryCollection(testConfig);
