@@ -220,3 +220,44 @@ public class ContactInfoDto
     public string Subject { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
 }
+
+public class AuditLogDto
+{
+    public long AuditLogId { get; set; }
+    public string TableName { get; set; } = string.Empty;
+    public int RecordId { get; set; }
+    public string Operation { get; set; } = string.Empty;
+    public string ChangedBy { get; set; } = string.Empty;
+    public DateTime ChangedAt { get; set; }
+    public string? OldValues { get; set; }
+    public string? NewValues { get; set; }
+}
+
+public class SecurityLogDto
+{
+    public long LogId { get; set; }
+    public string? EventType { get; set; }
+    public string? IpAddress { get; set; }
+    public string? UserAgent { get; set; }
+    public string? Email { get; set; }
+    public int? UserId { get; set; }
+    public string? Details { get; set; }
+    public string? CountryCode { get; set; }
+    public string? City { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class SystemNodeDto
+{
+    public string NodeId { get; set; } = string.Empty;
+    public string? IpAddress { get; set; }
+    public string? Status { get; set; }
+    public string NodeType { get; set; } = string.Empty;
+    public string? Role { get; set; }
+    public string? Hostname { get; set; }
+    public string? GpuName { get; set; }
+    public int? GpuMemoryTotal { get; set; }
+    public int? GpuMemoryUsed { get; set; }
+    public int? CurrentJobId { get; set; }
+    public DateTime? LastHeartbeat { get; set; }
+}

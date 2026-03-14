@@ -194,4 +194,13 @@ public class AdminService : IAdminService
 
     public async Task<bool> DeleteHeroImageAsync(Guid publicId)
         => await _api.DeleteAsync($"/api/media/{publicId}");
+
+    public Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null)
+        => _api.GetAsync<PagedResult<AdminAuditLogDto>>($"/api/admin/audit-logs?page={page}&tableName={tableName}");
+
+    public Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null)
+        => _api.GetAsync<PagedResult<AdminSecurityLogDto>>($"/api/admin/security-logs?page={page}&eventType={eventType}");
+
+    public async Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync()
+        => await _api.GetAsync<List<AdminSystemNodeDto>>("/api/admin/nodes");
 }
