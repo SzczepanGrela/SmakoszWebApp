@@ -89,7 +89,7 @@ public static class DependencyInjection
             {
                 PublicKey = vapidPublicKey,
                 PrivateKey = vapidSection["PrivateKey"] ?? string.Empty,
-                Subject = vapidSection["Subject"] ?? "mailto:noreply@smakosz.xyz"
+                Subject = vapidSection["Subject"] ?? "mailto:push@smakosz.xyz"
             };
             services.AddSingleton(vapidOptions);
             services.AddSingleton<IPushNotificationService, WebPushNotificationService>();
