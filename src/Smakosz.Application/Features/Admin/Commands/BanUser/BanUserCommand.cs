@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -60,6 +61,10 @@ public class BanUserHandler : IRequestHandler<BanUserCommand, ErrorOr<Success>>
             CreatedAt = DateTime.UtcNow
         });
 
+        var pushSettings = await _db.UserNotificationSettings
+            .FirstOrDefaultAsync(s => s.UserId == user.UserId, cancellationToken);
+        var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
         _db.Notifications.Add(new Notification
         {
             UserId = user.UserId,
@@ -70,6 +75,8 @@ public class BanUserHandler : IRequestHandler<BanUserCommand, ErrorOr<Success>>
             Message = "Twoje konto zostało zablokowane przez administratora.",
             SendEmail = true,
             EmailStatus = EmailStatus.Pending,
+            SendPush = sendPush,
+            PushStatus = pushStatus,
             CreatedAt = DateTime.UtcNow
         });
 

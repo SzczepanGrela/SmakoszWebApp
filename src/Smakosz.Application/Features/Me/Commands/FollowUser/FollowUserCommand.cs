@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
@@ -58,12 +59,18 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
                 && n.GroupKey == groupKey
                 && !n.IsRead, cancellationToken);
 
+        var pushSettings = await _db.UserNotificationSettings
+            .FirstOrDefaultAsync(s => s.UserId == targetUser.UserId, cancellationToken);
+        var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.Follow);
+
         if (existingNotification != null)
         {
             existingNotification.Counter++;
             existingNotification.ActorId = _currentUser.UserId.Value;
             existingNotification.CreatedAt = DateTime.UtcNow;
             existingNotification.Message = $"Ktoś i {existingNotification.Counter - 1} innych zaczęło Cię obserwować.";
+            existingNotification.SendPush = sendPush;
+            existingNotification.PushStatus = pushStatus;
         }
         else
         {
@@ -76,6 +83,8 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
                 Message = "Ktoś zaczął Cię obserwować.",
                 GroupKey = groupKey,
                 Counter = 1,
+                SendPush = sendPush,
+                PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow
             });
         }
