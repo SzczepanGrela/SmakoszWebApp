@@ -1,0 +1,113 @@
+@page "/admin/nodes"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Monitoring węzłów - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-server me-2"></i>Monitoring węzłów</h2>
+    <button class="btn btn-outline-primary btn-sm" @onclick="LoadNodes">
+        <i class="fa-solid fa-arrows-rotate me-1"></i>Odśwież
+    </button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_nodes == null || !_nodes.Any())
+{
+    <EmptyState Icon="fa-solid fa-server" Title="Brak zarejestrowanych węzłów" />
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var node in _nodes)
+        {
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>@node.NodeId</strong>
+                        <span class="badge @StatusBadge(node.Status)">@node.Status</span>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small">
+                            <li><strong>Typ:</strong> @node.NodeType</li>
+                            @if (!string.IsNullOrEmpty(node.Role))
+                            {
+                                <li><strong>Rola:</strong> @node.Role</li>
+                            }
+                            @if (!string.IsNullOrEmpty(node.Hostname))
+                            {
+                                <li><strong>Hostname:</strong> @node.Hostname</li>
+                            }
+                            @if (!string.IsNullOrEmpty(node.IpAddress))
+                            {
+                                <li><strong>IP:</strong> @node.IpAddress</li>
+                            }
+                            @if (node.LastHeartbeat.HasValue)
+                            {
+                                <li><strong>Ostatni heartbeat:</strong> @node.LastHeartbeat.Value.ToString("yyyy-MM-dd HH:mm:ss")</li>
+                            }
+                        </ul>
+
+                        @if (!string.IsNullOrEmpty(node.GpuName))
+                        {
+                            <hr class="my-2" />
+                            <div class="small">
+                                <strong>GPU:</strong> @node.GpuName
+                                @if (node.GpuMemoryTotal.HasValue && node.GpuMemoryTotal > 0)
+                                {
+                                    var usedMb = node.GpuMemoryUsed ?? 0;
+                                    var totalMb = node.GpuMemoryTotal.Value;
+                                    var pct = (int)(usedMb * 100.0 / totalMb);
+                                    <div class="mt-1">
+                                        <div class="d-flex justify-content-between">
+                                            <small>VRAM</small>
+                                            <small>@usedMb / @totalMb MB</small>
+                                        </div>
+                                        <div class="progress" style="height:8px;">
+                                            <div class="progress-bar @(pct > 80 ? "bg-danger" : pct > 50 ? "bg-warning" : "bg-success")"
+                                                 style="width:@pct%"></div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (node.CurrentJobId.HasValue)
+                        {
+                            <hr class="my-2" />
+                            <div class="small">
+                                <strong>Aktywne zadanie:</strong> #@node.CurrentJobId
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<AdminSystemNodeDto>? _nodes;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadNodes();
+
+    private async Task LoadNodes()
+    {
+        _loading = true;
+        _nodes = await AdminService.GetSystemNodesAsync();
+        _loading = false;
+    }
+
+    private static string StatusBadge(string? status) => status switch
+    {
+        "online" => "bg-success",
+        "offline" => "bg-danger",
+        "degraded" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}

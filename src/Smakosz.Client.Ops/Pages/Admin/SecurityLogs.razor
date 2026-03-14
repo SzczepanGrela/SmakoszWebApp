@@ -1,0 +1,113 @@
+@page "/admin/security"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Logi bezpieczeństwa - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Logi bezpieczeństwa</h2>
+    <div class="btn-group btn-group-sm">
+        <button class="btn @(_eventFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByEvent(null)">Wszystkie</button>
+        <button class="btn @(_eventFilter == "FailedLogin" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByEvent("FailedLogin")'>FailedLogin</button>
+        <button class="btn @(_eventFilter == "PasswordReset" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByEvent("PasswordReset")'>PasswordReset</button>
+        <button class="btn @(_eventFilter == "PasswordChanged" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByEvent("PasswordChanged")'>PasswordChanged</button>
+        <button class="btn @(_eventFilter == "BannedRegistration" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByEvent("BannedRegistration")'>BannedRegistration</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_logs == null || !_logs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-shield-halved" Title="Brak logów bezpieczeństwa" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover" style="font-size:0.85rem;">
+            <thead>
+                <tr>
+                    <th style="width:160px;">Czas</th>
+                    <th style="width:140px;">Typ</th>
+                    <th>Email</th>
+                    <th>IP</th>
+                    <th>Lokalizacja</th>
+                    <th>User Agent</th>
+                    <th>Szczegóły</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in _logs.Data)
+                {
+                    <tr class="@SecurityRowClass(log.EventType)">
+                        <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="badge @EventBadge(log.EventType)">@log.EventType</span></td>
+                        <td>@log.Email</td>
+                        <td>@log.IpAddress</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.CountryCode) || !string.IsNullOrEmpty(log.City))
+                            {
+                                @($"{log.CountryCode} {log.City}".Trim())
+                            }
+                        </td>
+                        <td title="@log.UserAgent">
+                            @(log.UserAgent?.Length > 40 ? log.UserAgent[..40] + "..." : log.UserAgent)
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.Details))
+                            {
+                                <details>
+                                    <summary class="small text-primary">Szczegóły</summary>
+                                    <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.Details</pre>
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_logs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_logs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminSecurityLogDto>? _logs;
+    private string? _eventFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _logs = await AdminService.GetSecurityLogsAsync(page, _eventFilter);
+        _loading = false;
+    }
+
+    private async Task FilterByEvent(string? eventType) { _eventFilter = eventType; await LoadPage(1); }
+
+    private static string EventBadge(string? eventType) => eventType switch
+    {
+        "FailedLogin" => "bg-danger",
+        "BlockedIp" => "bg-danger",
+        "SuspiciousActivity" => "bg-warning text-dark",
+        "PasswordReset" => "bg-info",
+        "PasswordChanged" => "bg-info",
+        "BannedRegistration" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+
+    private static string SecurityRowClass(string? eventType) => eventType switch
+    {
+        "FailedLogin" or "BlockedIp" => "table-danger",
+        "SuspiciousActivity" => "table-warning",
+        _ => ""
+    };
+}
