@@ -81,6 +81,24 @@ public static class DependencyInjection
             return sp.GetRequiredService<TrendingRecommendationService>();
         });
 
+        var vapidSection = configuration.GetSection(VapidOptions.SectionName);
+        var vapidPublicKey = vapidSection["PublicKey"];
+        if (!string.IsNullOrEmpty(vapidPublicKey))
+        {
+            var vapidOptions = new VapidOptions
+            {
+                PublicKey = vapidPublicKey,
+                PrivateKey = vapidSection["PrivateKey"] ?? string.Empty,
+                Subject = vapidSection["Subject"] ?? "mailto:noreply@smakosz.xyz"
+            };
+            services.AddSingleton(vapidOptions);
+            services.AddSingleton<IPushNotificationService, WebPushNotificationService>();
+        }
+        else
+        {
+            services.AddSingleton<IPushNotificationService, StubPushNotificationService>();
+        }
+
         var r2ModelsSection = configuration.GetSection(R2ModelOptions.SectionName);
         var r2ModelsAccountId = r2ModelsSection["AccountId"];
         if (!string.IsNullOrEmpty(r2ModelsAccountId))
