@@ -163,8 +163,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
         num_restaurants = city_counts.get(city_name, 0)
         city_info = city_config.get(city_name, {})
 
-        base_coords = city_info.get("coords", {"lat": 52.0, "lon": 19.0})
-
         for _ in range(num_restaurants):
             theme_data = restaurant_rules.get("RESTAURANT_THEMES", {})
             weights = [theme_data.get(t, {}).get("distribution_chance", 0.05) for t in available_themes]
@@ -197,9 +195,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             secret_ambiance_quality = sample_beta(4, 3, 0.4, 0.95)
 
             menu_blueprint = _get_menu_blueprint(theme)
-
-            lat = base_coords["lat"] + random.uniform(-0.05, 0.05)
-            lon = base_coords["lon"] + random.uniform(-0.05, 0.05)
 
             rand_status = random.random()
             if rand_status < 0.95:
@@ -236,10 +231,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "postal_code": f"{city_postal_map.get(city_name, '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
                     "email": f"kontakt@{slugify(name)}.pl",
                     "address": f"{fake.street_address()}, {city_name}",
-                    "latitude": round(lat, 6),
-                    "longitude": round(lon, 6),
-                    "geocode_source": "city_centroid",
-                    "geocoded_at": to_sql_datetime(created_date),
                     "phone": phone,
                     "website": f"https://{slugify(name)}.pl",
                     "description": _generate_description(theme, tier, city_name),
