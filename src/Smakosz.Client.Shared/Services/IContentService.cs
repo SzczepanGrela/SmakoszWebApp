@@ -7,5 +7,5 @@ public interface IContentService
     Task<ContentPageDto?> GetAboutPageAsync();
     Task<ContentPageDto?> GetTermsPageAsync();
     Task<ContactPageDto?> GetContactPageAsync();
-    Task<bool> SendContactMessageAsync(string name, string email, string subject, string message);
+    Task<bool> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null);
 }

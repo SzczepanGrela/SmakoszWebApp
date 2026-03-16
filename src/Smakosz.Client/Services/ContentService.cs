@@ -17,14 +17,15 @@ public class ContentService : IContentService
     public Task<ContactPageDto?> GetContactPageAsync()
         => _api.GetAsync<ContactPageDto>("/api/content/contact-info");
 
-    public async Task<bool> SendContactMessageAsync(string name, string email, string subject, string message)
+    public async Task<bool> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null)
     {
         var response = await _api.PostApiResponseAsync<object>("/api/content/contact", new
         {
             Name = name,
             Email = email,
             Subject = subject,
-            Message = message
+            Message = message,
+            TurnstileToken = turnstileToken
         });
         return response.Success;
     }

@@ -5,6 +5,7 @@ public class LoginRequest
     public string Email { get; set; } = default!;
     public string Password { get; set; } = default!;
     public bool RememberMe { get; set; }
+    public string? TurnstileToken { get; set; }
 }
 
 public class LoginResponse
@@ -20,6 +21,7 @@ public class RegisterRequest
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string Password { get; set; } = default!;
+    public string? TurnstileToken { get; set; }
 }
 
 public class RegisterResponse
@@ -55,6 +57,7 @@ public class RefreshTokenRequest
 public class ForgotPasswordRequest
 {
     public string Email { get; set; } = default!;
+    public string? TurnstileToken { get; set; }
 }
 
 public class ResetPasswordRequest
