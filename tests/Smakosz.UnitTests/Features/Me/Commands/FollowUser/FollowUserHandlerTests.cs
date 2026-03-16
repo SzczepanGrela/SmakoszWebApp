@@ -26,13 +26,17 @@ public class FollowUserHandlerTests
     [Fact]
     public async Task Handle_ValidFollow_Succeeds()
     {
+        var follower = new UserBuilder().WithId(1).WithSlug("myself").Build();
         var target = new UserBuilder().WithId(2).WithSlug("targetuser").Build();
+        _sets.Users.Add(follower);
         _sets.Users.Add(target);
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new FollowUserCommand("targetuser"), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
+        target.FollowersCount.Should().Be(1);
+        follower.FollowingCount.Should().Be(1);
     }
 
     [Fact]
@@ -51,7 +55,9 @@ public class FollowUserHandlerTests
     [Fact]
     public async Task Handle_AlreadyFollowing_ReturnsError()
     {
+        var follower = new UserBuilder().WithId(1).WithSlug("myself").Build();
         var target = new UserBuilder().WithId(2).WithSlug("targetuser").Build();
+        _sets.Users.Add(follower);
         _sets.Users.Add(target);
         _sets.UserFollows.Add(new UserFollow { FollowerId = 1, FollowedId = 2, CreatedAt = DateTime.UtcNow });
         DbContextMockFactory.Refresh(_db, _sets);

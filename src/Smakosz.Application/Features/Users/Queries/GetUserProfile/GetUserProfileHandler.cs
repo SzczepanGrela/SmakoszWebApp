@@ -27,12 +27,6 @@ public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, ErrorO
         if (user is null)
             return DomainErrors.User.NotFound;
 
-        var followersCount = await _db.UserFollows
-            .CountAsync(f => f.FollowedId == user.UserId, cancellationToken);
-
-        var followingCount = await _db.UserFollows
-            .CountAsync(f => f.FollowerId == user.UserId, cancellationToken);
-
         var isFollowed = _currentUser.UserId.HasValue &&
             await _db.UserFollows.AnyAsync(
                 f => f.FollowerId == _currentUser.UserId.Value && f.FollowedId == user.UserId,
@@ -45,8 +39,8 @@ public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, ErrorO
             Username = user.Username,
             AvatarUrl = user.AvatarUrl,
             ReviewCount = user.ReviewCount,
-            FollowersCount = followersCount,
-            FollowingCount = followingCount,
+            FollowersCount = user.FollowersCount,
+            FollowingCount = user.FollowingCount,
             CreatedAt = user.CreatedAt,
             IsFollowedByCurrentUser = isFollowed
         };

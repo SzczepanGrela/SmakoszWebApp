@@ -39,6 +39,12 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
         if (targetUser.UserId == _currentUser.UserId.Value)
             return DomainErrors.Follow.CannotFollowSelf;
 
+        var currentUser = await _db.Users
+            .FirstOrDefaultAsync(u => u.UserId == _currentUser.UserId.Value && !u.IsDeleted, cancellationToken);
+
+        if (currentUser is null)
+            return DomainErrors.User.NotFound;
+
         var alreadyFollowing = await _db.UserFollows.AnyAsync(
             f => f.FollowerId == _currentUser.UserId.Value && f.FollowedId == targetUser.UserId,
             cancellationToken);
@@ -52,6 +58,9 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
             FollowedId = targetUser.UserId,
             CreatedAt = DateTime.UtcNow
         });
+
+        targetUser.FollowersCount++;
+        currentUser.FollowingCount++;
 
         var groupKey = $"follow:{targetUser.UserId}";
         var existingNotification = await _db.Notifications

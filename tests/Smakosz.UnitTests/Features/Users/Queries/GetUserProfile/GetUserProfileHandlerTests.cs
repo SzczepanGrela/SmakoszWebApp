@@ -25,7 +25,8 @@ public class GetUserProfileHandlerTests
     [Fact]
     public async Task Handle_ExistingUser_ReturnsProfile()
     {
-        var user = new UserBuilder().WithId(1).WithSlug("testuser").WithUsername("TestUser").Build();
+        var user = new UserBuilder().WithId(1).WithSlug("testuser").WithUsername("TestUser")
+            .WithFollowersCount(5).WithFollowingCount(3).Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -34,6 +35,8 @@ public class GetUserProfileHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.Slug.Should().Be("testuser");
         result.Value.Username.Should().Be("TestUser");
+        result.Value.FollowersCount.Should().Be(5);
+        result.Value.FollowingCount.Should().Be(3);
     }
 
     [Fact]

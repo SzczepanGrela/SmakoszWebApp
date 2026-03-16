@@ -30,12 +30,6 @@ public class GetMyProfileHandler : IRequestHandler<GetMyProfileQuery, ErrorOr<My
         if (user is null)
             return DomainErrors.User.NotFound;
 
-        var followersCount = await _db.UserFollows
-            .CountAsync(f => f.FollowedId == user.UserId, cancellationToken);
-
-        var followingCount = await _db.UserFollows
-            .CountAsync(f => f.FollowerId == user.UserId, cancellationToken);
-
         return new MyProfileDto
         {
             PublicId = user.PublicId,
@@ -47,8 +41,8 @@ public class GetMyProfileHandler : IRequestHandler<GetMyProfileQuery, ErrorOr<My
             EmailVerified = user.EmailVerified,
             Is2faEnabled = user.Is2faEnabled,
             ReviewCount = user.ReviewCount,
-            FollowersCount = followersCount,
-            FollowingCount = followingCount,
+            FollowersCount = user.FollowersCount,
+            FollowingCount = user.FollowingCount,
             CreatedAt = user.CreatedAt
         };
     }

@@ -29,6 +29,8 @@ public class GetMyProfileHandlerTests
             .WithUsername("testuser")
             .WithEmail("test@example.com")
             .WithSlug("testuser")
+            .WithFollowersCount(10)
+            .WithFollowingCount(7)
             .Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -39,6 +41,8 @@ public class GetMyProfileHandlerTests
         result.Value.Username.Should().Be("testuser");
         result.Value.Email.Should().Be("test@example.com");
         result.Value.Slug.Should().Be("testuser");
+        result.Value.FollowersCount.Should().Be(10);
+        result.Value.FollowingCount.Should().Be(7);
     }
 
     [Fact]

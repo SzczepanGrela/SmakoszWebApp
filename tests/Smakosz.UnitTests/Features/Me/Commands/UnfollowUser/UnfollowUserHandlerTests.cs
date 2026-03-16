@@ -25,7 +25,9 @@ public class UnfollowUserHandlerTests
     [Fact]
     public async Task Handle_HappyPath_RemovesFollowAndReturnsSuccess()
     {
-        var target = new UserBuilder().WithId(2).WithSlug("target-user").Build();
+        var follower = new UserBuilder().WithId(1).WithSlug("myself").WithFollowingCount(1).Build();
+        var target = new UserBuilder().WithId(2).WithSlug("target-user").WithFollowersCount(1).Build();
+        _sets.Users.Add(follower);
         _sets.Users.Add(target);
         _sets.UserFollows.Add(new UserFollow
         {
@@ -41,12 +43,16 @@ public class UnfollowUserHandlerTests
 
         result.IsError.Should().BeFalse();
         _sets.UserFollows.Should().BeEmpty();
+        target.FollowersCount.Should().Be(0);
+        follower.FollowingCount.Should().Be(0);
     }
 
     [Fact]
     public async Task Handle_NotFollowing_ReturnsNotFollowingError()
     {
+        var follower = new UserBuilder().WithId(1).WithSlug("myself").Build();
         var target = new UserBuilder().WithId(2).WithSlug("target-user").Build();
+        _sets.Users.Add(follower);
         _sets.Users.Add(target);
         DbContextMockFactory.Refresh(_db, _sets);
 

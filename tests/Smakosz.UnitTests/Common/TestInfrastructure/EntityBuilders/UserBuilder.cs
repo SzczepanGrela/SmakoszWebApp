@@ -30,6 +30,8 @@ public class UserBuilder
     public UserBuilder WithSlug(string slug) { _user.Slug = slug; return this; }
     public UserBuilder WithRole(UserRole role) { _user.Role = role; return this; }
     public UserBuilder WithReviewCount(int count) { _user.ReviewCount = count; return this; }
+    public UserBuilder WithFollowersCount(int count) { _user.FollowersCount = count; return this; }
+    public UserBuilder WithFollowingCount(int count) { _user.FollowingCount = count; return this; }
     public UserBuilder WithAvatarUrl(string url) { _user.AvatarUrl = url; return this; }
     public UserBuilder AsInactive() { _user.IsActive = false; return this; }
     public UserBuilder AsBanned() { _user.IsBanned = true; return this; }

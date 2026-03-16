@@ -33,6 +33,12 @@ public class UnfollowUserHandler : IRequestHandler<UnfollowUserCommand, ErrorOr<
         if (targetUser is null)
             return DomainErrors.User.NotFound;
 
+        var currentUser = await _db.Users
+            .FirstOrDefaultAsync(u => u.UserId == _currentUser.UserId.Value && !u.IsDeleted, cancellationToken);
+
+        if (currentUser is null)
+            return DomainErrors.User.NotFound;
+
         var follow = await _db.UserFollows
             .FirstOrDefaultAsync(
                 f => f.FollowerId == _currentUser.UserId.Value && f.FollowedId == targetUser.UserId,
@@ -42,6 +48,10 @@ public class UnfollowUserHandler : IRequestHandler<UnfollowUserCommand, ErrorOr<
             return DomainErrors.Follow.NotFollowing;
 
         _db.UserFollows.Remove(follow);
+
+        targetUser.FollowersCount = Math.Max(0, targetUser.FollowersCount - 1);
+        currentUser.FollowingCount = Math.Max(0, currentUser.FollowingCount - 1);
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
