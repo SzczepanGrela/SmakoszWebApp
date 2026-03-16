@@ -8,7 +8,7 @@ namespace Smakosz.Client.Auth;
 public class AuthTokenHandler : DelegatingHandler
 {
     private readonly ILocalStorageService _localStorage;
-    private bool _isRefreshing;
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     public AuthTokenHandler(ILocalStorageService localStorage)
     {
@@ -25,41 +25,47 @@ public class AuthTokenHandler : DelegatingHandler
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized && !_isRefreshing)
+        if (response.StatusCode != HttpStatusCode.Unauthorized)
+            return response;
+
+        await _refreshLock.WaitAsync(cancellationToken);
+        try
         {
-            _isRefreshing = true;
-            try
+            // Re-read token - another request may have already refreshed it
+            var currentToken = await _localStorage.GetItemAsStringAsync("auth_token");
+            if (currentToken != token && !string.IsNullOrWhiteSpace(currentToken))
             {
-                var refreshToken = await _localStorage.GetItemAsStringAsync("refresh_token");
-                if (!string.IsNullOrWhiteSpace(refreshToken))
-                {
-                    var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
-                    {
-                        Content = JsonContent.Create(new { RefreshToken = refreshToken })
-                    };
-
-                    var refreshResponse = await base.SendAsync(refreshRequest, cancellationToken);
-                    if (refreshResponse.IsSuccessStatusCode)
-                    {
-                        var result = await refreshResponse.Content.ReadFromJsonAsync<RefreshResult>(cancellationToken: cancellationToken);
-                        if (result != null)
-                        {
-                            await _localStorage.SetItemAsStringAsync("auth_token", result.AccessToken);
-                            await _localStorage.SetItemAsStringAsync("refresh_token", result.RefreshToken);
-
-                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
-                            response = await base.SendAsync(request, cancellationToken);
-                        }
-                    }
-                }
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", currentToken);
+                return await base.SendAsync(request, cancellationToken);
             }
-            finally
+
+            var refreshToken = await _localStorage.GetItemAsStringAsync("refresh_token");
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                return response;
+
+            var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
             {
-                _isRefreshing = false;
-            }
+                Content = JsonContent.Create(new { RefreshToken = refreshToken })
+            };
+
+            var refreshResponse = await base.SendAsync(refreshRequest, cancellationToken);
+            if (!refreshResponse.IsSuccessStatusCode)
+                return response;
+
+            var result = await refreshResponse.Content.ReadFromJsonAsync<RefreshResult>(cancellationToken: cancellationToken);
+            if (result is null)
+                return response;
+
+            await _localStorage.SetItemAsStringAsync("auth_token", result.AccessToken);
+            await _localStorage.SetItemAsStringAsync("refresh_token", result.RefreshToken);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
+            return await base.SendAsync(request, cancellationToken);
         }
-
-        return response;
+        finally
+        {
+            _refreshLock.Release();
+        }
     }
 
     private record RefreshResult(string AccessToken, string RefreshToken);
