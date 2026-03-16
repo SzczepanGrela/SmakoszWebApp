@@ -121,6 +121,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
     public DbSet<SiteStats> SiteStats => Set<SiteStats>();
+    public DbSet<HomePageCache> HomePageCaches => Set<HomePageCache>();
     public DbSet<ModerationResult> ModerationResults => Set<ModerationResult>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

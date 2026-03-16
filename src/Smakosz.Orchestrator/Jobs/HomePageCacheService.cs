@@ -1,91 +1,36 @@
 using System.Text.Json;
-using ErrorOr;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Dishes.Dtos;
-using Smakosz.Application.Features.Home.Dtos;
 using Smakosz.Application.Features.Restaurants.Dtos;
 using Smakosz.Application.Features.Reviews.Dtos;
+using Smakosz.Application.Features.Home.Dtos;
 using Smakosz.Domain.Enums;
 
-namespace Smakosz.Application.Features.Home.Queries.GetHomeData;
+namespace Smakosz.Orchestrator.Jobs;
 
-public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<HomeDataDto>>
+public class HomePageCacheService
 {
     private readonly ISmakoszDbContext _db;
+    private readonly ILogger<HomePageCacheService> _logger;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public GetHomeDataHandler(ISmakoszDbContext db)
+    public HomePageCacheService(ISmakoszDbContext db, ILogger<HomePageCacheService> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
-    public async Task<ErrorOr<HomeDataDto>> Handle(GetHomeDataQuery request, CancellationToken cancellationToken)
+    public async Task RefreshAsync(CancellationToken ct)
     {
-        var siteStats = await _db.SiteStats.AsNoTracking().FirstAsync(cancellationToken);
-        var stats = new StatsDto
-        {
-            TotalDishes = siteStats.TotalDishes,
-            TotalRestaurants = siteStats.TotalRestaurants,
-            TotalReviews = siteStats.TotalReviews
-        };
+        var cache = await _db.HomePageCaches.FirstAsync(ct);
 
-        var cache = await _db.HomePageCaches.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
-
-        var hasCachedData = cache is not null
-            && cache.TrendingRestaurantsJson is not null
-            && cache.TrendingDishesJson is not null
-            && cache.TopRatedDishesJson is not null
-            && cache.RecentReviewsJson is not null
-            && cache.PopularCategoriesJson is not null;
-
-        List<RestaurantCardDto> trendingRestaurants;
-        List<DishCardDto> trendingDishes;
-        List<DishCardDto> topRatedDishes;
-        List<ReviewCardDto> recentReviews;
-        List<string> popularCategories;
-        HeroImageDto? heroImage;
-
-        if (hasCachedData)
-        {
-            trendingRestaurants = JsonSerializer.Deserialize<List<RestaurantCardDto>>(cache!.TrendingRestaurantsJson!, JsonOpts) ?? [];
-            trendingDishes = JsonSerializer.Deserialize<List<DishCardDto>>(cache.TrendingDishesJson!, JsonOpts) ?? [];
-            topRatedDishes = JsonSerializer.Deserialize<List<DishCardDto>>(cache.TopRatedDishesJson!, JsonOpts) ?? [];
-            recentReviews = JsonSerializer.Deserialize<List<ReviewCardDto>>(cache.RecentReviewsJson!, JsonOpts) ?? [];
-            popularCategories = JsonSerializer.Deserialize<List<string>>(cache.PopularCategoriesJson!, JsonOpts) ?? [];
-            heroImage = cache.HeroImageJson is not null
-                ? JsonSerializer.Deserialize<HeroImageDto>(cache.HeroImageJson, JsonOpts)
-                : null;
-        }
-        else
-        {
-            trendingRestaurants = await QueryTrendingRestaurants(cancellationToken);
-            trendingDishes = await QueryTrendingDishes(cancellationToken);
-            topRatedDishes = await QueryTopRatedDishes(cancellationToken);
-            recentReviews = await QueryRecentReviews(cancellationToken);
-            popularCategories = await QueryPopularCategories(cancellationToken);
-            heroImage = await QueryHeroImage(cancellationToken);
-        }
-
-        return new HomeDataDto
-        {
-            Stats = stats,
-            TrendingRestaurants = trendingRestaurants,
-            TrendingDishes = trendingDishes,
-            TopRatedDishes = topRatedDishes,
-            RecentReviews = recentReviews,
-            PopularCategories = popularCategories,
-            HeroImage = heroImage
-        };
-    }
-
-    private Task<List<RestaurantCardDto>> QueryTrendingRestaurants(CancellationToken ct)
-        => _db.Restaurants
+        var trendingRestaurants = await _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
             .Where(r => r.Status == RestaurantStatus.Active
@@ -108,8 +53,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             })
             .ToListAsync(ct);
 
-    private Task<List<DishCardDto>> QueryTrendingDishes(CancellationToken ct)
-        => _db.Dishes
+        var trendingDishes = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
@@ -135,8 +79,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             })
             .ToListAsync(ct);
 
-    private Task<List<DishCardDto>> QueryTopRatedDishes(CancellationToken ct)
-        => _db.Dishes
+        var topRatedDishes = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
@@ -162,8 +105,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             })
             .ToListAsync(ct);
 
-    private Task<List<ReviewCardDto>> QueryRecentReviews(CancellationToken ct)
-        => _db.Reviews
+        var recentReviews = await _db.Reviews
             .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Dish)
@@ -202,8 +144,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             })
             .ToListAsync(ct);
 
-    private Task<List<string>> QueryPopularCategories(CancellationToken ct)
-        => _db.Restaurants
+        var popularCategories = await _db.Restaurants
             .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.CuisineType != null)
             .GroupBy(r => r.CuisineType!)
@@ -212,11 +153,26 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Select(g => g.Key)
             .ToListAsync(ct);
 
-    private Task<HeroImageDto?> QueryHeroImage(CancellationToken ct)
-        => _db.MediaAssets
+        var heroImage = await _db.MediaAssets
             .AsNoTracking()
             .Where(m => m.EntityType == MediaEntityType.Hero && m.ModerationStatus == ContentModerationStatus.Approved)
             .OrderBy(_ => EF.Functions.Random())
             .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(ct);
+
+        cache.TrendingRestaurantsJson = JsonSerializer.Serialize(trendingRestaurants, JsonOpts);
+        cache.TrendingDishesJson = JsonSerializer.Serialize(trendingDishes, JsonOpts);
+        cache.TopRatedDishesJson = JsonSerializer.Serialize(topRatedDishes, JsonOpts);
+        cache.RecentReviewsJson = JsonSerializer.Serialize(recentReviews, JsonOpts);
+        cache.PopularCategoriesJson = JsonSerializer.Serialize(popularCategories, JsonOpts);
+        cache.HeroImageJson = heroImage is not null ? JsonSerializer.Serialize(heroImage, JsonOpts) : null;
+        cache.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(ct);
+
+        _logger.LogInformation(
+            "home-cache: restaurants={Restaurants}, trendingDishes={TDishes}, topDishes={TopDishes}, reviews={Reviews}, categories={Categories}",
+            trendingRestaurants.Count, trendingDishes.Count, topRatedDishes.Count,
+            recentReviews.Count, popularCategories.Count);
+    }
 }
