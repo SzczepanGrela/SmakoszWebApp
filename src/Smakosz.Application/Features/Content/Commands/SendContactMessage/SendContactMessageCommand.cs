@@ -2,6 +2,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -12,7 +13,8 @@ public record SendContactMessageCommand(
     string Name,
     string Email,
     string Subject,
-    string Message) : IRequest<ErrorOr<Success>>;
+    string Message,
+    string? TurnstileToken = null) : IRequest<ErrorOr<Success>>;
 
 public class SendContactMessageValidator : AbstractValidator<SendContactMessageCommand>
 {
@@ -43,21 +45,30 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
     private readonly IDateTimeProvider _dateTime;
     private readonly IEmailService _email;
     private readonly ILogger<SendContactMessageHandler> _logger;
+    private readonly ITurnstileService _turnstile;
 
     public SendContactMessageHandler(
         ISmakoszDbContext db,
         IDateTimeProvider dateTime,
         IEmailService email,
-        ILogger<SendContactMessageHandler> logger)
+        ILogger<SendContactMessageHandler> logger,
+        ITurnstileService turnstile)
     {
         _db = db;
         _dateTime = dateTime;
         _email = email;
         _logger = logger;
+        _turnstile = turnstile;
     }
 
     public async Task<ErrorOr<Success>> Handle(SendContactMessageCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(request.TurnstileToken) ||
+            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        {
+            return DomainErrors.Captcha.VerificationFailed;
+        }
+
         var ticket = new SystemTicket
         {
             TicketType = TicketType.Contact,

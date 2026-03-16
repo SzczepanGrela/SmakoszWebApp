@@ -99,6 +99,8 @@ public static class DependencyInjection
             services.AddSingleton<IPushNotificationService, StubPushNotificationService>();
         }
 
+        services.AddHttpClient<ITurnstileService, TurnstileService>();
+
         var r2ModelsSection = configuration.GetSection(R2ModelOptions.SectionName);
         var r2ModelsAccountId = r2ModelsSection["AccountId"];
         if (!string.IsNullOrEmpty(r2ModelsAccountId))

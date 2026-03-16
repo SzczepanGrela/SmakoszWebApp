@@ -16,17 +16,25 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ICurrentUserService _currentUser;
+    private readonly ITurnstileService _turnstile;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ICurrentUserService currentUser)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ICurrentUserService currentUser, ITurnstileService turnstile)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _currentUser = currentUser;
+        _turnstile = turnstile;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(request.TurnstileToken) ||
+            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        {
+            return DomainErrors.Captcha.VerificationFailed;
+        }
+
         var ipAddress = _currentUser.IpAddress;
         var now = DateTime.UtcNow;
 

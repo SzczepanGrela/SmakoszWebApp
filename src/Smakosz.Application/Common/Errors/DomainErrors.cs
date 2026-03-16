@@ -235,6 +235,12 @@ public static class DomainErrors
             Error.Validation("REVIEW_LIKE_CANNOT_LIKE_OWN", "Nie można polubić własnej recenzji");
     }
 
+    public static class Captcha
+    {
+        public static readonly Error VerificationFailed =
+            Error.Validation("CAPTCHA_FAILED", "Weryfikacja CAPTCHA nie powiodła się");
+    }
+
     public static class ForbiddenWord
     {
         public static readonly Error UsernameContainsForbiddenWord =
