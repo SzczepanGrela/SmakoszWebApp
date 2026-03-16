@@ -90,3 +90,38 @@ public class OpeningHoursItemDto
     public string CloseTime { get; set; } = string.Empty;
     public bool IsClosed { get; set; }
 }
+
+public class BusinessChartDataDto
+{
+    public List<DailyReviewCount> ReviewTrend { get; init; } = [];
+    public List<RatingDistributionItem> RatingDistribution { get; init; } = [];
+    public CategoryAverages CategoryAverages { get; init; } = new();
+    public List<DishRankingItem> TopDishes { get; init; } = [];
+}
+
+public class DailyReviewCount
+{
+    public DateOnly Date { get; init; }
+    public int Count { get; init; }
+}
+
+public class RatingDistributionItem
+{
+    public int Rating { get; init; }
+    public int Count { get; init; }
+}
+
+public class CategoryAverages
+{
+    public double Food { get; init; }
+    public double Service { get; init; }
+    public double Cleanliness { get; init; }
+    public double Ambiance { get; init; }
+}
+
+public class DishRankingItem
+{
+    public string DishName { get; init; } = default!;
+    public double AvgRating { get; init; }
+    public int ReviewCount { get; init; }
+}

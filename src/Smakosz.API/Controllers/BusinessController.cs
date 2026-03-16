@@ -18,6 +18,7 @@ using Smakosz.Application.Features.Business.Queries.GetBusinessDishDetail;
 using Smakosz.Application.Features.Business.Queries.GetBusinessDishes;
 using Smakosz.Application.Features.Business.Queries.GetBusinessEditRequests;
 using Smakosz.Application.Features.Business.Queries.GetBusinessReviews;
+using Smakosz.Application.Features.Business.Queries.GetBusinessChartData;
 using Smakosz.Application.Features.Business.Queries.GetBusinessStats;
 using Smakosz.Application.Features.Business.Queries.GetDashboard;
 using Smakosz.Application.Features.Business.Queries.GetMenuSections;
@@ -199,6 +200,13 @@ public class BusinessController : ApiController
     public async Task<IActionResult> GetStats()
     {
         var result = await _mediator.Send(new GetBusinessStatsQuery());
+        return ToActionResult(result);
+    }
+
+    [HttpGet("stats/charts")]
+    public async Task<IActionResult> GetChartData([FromQuery] int days = 30)
+    {
+        var result = await _mediator.Send(new GetBusinessChartDataQuery(days));
         return ToActionResult(result);
     }
 
