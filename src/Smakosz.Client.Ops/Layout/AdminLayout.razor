@@ -4,7 +4,7 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 
-<nav class="navbar navbar-expand-lg fixed-top">
+<nav class="navbar navbar-expand-md fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
             <i class="fa-solid fa-utensils me-2"></i>Smakosz
@@ -12,14 +12,14 @@
         <span class="navbar-text fw-bold d-none d-md-inline">
             <i class="fa-solid fa-shield-halved me-1"></i>Panel Administratora
         </span>
-        <button class="btn d-lg-none ms-auto" type="button"
+        <button class="btn d-md-none ms-auto" type="button"
                 data-bs-toggle="offcanvas" data-bs-target="#adminMobileNav">
             <i class="fa-solid fa-bars" style="color:var(--text-color);"></i>
         </button>
     </div>
 </nav>
 
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="adminMobileNav">
+<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="adminMobileNav">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title">
             <i class="fa-solid fa-shield-halved me-1"></i>Panel Administratora
@@ -132,7 +132,7 @@
 </div>
 
 <div class="d-flex" style="padding-top:76px;">
-    <nav class="admin-sidebar d-none d-lg-block" style="width:260px;min-width:260px;">
+    <nav class="admin-sidebar d-none d-md-block" style="width:260px;min-width:260px;">
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link @ActiveClass("/admin", true)" href="/admin">
