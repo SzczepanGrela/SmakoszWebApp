@@ -31,6 +31,8 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
         var messageArea = Page.Locator("textarea.form-control").First;
         await messageArea.FillAsync("Wiadomosc testowa z E2E.");
 
+        await WaitForTurnstileAsync();
+
         var submitButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Wyślij") }).First;
         await submitButton.ClickAsync();
 

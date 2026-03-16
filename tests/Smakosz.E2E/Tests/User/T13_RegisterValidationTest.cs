@@ -19,6 +19,8 @@ public class T13_RegisterValidationTest : SmakoszE2ETestBase
         // Bypass HTML5 validation so we can test server-side validation
         await Page.EvaluateAsync("document.querySelectorAll('form').forEach(f => f.setAttribute('novalidate', ''))");
 
+        await WaitForTurnstileAsync();
+
         await usernameInput.FillAsync("ab");
         await emailInput.FillAsync("test@x.com");
         await passwordInput.FillAsync("TestHaslo123!");

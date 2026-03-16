@@ -20,6 +20,8 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
 
+        await WaitForTurnstileAsync();
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj się" }).ClickAsync();
 
         var redirectTask = Page.WaitForURLAsync(
@@ -40,6 +42,9 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await Page.Locator("input[type='email']").FillAsync(TestConstants.UserEmail);
         await Page.Locator(".input-group input[type='password']").FillAsync(TestConstants.UserPassword);
+
+        await WaitForTurnstileAsync();
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Page.WaitForURLAsync(url => !url.Contains("/login"), new PageWaitForURLOptions { Timeout = 15_000 });

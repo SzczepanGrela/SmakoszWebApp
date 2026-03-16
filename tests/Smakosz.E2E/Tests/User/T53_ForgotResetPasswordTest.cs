@@ -16,6 +16,9 @@ public class T53_ForgotResetPasswordTest : SmakoszE2ETestBase
 
         // Fill email and submit
         await Page.Locator("input[type='email'].form-control").FillAsync("jan.kowalski@gmail.com");
+
+        await WaitForTurnstileAsync();
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Wyślij link" }).ClickAsync();
 
         await Page.WaitForTimeoutAsync(3000);

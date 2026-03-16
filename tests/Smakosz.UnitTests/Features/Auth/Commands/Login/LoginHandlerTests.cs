@@ -15,6 +15,7 @@ public class LoginHandlerTests
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ICurrentUserService _currentUser;
+    private readonly ITurnstileService _turnstile;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -23,12 +24,37 @@ public class LoginHandlerTests
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
         _currentUser = Substitute.For<ICurrentUserService>();
+        _turnstile = Substitute.For<ITurnstileService>();
 
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
         _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
+        _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _currentUser);
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _currentUser, _turnstile);
+    }
+
+    [Fact]
+    public async Task Handle_MissingTurnstileToken_ReturnsCaptchaFailed()
+    {
+        var command = new LoginCommand("user@example.com", "password");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("CAPTCHA_FAILED");
+    }
+
+    [Fact]
+    public async Task Handle_InvalidTurnstileToken_ReturnsCaptchaFailed()
+    {
+        _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(false);
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "invalid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("CAPTCHA_FAILED");
     }
 
     [Fact]
@@ -37,7 +63,7 @@ public class LoginHandlerTests
         var user = new UserBuilder().WithEmail("user@example.com").WithUsername("testuser").Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new LoginCommand("user@example.com", "password");
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -50,7 +76,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_UserNotFound_ReturnsInvalidCredentials()
     {
-        var command = new LoginCommand("nobody@example.com", "password");
+        var command = new LoginCommand("nobody@example.com", "password", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -65,7 +91,7 @@ public class LoginHandlerTests
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
-        var command = new LoginCommand("user@example.com", "wrongpassword");
+        var command = new LoginCommand("user@example.com", "wrongpassword", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -79,7 +105,7 @@ public class LoginHandlerTests
         var user = new UserBuilder().WithEmail("user@example.com").AsInactive().Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new LoginCommand("user@example.com", "password");
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -93,7 +119,7 @@ public class LoginHandlerTests
         var user = new UserBuilder().WithEmail("user@example.com").AsBanned().Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new LoginCommand("user@example.com", "password");
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -108,7 +134,7 @@ public class LoginHandlerTests
         var user = new UserBuilder().WithEmail("user@example.com").AsDeleted().Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new LoginCommand("user@example.com", "password");
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -122,7 +148,7 @@ public class LoginHandlerTests
         var user = new UserBuilder().WithEmail("user@example.com").Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new LoginCommand("user@example.com", "password", RememberMe: true);
+        var command = new LoginCommand("user@example.com", "password", RememberMe: true, TurnstileToken: "valid-token");
 
         var before = DateTime.UtcNow;
         var result = await _handler.Handle(command, CancellationToken.None);

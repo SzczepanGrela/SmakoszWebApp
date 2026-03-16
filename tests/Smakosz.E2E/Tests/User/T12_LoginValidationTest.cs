@@ -12,6 +12,7 @@ public class T12_LoginValidationTest : SmakoszE2ETestBase
 
         await Page.Locator("input[type='email']").FillAsync("zly@email.com");
         await Page.Locator(".input-group input[type='password']").FillAsync("WrongPass123!");
+        await WaitForTurnstileAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         var errorAlert = Page.Locator(".alert-danger").First;

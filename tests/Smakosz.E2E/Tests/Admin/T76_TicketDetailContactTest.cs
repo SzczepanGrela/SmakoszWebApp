@@ -16,7 +16,8 @@ public class T76_TicketDetailContactTest : SmakoszE2ETestBase
             name = "E2E Test T76",
             email = "e2e-t76@test.pl",
             subject = "Test T76 - kontakt",
-            message = "Wiadomosc testowa z testu E2E T76 - weryfikacja szczegolów ticketu kontaktowego."
+            message = "Wiadomosc testowa z testu E2E T76 - weryfikacja szczegolów ticketu kontaktowego.",
+            turnstileToken = "e2e-test"
         });
         var createResponse = await http.PostAsync(
             $"{TestConstants.ApiBaseUrl}/api/content/contact",
