@@ -123,7 +123,7 @@ public class JobsTests : BunitTestBase
     {
         var adminService = Services.GetRequiredService<IAdminService>();
         adminService.GetJobsAsync(Arg.Any<int>()).Returns(CreateJobsPage());
-        adminService.ScheduleNcfTrainingAsync().Returns(true);
+        adminService.ScheduleNcfTrainingAsync().Returns((true, (string?)null));
 
         var cut = RenderComponent<Jobs>();
         cut.WaitForState(() => cut.Markup.Contains("text_moderation"));

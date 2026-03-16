@@ -40,26 +40,30 @@ public class ScheduleNcfTrainingHandlerTests
     [Fact]
     public async Task Handle_PendingJobExists_ReturnsConflict()
     {
-        _sets.SystemJobs.Add(new SystemJob { JobId = 1, Type = "ncf_training", Status = JobStatus.Pending });
+        _sets.SystemJobs.Add(new SystemJob { JobId = 42, Type = "ncf_training", Status = JobStatus.Pending, CreatedAt = new DateTime(2026, 3, 9, 22, 0, 0) });
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("NCF_ALREADY_SCHEDULED");
+        result.FirstError.Description.Should().Contain("Job #42");
+        result.FirstError.Description.Should().Contain("oczekujący");
         await _ncfService.DidNotReceive().ScheduleAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ProcessingJobExists_ReturnsConflict()
     {
-        _sets.SystemJobs.Add(new SystemJob { JobId = 1, Type = "ncf_training", Status = JobStatus.Processing });
+        _sets.SystemJobs.Add(new SystemJob { JobId = 7, Type = "ncf_training", Status = JobStatus.Processing, CreatedAt = new DateTime(2026, 3, 10, 14, 30, 0) });
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("NCF_ALREADY_SCHEDULED");
+        result.FirstError.Description.Should().Contain("Job #7");
+        result.FirstError.Description.Should().Contain("w trakcie");
     }
 
     [Fact]

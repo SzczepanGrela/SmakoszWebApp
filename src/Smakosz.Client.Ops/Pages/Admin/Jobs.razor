@@ -149,9 +149,9 @@ else
 
     private async Task ScheduleNcfTraining()
     {
-        var success = await AdminService.ScheduleNcfTrainingAsync();
+        var (success, errorMessage) = await AdminService.ScheduleNcfTrainingAsync();
         if (success) { Toast.ShowSuccess("NCF Training zaplanowany."); await LoadPage(1); }
-        else Toast.ShowError("Nie udało się zaplanować NCF Training.");
+        else Toast.ShowError(errorMessage ?? "Nie udało się zaplanować NCF Training.");
     }
 
     private void ShowCreateModal()

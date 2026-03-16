@@ -30,13 +30,17 @@ public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCom
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
 
-        var hasPendingOrProcessing = await _db.SystemJobs
-            .AnyAsync(j => j.Type == "ncf_training"
-                && (j.Status == JobStatus.Pending || j.Status == JobStatus.Processing),
-                cancellationToken);
+        var blockingJob = await _db.SystemJobs
+            .Where(j => j.Type == "ncf_training"
+                && (j.Status == JobStatus.Pending || j.Status == JobStatus.Processing))
+            .Select(j => new { j.JobId, j.Status, j.CreatedAt })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (hasPendingOrProcessing)
-            return Error.Conflict("NCF_ALREADY_SCHEDULED", "NCF training is already pending or in progress");
+        if (blockingJob is not null)
+            return Error.Conflict("NCF_ALREADY_SCHEDULED",
+                $"Trening NCF jest już {(blockingJob.Status == JobStatus.Pending ? "oczekujący" : "w trakcie")} " +
+                $"(Job #{blockingJob.JobId}, utworzony {blockingJob.CreatedAt:dd.MM HH:mm}). " +
+                $"Anuluj go najpierw.");
 
         return await _ncfTrainingService.ScheduleAsync(cancellationToken);
     }
