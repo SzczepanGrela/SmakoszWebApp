@@ -14,6 +14,9 @@ public class SystemJobConfiguration : IEntityTypeConfiguration<SystemJob>
 
         builder.HasKey(x => x.JobId);
 
+        builder.Property<uint>("xmin")
+            .IsRowVersion();
+
         builder.Property(x => x.Type)
             .HasMaxLength(50)
             .IsRequired();

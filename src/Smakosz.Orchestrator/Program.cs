@@ -87,6 +87,7 @@ builder.Services.AddScoped<SiteStatsService>();
 builder.Services.AddScoped<NcfModelActivationService>();
 builder.Services.AddScoped<ModerationBatchAggregatorService>();
 builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
+builder.Services.AddScoped<ModerationAggregationSchedulerService>();
 
 var app = builder.Build();
 
@@ -143,6 +144,7 @@ RecurringJob.AddOrUpdate<SiteStatsService>(
 RecurringJob.AddOrUpdate<HomePageCacheService>(
     "home-page-cache", x => x.RefreshAsync(CancellationToken.None), "*/5 * * * *", utc);
 
-RecurringJob.RemoveIfExists("moderation-aggregation");
+RecurringJob.AddOrUpdate<ModerationAggregationSchedulerService>(
+    "moderation-aggregation", x => x.RunAsync(CancellationToken.None), Cron.Minutely, utc);
 
 await app.RunAsync();

@@ -1,7 +1,9 @@
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 using Smakosz.Orchestrator.Jobs;
@@ -117,5 +119,45 @@ public class StuckJobsRecoveryServiceTests
         zombiePending.Status.Should().Be(JobStatus.Cancelled);
         zombiePending.ErrorMessage.Should().Contain("Auto-cancelled");
         zombiePending.FinishedAt.Should().Be(Now);
+    }
+
+    [Fact]
+    public async Task RecoverAsync_StuckBatchJob_ResetsMenuSectionModerationStatus()
+    {
+        var menuSection = new MenuSection
+        {
+            SectionId = 42,
+            RestaurantId = 1,
+            SectionName = "Desery",
+            ModerationStatus = ContentModerationStatus.Processing,
+            CreatedAt = Now.AddHours(-5)
+        };
+        _sets.MenuSections.Add(menuSection);
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            items = new[]
+            {
+                new { entity_type = "menu_section", entity_id = 42, text = "Desery", language = "pl" }
+            }
+        });
+
+        var stuckJob = new SystemJob
+        {
+            JobId = 20,
+            Type = "text_moderation_batch",
+            Status = JobStatus.Processing,
+            StartedAt = Now.AddHours(-6),
+            Attempts = 3,
+            MaxAttempts = 3,
+            Payload = payload
+        };
+        _sets.SystemJobs.Add(stuckJob);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        await _service.RecoverAsync(CancellationToken.None);
+
+        stuckJob.Status.Should().Be(JobStatus.Failed);
+        menuSection.ModerationStatus.Should().Be(ContentModerationStatus.Pending);
     }
 }
