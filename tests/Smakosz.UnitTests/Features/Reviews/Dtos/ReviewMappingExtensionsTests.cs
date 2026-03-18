@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Reviews.Dtos;
 using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;

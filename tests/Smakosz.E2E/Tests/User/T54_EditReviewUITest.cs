@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
 
@@ -91,13 +91,11 @@ public class T54_EditReviewUITest : SmakoszE2ETestBase
 
         if (Page.Url.Contains("/dishes/pizza-margherita"))
         {
-            // Redirected successfully
             await WaitForBlazorLoadedAsync();
             await AssertPageContainsTextAsync("Pizza Margherita");
         }
         else
         {
-            // Toast appeared
             await AssertToastAsync("Recenzja została zaktualizowana!");
         }
     }

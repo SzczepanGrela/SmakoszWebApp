@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -22,14 +22,12 @@ public class T38_BusinessReadOnlyPagesTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Statystyki");
 
-        // Assert stat cards visible
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Łączna liczba recenzji"), Is.True,
             "Stats page should show 'Łączna liczba recenzji'");
         Assert.That(pageContent.Contains("Średnia ocena"), Is.True,
             "Stats page should show 'Średnia ocena'");
 
-        // Assert stat values present (.fs-2.fw-bold elements)
         var statValues = Page.Locator(".fs-2.fw-bold");
         var statCount = await statValues.CountAsync();
         Assert.That(statCount, Is.GreaterThanOrEqualTo(2),
@@ -40,7 +38,6 @@ public class T38_BusinessReadOnlyPagesTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Recenzje");
 
-        // Assert review cards or total count
         pageContent = await Page.ContentAsync();
         var hasReviewData = pageContent.Contains("Łączna liczba recenzji") ||
                            pageContent.Contains("card-body") ||

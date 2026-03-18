@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
 
@@ -64,7 +64,6 @@ public class T40_AdminReportsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Raporty");
 
         await Page.WaitForTimeoutAsync(3000);
@@ -102,7 +101,6 @@ public class T40_AdminReportsTest : SmakoszE2ETestBase
             await Page.WaitForTimeoutAsync(3000);
             await WaitForBlazorLoadedAsync();
 
-            // Assert success - check toast or page content
             var pageContent = await Page.ContentAsync();
             Assert.That(
                 pageContent.Contains("zaktualizowany") || pageContent.Contains("Raporty"),

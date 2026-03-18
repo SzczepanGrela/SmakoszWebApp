@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Dishes.Queries.GetRandomDish;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 

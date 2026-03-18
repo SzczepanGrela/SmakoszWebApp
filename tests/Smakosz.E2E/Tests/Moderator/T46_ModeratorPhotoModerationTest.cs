@@ -20,11 +20,9 @@ public class T46_ModeratorPhotoModerationTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert page loaded - NOT redirected to /login
         Assert.That(Page.Url, Does.Not.Contain("/login"),
             "Moderator should have access to photo moderation page");
 
-        // Assert no forbidden text
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Nie masz uprawnień") || pageContent.Contains("403"), Is.False,
             "Moderator should not see forbidden message on photo moderation");
@@ -38,7 +36,6 @@ public class T46_ModeratorPhotoModerationTest : SmakoszE2ETestBase
             await Page.WaitForTimeoutAsync(3000);
             await WaitForBlazorLoadedAsync();
 
-            // Assert toast
             var contentAfterApprove = await Page.ContentAsync();
             Assert.That(
                 contentAfterApprove.Contains("zatwierdzone") || contentAfterApprove.Contains("Zatwierdźone") ||

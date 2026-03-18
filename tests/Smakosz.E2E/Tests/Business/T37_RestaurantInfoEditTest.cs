@@ -20,10 +20,8 @@ public class T37_RestaurantInfoEditTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Informacje o restauracji");
 
-        // Assert form loaded with restaurant name
         var nameInput = Page.Locator("input.form-control[type='text']").First;
         await Expect(nameInput).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
 
@@ -31,7 +29,6 @@ public class T37_RestaurantInfoEditTest : SmakoszE2ETestBase
         Assert.That(nameValue, Does.Contain("Pizzeria Roma"),
             $"Restaurant name input should contain 'Pizzeria Roma', got: {nameValue}");
 
-        // Change phone number
         var phoneInput = Page.Locator("input[type='tel'].form-control").First;
         await phoneInput.ClearAsync();
         await phoneInput.FillAsync("+48 123 456 789");
@@ -41,7 +38,6 @@ public class T37_RestaurantInfoEditTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(3000);
 
-        // Assert success
         await AssertToastAsync("Informacje zostały zaktualizowane.");
     }
 }

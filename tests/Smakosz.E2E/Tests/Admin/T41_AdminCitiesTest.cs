@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
@@ -23,7 +23,6 @@ public class T41_AdminCitiesTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading and existing cities
         await AssertPageContainsTextAsync("Miasta");
         await Page.WaitForTimeoutAsync(2000);
 
@@ -83,7 +82,6 @@ public class T41_AdminCitiesTest : SmakoszE2ETestBase
         var finalContent = await Page.ContentAsync();
         Assert.That(finalContent.Contains("Gdansk"), Is.False, "Gdansk should be deleted");
 
-        // Assert Warszawa delete button is disabled (has restaurants)
         var warszawaRow = Page.Locator("tr", new() { HasText = "Warszawa" });
         var warszawaDeleteBtn = warszawaRow.Locator("button.btn-outline-danger").First;
         var warszawaDisabled = await warszawaDeleteBtn.GetAttributeAsync("disabled");

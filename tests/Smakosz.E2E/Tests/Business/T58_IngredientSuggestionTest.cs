@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -20,7 +20,7 @@ public class T58_IngredientSuggestionTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading (no diacritics!)
+        // No diacritics in heading - intentional
         await AssertPageContainsTextAsync("Sugeruj skladnik");
 
         var submitButton = Page.GetByRole(AriaRole.Button, new() { Name = "Wyslij sugestie" });
@@ -29,7 +29,7 @@ public class T58_IngredientSuggestionTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(1000);
 
-        // Assert validation error (no diacritics!)
+        // No diacritics in error text - intentional
         var errorAlert = Page.Locator(".alert-danger").First;
         await Expect(errorAlert).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
         var errorText = await errorAlert.TextContentAsync();
@@ -40,6 +40,7 @@ public class T58_IngredientSuggestionTest : SmakoszE2ETestBase
         await nameInput.FillAsync("Rukola testowa");
         await submitButton.ClickAsync();
 
+        // No diacritics in success toast - intentional
         await Page.WaitForTimeoutAsync(2000);
         var pageContent = await Page.ContentAsync();
 

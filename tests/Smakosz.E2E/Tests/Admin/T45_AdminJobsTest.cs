@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Admin;
 
@@ -20,13 +20,11 @@ public class T45_AdminJobsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Zadania w tle");
 
         await Page.WaitForTimeoutAsync(3000);
         await WaitForBlazorLoadedAsync();
 
-        // Assert seed jobs visible
         var jobRows = Page.Locator("table.table tbody tr");
         var jobCount = await jobRows.CountAsync();
         Assert.That(jobCount, Is.GreaterThanOrEqualTo(1),
@@ -54,7 +52,6 @@ public class T45_AdminJobsTest : SmakoszE2ETestBase
         var modal = Page.Locator(".modal-content").First;
         await Expect(modal).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
-        // Fill priority in modal
         var priorityInput = modal.Locator("input[type='number']").First;
         await priorityInput.ClearAsync();
         await priorityInput.FillAsync("3");
@@ -68,7 +65,6 @@ public class T45_AdminJobsTest : SmakoszE2ETestBase
         await Page.WaitForTimeoutAsync(3000);
         await WaitForBlazorLoadedAsync();
 
-        // Assert - check toast or page content
         var contentAfterCreate = await Page.ContentAsync();
         Assert.That(
             contentAfterCreate.Contains("utworzone") || contentAfterCreate.Contains("Zadania w tle"),

@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -30,7 +30,6 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/dishes/tiramisu");
         await WaitForBlazorLoadedAsync();
 
-        // Assert SaveDishButton is visible (unsaved state: btn-outline-danger btn-sm)
         var saveButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(saveButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
@@ -44,7 +43,6 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
 
         if (!isSaved)
         {
-            // Capture page state for diagnostics
             var bodyText = await Page.Locator("body").InnerTextAsync();
             Assert.Fail(
                 $"SaveDishButton did not change to saved state after clicking.\n" +
@@ -55,13 +53,11 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/saved");
         await WaitForBlazorLoadedAsync();
 
-        // Assert Tiramisu is on the saved list
         await AssertPageContainsTextAsync("Tiramisu");
 
         await NavigateAndWaitAsync("/users/anna-nowak");
         await WaitForBlazorLoadedAsync();
 
-        // Assert profile is visible
         await AssertPageContainsTextAsync("anna-nowak");
 
         var followButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Obserwuj$") }).First;
@@ -76,7 +72,6 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
             await NavigateAndWaitAsync("/following");
             await WaitForBlazorLoadedAsync();
 
-            // Assert anna-nowak is in following list
             await AssertPageContainsTextAsync("anna-nowak");
         }
 
@@ -92,7 +87,6 @@ public class T04_UserSocialActionsTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/saved");
         await WaitForBlazorLoadedAsync();
 
-        // Tiramisu should not be in saved list anymore
         var tiramisuOnPage = Page.GetByText("Tiramisu");
         var count = await tiramisuOnPage.CountAsync();
         Assert.That(count, Is.EqualTo(0), "Tiramisu should not appear in saved dishes after unsaving");

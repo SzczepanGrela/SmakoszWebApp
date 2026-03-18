@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using FluentAssertions;
 using Smakosz.Application.Features.Dishes.Dtos;
 using Smakosz.Domain.Entities;

@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MockQueryable.NSubstitute;
 using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Models;

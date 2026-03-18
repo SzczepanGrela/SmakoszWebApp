@@ -26,8 +26,7 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
 
     public async Task<ErrorOr<Success>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.TurnstileToken) ||
-            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
             return DomainErrors.Captcha.VerificationFailed;
         }

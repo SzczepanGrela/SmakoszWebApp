@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Infrastructure.Services;
 
 namespace Smakosz.UnitTests.Infrastructure.Services;

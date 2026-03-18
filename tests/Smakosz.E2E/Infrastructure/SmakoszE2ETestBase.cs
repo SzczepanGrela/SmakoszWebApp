@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 namespace Smakosz.E2E.Infrastructure;
@@ -153,7 +153,10 @@ public class SmakoszE2ETestBase : PageTest
 
     protected async Task AssertPageContainsTextAsync(string text, int timeoutMs = 10_000)
     {
-        await Expect(Page.GetByText(text).First).ToBeVisibleAsync(
+        // MainLayout uses <main>, AdminLayout/BusinessLayout use <div class="flex-grow-1 ...">,
+        // AuthLayout uses <div class="auth-layout">
+        var contentArea = Page.Locator("main, div.flex-grow-1, div.auth-layout");
+        await Expect(contentArea.GetByText(text).First).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = timeoutMs });
     }
 

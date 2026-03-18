@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
 
@@ -15,14 +15,12 @@ public class T27_ReviewValidationTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/review/add?dish=pizza-pepperoni");
         await WaitForBlazorLoadedAsync();
 
-        // Try submitting without filling anything
         var submitButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Opublikuj|Dodaj recenzj") }).First;
         if (await submitButton.IsVisibleAsync())
         {
             await submitButton.ClickAsync();
             await Page.WaitForTimeoutAsync(1500);
 
-            // Assert client validation error
             var pageContent = await Page.ContentAsync();
             Assert.That(
                 pageContent.Contains("wymagana") || pageContent.Contains("Wymagana") ||

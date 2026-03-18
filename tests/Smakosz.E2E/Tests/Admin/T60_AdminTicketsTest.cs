@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Admin;
 
@@ -40,7 +40,6 @@ public class T60_AdminTicketsTest : SmakoszE2ETestBase
             Assert.Pass("No tickets available - empty state verified");
         }
 
-        // Try to find a ticket card with detail link
         var detailLink = Page.Locator("a", new() { HasText = "Szczegóły" }).First;
         var detailCount = await detailLink.CountAsync();
 
@@ -49,7 +48,6 @@ public class T60_AdminTicketsTest : SmakoszE2ETestBase
             await detailLink.ClickAsync();
             await WaitForBlazorLoadedAsync();
 
-            // Assert redirected to ticket detail page
             Assert.That(Page.Url, Does.Contain("/admin/tickets/"),
                 "Should navigate to ticket details page");
         }

@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -11,10 +11,8 @@ public class T53_ForgotResetPasswordTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/forgot-password");
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Nie pamiętasz hasła?");
 
-        // Fill email and submit
         await Page.Locator("input[type='email'].form-control").FillAsync("jan.kowalski@gmail.com");
 
         await WaitForTurnstileAsync();
@@ -35,18 +33,15 @@ public class T53_ForgotResetPasswordTest : SmakoszE2ETestBase
             Assert.Pass("Forgot password form submitted - API returned error (no email service in E2E)");
         }
 
-        // Assert button is disabled after sending
         var sendButton = Page.GetByRole(AriaRole.Button, new() { Name = "Wyślij link" });
         await Expect(sendButton).ToBeDisabledAsync(new LocatorAssertionsToBeDisabledOptions { Timeout = 5_000 });
 
-        // Assert "Powrót do logowania" link
         var backLink = Page.GetByText("Powrót do logowania");
         await Expect(backLink).ToBeVisibleAsync();
 
         await NavigateAndWaitAsync("/reset-password");
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Ustaw nowe hasło");
 
         var passwordInputs = Page.Locator(".input-group input[type='password']");

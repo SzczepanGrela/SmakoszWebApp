@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Admin;
 
@@ -20,17 +20,14 @@ public class T86_AdminAuditLogsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Dziennik audytu");
 
-        // Assert table has rows from seed (3 audit log entries)
         var logRows = Page.Locator("table tbody tr");
         await logRows.First.WaitForAsync(new LocatorWaitForOptions { Timeout = 15_000 });
         var allRowCount = await logRows.CountAsync();
         Assert.That(allRowCount, Is.GreaterThanOrEqualTo(3),
             "Should have at least 3 audit log entries from seed data");
 
-        // Assert columns visible
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Czas"), Is.True, "Should show 'Czas' column");
         Assert.That(pageContent.Contains("Operacja"), Is.True, "Should show 'Operacja' column");

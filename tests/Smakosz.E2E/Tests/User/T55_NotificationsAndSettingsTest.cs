@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -10,11 +10,9 @@ public class T55_NotificationsAndSettingsTest : SmakoszE2ETestBase
     {
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        // Part 1: Notifications page
         await NavigateAndWaitAsync("/notifications");
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Powiadomienia");
 
         var emptyState = Page.GetByText("Brak powiadomień");
@@ -27,25 +25,21 @@ public class T55_NotificationsAndSettingsTest : SmakoszE2ETestBase
             await Expect(emptyState.First).ToBeVisibleAsync();
         }
 
-        // Assert settings button/link is visible
         await Expect(settingsLink.First).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
-        // Part 2: NotificationSettings page
         await NavigateAndWaitAsync("/profile/notifications");
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Ustawienia powiadomień");
 
-        // Assert sidebar links (use list-group selector to avoid matching hidden navbar items)
+        // use list-group selector to avoid matching hidden navbar items
         var sidebar = Page.Locator(".list-group");
         await Expect(sidebar.GetByText("Profil").First).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         await Expect(sidebar.GetByText("Bezpieczeństwo").First).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
-        // Assert 3 toggle switches with labels
         await AssertPageContainsTextAsync("Polubienia");
         await AssertPageContainsTextAsync("Nowi obserwujący");
         await AssertPageContainsTextAsync("Systemowe");

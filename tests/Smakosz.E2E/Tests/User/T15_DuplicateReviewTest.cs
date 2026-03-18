@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
@@ -18,7 +18,6 @@ public class T15_DuplicateReviewTest : SmakoszE2ETestBase
         var token = E2EAuthHelper.GenerateUserToken();
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        // First get Pizza Margherita's PublicId
         var dishResponse = await http.GetAsync($"{TestConstants.ApiBaseUrl}/api/dishes/pizza-margherita");
         Assert.That(dishResponse.IsSuccessStatusCode, Is.True,
             $"Failed to get Pizza Margherita: {dishResponse.StatusCode}");

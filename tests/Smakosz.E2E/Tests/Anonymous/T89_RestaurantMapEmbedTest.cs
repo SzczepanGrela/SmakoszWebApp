@@ -34,12 +34,12 @@ public class T89_RestaurantMapEmbedTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/restaurants/pizzeria-roma");
         await WaitForBlazorLoadedAsync();
 
+        // Google Maps iframe only present if API key is configured
         var mapIframe = Page.Locator("iframe[src*='google.com/maps/embed']");
         var iframeCount = await mapIframe.CountAsync();
 
         if (iframeCount > 0)
         {
-            // API key is configured - verify iframe attributes
             await Expect(mapIframe).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
             var src = await mapIframe.GetAttributeAsync("src");

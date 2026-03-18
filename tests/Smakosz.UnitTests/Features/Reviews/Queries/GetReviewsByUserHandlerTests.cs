@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Reviews.Queries.GetReviewsByUser;
 using Smakosz.Domain.Entities;

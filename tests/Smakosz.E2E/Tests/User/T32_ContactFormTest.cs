@@ -13,7 +13,6 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Kontakt");
 
-        // Fill the contact form
         var nameInput = Page.Locator("input.form-control").First;
         await nameInput.FillAsync("Test E2E");
 
@@ -22,12 +21,10 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
             emailInput = Page.Locator("input.form-control").Nth(1);
         await emailInput.FillAsync("e2e@test.com");
 
-        // Subject field
         var subjectInput = Page.Locator("input.form-control").Nth(2);
         if (await subjectInput.IsVisibleAsync())
             await subjectInput.FillAsync("Testowy temat");
 
-        // Message textarea
         var messageArea = Page.Locator("textarea.form-control").First;
         await messageArea.FillAsync("Wiadomosc testowa z E2E.");
 
@@ -38,7 +35,6 @@ public class T32_ContactFormTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(3000);
 
-        // Assert success
         var pageContent = await Page.ContentAsync();
         Assert.That(
             pageContent.Contains("wysłana") || pageContent.Contains("Wysłana") ||

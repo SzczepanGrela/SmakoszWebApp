@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -14,14 +14,12 @@ public class T28_DishSaveFullCycleTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/dishes/kebab-duzy");
         await WaitForBlazorLoadedAsync();
 
-        // Assert save button visible (unsaved state: btn-outline-danger)
         var saveButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(saveButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         await saveButton.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert button changed to saved state (btn-danger, not outline)
         var savedButton = Page.Locator("button.btn-danger:not(.btn-outline-danger)").First;
         await Expect(savedButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
@@ -39,7 +37,6 @@ public class T28_DishSaveFullCycleTest : SmakoszE2ETestBase
         await unsaveButton.ClickAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert button reverted to outline
         var unsavedButton = Page.Locator("button.btn-outline-danger").First;
         await Expect(unsavedButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 

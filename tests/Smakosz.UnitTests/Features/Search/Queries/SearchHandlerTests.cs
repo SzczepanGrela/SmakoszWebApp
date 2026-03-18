@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Search.Queries.SearchQuery;
 using Smakosz.Domain.Entities;

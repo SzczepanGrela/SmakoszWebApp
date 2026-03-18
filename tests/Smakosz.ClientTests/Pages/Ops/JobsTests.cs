@@ -1,4 +1,4 @@
-using Smakosz.Client.Ops.Pages.Admin;
+﻿using Smakosz.Client.Ops.Pages.Admin;
 using Smakosz.ClientTests.Common;
 
 namespace Smakosz.ClientTests.Pages.Ops;

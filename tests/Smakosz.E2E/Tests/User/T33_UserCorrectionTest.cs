@@ -15,7 +15,6 @@ public class T33_UserCorrectionTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/restaurants/pizzeria-roma");
         await WaitForBlazorLoadedAsync();
 
-        // Look for "Zaproponuj poprawke" button
         var correctionButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("poprawk|korekc|Zaproponuj") }).First;
         var correctionVisible = await correctionButton.IsVisibleAsync();
 
@@ -33,7 +32,6 @@ public class T33_UserCorrectionTest : SmakoszE2ETestBase
                     await select.SelectOptionAsync(new SelectOptionValue { Label = "Telefon" });
                 }
 
-                // Fill description
                 var descTextarea = Page.Locator("textarea.form-control").First;
                 if (await descTextarea.IsVisibleAsync())
                 {
@@ -41,7 +39,6 @@ public class T33_UserCorrectionTest : SmakoszE2ETestBase
                     await descTextarea.PressAsync("Tab");
                 }
 
-                // Fill proposed value
                 var proposedInput = Page.Locator("textarea.form-control, input.form-control").Last;
                 if (await proposedInput.IsVisibleAsync())
                 {

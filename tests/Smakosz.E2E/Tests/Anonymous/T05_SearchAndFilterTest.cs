@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Anonymous;
 
@@ -37,7 +37,6 @@ public class T05_SearchAndFilterTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert search page elements are visible
         var searchInput = Page.Locator("input[type='search'], input.form-control").First;
         await Expect(searchInput).ToBeVisibleAsync();
 
@@ -56,7 +55,6 @@ public class T05_SearchAndFilterTest : SmakoszE2ETestBase
         await Page.WaitForTimeoutAsync(1000);
         await WaitForBlazorLoadedAsync();
 
-        // Assert results contain Pizzeria Roma
         var bodyText = await Page.Locator("body").InnerTextAsync();
         var hasResults = bodyText.Contains("Pizzeria Roma") || bodyText.Contains("pizza");
         Assert.That(hasResults, Is.True,

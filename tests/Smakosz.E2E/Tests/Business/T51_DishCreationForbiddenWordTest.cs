@@ -60,7 +60,6 @@ public class T51_DishCreationForbiddenWordTest : SmakoszE2ETestBase
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dodaj danie" }).ClickAsync();
 
-        // Should show error - either alert-danger or toast with forbidden word message
         await Page.WaitForTimeoutAsync(3000);
 
         var pageContent = await Page.ContentAsync();

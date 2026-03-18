@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
@@ -56,7 +56,8 @@ public class T64_ReviewRejectionTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        await AssertPageContainsTextAsync("Moderacja recenzji");
+        var heading = Page.Locator("h2", new() { HasText = "Moderacja recenzji" });
+        await Expect(heading).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         var pageContent = await Page.ContentAsync();
         if (pageContent.Contains("Brak recenzji do moderacji") || pageContent.Contains("zostały sprawdzone"))
@@ -72,31 +73,37 @@ public class T64_ReviewRejectionTest : SmakoszE2ETestBase
             Assert.Pass("No reject button found - reviews may have been already moderated");
         }
 
-        var rejectButton = allRejectButtons.First;
-
-        await rejectButton.ClickAsync();
+        await allRejectButtons.First.ClickAsync();
         await Page.WaitForTimeoutAsync(1000);
 
         var reasonInput = Page.Locator("input[placeholder='Powód odrzucenia...']").First;
         await Expect(reasonInput).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
         await reasonInput.ClickAsync();
         await reasonInput.FillAsync("Recenzja narusza regulamin");
-        // Dispatch change event explicitly for Blazor @bind
         await reasonInput.EvaluateAsync("el => el.dispatchEvent(new Event('change', { bubbles: true }))");
         await Page.WaitForTimeoutAsync(300);
 
         var confirmButton = Page.Locator(".input-group button.btn-danger").First;
         await confirmButton.ClickAsync();
 
-        await Page.WaitForTimeoutAsync(5000);
+        var toastLocator = Page.Locator(".toast").First;
+        try
+        {
+            await Expect(toastLocator).ToBeVisibleAsync(
+                new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+        }
+        catch (Exception)
+        {
+            // Toast may have appeared and disappeared already
+        }
+
+        await Page.WaitForTimeoutAsync(2000);
         await WaitForBlazorLoadedAsync();
 
         var updatedContent = await Page.ContentAsync();
         var queueChanged = updatedContent.Contains("Brak recenzji") ||
                            updatedContent.Contains("zostały sprawdzone") ||
-                           updatedContent.Contains("odrzucona") ||
-                           updatedContent.Contains("nieudana") ||
-                           await Page.Locator("button.btn-danger.btn-sm", new() { HasText = "Odrzuć" }).CountAsync() < initialRejectCount;
+                           await allRejectButtons.CountAsync() < initialRejectCount;
         Assert.That(queueChanged, Is.True,
             "Review should be rejected - queue should have changed");
     }

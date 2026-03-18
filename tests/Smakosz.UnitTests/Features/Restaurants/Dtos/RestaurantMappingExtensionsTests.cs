@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Restaurants.Dtos;
 using Smakosz.Domain.Entities;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;

@@ -20,26 +20,23 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Zarządzanie menu");
 
         await Page.WaitForTimeoutAsync(2000);
 
-        // Look for the new section input by placeholder
         var newSectionInput = Page.Locator("input[placeholder*='sekcj'], input[placeholder*='Nowa']").First;
 
         if (await newSectionInput.CountAsync() == 0)
         {
-            // Try broader locator
             newSectionInput = Page.Locator("input.form-control[type='text']").First;
         }
 
         if (await newSectionInput.IsVisibleAsync())
         {
-            // FillAsync + Tab to trigger Blazor @bind (change event fires on blur)
+            // Tab triggers Blazor @bind change event on blur
             await newSectionInput.FillAsync("Desery testowe");
             await newSectionInput.PressAsync("Tab");
-            await Page.WaitForTimeoutAsync(1000); // Wait for Blazor re-render
+            await Page.WaitForTimeoutAsync(1000);
 
             var addButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Dodaj") }).First;
 
@@ -49,7 +46,6 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
                 await addButton.ClickAsync();
                 await Page.WaitForTimeoutAsync(2000);
 
-                // Assert section appeared
                 var pageContent = await Page.ContentAsync();
                 Assert.That(pageContent.Contains("Desery testowe"), Is.True,
                     "New section 'Desery testowe' should appear in the list");
@@ -66,7 +62,6 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
             await saveButton.ClickAsync();
             await Page.WaitForTimeoutAsync(3000);
 
-            // Assert - check toast or page content
             var finalContent = await Page.ContentAsync();
             Assert.That(
                 finalContent.Contains("zaktualizowana") || finalContent.Contains("Zarządzanie menu"),
@@ -94,7 +89,6 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Look for existing section edit button/link
         var editButton = Page.Locator("button[title*='Edytuj'], a[title*='Edytuj'], button:has-text('Edytuj')").First;
 
         if (await editButton.IsVisibleAsync())
@@ -102,7 +96,6 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
             await editButton.ClickAsync();
             await Page.WaitForTimeoutAsync(1000);
 
-            // Look for section name input in edit mode
             var nameInput = Page.Locator("input.form-control[type='text']").First;
             if (await nameInput.IsVisibleAsync())
             {
@@ -117,7 +110,6 @@ public class T35_MenuSectionsTest : SmakoszE2ETestBase
                     await saveBtn.ClickAsync();
                     await Page.WaitForTimeoutAsync(3000);
 
-                    // Should show success message about edit request
                     var pageContent = await Page.ContentAsync();
                     Assert.That(
                         pageContent.Contains("moderacj") || pageContent.Contains("oczekuje") ||

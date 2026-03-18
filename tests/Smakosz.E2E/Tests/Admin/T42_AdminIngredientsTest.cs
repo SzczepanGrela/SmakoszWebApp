@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
@@ -23,7 +23,6 @@ public class T42_AdminIngredientsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Składniki");
         await Page.WaitForTimeoutAsync(2000);
 

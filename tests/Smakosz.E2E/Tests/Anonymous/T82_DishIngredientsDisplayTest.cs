@@ -11,6 +11,7 @@ public class T82_DishIngredientsDisplayTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
+        // Ingredients section is collapsed by default
         var ingredientsHeader = Page.GetByText("Skladniki (4)").First;
         await Expect(ingredientsHeader).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 

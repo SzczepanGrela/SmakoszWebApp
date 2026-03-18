@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Queries.GetMenuSections;
 using Smakosz.Domain.Entities;

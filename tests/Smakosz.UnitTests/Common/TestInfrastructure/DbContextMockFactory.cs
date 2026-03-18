@@ -1,4 +1,4 @@
-using MockQueryable.NSubstitute;
+﻿using MockQueryable.NSubstitute;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;

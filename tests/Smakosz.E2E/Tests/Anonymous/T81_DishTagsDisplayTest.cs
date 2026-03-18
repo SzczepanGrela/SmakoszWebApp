@@ -11,7 +11,8 @@ public class T81_DishTagsDisplayTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
-        var tagContainer = Page.Locator(".dish-tags");
+        // Use .col-lg-8 to avoid matching DietaryBadges in right panel
+        var tagContainer = Page.Locator(".col-lg-8 .dish-tags");
         await Expect(tagContainer).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         var pageContent = await Page.ContentAsync();

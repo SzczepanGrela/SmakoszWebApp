@@ -53,12 +53,10 @@ public class T39_AdminUserDetailTest : SmakoszE2ETestBase
         await Expect(heading).ToContainTextAsync("anna-nowak",
             new LocatorAssertionsToContainTextOptions { Timeout = 10_000 });
 
-        // Assert info card details
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("anna.nowak@wp.pl"), Is.True,
             "User detail should show email");
 
-        // Assert "Zbanuj" button visible
         var banButton = Page.Locator("button.btn-danger", new() { HasText = "Zbanuj" }).First;
         await Expect(banButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
@@ -66,14 +64,11 @@ public class T39_AdminUserDetailTest : SmakoszE2ETestBase
         await Page.WaitForTimeoutAsync(3000);
         await WaitForBlazorLoadedAsync();
 
-        // Assert toast
         await AssertToastAsync("Uzytkownik zaktualizowany.");
 
-        // Assert "Zbanowany" badge visible
         var bannedBadge = Page.Locator("span.badge.bg-danger", new() { HasText = "Zbanowany" });
         await Expect(bannedBadge).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
-        // Assert "Odbanuj" button visible
         var unbanButton = Page.Locator("button.btn-success", new() { HasText = "Odbanuj" }).First;
         await Expect(unbanButton).ToBeVisibleAsync();
 
@@ -81,10 +76,8 @@ public class T39_AdminUserDetailTest : SmakoszE2ETestBase
         await Page.WaitForTimeoutAsync(3000);
         await WaitForBlazorLoadedAsync();
 
-        // Assert toast
         await AssertToastAsync("Uzytkownik zaktualizowany.");
 
-        // Assert "Aktywny" badge visible
         var activeBadge = Page.Locator("span.badge.bg-success", new() { HasText = "Aktywny" });
         await Expect(activeBadge).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
     }

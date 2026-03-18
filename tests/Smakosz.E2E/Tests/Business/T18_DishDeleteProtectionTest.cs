@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -31,7 +31,6 @@ public class T18_DishDeleteProtectionTest : SmakoszE2ETestBase
             new PageWaitForURLOptions { Timeout = 15_000 });
         await WaitForBlazorLoadedAsync();
 
-        // Assert dish was created
         await AssertPageContainsTextAsync("Danie Do Usuniecia");
 
         var dishRow = Page.Locator("tr", new() { HasText = "Danie Do Usuniecia" });

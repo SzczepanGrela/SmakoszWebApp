@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Admin;
 
@@ -45,7 +45,7 @@ public class T74_TicketDetailReviewContentTest : SmakoszE2ETestBase
         Assert.That(Page.Url, Does.Contain("/admin/tickets/"),
             "Should navigate to ticket detail page");
 
-        var backButton = Page.Locator("a[href='/admin/tickets']").First;
+        var backButton = Page.Locator("div.flex-grow-1 a[href='/admin/tickets']").First;
         await Expect(backButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
         await AssertPageContainsTextAsync("Recenzja do moderacji");

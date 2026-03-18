@@ -20,13 +20,11 @@ public class T48_ModeratorReportsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading - page is accessible (NOT redirected)
         Assert.That(Page.Url, Does.Not.Contain("/login"),
             "Moderator should have access to reports page");
 
         await AssertPageContainsTextAsync("Raporty");
 
-        // Assert no forbidden message
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Nie masz uprawnien") || pageContent.Contains("403"), Is.False,
             "Moderator should not see forbidden message on reports page");

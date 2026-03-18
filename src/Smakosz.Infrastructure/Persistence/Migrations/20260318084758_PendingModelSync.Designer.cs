@@ -4,18 +4,21 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Smakosz.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Smakosz.Infrastructure.Migrations
+namespace Smakosz.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    partial class SmakoszDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318084758_PendingModelSync")]
+    partial class PendingModelSync
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -426,8 +429,15 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ingredient_id");
 
+                    b.Property<int?>("DishId1")
+                        .HasColumnType("integer")
+                        .HasColumnName("dish_id1");
+
                     b.HasKey("DishId", "IngredientId")
                         .HasName("pk_dish_ingredients");
+
+                    b.HasIndex("DishId1")
+                        .HasDatabaseName("ix_dish_ingredients_dish_id1");
 
                     b.HasIndex("IngredientId")
                         .HasDatabaseName("ix_dish_ingredients_ingredient_id");
@@ -3536,11 +3546,16 @@ namespace Smakosz.Infrastructure.Migrations
             modelBuilder.Entity("Smakosz.Domain.Entities.DishIngredient", b =>
                 {
                     b.HasOne("Smakosz.Domain.Entities.Dish", "Dish")
-                        .WithMany("DishIngredients")
+                        .WithMany()
                         .HasForeignKey("DishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_dish_ingredients_dishes_dish_id");
+
+                    b.HasOne("Smakosz.Domain.Entities.Dish", null)
+                        .WithMany("DishIngredients")
+                        .HasForeignKey("DishId1")
+                        .HasConstraintName("fk_dish_ingredients_dishes_dish_id1");
 
                     b.HasOne("Smakosz.Domain.Entities.Ingredient", "Ingredient")
                         .WithMany()

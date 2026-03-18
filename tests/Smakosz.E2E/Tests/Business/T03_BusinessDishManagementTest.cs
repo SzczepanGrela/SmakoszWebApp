@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -83,12 +83,10 @@ public class T03_BusinessDishManagementTest : SmakoszE2ETestBase
             new PageWaitForURLOptions { Timeout = 10_000 });
         await WaitForBlazorLoadedAsync();
 
-        // Change price
         var editPriceInput = Page.Locator("input[type='number'][step='0.01']").First;
         await editPriceInput.ClearAsync();
         await editPriceInput.FillAsync("34.90");
 
-        // Change description
         var editDescription = Page.Locator("textarea.form-control").First;
         await editDescription.ClearAsync();
         await editDescription.FillAsync("Spaghetti carbonara z pancetta i parmezanem.");

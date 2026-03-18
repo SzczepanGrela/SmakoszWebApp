@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Dishes.Queries.GetDishBySlug;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;

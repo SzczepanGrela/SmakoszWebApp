@@ -20,10 +20,8 @@ public class T43_AdminSystemConfigTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Konfiguracja systemu");
 
-        // Assert seeded config entries visible
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("moderation.auto_approve_threshold"), Is.True,
             "Should show seeded config key 'moderation.auto_approve_threshold'");

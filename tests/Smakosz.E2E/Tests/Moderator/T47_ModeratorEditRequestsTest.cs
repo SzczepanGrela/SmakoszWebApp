@@ -20,20 +20,18 @@ public class T47_ModeratorEditRequestsTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading - page is accessible
         await AssertPageContainsTextAsync("Prośby o edycję");
 
-        // Assert no forbidden message
         var pageContent = await Page.ContentAsync();
         Assert.That(pageContent.Contains("Nie masz uprawnień"), Is.False,
             "Moderator should not see forbidden message");
 
+        // Pending edit requests may come from seed or T33
         var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveCount = await approveButton.CountAsync();
 
         if (approveCount > 0)
         {
-            // Assert card shows Pizzeria Roma + InfoUpdate info
             var hasExpectedContent = pageContent.Contains("Pizzeria Roma") || pageContent.Contains("InfoUpdate") ||
                                     pageContent.Contains("Telefon");
             Assert.That(hasExpectedContent, Is.True,
@@ -43,7 +41,6 @@ public class T47_ModeratorEditRequestsTest : SmakoszE2ETestBase
             await Page.WaitForTimeoutAsync(3000);
             await WaitForBlazorLoadedAsync();
 
-            // Assert toast
             await AssertToastAsync("Prośba przetworzona.");
         }
         else

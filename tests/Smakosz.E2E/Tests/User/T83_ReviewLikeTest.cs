@@ -8,8 +8,8 @@ public class T83_ReviewLikeTest : SmakoszE2ETestBase
     [Test]
     public async Task User_CanLikeAndUnlikeReview()
     {
+        // jan-kowalski can like anna-nowak's review on margherita
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
-
         await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
@@ -19,11 +19,10 @@ public class T83_ReviewLikeTest : SmakoszE2ETestBase
         if (likeButtonVisible)
         {
             var initialText = await likeButton.InnerTextAsync();
-
             await likeButton.ClickAsync();
             await Page.WaitForTimeoutAsync(2000);
 
-            // Re-query - button class may have changed
+            // Re-query - DOM class may have changed after click
             var likedButton = Page.Locator(".review-like-btn.btn-danger:not(.btn-outline-danger)").First;
             var isLiked = await likedButton.CountAsync() > 0;
 

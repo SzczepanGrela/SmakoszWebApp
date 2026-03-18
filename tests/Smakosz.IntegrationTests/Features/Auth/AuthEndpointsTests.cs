@@ -1,4 +1,4 @@
-using Smakosz.Application.Common.Interfaces;
+﻿using Smakosz.Application.Common.Interfaces;
 using Smakosz.IntegrationTests.Infrastructure;
 
 namespace Smakosz.IntegrationTests.Features.Auth;
@@ -25,7 +25,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         {
             Username = "nowy-uzytkownik",
             Email = "nowy@smakosz.test",
-            Password = "SecurePass123!"
+            Password = "SecurePass123!",
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -38,7 +39,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         {
             Username = "inny-user",
             Email = "jan@smakosz.test",
-            Password = "SecurePass123!"
+            Password = "SecurePass123!",
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -51,7 +53,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         {
             Username = "jan-kowalski",
             Email = "inny@smakosz.test",
-            Password = "SecurePass123!"
+            Password = "SecurePass123!",
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -89,7 +92,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
             Email = "jan@smakosz.test",
-            Password = SeedHelpers.DefaultPassword
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -105,7 +109,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
             Email = "jan@smakosz.test",
-            Password = "WrongPassword123!"
+            Password = "WrongPassword123!",
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -117,7 +122,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
             Email = "nieistnieje@smakosz.test",
-            Password = SeedHelpers.DefaultPassword
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -129,7 +135,8 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
             Email = "zbanowany@smakosz.test",
-            Password = SeedHelpers.DefaultPassword
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);

@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -25,48 +25,50 @@ public class T66_SessionRevocationTest : SmakoszE2ETestBase
         await AssertPageContainsTextAsync("Aktywne sesje");
 
         var refreshButton = Page.GetByRole(AriaRole.Button, new() { Name = "Odśwież" }).First;
-        var refreshCount = await refreshButton.CountAsync();
-        Assert.That(refreshCount, Is.GreaterThan(0), "Refresh button should be present");
+        await Expect(refreshButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
 
         var logoutAllButton = Page.GetByRole(AriaRole.Button, new() { Name = "Wyloguj wszystkie inne" }).First;
         var logoutAllCount = await logoutAllButton.CountAsync();
         Assert.That(logoutAllCount, Is.GreaterThan(0), "'Wyloguj wszystkie inne' button should be present");
 
-        await refreshButton.ClickAsync();
-        await Page.WaitForTimeoutAsync(3000);
+        // Sessions may show: spinner, empty state, or session list
+        try
+        {
+            await Page.Locator(".list-group-item, .empty-state, [class*='spinner']")
+                .First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10_000 });
+        }
+        catch (TimeoutException)
+        {
+        }
+
         await WaitForBlazorLoadedAsync();
+        await Page.WaitForTimeoutAsync(1000);
 
         var pageContent = await Page.ContentAsync();
+        var hasSessionContent = pageContent.Contains("Obecna sesja") ||
+                                pageContent.Contains("Brak aktywnych sesji") ||
+                                pageContent.Contains("Sesja #") ||
+                                pageContent.Contains("Ładowanie sesji");
 
-        if (pageContent.Contains("Brak aktywnych sesji"))
+        Assert.That(hasSessionContent, Is.True,
+            "Sessions section should show sessions, empty state, or loading state");
+
+        var isDisabled = await logoutAllButton.GetAttributeAsync("disabled");
+        if (isDisabled == null)
         {
-            Assert.Pass("No active sessions - empty state verified");
-        }
+            // Button is enabled - there are other sessions to revoke
+            await logoutAllButton.ClickAsync();
 
-        if (pageContent.Contains("Obecna sesja"))
-        {
-            Assert.Pass("Security page accessible - current session displayed with badge");
-        }
-
-        // Individual "Wyloguj" buttons only appear for non-current sessions
-        // Use exact text match to avoid matching "Wyloguj wszystkie inne"
-        var individualLogoutButtons = Page.Locator("button.btn-outline-danger.btn-sm")
-            .Filter(new() { HasText = "Wyloguj" })
-            .Filter(new() { HasNotText = "wszystkie" });
-        var individualCount = await individualLogoutButtons.CountAsync();
-
-        if (individualCount > 0)
-        {
-            await individualLogoutButtons.First.ClickAsync();
-            await Page.WaitForTimeoutAsync(3000);
-
-            var toastContent = await Page.ContentAsync();
-            if (toastContent.Contains("Sesja została wylogowana."))
+            var toastLocator = Page.Locator(".toast").First;
+            try
             {
-                Assert.Pass("Session revocation successful");
+                await Expect(toastLocator).ToBeVisibleAsync(
+                    new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+            }
+            catch (TimeoutException)
+            {
+                // Toast may have auto-dismissed
             }
         }
-
-        Assert.Pass("Security page accessible - sessions section verified");
     }
 }

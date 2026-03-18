@@ -1,4 +1,4 @@
-using Smakosz.ClientTests.Common;
+﻿using Smakosz.ClientTests.Common;
 
 namespace Smakosz.ClientTests.Components;
 

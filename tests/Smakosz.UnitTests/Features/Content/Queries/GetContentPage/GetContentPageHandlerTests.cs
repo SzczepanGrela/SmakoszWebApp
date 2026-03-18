@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Content.Queries.GetContentPage;
 
 namespace Smakosz.UnitTests.Features.Content.Queries.GetContentPage;

@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Anonymous;
 
@@ -17,7 +17,7 @@ public class T26_AnonymousPagesTest : SmakoszE2ETestBase
         Assert.That(pageContent.Contains("Recenzj") || pageContent.Contains("recenzj"), Is.True,
             "User profile should show review count info");
 
-        // Assert review cards visible (jan has approved reviews in seed)
+        // jan has approved reviews in seed
         var reviewCards = Page.Locator(".card, .review-card, [class*='review']");
         var reviewCount = await reviewCards.CountAsync();
         Assert.That(reviewCount, Is.GreaterThan(0),
@@ -28,7 +28,6 @@ public class T26_AnonymousPagesTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Kontakt");
 
-        // Assert contact form visible
         var formInputs = Page.Locator("input.form-control, textarea.form-control");
         var inputCount = await formInputs.CountAsync();
         Assert.That(inputCount, Is.GreaterThanOrEqualTo(3),

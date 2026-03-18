@@ -15,7 +15,6 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/dishes/pizza-margherita");
         await WaitForBlazorLoadedAsync();
 
-        // Try to find report button (flag icon) on a review
         var reportButton = Page.Locator("button .fa-flag, button.btn-outline-warning, [title*='Zgłoś']").First;
         var reportButtonVisible = await reportButton.IsVisibleAsync();
 
@@ -38,7 +37,6 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
                 {
                     await sendButton.ClickAsync();
                     await Page.WaitForTimeoutAsync(2000);
-                    // Success - report submitted via UI
                     return;
                 }
             }

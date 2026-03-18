@@ -63,8 +63,7 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
 
     public async Task<ErrorOr<Success>> Handle(SendContactMessageCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.TurnstileToken) ||
-            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
             return DomainErrors.Captcha.VerificationFailed;
         }

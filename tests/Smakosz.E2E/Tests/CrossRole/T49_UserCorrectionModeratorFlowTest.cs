@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
 
@@ -44,7 +44,6 @@ public class T49_UserCorrectionModeratorFlowTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(2000);
 
-        // Look for pending request with approve button
         var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveVisible = await approveButton.IsVisibleAsync();
 
