@@ -54,10 +54,8 @@ backup_*.sql
 /*.csv
 /nul
 
-# Temporary markdown files (keep docs/ and system_documentation/)
-/AGENTS.md
-/CLAUDE.md.old
-/implementation_plan.md
+# All markdown files (documentation, notes, etc.)
+*.md
 
 # Backup and old files
 *.old
