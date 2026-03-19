@@ -33,6 +33,7 @@ public class RegisterHandlerTests
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
         _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+        _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
         _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService, _forbiddenWords, _turnstile);
     }

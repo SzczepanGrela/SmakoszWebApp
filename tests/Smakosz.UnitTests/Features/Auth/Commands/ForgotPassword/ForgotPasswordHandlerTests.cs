@@ -25,6 +25,7 @@ public class ForgotPasswordHandlerTests
         _turnstile = Substitute.For<ITurnstileService>();
         _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+        _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
         _handler = new ForgotPasswordHandler(_db, _emailService, _codeHasher, _turnstile);
     }
 

@@ -25,6 +25,7 @@ public class SendContactMessageHandlerTests
         var logger = Substitute.For<ILogger<SendContactMessageHandler>>();
         var turnstile = Substitute.For<ITurnstileService>();
         turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+        turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
         _handler = new SendContactMessageHandler(_db, _dateTime, _email, logger, turnstile);
     }
 

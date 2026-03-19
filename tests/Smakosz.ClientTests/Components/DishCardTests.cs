@@ -36,7 +36,7 @@ public class DishCardTests : BunitTestBase
         var cut = RenderComponent<DishCard>(p => p.Add(c => c.Dish, dish));
 
         cut.Markup.Should().Contain(29.99m.ToString("F2"));
-        cut.Markup.Should().Contain("zl");
+        cut.Markup.Should().Contain("zł");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class DishCardTests : BunitTestBase
         dish.Price = null;
         var cut = RenderComponent<DishCard>(p => p.Add(c => c.Dish, dish));
 
-        cut.Markup.Should().NotContain("zl");
+        cut.Markup.Should().NotContain("zł");
     }
 
     [Fact]
