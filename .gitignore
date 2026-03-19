@@ -377,7 +377,12 @@ tools/generator/config/db_config.ini
 .idea/
 
 # MONOREPO - Removed / obsolete paths
-# (Old root-level markdown files - removed from repo)
+# Old MockDataFactory directory (contents moved to tools/generator/)
+/MockDataFactory/
+# Windows nul artifact
+/nul
+
+# Old root-level markdown files - removed from repo
 /PODSUMOWANIE_PROJEKTU.md
 /ROADMAP.md
 /ROADMAP_FULL_V2.md
