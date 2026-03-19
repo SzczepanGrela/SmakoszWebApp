@@ -73,25 +73,24 @@ def seed_reference_data():
             conn.close()
         raise
 
-# SQL schema files applied in dependency order (modules -> views -> functions -> triggers).
-# Add new files here when extending the schema - order matters.
+# SQL schema files in docs/sql-reference/ (legacy reference - docelowo EF Core migrations).
+# Paths are relative to repo root (SmakoszWebApp/).
 SCHEMA_FILES = [
-    # "sql/modules/00_cleanup.sql",             # Skipped (Fresh DB)
-    "sql/modules/01_tables.sql",
-    "sql/modules/02_moderation_system.sql",     # Draft/Published moderation workflow
-    "sql/modules/03_audit_system.sql",          # Universal audit logging
-    "sql/modules/04_search_optimization.sql",   # Full-text search (Polish)
-    "sql/modules/05_infrastructure.sql",        # GPU nodes, task queue, user sessions
-    "sql/modules/06_worker_api.sql",            # Worker API (v7.1)
-    "sql/views/01_views.sql",
-    "sql/views/02_analytics_views.sql",         # Analytics views (v5.3)
-    "sql/functions/01_functions.sql",
-    "sql/functions/02_transactions.sql",        # Stored procedures
-    "sql/triggers/01_triggers.sql",
-    "sql/triggers/02_business_logic.sql",       # Photo sync & review approval workflow
-    "sql/triggers/03_moderation_triggers.sql",  # State machine moderation triggers
-    "sql/triggers/04_integrity_triggers.sql",   # Integrity triggers (v7.1)
-    "sql/triggers/06_review_restrictions.sql",  # Business rule: Only users can review
+    "docs/sql-reference/modules/01_tables.sql",
+    "docs/sql-reference/modules/02_moderation_system.sql",
+    "docs/sql-reference/modules/03_audit_system.sql",
+    "docs/sql-reference/modules/04_search_optimization.sql",
+    "docs/sql-reference/modules/05_infrastructure.sql",
+    "docs/sql-reference/modules/06_worker_api.sql",
+    "docs/sql-reference/views/01_views.sql",
+    "docs/sql-reference/views/02_analytics_views.sql",
+    "docs/sql-reference/functions/01_functions.sql",
+    "docs/sql-reference/functions/02_transactions.sql",
+    "docs/sql-reference/triggers/01_triggers.sql",
+    "docs/sql-reference/triggers/02_business_logic.sql",
+    "docs/sql-reference/triggers/03_moderation_triggers.sql",
+    "docs/sql-reference/triggers/04_integrity_triggers.sql",
+    "docs/sql-reference/triggers/06_review_restrictions.sql",
 ]
 
 def apply_schema():
@@ -134,12 +133,13 @@ def apply_schema():
         cursor = conn.cursor()
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(current_dir)
+        generator_root = os.path.dirname(current_dir)
+        repo_root = os.path.dirname(os.path.dirname(generator_root))
 
         print("Applying modular schema...")
 
         for rel_path in SCHEMA_FILES:
-            file_path = os.path.join(project_root, rel_path)
+            file_path = os.path.join(repo_root, rel_path)
             print(f"  -> Executing {rel_path}...")
 
             if not os.path.exists(file_path):
