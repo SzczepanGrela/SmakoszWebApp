@@ -102,6 +102,23 @@ CREATE OR REPLACE VIEW search_autocomplete AS
     WHERE d.is_available = TRUE AND r.status = 'active';
 
 COMMENT ON VIEW search_autocomplete IS
-'Unified autocomplete source. 
+'Unified autocomplete source.
 Priorities: 1=Cuisine, 2=Restaurant, 3=Dish.
 Query: SELECT * FROM search_autocomplete WHERE name_normalized LIKE ''%x%'' ORDER BY priority ASC, similarity DESC';
+
+-- ========================================
+-- 5. GEOLOCATION INDEX (Bounding Box Pre-filter)
+-- ========================================
+-- Partial B-tree index - używany jako bounding box pre-filter przed Haversine refinement.
+-- Haversine SQL (bez PostGIS):
+--   6371 * acos(
+--       cos(radians(@lat)) * cos(radians(r.latitude))
+--       * cos(radians(r.longitude) - radians(@lng))
+--       + sin(radians(@lat)) * sin(radians(r.latitude))
+--   ) <= @radius_km
+-- Pre-filter (używa ten index):
+--   r.latitude BETWEEN @lat - (@radius/111.0) AND @lat + (@radius/111.0)
+--   AND r.longitude BETWEEN @lng - (@radius/111.0/cos(radians(@lat))) AND @lng + (...)
+CREATE INDEX IF NOT EXISTS idx_restaurants_geo
+ON restaurants(latitude, longitude)
+WHERE latitude IS NOT NULL AND longitude IS NOT NULL;

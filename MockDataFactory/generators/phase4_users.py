@@ -5,19 +5,22 @@ import logging
 import os
 import random
 import time
-import uuid  # Added for ASP.NET Identity Security Stamp
+import uuid
 from datetime import datetime, timedelta
 
 from scipy.stats import beta as beta_dist
 from tqdm import tqdm
 
-from config import GENERATION_CONFIG, get_connection_params
+from config import GENERATION_CONFIG
 from data_access import UserDAO
+from orchestration.context import ExecutionContext
+from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
 from utils.date_generator import DateGenerator
 from utils.db_connection import DatabaseConnection
 from utils.distributions import sample_normal
 from utils.faker_instance import fake
+from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
 from utils.text_generator import slugify
 from utils.user_helpers import (
@@ -167,39 +170,30 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     total_admins = 1
     total_moderators = 3
 
-    # Standard user allocation
     user_city_assignments = allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints")
     num_standard_users = len(user_city_assignments)
 
-    # Note: total_users_to_generate estimation might be slightly off now due to filtering, 
-    # but that's fine for simple progress estimation or we can recalc.
-    
     user_data = []
-    
-    # 1. Generate Restaurant Users
+
     # Randomly select ~70% of restaurants to be claimed
     claimed_restaurants = [r for r in restaurants if random.random() < 0.70]
-    
+
     for r_id, r_name, r_city_id in tqdm(claimed_restaurants, desc="Generating restaurant accounts", unit=" user"):
         sanitized_name = "".join(c for c in r_name if c.isalnum()).lower()[:15]
         username = f"rest_{sanitized_name}_{r_id}"[:30]  # Ensure 3-30 chars
         if len(username) < 3:
             username = f"rest{r_id}"
-        # Mod 11 Fix: Append r_id to email to ensure uniqueness (since restaurant names can be duplicates)
         email = f"contact_{r_id}@{sanitized_name}.com"
-        
-        # Restaurant users always have a phone
+
         phone = generate_phone()
-        
-        # Basic defaults for restaurant user
         join_date = date_gen.generate_user_join_date()
-        
+
         days_since_join = (datetime.now() - join_date).days
         if days_since_join > 0:
             last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
         else:
             last_login = join_date
-        
+
         user_data.append(
             {
                 "public_id": str(uuid.uuid4()),
@@ -215,7 +209,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
                 "role": "restaurant",
                 "home_city_id": r_city_id,
-                "restaurant_id": r_id, # Link user to restaurant
+                "restaurant_id": r_id,
                 "created_at": DateGenerator.to_sql_datetime(join_date),
                 "last_login_at": DateGenerator.to_sql_datetime(last_login),
                 "is_active": True,
@@ -246,7 +240,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         )
 
     # 2. Generate Standard Users (Admins, Moderators, Users)
-    for i in tqdm(range(num_standard_users), desc="Generating standard users", unit=" user", mininterval=1.0):
+    for i in tqdm(range(num_standard_users), desc="Generating standard users", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         if i < total_admins:
             role = "admin"
             username = f"admin_{i + 1}"
@@ -289,13 +283,11 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)
             secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)
 
-            # Expensive: Ingredient preference sampling
             ingredient_preferences = {}
             sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
             for ingredient in sampled_ingredients:
                 ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
 
-            # Expensive: Archetype preference sampling
             num_favorites = random.randint(3, 7)
             favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
             remaining = [a for a in all_archetypes if a not in favorites]
@@ -331,23 +323,20 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
         full_name = generate_full_name()
 
-        # Mod 14: Phone is optional (30% chance for standard users)
-        phone = generate_phone() if random.random() < 0.30 else None
+        phone = generate_phone() if random.random() < 0.30 else None  # type: ignore[assignment]
 
-        # NULL Avatar Strategy: Configurable % custom avatars vs UI Avatars fallback
-        custom_avatar_chance = float(GENERATION_CONFIG["custom_avatar_percentage"])
+        custom_avatar_chance = float(GENERATION_CONFIG["custom_avatar_percentage"])  # type: ignore[arg-type]
         if random.random() < custom_avatar_chance:
-            avatar_metadata = photo_pools.get_user_avatar()  # Returns dict with url, blurhash, width, height
-            avatar_url = avatar_metadata["url"]  # Extract URL for users.avatar_url field
-            avatar_blurhash = avatar_metadata.get("blurhash")  # Save blurhash for users.avatar_blurhash
+            avatar_metadata = photo_pools.get_user_avatar()
+            avatar_url = avatar_metadata["url"]
+            avatar_blurhash = avatar_metadata.get("blurhash")
         else:
             avatar_url = None  # Frontend will generate UI Avatars from initials
             avatar_blurhash = None
 
         date_of_birth = generate_date_of_birth()
 
-        # Last Login: Random date between join_date and now
-        # Phase 5 will update this if user posted a review later than this date
+        # Phase 5 will update last_login_at if user posted a review after this date
         days_since_join = (datetime.now() - join_date).days
         if days_since_join > 0:
             last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
@@ -374,7 +363,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         if personality_roll < 0.15:  # Critic
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(4.0, 0.5)))
         elif personality_roll < 0.75:  # Realist
-            # Mod 16: Shift Realist baseline to 6.5
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.5, 0.5)))
         else:  # Fan
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.0, 0.5)))
@@ -430,7 +418,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
     db.insert_bulk("users", user_data)
 
-    # Sync owner_id back to restaurants table
     logger.info("Syncing restaurant owners...")
     db.execute_query("""
         UPDATE restaurants r
@@ -455,7 +442,6 @@ def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: Ph
     """
     logger.info("Inserting user avatars into media_assets...")
 
-    # Fetch users with custom avatars
     users_with_avatars = db.fetch_all(
         "SELECT user_id, avatar_url FROM users WHERE avatar_url IS NOT NULL"
     )
@@ -467,7 +453,7 @@ def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: Ph
     avatar_data = []
 
     for user_id, avatar_url in tqdm(
-        users_with_avatars, desc="Processing avatars", unit=" avatar", mininterval=1.0
+        users_with_avatars, desc="Processing avatars", unit=" avatar", mininterval=1.0, disable=LoggingConfig.is_quiet()
     ):
         # Note: Avatar metadata (blurhash, width, height) was generated during user creation
         # but not cached. Since we only have the URL, we'll set metadata fields to NULL.
@@ -503,7 +489,7 @@ def _assign_saved_dishes(db: DatabaseConnection):
     saved_data = []
     dish_list = [d[0] for d in all_dishes]
 
-    for user_id, review_count in tqdm(users, desc="Assigning saved dishes", unit=" user", mininterval=1.0):
+    for user_id, review_count in tqdm(users, desc="Assigning saved dishes", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         is_power_user = review_count is not None and review_count > 80
 
         if random.random() < 0.15:
@@ -526,19 +512,16 @@ def _assign_saved_dishes(db: DatabaseConnection):
         logger.info(f"Assigned {len(saved_data):,} saved dishes")
 
 def _generate_user_notification_settings(db: DatabaseConnection):
-    """Generate default notification settings for all users."""
     logger.info("Generating user notification settings...")
 
-    # Fetch all user IDs
     user_ids = db.fetch_all("SELECT user_id FROM users")
-    
+
     if not user_ids:
         logger.warning("No users found - skipping notification settings")
         return
 
     settings_data = []
-    for (user_id,) in tqdm(user_ids, desc="Generating settings", unit=" user", mininterval=1.0):
-        # Randomize some preferences for realism
+    for (user_id,) in tqdm(user_ids, desc="Generating settings", unit=" user", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         settings_data.append({
             "user_id": user_id,
             "push_like": random.random() < 0.80,
@@ -550,24 +533,72 @@ def _generate_user_notification_settings(db: DatabaseConnection):
         db.insert_bulk("user_notification_settings", settings_data)
         logger.info(f"Generated {len(settings_data):,} notification settings")
 
-if __name__ == "__main__":
-    import os
-    import sys
+class UsersPhase(BasePhase):
+    """
+    Phase 4: Users Generation
 
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    Generates users with preferences, avatars, addresses, and notification settings.
 
-    from config import GENERATION_CONFIG, get_connection_params
+    Dependencies:
+    - phase1_cities (requires cities table for user addresses)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    Required Tables: users, user_notification_settings
+    Estimated Duration: ~40 seconds (avatar photo lookups + preference generation)
+    """
 
-    try:
-        connection_params = get_connection_params()
-        num_users = int(GENERATION_CONFIG["num_users"])  # type: ignore
+    def __init__(self, blueprints_dir: str = "blueprints"):
+        self.blueprints_dir = blueprints_dir
 
-        with DatabaseConnection(connection_params) as db:
-            generate_users(db, num_users=num_users)
-            logger.info("Phase 4 completed.")
+    @property
+    def metadata(self) -> PhaseMetadata:
+        return PhaseMetadata(
+            phase_id="phase4_users",
+            display_name="Users Generation",
+            dependencies=["phase1_cities"],
+            required_tables=["users", "user_notification_settings"],
+            cleanup_tables=["users", "user_notification_settings", "saved_dishes"],
+            estimated_duration=40
+        )
 
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        sys.exit(1)
+    def execute(self, context: ExecutionContext) -> PhaseResult:
+        start_time = time.time()
+        logger.info("Phase 4: Generating users...")
+
+        try:
+            num_users = context.config.get("num_users", GENERATION_CONFIG["num_users"])
+
+            # Note: cleanup=False because DatabaseManager handles cleanup
+            generate_users(context.db, num_users=num_users, cleanup=False)
+
+            users_count = context.db.fetch_val("SELECT COUNT(*) FROM users")
+            settings_count = context.db.fetch_val(
+                "SELECT COUNT(*) FROM user_notification_settings"
+            )
+
+            duration = time.time() - start_time
+            logger.info(
+                f"✓ Generated {users_count} users with "
+                f"{settings_count} notification settings in {duration:.2f}s"
+            )
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.COMPLETED,
+                duration_seconds=duration,
+                entities_generated={
+                    "users": users_count,
+                    "notification_settings": settings_count
+                }
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"✗ Users generation failed: {e}", exc_info=True)
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.FAILED,
+                duration_seconds=duration,
+                entities_generated={},
+                error=e
+            )
+

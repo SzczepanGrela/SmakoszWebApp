@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 
 from utils.blueprint_loader import BlueprintLoader
+
 from .core_rating_logic import calculate_food_score_polarized, sigmoid_stretch
 
 class RatingComponentStrategy(ABC):
@@ -26,7 +27,7 @@ class ServiceRatingStrategy(RatingComponentStrategy):
     ) -> float:
         base_quality = float(restaurant.get("secret_service_quality", 0.5))
         weights = context.get("scoring_weights", {})
-        
+
         # Determine expected quality based on Price Level (Tier Proxy)
         price_level = int(restaurant.get("price_level", 2))
         if price_level == 1:
@@ -40,11 +41,11 @@ class ServiceRatingStrategy(RatingComponentStrategy):
             expected_baseline = 0.85
 
         # Fetch user expectations for this tier
-        user_expectations = user_data.get("secret_cleanliness_preference", {}) 
-        
+        user_expectations = user_data.get("secret_cleanliness_preference", {})
+
         if isinstance(user_expectations, str):
             user_expectations = json.loads(user_expectations)
-            
+
         expected_score = float(user_expectations.get(tier_key, expected_baseline * 10.0))
         expected_quality = expected_score / 10.0
 
@@ -57,7 +58,7 @@ class ServiceRatingStrategy(RatingComponentStrategy):
         if base_quality < expected_quality:
             penalty = (expected_quality - base_quality) * penalty_mult
             score -= penalty
-        
+
         # Bonus for exceeding expectations
         if base_quality > expected_quality + 0.1:
              score += (base_quality - expected_quality) * bonus_mult
@@ -88,12 +89,12 @@ class CleanlinessRatingStrategy(RatingComponentStrategy):
         user_expectations = user_data.get("secret_cleanliness_preference", {})
         if isinstance(user_expectations, str):
             user_expectations = json.loads(user_expectations)
-            
+
         expected_score = float(user_expectations.get(tier_key, expected_baseline * 10.0))
         expected_quality = expected_score / 10.0
 
         score = base_quality * 10.0
-        
+
         penalty_mult = weights.get("cleanliness_failure_penalty_multiplier", 15.0)
 
         if base_quality < expected_quality:
@@ -168,10 +169,10 @@ class FoodRatingStrategy(RatingComponentStrategy):
         contextual_target = context.get("user_variant_preference_vector")
         vectors_data = context.get("vectors_data")
         weights = context.get("scoring_weights", {})
-        
+
         # 1. Calculate base food score using vector affinity & quality
         base_score = calculate_food_score_polarized(user_data, dish, restaurant, contextual_target, vectors_data)
-        
+
         # 2. Apply Ingredient Preferences (Mod 15)
         ingredients_raw = dish.get("ingredients_json", [])
         if isinstance(ingredients_raw, str):
@@ -181,7 +182,7 @@ class FoodRatingStrategy(RatingComponentStrategy):
                 ingredients = []
         else:
             ingredients = ingredients_raw
-            
+
         user_prefs_raw = user_data.get("secret_ingredient_preferences", {})
         if isinstance(user_prefs_raw, str):
             try:
@@ -197,23 +198,23 @@ class FoodRatingStrategy(RatingComponentStrategy):
             bonus_love = weights.get("ingredient_love_bonus", 1.5)
             penalty_hate = weights.get("ingredient_hate_penalty", 2.0)
             penalty_minor = weights.get("ingredient_minor_penalty", 0.5)
-            
+
             for ing in ingredients:
                 # Handle both simple list of strings and list of objects
                 ing_name = ing if isinstance(ing, str) else ing.get("name", "")
                 ing_name_lower = ing_name.lower() # Robust matching
-                
+
                 # Check direct match or partial match in user prefs (which should be normalized in future)
                 # Currently Phase 4 generates keys, we try to match them.
                 # Since Phase 4 samples from Phase 1 ingredients, names should match if normalized.
-                
+
                 # Try exact lower match first
                 pref_value = None
                 for k, v in user_prefs.items():
                     if k.lower() == ing_name_lower:
                         pref_value = v
                         break
-                
+
                 if pref_value is not None:
                     if pref_value > 0.8:
                         ingredient_modifier += bonus_love # Strong bonus
@@ -221,7 +222,7 @@ class FoodRatingStrategy(RatingComponentStrategy):
                         ingredient_modifier -= penalty_hate # Strong penalty (simulates allergy/hate)
                     elif pref_value < 0.4:
                         ingredient_modifier -= penalty_minor
-            
+
             # Cap the modifier
             cap_min = weights.get("ingredient_score_cap_min", -3.0)
             cap_max = weights.get("ingredient_score_cap_max", 2.0)
@@ -251,7 +252,7 @@ class RatingAggregator:
             "value": ValueRatingStrategy(),
         }
         self.weights = {"food": 0.50, "service": 0.15, "cleanliness": 0.10, "ambiance": 0.10, "value": 0.15}
-        
+
         # Load scoring weights
         try:
             loader = BlueprintLoader("blueprints")
@@ -270,7 +271,7 @@ class RatingAggregator:
         vectors_data: dict[str, Any] | None = None,
     ) -> dict[str, float]:
         context = {
-            "user_variant_preference_vector": user_variant_preference_vector, 
+            "user_variant_preference_vector": user_variant_preference_vector,
             "vectors_data": vectors_data,
             "scoring_weights": self.scoring_weights
         }

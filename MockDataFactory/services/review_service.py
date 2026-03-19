@@ -10,10 +10,10 @@ import random
 import uuid
 from datetime import datetime
 
-from algorithms.rating_engine import calculate_review_ratings
 from algorithms.on_the_fly_calculator import OnTheFlyCalculator
+from algorithms.rating_engine import calculate_review_ratings
 from utils.date_generator import DateGenerator
-from utils.helpers import safe_divide, safe_json_loads
+from utils.helpers import safe_divide
 from utils.photo_pools import PhotoPools
 from utils.text_generator import ReviewTextGenerator
 
@@ -29,7 +29,6 @@ class ReviewGeneratorService:
     """
 
     def __init__(self):
-        """Initialize the review generator service with required dependencies."""
         self.text_gen = ReviewTextGenerator()
         self.photo_pools = PhotoPools()
 
@@ -60,14 +59,12 @@ class ReviewGeneratorService:
                 - review_data: Main review record with state machine fields
                 - user_photo: Optional user photo data
         """
-        # Calculate on-the-fly preferences (Refactor Phase 4b Removal)
         if not user_variant_preference_vector:
              calc = OnTheFlyCalculator(vectors_data)
              user_variant_preference_vector = calc.get_contextual_preferences(
                  user, dish, dish.get("secret_variant_name", "Unknown"), dish.get("secret_archetype", "General")
              )
 
-        # Calculate ratings using rating engine
         ratings = calculate_review_ratings(
             user,
             dish,
@@ -76,9 +73,7 @@ class ReviewGeneratorService:
             vectors_data=vectors_data,
         )
 
-        # Calculate review age for time-based pending logic
         if simulation_today:
-            # Extract date components for comparison
             review_date_date = review_date.date() if hasattr(review_date, 'date') else review_date
             simulation_today_date = simulation_today.date() if hasattr(simulation_today, 'date') else simulation_today
             review_age_days = (simulation_today_date - review_date_date).days
@@ -106,7 +101,6 @@ class ReviewGeneratorService:
                 ambiance_score=restaurant["secret_ambiance_quality"] * 10,
             )
 
-        # Determine content status based on review age and content presence
         if has_comment:
             if is_recent_review:
                 content_status = 'pending'
@@ -115,7 +109,6 @@ class ReviewGeneratorService:
         else:
             content_status = 'none'
 
-        # Determine visibility based on moderation status
         # Recent reviews (≤7 days) are hidden until approved
         is_visible = not is_recent_review
 
@@ -129,25 +122,23 @@ class ReviewGeneratorService:
             ai_toxicity_score = round(random.uniform(0.0, 0.1), 4)
             ai_spam_score = round(random.uniform(0.0, 0.05), 4)
             ai_verdict = 'approved'
-        
+
         ai_model_version = 'mockHerbert-v1'
         ai_processed_at = DateGenerator.to_sql_datetime(review_date)
 
-        # Prepare main review data (STATE MACHINE ARCHITECTURE)
         dish_rating_value = int(round(ratings["food_score"]))
         review_data = {
             "public_id": str(uuid.uuid4()),
             "user_id": user["user_id"],
             "restaurant_id": restaurant["restaurant_id"],
             "dish_id": dish["dish_id"],
-            # NEW: visit_date required by schema
             "visit_date": review_date.date() if hasattr(review_date, 'date') else review_date,
             "dish_rating": dish_rating_value,
             "service_rating": int(round(ratings["service_score"])),
             "cleanliness_rating": int(round(ratings["cleanliness_score"])),
             "ambiance_rating": int(round(ratings["ambiance_score"])),
-            "content": comment,  # RENAMED: comment -> content
-            "content_status": content_status,  # RENAMED: comment_status -> content_status
+            "content": comment,
+            "content_status": content_status,
             "is_visible": is_visible,
             "created_at": DateGenerator.to_sql_datetime(review_date),
             "version": 1,  # Optimistic Locking
@@ -159,7 +150,6 @@ class ReviewGeneratorService:
             "ai_processed_at": ai_processed_at,
         }
 
-        # Prepare user photo data (30% of reviews have photos)
         user_photo_data = None
 
         if random.random() < 0.30:
@@ -184,7 +174,7 @@ class ReviewGeneratorService:
                 "blurhash": photo_metadata["blurhash"],
                 "width": photo_metadata["width"],
                 "height": photo_metadata["height"],
-                "status": photo_status,  # Time-based status
+                "status": photo_status,
                 # AI Moderation Fields
                 "ai_nsfw_score": photo_ai_nsfw,
                 "ai_on_topic_score": photo_ai_on_topic,

@@ -6,8 +6,6 @@ have required fields, and are internally consistent.
 """
 
 import pytest
-import json
-from pathlib import Path
 
 class TestDishesBlueprint:
     """Tests for dishes.json structure and content."""
@@ -20,11 +18,11 @@ class TestDishesBlueprint:
     def test_all_archetypes_have_required_fields(self, dishes_json):
         """Each archetype must have base_price, archetype_base, variants."""
         required_fields = ["base_price", "archetype_base", "variants"]
-        
+
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             for field in required_fields:
                 assert field in archetype_data, \
                     f"Archetype '{archetype_name}' missing required field '{field}'"
@@ -34,7 +32,7 @@ class TestDishesBlueprint:
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             base = archetype_data.get("archetype_base", {})
             assert "characteristics" in base, \
                 f"Archetype '{archetype_name}' missing archetype_base.characteristics"
@@ -46,7 +44,7 @@ class TestDishesBlueprint:
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
                 assert "ingredients" in variant_data, \
                     f"Variant '{archetype_name}.{variant_name}' missing ingredients"
@@ -58,7 +56,7 @@ class TestDishesBlueprint:
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
                 multiplier = variant_data.get("price_multiplier", {})
                 if isinstance(multiplier, dict):
@@ -71,13 +69,13 @@ class TestDishesBlueprint:
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             # Check archetype base characteristics
             base_chars = archetype_data.get("archetype_base", {}).get("characteristics", {})
             for dim, val in base_chars.items():
                 assert 0.0 <= val <= 1.0, \
                     f"Archetype '{archetype_name}' characteristic {dim}={val} out of [0,1]"
-            
+
             # Check variant characteristics
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
                 var_chars = variant_data.get("characteristics", {})
@@ -95,13 +93,13 @@ class TestMenuTemplatesBlueprint:
     def test_menu_templates_have_archetypes(self, menu_templates_json, dishes_json):
         """Menu templates should reference valid archetypes from dishes.json."""
         valid_archetypes = set(dishes_json.keys())
-        
+
         for template_name, template_data in menu_templates_json.items():
             if not isinstance(template_data, dict):
                 continue
-            
+
             categories = template_data.get("categories", {})
-            for category_name, category_archetypes in categories.items():
+            for _category_name, category_archetypes in categories.items():
                 if isinstance(category_archetypes, list):
                     for arch in category_archetypes:
                         archetype_name = arch if isinstance(arch, str) else arch.get("archetype", "")
@@ -129,16 +127,16 @@ class TestCrossReferenceValidation:
         """All variant ingredients should exist in ingredients_list.json."""
         valid_ingredients = set(ingredients_json)  # List of strings
         missing = []
-        
+
         for archetype_name, archetype_data in dishes_json.items():
             if not isinstance(archetype_data, dict):
                 continue
-            
+
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
                 for ingredient in variant_data.get("ingredients", []):
                     if ingredient not in valid_ingredients:
                         missing.append(f"{archetype_name}.{variant_name}: {ingredient}")
-        
+
         # Allow some missing - just warn
         if missing and len(missing) > 10:
             pytest.skip(f"Many missing ingredients ({len(missing)}) - may need blueprint update")

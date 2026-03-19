@@ -3,13 +3,15 @@ import logging
 import random
 import time
 import uuid
-from pathlib import Path
 
 from tqdm import tqdm
 
 from algorithms.preference_calculator import DIMENSIONS, add_dish_variance, apply_restaurant_bias, merge_vectors
-from config import GENERATION_CONFIG, get_connection_params
+from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
+from generators.constants import MENU_BLUEPRINTS
+from orchestration.context import ExecutionContext
+from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
 from utils.db_connection import DatabaseConnection
 from utils.dish_helpers import generate_dish_calories, generate_dish_description
@@ -24,7 +26,7 @@ def generate_dish_vector(archetype_name: str, archetype_data: dict, variant_name
     base_weights = base_data.get("default_weights", None)
 
     variant_chars = variant_data.get("characteristics", {})
-    variant_weights = variant_data.get("weights", None)
+    variant_weights = variant_data.get("weights")
 
     characteristics = merge_vectors(base_chars, variant_chars)
 
@@ -40,7 +42,6 @@ def generate_dish_vector(archetype_name: str, archetype_data: dict, variant_name
 
     characteristics = add_dish_variance(characteristics, variance=0.25)
 
-    # Mod 13: Fallback to base weights if variant weights are missing
     weights = variant_weights if variant_weights is not None else base_weights
 
     return (characteristics, weights)
@@ -55,7 +56,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             db.execute_query("TRUNCATE TABLE dishes RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE dish_ingredients RESTART IDENTITY CASCADE")
             db.execute_query("TRUNCATE TABLE dish_tags RESTART IDENTITY CASCADE")
-            db.execute_query("TRUNCATE TABLE dish_variants RESTART IDENTITY CASCADE") # Also clean dictionary
+            db.execute_query("TRUNCATE TABLE dish_variants RESTART IDENTITY CASCADE")
 
             db.commit()
             logger.info("Cleanup complete.")
@@ -78,7 +79,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "secret_menu_blueprint": row[1],
                 "secret_price_multiplier": row[2],
                 "secret_archetype_modifiers": row[3],
-                "status": row[4],  # Unpack status
+                "status": row[4],
             }
         )
 
@@ -97,15 +98,13 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     all_ingredients = db.fetch_all("SELECT ingredient_id, ingredient_name FROM ingredients")
     ingredient_map = {ing_name: id for id, ing_name in all_ingredients}
 
-    # Fetch Menu Sections (Mod 10)
     all_sections = db.fetch_all("SELECT section_id, restaurant_id, section_name FROM menu_sections")
-    restaurant_sections_map = {}
+    restaurant_sections_map: dict = {}
     for sec_id, rest_id, sec_name in all_sections:
         if rest_id not in restaurant_sections_map:
             restaurant_sections_map[rest_id] = []
         restaurant_sections_map[rest_id].append({"id": sec_id, "section_name": sec_name})
 
-    # Load Global Config for Section Mapping (Problem 4)
     global_config = loader.load_blueprint("global_config.json")
     dish_section_mapping = global_config.get("DISH_SECTION_MAPPING", {})
 
@@ -117,40 +116,35 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             tag_by_category[tag_category] = []
         tag_by_category[tag_category].append((tag_id, tag_name))
 
-    # Populate Dish Archetypes Dictionary FIRST
     logger.info("Populating dish archetypes dictionary...")
-    
-    # Clean up archetypes table too
+
     db.execute_query("TRUNCATE TABLE dish_archetypes RESTART IDENTITY CASCADE")
-    
+
     unique_archetypes = set()
     for category_name, category_data in dish_variants.items():
         if isinstance(category_data, dict):
             unique_archetypes.add(category_name)
-    
+
     archetype_insert_data = [{"archetype_name": a} for a in sorted(unique_archetypes)]
     if archetype_insert_data:
         db.insert_bulk("dish_archetypes", archetype_insert_data)
-    
-    # Fetch archetype_id map
+
     archetype_rows = db.fetch_all("SELECT archetype_id, archetype_name FROM dish_archetypes")
     archetype_map = {name: id for id, name in archetype_rows}
     logger.info(f"Loaded {len(archetype_map)} archetypes.")
-    
-    # Populate Dish Variants with archetype_id FK
+
     logger.info("Populating dish variants dictionary...")
     unique_variants = set()
     for category_name, category_data in dish_variants.items():
         if not isinstance(category_data, dict):
             continue
         variants = category_data.get("variants", {})
-        for variant_name in variants.keys():
+        for variant_name in variants:
             unique_variants.add((variant_name, category_name))
-    
-    # Use archetype_id instead of archetype_name
+
     variant_insert_data = [
-        {"variant_name": v, "archetype_id": archetype_map[a]} 
-        for v, a in unique_variants 
+        {"variant_name": v, "archetype_id": archetype_map[a]}
+        for v, a in unique_variants
         if a in archetype_map
     ]
 
@@ -158,10 +152,9 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
         variant_insert_data.sort(key=lambda x: (x['archetype_id'], x['variant_name']))
         db.insert_bulk("dish_variants", variant_insert_data)
 
-    # Fetch variant map with archetype_name for compatibility
     variant_rows = db.fetch_all("""
-        SELECT dv.variant_id, dv.variant_name, da.archetype_name 
-        FROM dish_variants dv 
+        SELECT dv.variant_id, dv.variant_name, da.archetype_name
+        FROM dish_variants dv
         JOIN dish_archetypes da ON dv.archetype_id = da.archetype_id
     """)
     variant_map = {(row[1], row[2]): row[0] for row in variant_rows}
@@ -174,17 +167,13 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     total_photos = 0
     total_dish_tags = 0
     dish_tags_buffer = []
-    dish_sections_buffer = [] # Buffer for dish_section_assignments
-
-    # Disable Trigger Logic removed as we use statement trigger now
+    dish_sections_buffer = []
 
     for restaurant in tqdm(restaurants_list, desc="Generating dishes", unit=" restaurant", mininterval=1.0):
         restaurant_id = restaurant["restaurant_id"]
         menu_blueprint = restaurant["secret_menu_blueprint"]
         price_multiplier = restaurant["secret_price_multiplier"]
-        restaurant_status = restaurant.get("status", "active") # Get status
-        
-        # Mod 3: Get restaurant quality for dish generation
+        restaurant_status = restaurant.get("status", "active")
         restaurant_quality_skill = restaurant.get("secret_overall_food_quality", 0.5)
 
         menu_dishes = _select_dishes_for_menu(menu_blueprint, dish_variants, scaling_factor)
@@ -202,15 +191,14 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 restaurant_modifiers = {}
         else:
             restaurant_modifiers = restaurant_modifiers_raw or {}
-            
+
         available_sections = restaurant_sections_map.get(restaurant_id, [])
 
         for i, variant in enumerate(menu_dishes):
             dish_name = variant.get("variant_name", "Danie")
             archetype = variant.get("archetype", "Unknown")
             base_price = variant.get("price", 35.0)
-            
-            # Get Variant ID
+
             variant_id = variant_map.get((dish_name, archetype))
             if not variant_id:
                 logger.warning(f"Variant ID not found for {dish_name} ({archetype})")
@@ -232,7 +220,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             final_price = base_price * price_multiplier * random.gauss(1.0, 0.1)
             price = round(max(10.0, final_price))
 
-            # Mod 3: Secret quality calculation
             base_potential = sample_beta(5, 2, 0.3, 0.95)
             secret_quality = (base_potential * 0.3) + (restaurant_quality_skill * 0.7)
             secret_quality = max(0.1, min(1.0, secret_quality))
@@ -253,7 +240,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
             secret_richness_val = characteristics_vec.get("physics_richness", 0.5)
 
-            # Mod 12: Calories (no price arg)
             calories = generate_dish_calories(archetype=archetype, price=0, richness=secret_richness_val)
 
             dish_tag_ids = _get_tags_for_dish(
@@ -268,8 +254,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             is_vegan = False
             if "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids:
                 is_vegan = True
-            
-            # Check availability based on restaurant status
+
             is_available = True
             if restaurant_status != 'active':
                 is_available = False
@@ -277,16 +262,14 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             dish_data = {
                 "public_id": str(uuid.uuid4()),
                 "restaurant_id": restaurant_id,
-                "variant_id": variant_id, # NEW
+                "variant_id": variant_id,
                 "dish_name": dish_name,
-                # secret_archetype REMOVED
-                # secret_variant_name REMOVED
                 "price": price,
                 "description": description,
                 "is_vegan": is_vegan,
                 "is_spicy": is_spicy,
                 "ingredients_json": json.dumps(ingredients),
-                "is_available": is_available, # Use dynamic value
+                "is_available": is_available,
                 "secret_base_price": round(secret_base_price, 2),
                 "secret_quality": round(secret_quality, 3),
                 "secret_characteristics_vector": json.dumps(characteristics_vec),
@@ -295,16 +278,14 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "image_url": primary_photo_metadata["url"],
                 "image_blurhash": primary_photo_metadata.get("blurhash"),
                 "calories": calories,
-                "created_at": restaurant.get("created_at"),  # Use restaurant's created_at
+                "created_at": restaurant.get("created_at"),
             }
 
             dish_id = db.insert_single("dishes", dish_data)
             total_dishes += 1
-            
-            # Mod 10 & Problem 4: Robust Section Assignment
+
             assigned_sections = []
             if available_sections:
-                # 1. Look for preferred sections from config
                 preferred_keywords = dish_section_mapping.get(archetype, [])
                 if not preferred_keywords:
                     preferred_keywords = ["Dania Główne"]
@@ -314,20 +295,19 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                     for keyword in preferred_keywords:
                         if keyword.lower() in sec_name_lower:
                             assigned_sections.append(sec["id"])
-                            break 
-                    if assigned_sections: break
+                            break
+                    if assigned_sections:
+                        break
 
-                # 2. Fuzzy match
                 if not assigned_sections:
                         for sec in available_sections:
                             if archetype.lower() in sec["section_name"].lower():
                                 assigned_sections.append(sec["id"])
                                 break
-                
-                # 3. Fallback
+
                 if not assigned_sections:
                     assigned_sections.append(random.choice(available_sections)["id"])
-            
+
             for sec_id in set(assigned_sections):
                 dish_sections_buffer.append({"dish_id": dish_id, "section_id": sec_id})
 
@@ -363,7 +343,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 db.insert_bulk("dish_tags", dish_tags_buffer)
                 total_dish_tags += len(dish_tags_buffer)
                 dish_tags_buffer = []
-            
+
             if len(dish_sections_buffer) >= 5000:
                 db.insert_bulk("dish_section_assignments", dish_sections_buffer)
                 dish_sections_buffer = []
@@ -371,7 +351,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     if dish_tags_buffer:
         db.insert_bulk("dish_tags", dish_tags_buffer)
         total_dish_tags += len(dish_tags_buffer)
-        
+
     if dish_sections_buffer:
         db.insert_bulk("dish_section_assignments", dish_sections_buffer)
 
@@ -473,7 +453,7 @@ def _get_tags_for_dish(
 
     optional_categories = ["occasion", "feature", "mood"]
     for category in random.sample(optional_categories, k=random.randint(1, 2)):
-        if category in tag_by_category and tag_by_category[category]:
+        if tag_by_category.get(category):
             random_tag = random.choice(tag_by_category[category])
             tag_ids.add(random_tag[0])
 
@@ -513,45 +493,11 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_fa
                 }
             )
 
-    menu_configs = {
-        "Pizzeria": {"archetypes": ["Pizza", "Pasta", "Salad", "Deser"], "mean": 25, "sigma": 5},
-        "Burger Bar": {"archetypes": ["Burger", "Steak", "Salad"], "mean": 15, "sigma": 3},
-        "Sushi Bar": {"archetypes": ["Sushi", "Soup", "Salad"], "mean": 40, "sigma": 8},
-        "Asian Fusion": {
-            "archetypes": ["Ramen", "Noodles", "Dim Sum", "Pho", "Curry", "Sushi", "Kanapka", "Danie Azjatyckie"],
-            "mean": 35,
-            "sigma": 7,
-        },
-        "Steakhouse": {"archetypes": ["Steak", "BBQ", "Burger", "Salad"], "mean": 20, "sigma": 4},
-        "Vegan Cafe": {"archetypes": ["Vegan", "Salad", "Soup", "Smoothie Bowl"], "mean": 22, "sigma": 5},
-        "Mexican Restaurant": {"archetypes": ["Tacos", "Quesadilla", "Nachos", "Burrito"], "mean": 28, "sigma": 6},
-        "Italian Restaurant": {"archetypes": ["Pizza", "Pasta", "Risotto", "Gnocchi", "Deser"], "mean": 30, "sigma": 6},
-        "French Bistro": {"archetypes": ["Steak", "Soup", "Fondue", "Deser"], "mean": 20, "sigma": 4},
-        "Seafood Restaurant": {"archetypes": ["Seafood", "Sushi", "Oysters", "Fish"], "mean": 25, "sigma": 5},
-        "General": {"archetypes": ["Pizza", "Burger", "Pasta", "Salad", "Kebab", "Zupa"], "mean": 20, "sigma": 5},
-        
-        # New Profiles
-        "Kebab Place": {"archetypes": ["Kebab", "Salad", "Frytki", "Napój Bezalkoholowy"], "mean": 12, "sigma": 3},
-        "Polish Restaurant": {"archetypes": ["Danie Polskie", "Zupa", "Pierogi", "Deser", "Piwo"], "mean": 25, "sigma": 5},
-        "Indian Restaurant": {"archetypes": ["Curry", "Naan", "Ryż", "Zupa"], "mean": 30, "sigma": 6},
-        "Greek Taverna": {"archetypes": ["Danie Greckie", "Sałatka", "Owoce Morza", "Wino"], "mean": 28, "sigma": 5},
-        "BBQ Smokehouse": {"archetypes": ["Dania BBQ", "Stek", "Burger", "Frytki", "Piwo"], "mean": 25, "sigma": 5},
-        "Korean Restaurant": {"archetypes": ["Danie Koreańskie", "Zupa", "Ryż", "Danie Azjatyckie"], "mean": 26, "sigma": 6},
-        "Tapas Bar": {"archetypes": ["Tapas", "Wino", "Owoce Morza", "Przystawka"], "mean": 18, "sigma": 4},
-        "American Diner": {"archetypes": ["Burger", "Milkshake", "Naleśniki", "Frytki", "Kawa"], "mean": 20, "sigma": 5},
-        "German Pub": {"archetypes": ["Danie Niemieckie", "Kiełbasa", "Piwo", "Precel"], "mean": 22, "sigma": 4},
-        "Middle Eastern": {"archetypes": ["Danie Bliskowschodnie", "Kebab", "Hummus", "Falafel"], "mean": 24, "sigma": 5},
-        "Ice Cream Shop": {"archetypes": ["Lody", "Sorbet", "Deser", "Milkshake", "Kawa", "Gorąca Czekolada"], "mean": 15, "sigma": 4},
-        "Sandwich Shop": {"archetypes": ["Kanapka", "Panini", "Sałatka", "Kawa", "Napój Bezalkoholowy"], "mean": 12, "sigma": 3},
-        "Cafe": {"archetypes": ["Kawa", "Herbata", "Deser", "Ciasto", "Kanapka"], "mean": 15, "sigma": 4},
-        "Fine Dining": {"archetypes": ["Stek", "Owoce Morza", "Wino", "Deser", "Danie Francuskie"], "mean": 45, "sigma": 10},
-    }
+    config = MENU_BLUEPRINTS.get(menu_blueprint, MENU_BLUEPRINTS["General"])
+    archetypes = list(config["archetypes"])
 
-    config = menu_configs.get(menu_blueprint, menu_configs["General"])
-    archetypes = list(config["archetypes"])  # type: ignore
-
-    base_mean = float(config["mean"])  # type: ignore
-    base_sigma = float(config["sigma"])  # type: ignore
+    base_mean = float(config["mean"])
+    base_sigma = float(config["sigma"])
 
     target_mean = base_mean * scaling_factor
     target_sigma = base_sigma * scaling_factor
@@ -570,23 +516,72 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_fa
     else:
         return matching_dishes
 
-if __name__ == "__main__":
-    import os
-    import sys
+class DishesPhase(BasePhase):
+    """
+    Phase 3: Dishes Generation
 
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    Generates dishes with variants, ingredients, photos, and characteristics.
 
-    from config import get_connection_params
+    Dependencies:
+    - phase1_ingredients (requires ingredients table)
+    - phase2_restaurants (requires restaurants table with menu sections)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    Required Tables: dishes, dish_variants, dish_ingredients
+    Estimated Duration: ~60 seconds (complex generation + photo lookups)
+    """
 
-    try:
-        connection_params = get_connection_params()
+    def __init__(self, blueprints_dir: str = "blueprints"):
+        self.blueprints_dir = blueprints_dir
 
-        with DatabaseConnection(connection_params) as db:
-            generate_dishes(db, blueprints_dir="blueprints")
-            logger.info("Phase 3 completed.")
+    @property
+    def metadata(self) -> PhaseMetadata:
+        return PhaseMetadata(
+            phase_id="phase3_dishes",
+            display_name="Dishes Generation",
+            dependencies=["phase1_ingredients", "phase2_restaurants"],
+            required_tables=["dishes", "dish_variants", "dish_ingredients"],
+            cleanup_tables=["dishes", "dish_variants", "dish_ingredients", "dish_tags"],
+            estimated_duration=60
+        )
 
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        sys.exit(1)
+    def execute(self, context: ExecutionContext) -> PhaseResult:
+        start_time = time.time()
+        logger.info("Phase 3: Generating dishes...")
+
+        try:
+            # Note: cleanup=False because DatabaseManager handles cleanup
+            generate_dishes(context.db, blueprints_dir=self.blueprints_dir, cleanup=False)
+
+            dishes_count = context.db.fetch_val("SELECT COUNT(*) FROM dishes")
+            variants_count = context.db.fetch_val("SELECT COUNT(*) FROM dish_variants")
+            ingredients_count = context.db.fetch_val("SELECT COUNT(*) FROM dish_ingredients")
+
+            duration = time.time() - start_time
+            logger.info(
+                f"✓ Generated {dishes_count} dishes with "
+                f"{variants_count} variants and "
+                f"{ingredients_count} ingredient mappings in {duration:.2f}s"
+            )
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.COMPLETED,
+                duration_seconds=duration,
+                entities_generated={
+                    "dishes": dishes_count,
+                    "dish_variants": variants_count,
+                    "dish_ingredients": ingredients_count
+                }
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"✗ Dishes generation failed: {e}", exc_info=True)
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.FAILED,
+                duration_seconds=duration,
+                entities_generated={},
+                error=e
+            )
+

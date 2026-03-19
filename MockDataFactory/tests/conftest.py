@@ -4,11 +4,12 @@ Shared pytest fixtures for MockDataFactory tests.
 Provides common test data, mock database connections, and sample objects.
 """
 
-import sys
 import json
-import pytest
+import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+import pytest
 
 # Add project root to path - do this FIRST before any other imports
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -23,8 +24,6 @@ def pytest_configure(config):
 
 from algorithms.preference_calculator import DIMENSIONS
 
-# PATH FIXTURES
-
 @pytest.fixture
 def project_root() -> Path:
     """Return project root path."""
@@ -34,8 +33,6 @@ def project_root() -> Path:
 def blueprints_dir(project_root) -> Path:
     """Return blueprints directory path."""
     return project_root / "blueprints"
-
-# BLUEPRINT FIXTURES
 
 @pytest.fixture
 def dishes_json(blueprints_dir) -> dict:
@@ -81,8 +78,6 @@ def sample_archetype() -> dict:
         }
     }
 
-# USER & DISH FIXTURES
-
 @pytest.fixture
 def sample_user() -> dict:
     """Sample user with preference vector."""
@@ -102,9 +97,7 @@ def sample_dish() -> dict:
         "dish_name": "Test Pizza",
         "secret_archetype": "Pizza",
         "secret_variant_name": "Margherita",
-        "secret_characteristics_vector": {
-            dim: 0.5 for dim in DIMENSIONS
-        }
+        "secret_characteristics_vector": dict.fromkeys(DIMENSIONS, 0.5)
     }
 
 @pytest.fixture
@@ -117,8 +110,6 @@ def sample_restaurant() -> dict:
         "price_range": 2,
         "secret_quality_modifiers": {}
     }
-
-# MOCK FIXTURES
 
 @pytest.fixture
 def mock_db_connection():

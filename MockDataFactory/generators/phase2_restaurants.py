@@ -8,11 +8,15 @@ from tqdm import tqdm
 
 from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
+from generators.constants import THEME_TO_MENU_BLUEPRINT
+from orchestration.context import ExecutionContext
+from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
 from utils.date_generator import DateGenerator
 from utils.db_connection import DatabaseConnection
 from utils.distributions import sample_beta
 from utils.faker_instance import fake
+from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
 from utils.restaurant_helpers import RestaurantNameGenerator
 from utils.text_generator import slugify
@@ -131,41 +135,34 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     restaurant_data = []
     menu_sections_data = []
     restaurant_id_counter = 1
-    primary_photo_cache = {}  # Cache primary photo metadata for photos table
-
+    primary_photo_cache = {}
     generated_phones = set()
 
-    # Load Tier Probabilities from Global Config (Problem 1)
     global_config = loader.load_blueprint("global_config.json")
     tier_config = global_config.get("RESTAURANT_TIER_PROBABILITIES", {})
     default_tier_probs = tier_config.get("__default__", {"Budget": 0.2, "Casual": 0.7, "Fine Dining": 0.1})
 
-    # Extract themes from loaded rules
     available_themes = list(restaurant_rules.get("RESTAURANT_THEMES", {}).keys())
 
-    for city_id, city_name in tqdm(cities, desc="Generating restaurants", unit=" city", mininterval=1.0):
+    for city_id, city_name in tqdm(cities, desc="Generating restaurants", unit=" city", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         num_restaurants = city_counts.get(city_name, 0)
         city_info = city_config.get(city_name, {})
 
         base_coords = city_info.get("coords", {"lat": 52.0, "lon": 19.0})
 
         for _ in range(num_restaurants):
-            # Select theme based on distribution chance if available, else random
-            # Here we use weighted random if 'distribution_chance' exists in themes
             theme_data = restaurant_rules.get("RESTAURANT_THEMES", {})
             weights = [theme_data.get(t, {}).get("distribution_chance", 0.05) for t in available_themes]
             theme = random.choices(available_themes, weights=weights, k=1)[0]
-            
+
             theme_info = theme_data.get(theme, {})
-            
+
             name = name_generator.generate_name(theme, city_name)
             created_date = date_gen.generate_restaurant_created_date()
 
-            # Determine Tier (Mod 4)
             probs = tier_config.get(theme, default_tier_probs)
             tier = random.choices(list(probs.keys()), weights=list(probs.values()), k=1)[0]
 
-            # Set Price Multiplier based on Tier (Mod 5)
             if tier == "Budget":
                 secret_price_multiplier = random.uniform(0.6, 0.9)
                 price_level = 1
@@ -179,14 +176,12 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 price_level = 3
                 base_quality_mean = 0.85
 
-            # Quality attributes based on Tier
             base_food_quality = max(0.1, min(1.0, random.gauss(base_quality_mean, 0.1)))
-            
+
             secret_overall_food_quality = base_food_quality
             secret_service_quality = max(0.1, min(1.0, base_food_quality + random.gauss(0, 0.1)))
             secret_cleanliness_score = max(0.1, min(1.0, base_food_quality + random.gauss(0, 0.1)))
-            
-            # Boost Fine Dining service/cleanliness
+
             if tier == "Fine Dining":
                 secret_service_quality = min(1.0, secret_service_quality + 0.1)
                 secret_cleanliness_score = min(1.0, secret_cleanliness_score + 0.1)
@@ -210,12 +205,10 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             else:
                 status = "closed_permanently"
 
-            # Unique Phone Logic (Mod 1 & Problem 3 Fix)
             phone = fake.phone_number()
             phone_attempts = 0
             while phone in generated_phones:
                 if phone_attempts > 10:
-                    # Fallback to ensure uniqueness if loop gets stuck
                     phone = f"{phone}-{random.randint(1000, 9999)}"
                     break
                 phone = fake.phone_number()
@@ -227,9 +220,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             # 5%: unverified (pending admin approval)
             is_verified = random.random() < 0.95
 
-            # Get primary photo metadata
             primary_photo_metadata = photo_pools.get_restaurant_photo(theme, restaurant_id_counter)
-            # Cache metadata for use in _assign_restaurant_photos
             primary_photo_cache[restaurant_id_counter] = primary_photo_metadata
 
             restaurant_data.append(
@@ -242,16 +233,18 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "address": f"{fake.street_address()}, {city_name}",
                     "latitude": round(lat, 6),
                     "longitude": round(lon, 6),
+                    "geocode_source": "city_centroid",  # Centroid miasta + jitter (±0.05°)
+                    "geocoded_at": DateGenerator.to_sql_datetime(created_date),
                     "phone": phone,
                     "website": f"https://{slugify(name)}.pl",
-                    "description": _generate_description(theme, tier, city_name), # Typowane opisy (Mod 2)
+                    "description": _generate_description(theme, tier, city_name),
                     "image_url": primary_photo_metadata["url"],
                     "image_blurhash": primary_photo_metadata.get("blurhash"),
                     "status": status,
                     "is_verified": is_verified,
-                    "owner_id": None, # Will be set in Phase 4
+                    "owner_id": None,
                     "created_at": DateGenerator.to_sql_datetime(created_date),
-                    "updated_at": DateGenerator.to_sql_datetime(created_date),  # Initially same as created_at
+                    "updated_at": DateGenerator.to_sql_datetime(created_date),
                     "secret_price_multiplier": round(secret_price_multiplier, 3),
                     "secret_overall_food_quality": round(secret_overall_food_quality, 3),
                     "secret_service_quality": round(secret_service_quality, 3),
@@ -262,8 +255,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "secret_archetype_modifiers": json.dumps(generate_restaurant_archetype_modifiers(menu_blueprint)),
                 }
             )
-            
-            # Generate Menu Sections (Mod 10)
+
             menu_config = theme_info.get("menu_config", {}).get("sections", [])
             display_order = 1
             for section_def in menu_config:
@@ -278,14 +270,11 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             restaurant_id_counter += 1
 
     logger.info(f"Inserting {len(restaurant_data)} restaurants into database...")
-    # Use RETURNING to get actual database IDs
     actual_restaurant_ids = db.insert_bulk_returning("restaurants", restaurant_data, "restaurant_id")
     logger.info(f"Successfully inserted {len(actual_restaurant_ids)} restaurants")
 
-    # Map counter IDs to actual database IDs
     counter_to_db_id = {i+1: actual_id for i, actual_id in enumerate(actual_restaurant_ids)}
 
-    # Update menu_sections with actual database IDs
     if menu_sections_data:
         for section in menu_sections_data:
             section["restaurant_id"] = counter_to_db_id[section["restaurant_id"]]
@@ -299,7 +288,6 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     logger.info(f"Generated {len(restaurant_data)} restaurants in {duration:.2f}s")
 
 def _generate_description(theme: str, tier: str, city_name: str) -> str:
-    # Mod 2: Typowane opisy
     if theme == "Pizzeria":
         base = random.choice([
             f"Najlepsza pizza w mieście {city_name}.",
@@ -337,7 +325,7 @@ def _generate_description(theme: str, tier: str, city_name: str) -> str:
         ])
     else:
         base = f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników."
-        
+
     return base
 
 def _select_restaurant_theme(rules: dict) -> str:
@@ -348,38 +336,7 @@ def _select_restaurant_theme(rules: dict) -> str:
     return random.choice(themes)
 
 def _get_menu_blueprint(theme: str) -> str:
-    blueprints = {
-        "Pizzeria": "Pizzeria",
-        "Burgerownia": "Burger Bar",
-        "Sushi Bar": "Sushi Bar",
-        "Kuchnia Azjatycka": "Asian Fusion",
-        "Kuchnia Wietnamska": "Asian Fusion",
-        "Kuchnia Chińska": "Asian Fusion",
-        "Ramen Bar": "Asian Fusion",
-        "Steakhouse": "Steakhouse",
-        "Kawiarnia": "Cafe",
-        "Piekarnia z Kawiarnią": "Cafe", 
-        "Bar Meksykański": "Mexican Restaurant",
-        "Kuchnia Włoska": "Italian Restaurant",
-        "Francuskie Bistro": "French Bistro",
-        "Restauracja z Owocami Morza": "Seafood Restaurant",
-        "Kebab": "Kebab Place", 
-        "Kuchnia Polska": "Polish Restaurant",
-        "Kuchnia Indyjska": "Indian Restaurant",
-        "Grecka Taverna": "Greek Taverna",
-        "Wędzarnia BBQ": "BBQ Smokehouse",
-        "Korean BBQ": "Korean Restaurant",
-        "Bar Tapas": "Tapas Bar",
-        "Amerykański Diner": "American Diner",
-        "Niemiecki Pub": "German Pub",
-        "Kuchnia Bliskowschodnia": "Middle Eastern",
-        "Kuchnia Turecka": "Middle Eastern",
-        "Lodziarnia": "Ice Cream Shop",
-        "Kanapkownia": "Sandwich Shop",
-        "Wykwintna Restauracja": "Fine Dining",
-    }
-
-    return blueprints.get(theme, "General")
+    return THEME_TO_MENU_BLUEPRINT.get(theme, "General")
 
 def _assign_restaurant_tags(db: DatabaseConnection):
     logger.info("Assigning tags...")
@@ -389,7 +346,7 @@ def _assign_restaurant_tags(db: DatabaseConnection):
 
     tag_assignments = []
 
-    for restaurant_id, _theme in tqdm(restaurants, desc="Assigning tags", unit=" restaurant", mininterval=1.0):
+    for restaurant_id, _theme in tqdm(restaurants, desc="Assigning tags", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         num_tags = random.randint(2, 4)
         selected_tags = random.sample(tags, min(num_tags, len(tags)))
 
@@ -408,9 +365,8 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools, p
     photo_data = []
 
     for restaurant_id, theme, primary_image_url in tqdm(
-        restaurants, desc="Adding photos", unit=" restaurant", mininterval=1.0
+        restaurants, desc="Adding photos", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()
     ):
-        # Retrieve cached primary photo metadata (includes blurhash, width, height)
         primary_metadata = primary_photo_cache.get(restaurant_id, {})
 
         photo_data.append(
@@ -455,7 +411,7 @@ def _assign_opening_hours(db: DatabaseConnection):
     restaurants = RestaurantDAO.get_restaurants_with_cuisine(db)
     hours_data = []
 
-    for restaurant_id, theme in tqdm(restaurants, desc="Generating hours", unit=" restaurant", mininterval=1.0):
+    for restaurant_id, theme in tqdm(restaurants, desc="Generating hours", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()):
         schedule = _get_schedule_for_theme(theme)
 
         for day in range(1, 8):  # ISO 8601: 1=Mon, 7=Sun
@@ -483,11 +439,11 @@ def _get_schedule_for_theme(theme: str) -> dict:
     def random_time(start_hour_range, end_hour_range):
         h = random.randint(start_hour_range, end_hour_range)
         m = random.choice(["00", "30"])
-        
+
         # Handle overflow for late night hours (e.g. 24 -> 00, 25 -> 01)
         if h >= 24:
             h = h - 24
-            
+
         return f"{h:02d}:{m}"
 
     open_range = (11, 13)
@@ -512,31 +468,26 @@ def _get_schedule_for_theme(theme: str) -> dict:
     weekday_open = random_time(open_range[0], open_range[1])
     weekday_close = random_time(close_range[0], close_range[1])
 
-    # Weekend logic
     weekend_open = weekday_open
-    
-    # Parse weekday close hour to extend for weekend
+
     try:
         wc_h, wc_m = map(int, weekday_close.split(":"))
     except ValueError:
-        wc_h, wc_m = 22, 0 # Fallback
-        
-    # Extend by 1 hour for weekend
+        wc_h, wc_m = 22, 0
+
     we_close_h = wc_h + 1
     if we_close_h >= 24:
         we_close_h -= 24
-        
+
     weekend_close = f"{we_close_h:02d}:{wc_m:02d}"
 
-    # Sunday logic (usually earlier close)
     sunday_close_h = wc_h - 1
-    if sunday_close_h < 0: # If was 00:00, becomes 23:00
+    if sunday_close_h < 0:  # If was 00:00, becomes 23:00
         sunday_close_h += 24
-    
-    # Ensure Sunday doesn't close too early (e.g. before open) - simplified check
-    if sunday_close_h < 12 and sunday_close_h > 4: # Assuming open is ~10-12
-         sunday_close_h = 20 # Fallback to 8 PM
-         
+
+    if sunday_close_h < 12 and sunday_close_h > 4:
+        sunday_close_h = 20
+
     sunday_close = f"{sunday_close_h:02d}:{wc_m:02d}"
 
     return {
@@ -545,23 +496,71 @@ def _get_schedule_for_theme(theme: str) -> dict:
         "sunday": (weekday_open, sunday_close),
     }
 
-if __name__ == "__main__":
-    import os
-    import sys
+class RestaurantsPhase(BasePhase):
+    """
+    Phase 2: Restaurants Generation
 
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    Generates restaurants with opening hours, menu sections, photos, and tags.
 
-    from config import get_connection_params
+    Dependencies:
+    - phase1_cities (requires cities table)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    Required Tables: restaurants, restaurant_opening_hours, menu_sections
+    Estimated Duration: ~30 seconds (photo lookups)
+    """
 
-    try:
-        connection_params = get_connection_params()
+    def __init__(self, blueprints_dir: str = "blueprints"):
+        self.blueprints_dir = blueprints_dir
 
-        with DatabaseConnection(connection_params) as db:
-            generate_restaurants(db, blueprints_dir="blueprints")
-            logger.info("Phase 2 completed.")
+    @property
+    def metadata(self) -> PhaseMetadata:
+        return PhaseMetadata(
+            phase_id="phase2_restaurants",
+            display_name="Restaurants Generation",
+            dependencies=["phase1_cities"],  # Requires cities table
+            required_tables=["restaurants", "restaurant_opening_hours", "menu_sections"],
+            cleanup_tables=["restaurants", "restaurant_opening_hours", "menu_sections", "restaurant_tags"],
+            estimated_duration=30
+        )
 
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        sys.exit(1)
+    def execute(self, context: ExecutionContext) -> PhaseResult:
+        start_time = time.time()
+        logger.info("Phase 2: Generating restaurants...")
+
+        try:
+            # Note: cleanup=False because DatabaseManager handles cleanup
+            generate_restaurants(context.db, blueprints_dir=self.blueprints_dir, cleanup=False)
+
+            restaurant_count = context.db.fetch_val("SELECT COUNT(*) FROM restaurants")
+            menu_sections_count = context.db.fetch_val("SELECT COUNT(*) FROM menu_sections")
+            opening_hours_count = context.db.fetch_val("SELECT COUNT(*) FROM restaurant_opening_hours")
+
+            duration = time.time() - start_time
+            logger.info(
+                f"✓ Generated {restaurant_count} restaurants with "
+                f"{menu_sections_count} menu sections and "
+                f"{opening_hours_count} opening hours entries in {duration:.2f}s"
+            )
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.COMPLETED,
+                duration_seconds=duration,
+                entities_generated={
+                    "restaurants": restaurant_count,
+                    "menu_sections": menu_sections_count,
+                    "opening_hours": opening_hours_count
+                }
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"✗ Restaurants generation failed: {e}", exc_info=True)
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.FAILED,
+                duration_seconds=duration,
+                entities_generated={},
+                error=e
+            )
+

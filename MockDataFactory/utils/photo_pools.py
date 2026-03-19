@@ -55,23 +55,14 @@ class PhotoPools:
             return {"dishes": {}, "restaurants": {}}
 
     def _get_used(self, res_id: int, type_key: str) -> set[str]:
-        """
-        Get or create the set of used photos for a restaurant.
-
-        Args:
-            res_id: Restaurant ID
-            type_key: Type of photo ("dishes" or "interior")
-
-        Returns:
-            set: Set of photo paths already used for this restaurant
-        """
+        """Get or create set of used photos for a restaurant."""
         if res_id not in self.usage_history:
             self.usage_history[res_id] = {"dishes": set(), "interior": set()}
         return self.usage_history[res_id][type_key]
 
     def _format_url(self, path: str) -> str:
         """Helper to format URL based on configuration (R2 vs Local).
-        
+
         R2 Path Architecture (v2):
         - Mock data: smakosz/images/mock/{dishes,restaurants,avatars}/...
         - Ingredients: smakosz/images/ingredients/...
@@ -125,7 +116,7 @@ class PhotoPools:
         if cat_data is None:
              from tools.utils import slugify
              cat_data = self.index.get("dishes", {}).get(slugify(category), {})
-        
+
         photos = cat_data.get(variant)
         if photos is None:
              from tools.utils import slugify

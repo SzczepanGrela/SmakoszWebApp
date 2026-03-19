@@ -62,15 +62,15 @@ def print_config():
     print(f"  Users: {GENERATION_CONFIG['num_users']:,}")
     print(f"  Restaurants: {GENERATION_CONFIG['num_restaurants']:,}")
     print(f"  Dishes: {GENERATION_CONFIG['num_dishes']:,}")
-    print(f"  Custom Avatars: {GENERATION_CONFIG['custom_avatar_percentage'] * 100:.0f}% of users")
+    print(f"  Custom Avatars: {GENERATION_CONFIG['custom_avatar_percentage'] * 100:.0f}% of users")  # type: ignore[operator]
 
     print("\n[PHOTOS]:")
     r2_domain = os.getenv("R2_PUBLIC_DOMAIN")
     if r2_domain:
-        print(f"  Service: Cloudflare R2")
+        print("  Service: Cloudflare R2")
         print(f"  Domain: {r2_domain.rstrip('/')}")
     else:
-        print(f"  Service: Local paths (/images/mock/)")
+        print("  Service: Local paths (/images/mock/)")
 
     print("\n[PERFORMANCE]:")
     print(f"  Worker CPU Usage: {float(GENERATION_CONFIG['worker_cpu_usage_percent']) * 100}%")  # type: ignore
