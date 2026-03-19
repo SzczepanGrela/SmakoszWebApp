@@ -31,8 +31,9 @@ public static class TestConstants
     public const string BannedPassword = "TestHaslo123!";
     public const int BannedUserId = 5;
 
-    // JWT config (must match appsettings.json)
-    public const string JwtSecret = "***REMOVED***";
+    public static string JwtSecret =>
+        Environment.GetEnvironmentVariable("SMAKOSZ_JWT_SECRET")
+        ?? "***REMOVED***";
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
 }

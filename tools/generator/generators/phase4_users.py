@@ -260,8 +260,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     ):
         if i < total_admins:
             role = "admin"
-            username = f"admin_{i + 1}"
-            email = f"admin_{i + 1}@smakosz.xyz"
+            username = "admin"
+            email = "admin@smakosz.xyz"
         elif i < total_admins + total_moderators:
             role = "moderator"
             mod_num = i - total_admins + 1
