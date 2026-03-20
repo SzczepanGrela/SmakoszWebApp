@@ -9,7 +9,7 @@ public static class TestAuthHelper
 {
     public static string JwtSecret =>
         Environment.GetEnvironmentVariable("SMAKOSZ_JWT_SECRET")
-        ?? "***REMOVED***";
+        ?? "integration-test-jwt-secret-key-min-32-chars";
 
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
