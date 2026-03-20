@@ -56,7 +56,6 @@ backup_*.sql
 
 # All markdown files (documentation, notes, etc.)
 *.md
-!AGENTS.md
 
 # Backup and old files
 *.old
