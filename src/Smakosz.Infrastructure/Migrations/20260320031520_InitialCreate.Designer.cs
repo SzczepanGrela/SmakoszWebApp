@@ -14,7 +14,7 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260310235904_InitialCreate")]
+    [Migration("20260320031520_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -22,7 +22,7 @@ namespace Smakosz.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
@@ -429,15 +429,8 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ingredient_id");
 
-                    b.Property<int?>("DishId1")
-                        .HasColumnType("integer")
-                        .HasColumnName("dish_id1");
-
                     b.HasKey("DishId", "IngredientId")
                         .HasName("pk_dish_ingredients");
-
-                    b.HasIndex("DishId1")
-                        .HasDatabaseName("ix_dish_ingredients_dish_id1");
 
                     b.HasIndex("IngredientId")
                         .HasDatabaseName("ix_dish_ingredients_ingredient_id");
@@ -1002,6 +995,59 @@ namespace Smakosz.Infrastructure.Migrations
                     b.ToTable("notifications", (string)null);
                 });
 
+            modelBuilder.Entity("Smakosz.Domain.Entities.PushSubscription", b =>
+                {
+                    b.Property<int>("PushSubscriptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("push_subscription_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PushSubscriptionId"));
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("auth");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("device_name");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("endpoint");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("p256dh");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("PushSubscriptionId")
+                        .HasName("pk_push_subscriptions");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique()
+                        .HasDatabaseName("ix_push_subscriptions_endpoint");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_push_subscriptions_user_id");
+
+                    b.ToTable("push_subscriptions", (string)null);
+                });
+
             modelBuilder.Entity("Smakosz.Domain.Entities.RejectionReason", b =>
                 {
                     b.Property<string>("ReasonCode")
@@ -1234,15 +1280,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
-                    b.Property<string>("GeocodeSource")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("geocode_source");
-
-                    b.Property<DateTime?>("GeocodedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("geocoded_at");
-
                     b.Property<string>("ImageBlurhash")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -1256,14 +1293,6 @@ namespace Smakosz.Infrastructure.Migrations
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean")
                         .HasColumnName("is_verified");
-
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("numeric(10,7)")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("numeric(10,7)")
-                        .HasColumnName("longitude");
 
                     b.Property<string>("ModerationStatus")
                         .IsRequired()
@@ -2118,6 +2147,58 @@ namespace Smakosz.Infrastructure.Migrations
                     b.ToTable("forbidden_words", "system");
                 });
 
+            modelBuilder.Entity("Smakosz.Domain.Entities.System.HomePageCache", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("HeroImageJson")
+                        .HasColumnType("text")
+                        .HasColumnName("hero_image_json");
+
+                    b.Property<string>("PopularCategoriesJson")
+                        .HasColumnType("text")
+                        .HasColumnName("popular_categories_json");
+
+                    b.Property<string>("RecentReviewsJson")
+                        .HasColumnType("text")
+                        .HasColumnName("recent_reviews_json");
+
+                    b.Property<string>("TopRatedDishesJson")
+                        .HasColumnType("text")
+                        .HasColumnName("top_rated_dishes_json");
+
+                    b.Property<string>("TrendingDishesJson")
+                        .HasColumnType("text")
+                        .HasColumnName("trending_dishes_json");
+
+                    b.Property<string>("TrendingRestaurantsJson")
+                        .HasColumnType("text")
+                        .HasColumnName("trending_restaurants_json");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_home_page_cache");
+
+                    b.ToTable("home_page_cache", "system");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
+                });
+
             modelBuilder.Entity("Smakosz.Domain.Entities.System.JobProgress", b =>
                 {
                     b.Property<long>("ProgressId")
@@ -2721,6 +2802,12 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("worker_node");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("JobId")
                         .HasName("pk_jobs");
@@ -3452,16 +3539,11 @@ namespace Smakosz.Infrastructure.Migrations
             modelBuilder.Entity("Smakosz.Domain.Entities.DishIngredient", b =>
                 {
                     b.HasOne("Smakosz.Domain.Entities.Dish", "Dish")
-                        .WithMany()
+                        .WithMany("DishIngredients")
                         .HasForeignKey("DishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_dish_ingredients_dishes_dish_id");
-
-                    b.HasOne("Smakosz.Domain.Entities.Dish", null)
-                        .WithMany("DishIngredients")
-                        .HasForeignKey("DishId1")
-                        .HasConstraintName("fk_dish_ingredients_dishes_dish_id1");
 
                     b.HasOne("Smakosz.Domain.Entities.Ingredient", "Ingredient")
                         .WithMany()
@@ -3625,6 +3707,18 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasConstraintName("fk_notifications_users_user_id");
 
                     b.Navigation("Actor");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Smakosz.Domain.Entities.PushSubscription", b =>
+                {
+                    b.HasOne("Smakosz.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_push_subscriptions_users_user_id");
 
                     b.Navigation("User");
                 });

@@ -170,6 +170,26 @@ namespace Smakosz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "home_page_cache",
+                schema: "system",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    trending_restaurants_json = table.Column<string>(type: "text", nullable: true),
+                    trending_dishes_json = table.Column<string>(type: "text", nullable: true),
+                    top_rated_dishes_json = table.Column<string>(type: "text", nullable: true),
+                    recent_reviews_json = table.Column<string>(type: "text", nullable: true),
+                    popular_categories_json = table.Column<string>(type: "text", nullable: true),
+                    hero_image_json = table.Column<string>(type: "text", nullable: true),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_home_page_cache", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ingredients",
                 columns: table => new
                 {
@@ -401,7 +421,8 @@ namespace Smakosz.Infrastructure.Migrations
                     max_attempts = table.Column<int>(type: "integer", nullable: false, defaultValue: 3),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
                     started_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    finished_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    finished_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -489,8 +510,7 @@ namespace Smakosz.Infrastructure.Migrations
                 columns: table => new
                 {
                     dish_id = table.Column<int>(type: "integer", nullable: false),
-                    ingredient_id = table.Column<int>(type: "integer", nullable: false),
-                    dish_id1 = table.Column<int>(type: "integer", nullable: true)
+                    ingredient_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -743,6 +763,24 @@ namespace Smakosz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "push_subscriptions",
+                columns: table => new
+                {
+                    push_subscription_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    endpoint = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
+                    p256dh = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    auth = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    device_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_push_subscriptions", x => x.push_subscription_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "refresh_tokens",
                 schema: "system",
                 columns: table => new
@@ -885,10 +923,6 @@ namespace Smakosz.Infrastructure.Migrations
                     price_level = table.Column<int>(type: "integer", nullable: true),
                     address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     postal_code = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
-                    latitude = table.Column<decimal>(type: "numeric(10,7)", nullable: true),
-                    longitude = table.Column<decimal>(type: "numeric(10,7)", nullable: true),
-                    geocode_source = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    geocoded_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -1269,6 +1303,12 @@ namespace Smakosz.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 schema: "system",
+                table: "home_page_cache",
+                columns: new[] { "id", "hero_image_json", "popular_categories_json", "recent_reviews_json", "top_rated_dishes_json", "trending_dishes_json", "trending_restaurants_json" },
+                values: new object[] { 1, null, null, null, null, null, null });
+
+            migrationBuilder.InsertData(
+                schema: "system",
                 table: "site_stats",
                 columns: new[] { "id", "avg_dish_rating", "avg_restaurant_food_score", "most_active_city", "most_popular_cuisine", "new_users_this_month", "reviews_this_week", "total_dishes", "total_photos", "total_restaurants", "total_reviews", "total_users" },
                 values: new object[] { 1, 0.0, 0.0, null, null, 0, 0, 0, 0, 0, 0, 0 });
@@ -1356,11 +1396,6 @@ namespace Smakosz.Infrastructure.Migrations
                 table: "dish_archetypes",
                 column: "archetype_name",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_dish_ingredients_dish_id1",
-                table: "dish_ingredients",
-                column: "dish_id1");
 
             migrationBuilder.CreateIndex(
                 name: "ix_dish_ingredients_ingredient_id",
@@ -1652,6 +1687,17 @@ namespace Smakosz.Infrastructure.Migrations
                 table: "notifications",
                 columns: new[] { "user_id", "created_at" },
                 descending: new[] { false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_push_subscriptions_endpoint",
+                table: "push_subscriptions",
+                column: "endpoint",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_push_subscriptions_user_id",
+                table: "push_subscriptions",
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_refresh_tokens_expires_at",
@@ -2020,13 +2066,6 @@ namespace Smakosz.Infrastructure.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "fk_dish_ingredients_dishes_dish_id1",
-                table: "dish_ingredients",
-                column: "dish_id1",
-                principalTable: "dishes",
-                principalColumn: "dish_id");
-
-            migrationBuilder.AddForeignKey(
                 name: "fk_dish_section_assignments_dishes_dish_id",
                 table: "dish_section_assignments",
                 column: "dish_id",
@@ -2142,6 +2181,14 @@ namespace Smakosz.Infrastructure.Migrations
             migrationBuilder.AddForeignKey(
                 name: "fk_notifications_users_user_id",
                 table: "notifications",
+                column: "user_id",
+                principalTable: "users",
+                principalColumn: "user_id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "fk_push_subscriptions_users_user_id",
+                table: "push_subscriptions",
                 column: "user_id",
                 principalTable: "users",
                 principalColumn: "user_id",
@@ -2288,6 +2335,10 @@ namespace Smakosz.Infrastructure.Migrations
                 schema: "system");
 
             migrationBuilder.DropTable(
+                name: "home_page_cache",
+                schema: "system");
+
+            migrationBuilder.DropTable(
                 name: "ingredient_suggestions");
 
             migrationBuilder.DropTable(
@@ -2311,6 +2362,9 @@ namespace Smakosz.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "notifications");
+
+            migrationBuilder.DropTable(
+                name: "push_subscriptions");
 
             migrationBuilder.DropTable(
                 name: "refresh_tokens",
