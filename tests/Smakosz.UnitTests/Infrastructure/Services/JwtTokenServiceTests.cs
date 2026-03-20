@@ -1,8 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Smakosz.Domain.Enums;
+using Smakosz.Infrastructure.Configuration;
 using Smakosz.Infrastructure.Services;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -19,16 +20,14 @@ public class JwtTokenServiceTests
 
     public JwtTokenServiceTests()
     {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Jwt:Secret"] = TestSecret,
-                ["Jwt:Issuer"] = TestIssuer,
-                ["Jwt:Audience"] = TestAudience,
-            })
-            .Build();
+        var options = Options.Create(new JwtOptions
+        {
+            Secret = TestSecret,
+            Issuer = TestIssuer,
+            Audience = TestAudience,
+        });
 
-        _sut = new JwtTokenService(configuration);
+        _sut = new JwtTokenService(options);
     }
 
     private static UserBuilder DefaultUser() =>

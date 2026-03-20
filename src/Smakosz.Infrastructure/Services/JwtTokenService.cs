@@ -2,24 +2,21 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Infrastructure.Services;
 
 public class JwtTokenService : IJwtTokenService
 {
-    private readonly string _secret;
-    private readonly string _issuer;
-    private readonly string _audience;
+    private readonly JwtOptions _jwt;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IOptions<JwtOptions> options)
     {
-        _secret = configuration["Jwt:Secret"]!;
-        _issuer = configuration["Jwt:Issuer"]!;
-        _audience = configuration["Jwt:Audience"]!;
+        _jwt = options.Value;
     }
 
     public string GenerateAccessToken(User user)
@@ -32,12 +29,12 @@ public class JwtTokenService : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Name, user.Username),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _issuer,
-            audience: _audience,
+            issuer: _jwt.Issuer,
+            audience: _jwt.Audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(15),
             signingCredentials: credentials);
