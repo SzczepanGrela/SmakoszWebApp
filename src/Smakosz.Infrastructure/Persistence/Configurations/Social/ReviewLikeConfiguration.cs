@@ -1,0 +1,28 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Smakosz.Domain.Entities;
+
+namespace Smakosz.Infrastructure.Persistence.Configurations.Social;
+
+public class ReviewLikeConfiguration : IEntityTypeConfiguration<ReviewLike>
+{
+    public void Configure(EntityTypeBuilder<ReviewLike> builder)
+    {
+        builder.HasKey(x => new { x.UserId, x.ReviewId });
+
+        builder.HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Review)
+            .WithMany()
+            .HasForeignKey(x => x.ReviewId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(x => x.ReviewId);
+
+        builder.HasIndex(x => new { x.UserId, x.CreatedAt })
+            .IsDescending(false, true);
+    }
+}
