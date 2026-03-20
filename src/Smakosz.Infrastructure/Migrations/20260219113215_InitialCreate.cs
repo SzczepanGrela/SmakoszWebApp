@@ -2205,12 +2205,11 @@ $$ LANGUAGE plpgsql;
 ");
 
             migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION log_audit_event(pk_column_name TEXT)
+CREATE OR REPLACE FUNCTION log_audit_event()
 RETURNS TRIGGER AS $$
 DECLARE
+    pk_column_name TEXT := TG_ARGV[0];
     pk_value TEXT;
-    old_data JSONB;
-    new_data JSONB;
 BEGIN
     IF TG_OP = 'INSERT' THEN
         EXECUTE format('SELECT ($1).%I::TEXT', pk_column_name) INTO pk_value USING NEW;
@@ -2384,7 +2383,7 @@ DROP TRIGGER IF EXISTS trg_update_timestamp_users ON users;
 ");
 
             migrationBuilder.Sql(@"
-DROP FUNCTION IF EXISTS log_audit_event(TEXT);
+DROP FUNCTION IF EXISTS log_audit_event();
 DROP FUNCTION IF EXISTS update_timestamp();
 DROP FUNCTION IF EXISTS generate_slug(TEXT);
 DROP FUNCTION IF EXISTS f_unaccent(text);

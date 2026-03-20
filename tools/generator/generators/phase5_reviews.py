@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import random
 import time
 import uuid
@@ -463,6 +464,11 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     total_cores = cpu_count()
     target_workers = int(total_cores * float(GENERATION_CONFIG.get("worker_cpu_usage_percent", 0.75)))  # type: ignore
     num_processes = max(1, min(target_workers, int(GENERATION_CONFIG.get("max_db_connections_limit", 16))))  # type: ignore
+
+    # Python 3.13+ on Windows has a known bug with concurrent send_bytes() in multiprocessing Pool
+    if platform.system() == "Windows":
+        num_processes = 1
+        logger.info("Windows detected - forcing single-process mode to avoid send_bytes() bug")
 
     chunk_size = 100
     user_chunks = [user_objects[i : i + chunk_size] for i in range(0, len(user_objects), chunk_size)]
