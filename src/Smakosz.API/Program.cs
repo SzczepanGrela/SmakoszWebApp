@@ -20,16 +20,19 @@ builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("DefaultConnection")!,
     builder.Configuration);
 
-builder.Services.AddHangfire(cfg => cfg
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(
-        builder.Configuration.GetConnectionString("DefaultConnection")!)));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHangfire(cfg => cfg
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(
+            builder.Configuration.GetConnectionString("DefaultConnection")!)));
+    builder.Logging.AddDatabaseLogger();
+}
+
 builder.Services.AddScoped<INcfTrainingService, HangfireNcfTrainingProxy>();
 builder.Services.AddScoped<IModerationAggregationService, HangfireModerationProxy>();
-
-builder.Logging.AddDatabaseLogger();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
