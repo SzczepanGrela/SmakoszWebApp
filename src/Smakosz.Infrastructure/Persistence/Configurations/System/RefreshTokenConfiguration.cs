@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Smakosz.Domain.Entities.System;
+using Smakosz.Infrastructure.Persistence.Converters;
 
 namespace Smakosz.Infrastructure.Persistence.Configurations.System;
 
@@ -23,6 +24,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
             .HasMaxLength(255);
 
         builder.Property(x => x.IpAddress)
+            .HasConversion(new InetStringConverter())
             .HasColumnType("inet");
 
         builder.Property(x => x.ExpiresAt)
