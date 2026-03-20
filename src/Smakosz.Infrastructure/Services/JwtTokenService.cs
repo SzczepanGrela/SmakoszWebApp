@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Smakosz.Application.Common.Interfaces;
@@ -29,8 +28,13 @@ public class JwtTokenService : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Name, user.Username),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(_jwt.PrivateKey);
+        var key = new RsaSecurityKey(rsa);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256)
+        {
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+        };
 
         var token = new JwtSecurityToken(
             issuer: _jwt.Issuer,

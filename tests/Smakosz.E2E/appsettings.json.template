@@ -3,6 +3,6 @@
     "E2E": "Host=localhost;Port=5432;Database=smakosz_e2e;Username=<DB_USER>;Password=<DB_PASSWORD>"
   },
   "Jwt": {
-    "Secret": "<MIN-32-CHAR-SECRET-KEY>"
+    "PrivateKey": "<RSA-PRIVATE-KEY-PEM-INLINE-WITH-ESCAPED-NEWLINES>"
   }
 }

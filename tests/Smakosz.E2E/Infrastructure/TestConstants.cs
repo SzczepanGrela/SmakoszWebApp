@@ -39,10 +39,10 @@ public static class TestConstants
     public const string BannedPassword = "TestHaslo123!";
     public const int BannedUserId = 5;
 
-    public static string JwtSecret =>
-        Config["Jwt:Secret"]
+    public static string JwtPrivateKey =>
+        Config["Jwt:PrivateKey"]
         ?? throw new InvalidOperationException(
-            "Jwt:Secret is not configured in tests/Smakosz.E2E/appsettings.json");
+            "Jwt:PrivateKey is not configured in tests/Smakosz.E2E/appsettings.json");
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
 }

@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Smakosz.Domain.Enums;
 using Smakosz.Infrastructure.Configuration;
 using Smakosz.Infrastructure.Services;
@@ -12,7 +14,10 @@ namespace Smakosz.UnitTests.Infrastructure.Services;
 [Trait("Category", "Services")]
 public class JwtTokenServiceTests
 {
-    private const string TestSecret = "SuperSecretKeyForTestingPurposesThatIsLongEnoughForHmacSha256!";
+    private static readonly RSA TestRsa = RSA.Create(2048);
+    private static readonly string TestPrivateKey = TestRsa.ExportRSAPrivateKeyPem();
+    private static readonly string TestPublicKey = TestRsa.ExportRSAPublicKeyPem();
+
     private const string TestIssuer = "TestIssuer";
     private const string TestAudience = "TestAudience";
 
@@ -22,7 +27,8 @@ public class JwtTokenServiceTests
     {
         var options = Options.Create(new JwtOptions
         {
-            Secret = TestSecret,
+            PrivateKey = TestPrivateKey,
+            PublicKey = TestPublicKey,
             Issuer = TestIssuer,
             Audience = TestAudience,
         });
@@ -46,6 +52,19 @@ public class JwtTokenServiceTests
 
         token.Should().NotBeNullOrEmpty();
         token.Split('.').Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void GenerateAccessToken_UsesRsaSha256Algorithm()
+    {
+        var user = DefaultUser().Build();
+
+        var token = _sut.GenerateAccessToken(user);
+
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(token);
+
+        jwt.Header.Alg.Should().Be("RS256");
     }
 
     [Fact]
@@ -92,6 +111,35 @@ public class JwtTokenServiceTests
 
         jwt.Issuer.Should().Be(TestIssuer);
         jwt.Audiences.Should().Contain(TestAudience);
+    }
+
+    [Fact]
+    public void GenerateAccessToken_IsVerifiableWithPublicKey()
+    {
+        var user = DefaultUser().Build();
+
+        var token = _sut.GenerateAccessToken(user);
+
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(TestPublicKey);
+        var key = new RsaSecurityKey(rsa);
+
+        var handler = new JwtSecurityTokenHandler();
+        var validationParams = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = TestIssuer,
+            ValidAudience = TestAudience,
+            IssuerSigningKey = key,
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+        };
+
+        var result = handler.ValidateToken(token, validationParams, out _);
+
+        result.Identity!.IsAuthenticated.Should().BeTrue();
     }
 
     [Fact]

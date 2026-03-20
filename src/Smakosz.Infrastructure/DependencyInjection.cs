@@ -18,39 +18,54 @@ public static class DependencyInjection
         string connectionString,
         IConfiguration configuration)
     {
+        services.AddInfrastructureCore(connectionString);
+        services.AddInfrastructureAuth(configuration);
+        services.AddInfrastructureStorage(configuration);
+        services.AddInfrastructureRecommendations(configuration);
+        services.AddInfrastructureMessaging(configuration);
+        services.AddInfrastructureModels(configuration);
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureCore(
+        this IServiceCollection services,
+        string connectionString)
+    {
         services.AddDbContext<SmakoszDbContext>(options =>
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
         services.AddMemoryCache();
-        services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureAuth(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<CodeHasherOptions>(configuration.GetSection(CodeHasherOptions.SectionName));
         services.AddSingleton<ICodeHasher>(sp =>
         {
-            var jwt = sp.GetRequiredService<IOptions<JwtOptions>>().Value;
-            return new HmacCodeHasher(jwt.Secret);
+            var opts = sp.GetRequiredService<IOptions<CodeHasherOptions>>().Value;
+            return new HmacCodeHasher(opts.Secret);
         });
         services.AddScoped<IJwtTokenService, JwtTokenService>();
-        var brevoApiKey = configuration.GetSection(BrevoOptions.SectionName)["ApiKey"];
-        if (!string.IsNullOrEmpty(brevoApiKey))
-        {
-            var brevoOptions = new BrevoOptions
-            {
-                ApiKey = brevoApiKey,
-                SenderEmail = configuration.GetSection(BrevoOptions.SectionName)["SenderEmail"] ?? string.Empty,
-                SenderName = configuration.GetSection(BrevoOptions.SectionName)["SenderName"] ?? string.Empty
-            };
-            services.AddSingleton(brevoOptions);
-            services.AddHttpClient<IEmailService, BrevoEmailService>();
-        }
-        else
-        {
-            services.AddScoped<IEmailService, StubEmailService>();
-        }
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
+        services.AddHttpClient<ITurnstileService, TurnstileService>();
 
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureStorage(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         var r2Section = configuration.GetSection(R2Options.SectionName);
         var r2AccountId = r2Section["AccountId"];
         if (!string.IsNullOrEmpty(r2AccountId))
@@ -72,6 +87,13 @@ public static class DependencyInjection
             services.AddScoped<IFileStorageService, StubFileStorageService>();
         }
 
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureRecommendations(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         services.Configure<OnnxOptions>(configuration.GetSection(OnnxOptions.SectionName));
         services.AddSingleton<OnnxRecommendationService>();
         services.AddSingleton<TrendingRecommendationService>();
@@ -82,6 +104,30 @@ public static class DependencyInjection
                 return onnx;
             return sp.GetRequiredService<TrendingRecommendationService>();
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureMessaging(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var brevoApiKey = configuration.GetSection(BrevoOptions.SectionName)["ApiKey"];
+        if (!string.IsNullOrEmpty(brevoApiKey))
+        {
+            var brevoOptions = new BrevoOptions
+            {
+                ApiKey = brevoApiKey,
+                SenderEmail = configuration.GetSection(BrevoOptions.SectionName)["SenderEmail"] ?? string.Empty,
+                SenderName = configuration.GetSection(BrevoOptions.SectionName)["SenderName"] ?? string.Empty
+            };
+            services.AddSingleton(brevoOptions);
+            services.AddHttpClient<IEmailService, BrevoEmailService>();
+        }
+        else
+        {
+            services.AddScoped<IEmailService, StubEmailService>();
+        }
 
         var vapidSection = configuration.GetSection(VapidOptions.SectionName);
         var vapidPublicKey = vapidSection["PublicKey"];
@@ -101,8 +147,13 @@ public static class DependencyInjection
             services.AddSingleton<IPushNotificationService, StubPushNotificationService>();
         }
 
-        services.AddHttpClient<ITurnstileService, TurnstileService>();
+        return services;
+    }
 
+    public static IServiceCollection AddInfrastructureModels(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         var r2ModelsSection = configuration.GetSection(R2ModelOptions.SectionName);
         var r2ModelsAccountId = r2ModelsSection["AccountId"];
         if (!string.IsNullOrEmpty(r2ModelsAccountId))
