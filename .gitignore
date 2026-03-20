@@ -382,8 +382,5 @@ tools/generator/config/db_config.ini
 # Windows nul artifact
 /nul
 
-# Old root-level markdown files - removed from repo
-/PODSUMOWANIE_PROJEKTU.md
-/ROADMAP.md
-/ROADMAP_FULL_V2.md
-/ROADMAP_FULL.md
+# All markdown files (documentation kept local-only)
+*.md
