@@ -1,0 +1,120 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/szczepangrela/smakoszwebapp
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Unit Tests
+        run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
+
+      - name: Client Tests
+        run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
+
+      - name: Integration Tests
+        run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
+
+  build-images:
+    name: Build & Push Images
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.API/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/api:latest
+            ${{ env.IMAGE_PREFIX }}/api:${{ env.SHORT_SHA }}
+
+      - name: Build & push Client
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.Client/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/client:latest
+            ${{ env.IMAGE_PREFIX }}/client:${{ env.SHORT_SHA }}
+
+      - name: Build & push Orchestrator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.Orchestrator/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/orchestrator:latest
+            ${{ env.IMAGE_PREFIX }}/orchestrator:${{ env.SHORT_SHA }}
+
+  deploy-vps:
+    name: Deploy to VPS
+    needs: build-images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          client-id: ${{ secrets.TS_CLIENT_ID_VPS }}
+          tags: tag:ci-vps
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY_VPS }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_SSH_PORT }} \
+            smakosz@${{ secrets.VPS_HOST }} deploy
