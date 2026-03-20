@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace Smakosz.API.Common;
 
@@ -7,11 +8,13 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -66,7 +69,9 @@ public class ExceptionHandlingMiddleware
                 Error = new ApiError
                 {
                     Code = "INTERNAL_ERROR",
-                    Message = "Wystąpił nieoczekiwany błąd serwera"
+                    Message = _env.IsProduction()
+                        ? "Wystąpił nieoczekiwany błąd serwera"
+                        : $"{ex.GetType().Name}: {ex.Message}"
                 }
             });
         }

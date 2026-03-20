@@ -18,6 +18,12 @@ public class HomeEndpointsTests : IntegrationTestBase
     {
         var response = await AnonymousClient.GetAsync("/api/home");
 
+        if (response.StatusCode == HttpStatusCode.InternalServerError)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Fail($"Got 500. Response body: {body}");
+        }
+
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
