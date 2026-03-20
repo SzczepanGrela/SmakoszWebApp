@@ -1,0 +1,89 @@
+using Microsoft.EntityFrameworkCore;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
+
+namespace Smakosz.Infrastructure.Persistence;
+
+public class SmakoszDbContext : DbContext
+{
+    public SmakoszDbContext(DbContextOptions<SmakoszDbContext> options) : base(options)
+    {
+    }
+
+    // Dictionary
+    public DbSet<City> Cities => Set<City>();
+    public DbSet<CuisineType> CuisineTypes => Set<CuisineType>();
+    public DbSet<Ingredient> Ingredients => Set<Ingredient>();
+    public DbSet<DishArchetype> DishArchetypes => Set<DishArchetype>();
+    public DbSet<DishVariant> DishVariants => Set<DishVariant>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<ReportReasonDefinition> ReportReasonDefinitions => Set<ReportReasonDefinition>();
+    public DbSet<RejectionReason> RejectionReasons => Set<RejectionReason>();
+
+    // Identity
+    public DbSet<User> Users => Set<User>();
+    public DbSet<VerificationCode> VerificationCodes => Set<VerificationCode>();
+    public DbSet<UserNotificationSettings> UserNotificationSettings => Set<UserNotificationSettings>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
+    public DbSet<UserFollow> UserFollows => Set<UserFollow>();
+
+    // Restaurant / Menu
+    public DbSet<Restaurant> Restaurants => Set<Restaurant>();
+    public DbSet<RestaurantOpeningHours> RestaurantOpeningHours => Set<RestaurantOpeningHours>();
+    public DbSet<MenuSection> MenuSections => Set<MenuSection>();
+    public DbSet<Dish> Dishes => Set<Dish>();
+    public DbSet<DishSectionAssignment> DishSectionAssignments => Set<DishSectionAssignment>();
+    public DbSet<DishIngredient> DishIngredients => Set<DishIngredient>();
+    public DbSet<DishTag> DishTags => Set<DishTag>();
+    public DbSet<RestaurantTag> RestaurantTags => Set<RestaurantTag>();
+    public DbSet<SavedDish> SavedDishes => Set<SavedDish>();
+    public DbSet<FavoriteRestaurant> FavoriteRestaurants => Set<FavoriteRestaurant>();
+
+    // Social / Content
+    public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<ReviewLike> ReviewLikes => Set<ReviewLike>();
+    public DbSet<Report> Reports => Set<Report>();
+    public DbSet<ReportReasonAssignment> ReportReasonAssignments => Set<ReportReasonAssignment>();
+    public DbSet<DataCorrectionRequest> DataCorrectionRequests => Set<DataCorrectionRequest>();
+    public DbSet<RestaurantEditRequest> RestaurantEditRequests => Set<RestaurantEditRequest>();
+    public DbSet<IngredientSuggestion> IngredientSuggestions => Set<IngredientSuggestion>();
+
+    // Audit
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // System
+    public DbSet<SystemConfig> SystemConfigs => Set<SystemConfig>();
+    public DbSet<SystemNode> SystemNodes => Set<SystemNode>();
+    public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
+    public DbSet<SystemJob> SystemJobs => Set<SystemJob>();
+    public DbSet<JobProgress> JobProgresses => Set<JobProgress>();
+    public DbSet<SystemLog> SystemLogs => Set<SystemLog>();
+    public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
+    public DbSet<ModerationLog> ModerationLogs => Set<ModerationLog>();
+    public DbSet<AiLog> AiLogs => Set<AiLog>();
+    public DbSet<SystemTicket> SystemTickets => Set<SystemTicket>();
+    public DbSet<BannedIdentifier> BannedIdentifiers => Set<BannedIdentifier>();
+    public DbSet<ForbiddenWord> ForbiddenWords => Set<ForbiddenWord>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasPostgresExtension("pg_trgm");
+        modelBuilder.HasPostgresExtension("unaccent");
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SmakoszDbContext).Assembly);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            return;
+
+        optionsBuilder.UseSnakeCaseNamingConvention();
+    }
+}
