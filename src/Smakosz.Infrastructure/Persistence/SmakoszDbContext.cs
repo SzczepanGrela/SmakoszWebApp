@@ -118,8 +118,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<SystemTicket> SystemTickets => Set<SystemTicket>();
     public DbSet<BannedIdentifier> BannedIdentifiers => Set<BannedIdentifier>();
     public DbSet<ForbiddenWord> ForbiddenWords => Set<ForbiddenWord>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-    public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
+public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
     public DbSet<SiteStats> SiteStats => Set<SiteStats>();
     public DbSet<HomePageCache> HomePageCaches => Set<HomePageCache>();
     public DbSet<ModerationResult> ModerationResults => Set<ModerationResult>();
