@@ -48,7 +48,7 @@ public class JwtTokenServiceTests
     {
         var user = DefaultUser().Build();
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
 
         token.Should().NotBeNullOrEmpty();
         token.Split('.').Should().HaveCount(3);
@@ -59,7 +59,7 @@ public class JwtTokenServiceTests
     {
         var user = DefaultUser().Build();
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
 
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(token);
@@ -72,7 +72,7 @@ public class JwtTokenServiceTests
     {
         var user = DefaultUser().Build();
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
 
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(token);
@@ -89,7 +89,7 @@ public class JwtTokenServiceTests
         var user = DefaultUser().Build();
         var before = DateTime.UtcNow;
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
         var after = DateTime.UtcNow;
 
         var handler = new JwtSecurityTokenHandler();
@@ -104,7 +104,7 @@ public class JwtTokenServiceTests
     {
         var user = DefaultUser().Build();
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
 
         var handler = new JwtSecurityTokenHandler();
         var jwt = handler.ReadJwtToken(token);
@@ -118,7 +118,7 @@ public class JwtTokenServiceTests
     {
         var user = DefaultUser().Build();
 
-        var token = _sut.GenerateAccessToken(user);
+        var token = _sut.GenerateAccessToken(user, TimeSpan.FromMinutes(15));
 
         using var rsa = RSA.Create();
         rsa.ImportFromPem(TestPublicKey);

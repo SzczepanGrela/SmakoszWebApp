@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Dtos;
-using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
@@ -15,14 +14,16 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly ISmakoszDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ISessionService _sessionService;
     private readonly ICurrentUserService _currentUser;
     private readonly ITurnstileService _turnstile;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ICurrentUserService currentUser, ITurnstileService turnstile)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _sessionService = sessionService;
         _currentUser = currentUser;
         _turnstile = turnstile;
     }
@@ -87,18 +88,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         if (!user.EmailVerified)
             return DomainErrors.Auth.EmailNotVerified;
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
-
-        var session = new UserSession
-        {
-            UserId = user.UserId,
-            RefreshTokenHash = refreshToken,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(request.RememberMe ? 30 : 7)
-        };
-
-        _db.UserSessions.Add(session);
+        var refreshToken = await _sessionService.CreateSessionAsync(user.UserId, request.RememberMe, cancellationToken);
+        var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
@@ -107,7 +99,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,

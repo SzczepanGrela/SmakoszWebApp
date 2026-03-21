@@ -56,6 +56,7 @@ public class DependencyInjectionTests
         var descriptors = services.Select(d => d.ServiceType).ToList();
 
         descriptors.Should().Contain(typeof(IJwtTokenService));
+        descriptors.Should().Contain(typeof(ISessionService));
         descriptors.Should().Contain(typeof(ICodeHasher));
         descriptors.Should().Contain(typeof(IPasswordHasher));
         descriptors.Should().Contain(typeof(IForbiddenWordService));

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.Verify2fa;
@@ -15,6 +15,7 @@ public class Verify2faHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICodeHasher _codeHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ISessionService _sessionService;
     private readonly Verify2faHandler _handler;
 
     public Verify2faHandlerTests()
@@ -22,9 +23,11 @@ public class Verify2faHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _codeHasher = Substitute.For<ICodeHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
-        _jwtTokenService.GenerateAccessToken(Arg.Any<Domain.Entities.User>()).Returns("access_token");
-        _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
-        _handler = new Verify2faHandler(_db, _codeHasher, _jwtTokenService);
+        _sessionService = Substitute.For<ISessionService>();
+        _jwtTokenService.GenerateAccessToken(Arg.Any<Domain.Entities.User>(), Arg.Any<TimeSpan>()).Returns("access_token");
+        _sessionService.CreateSessionAsync(Arg.Any<int>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns("refresh_token");
+        _sessionService.GetAccessTokenLifetimeSecondsAsync(Arg.Any<CancellationToken>()).Returns(900);
+        _handler = new Verify2faHandler(_db, _codeHasher, _jwtTokenService, _sessionService);
     }
 
     [Fact]
@@ -47,6 +50,7 @@ public class Verify2faHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.AccessToken.Should().Be("access_token");
         result.Value.RefreshToken.Should().Be("refresh_token");
+        await _sessionService.Received(1).CreateSessionAsync(user.UserId, false, Arg.Any<CancellationToken>());
     }
 
     [Fact]

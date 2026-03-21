@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Dtos;
-using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Auth.Commands.Verify2fa;
@@ -14,12 +13,14 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
     private readonly ISmakoszDbContext _db;
     private readonly ICodeHasher _codeHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ISessionService _sessionService;
 
-    public Verify2faHandler(ISmakoszDbContext db, ICodeHasher codeHasher, IJwtTokenService jwtTokenService)
+    public Verify2faHandler(ISmakoszDbContext db, ICodeHasher codeHasher, IJwtTokenService jwtTokenService, ISessionService sessionService)
     {
         _db = db;
         _codeHasher = codeHasher;
         _jwtTokenService = jwtTokenService;
+        _sessionService = sessionService;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(Verify2faCommand request, CancellationToken cancellationToken)
@@ -42,17 +43,10 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
 
         _db.VerificationCodes.Remove(verificationCode);
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        var refreshToken = await _sessionService.CreateSessionAsync(user.UserId, false, cancellationToken);
+        var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
-        var session = new UserSession
-        {
-            UserId = user.UserId,
-            RefreshTokenHash = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
-        };
-
-        _db.UserSessions.Add(session);
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
@@ -60,7 +54,7 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,

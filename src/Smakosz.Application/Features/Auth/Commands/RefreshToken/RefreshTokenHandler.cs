@@ -1,6 +1,5 @@
 using ErrorOr;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Dtos;
@@ -11,20 +10,18 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
 {
     private readonly ISmakoszDbContext _db;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ISessionService _sessionService;
 
-    public RefreshTokenHandler(ISmakoszDbContext db, IJwtTokenService jwtTokenService)
+    public RefreshTokenHandler(ISmakoszDbContext db, IJwtTokenService jwtTokenService, ISessionService sessionService)
     {
         _db = db;
         _jwtTokenService = jwtTokenService;
+        _sessionService = sessionService;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var session = await _db.UserSessions
-            .Include(s => s.User)
-            .FirstOrDefaultAsync(
-                s => s.RefreshTokenHash == request.RefreshToken && !s.IsRevoked && s.ExpiresAt > DateTime.UtcNow,
-                cancellationToken);
+        var session = await _sessionService.FindActiveSessionAsync(request.RefreshToken, cancellationToken);
 
         if (session is null)
             return DomainErrors.Auth.InvalidRefreshToken;
@@ -34,26 +31,17 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
         if (user.IsDeleted || !user.IsActive || user.IsBanned)
             return DomainErrors.Auth.InvalidRefreshToken;
 
-        session.IsRevoked = true;
+        var newRefreshToken = await _sessionService.RotateSessionAsync(session, cancellationToken);
+        var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
-        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
-        var newSession = new Domain.Entities.UserSession
-        {
-            UserId = user.UserId,
-            RefreshTokenHash = newRefreshToken,
-            ExpiresAt = session.ExpiresAt
-        };
-
-        _db.UserSessions.Add(newSession);
         await _db.SaveChangesAsync(cancellationToken);
-
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
 
         return new AuthResultDto
         {
             AccessToken = accessToken,
             RefreshToken = newRefreshToken,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+            ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,
