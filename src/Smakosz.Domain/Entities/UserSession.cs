@@ -10,6 +10,7 @@ public class UserSession
     public DateTime ExpiresAt { get; set; }
     public DateTime? LastActiveAt { get; set; }
     public bool IsRevoked { get; set; }
+    public bool IsRememberMe { get; set; }
     public DateTime? CreatedAt { get; set; }
 
     public User User { get; set; } = null!;
