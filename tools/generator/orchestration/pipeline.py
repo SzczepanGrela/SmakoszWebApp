@@ -3,7 +3,6 @@ Data Generation Pipeline Orchestrator
 
 Main orchestration logic for MockDataFactory:
 - Phase execution coordination
-- Trigger management
 - Error handling and recovery
 - Progress reporting
 """
@@ -12,7 +11,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 
-from tools.toggle_triggers import TriggerManager
+from reporting.sync_counters import CounterSync
 
 from .context import ExecutionContext
 from .database_manager import DatabaseManager
@@ -25,7 +24,6 @@ class PipelineConfig:
     """Configuration for pipeline execution."""
 
     cleanup_before_run: bool = True
-    disable_triggers: bool = True
     continue_on_error: bool = False
     dry_run: bool = False
 
@@ -67,7 +65,6 @@ class DataGenerationPipeline:
 
     Responsibilities (SOLID SRP):
     - Phase dependency resolution
-    - Trigger management (disable/enable)
     - Error handling and rollback
     - Progress reporting
 
@@ -92,7 +89,6 @@ class DataGenerationPipeline:
         self.context = context
         self.config = config
         self.db_manager = DatabaseManager(context.db, strategy="query_based")
-        self.trigger_manager = TriggerManager(context.db)
 
     def run(self, phase_ids: list[str] | None = None) -> PipelineResult:
         """
@@ -160,62 +156,46 @@ class DataGenerationPipeline:
                     success=False,
                 )
 
-        # 4. Trigger management
-        trigger_disabled = False
-        if self.config.disable_triggers and not self.config.dry_run:
-            logger.info("\n" + "=" * 80)
-            logger.info("PERFORMANCE MODE: Disabling heavy triggers")
-            logger.info("=" * 80)
-            try:
-                self.trigger_manager.disable_heavy_triggers()
-                trigger_disabled = True
-            except Exception as e:
-                logger.warning(f"Failed to disable triggers: {e}")
-                # Continue anyway - not fatal
-
         phase_results = []
 
-        try:
-            # 5. Execute phases
-            for idx, phase_id in enumerate(sorted_phase_ids, 1):
-                logger.info(
-                    f"\n{'=' * 80}\n"
-                    f"Phase {idx}/{len(sorted_phase_ids)}: {phase_id}\n"
-                    f"{'=' * 80}"
-                )
+        # 4. Execute phases
+        for idx, phase_id in enumerate(sorted_phase_ids, 1):
+            logger.info(
+                f"\n{'=' * 80}\n"
+                f"Phase {idx}/{len(sorted_phase_ids)}: {phase_id}\n"
+                f"{'=' * 80}"
+            )
 
-                result = self._execute_phase(phase_id)
-                phase_results.append(result)
+            result = self._execute_phase(phase_id)
+            phase_results.append(result)
 
-                if result.status == PhaseStatus.FAILED:
-                    if not self.config.continue_on_error:
-                        logger.error(
-                            f"Pipeline aborted due to failure in {phase_id}"
-                        )
-                        break
-                    else:
-                        logger.warning(
-                            f"Phase {phase_id} failed but continuing (continue_on_error=True)"
-                        )
-                elif result.status == PhaseStatus.COMPLETED:
-                    self.context.mark_completed(phase_id)
-                    logger.info(
-                        f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s"
+            if result.status == PhaseStatus.FAILED:
+                if not self.config.continue_on_error:
+                    logger.error(
+                        f"Pipeline aborted due to failure in {phase_id}"
                     )
-                elif result.status == PhaseStatus.SKIPPED:
-                    logger.info(f"⊘ Phase {phase_id} skipped")
+                    break
+                else:
+                    logger.warning(
+                        f"Phase {phase_id} failed but continuing (continue_on_error=True)"
+                    )
+            elif result.status == PhaseStatus.COMPLETED:
+                self.context.mark_completed(phase_id)
+                logger.info(
+                    f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s"
+                )
+            elif result.status == PhaseStatus.SKIPPED:
+                logger.info(f"⊘ Phase {phase_id} skipped")
 
-        finally:
-            # 6. Restore triggers (CRITICAL - always runs)
-            if trigger_disabled:
-                logger.info("\n" + "=" * 80)
-                logger.info("RESTORING STATE: Re-enabling triggers")
-                logger.info("=" * 80)
-                try:
-                    self.trigger_manager.enable_heavy_triggers()
-                except Exception as e:
-                    logger.error(f"Failed to re-enable triggers: {e}", exc_info=True)
-                    # This is serious but don't fail pipeline
+        # 5. Check success
+        success = all(r.status == PhaseStatus.COMPLETED for r in phase_results)
+
+        # 6. Synchronize denormalized counters
+        if not self.config.dry_run and success:
+            logger.info("\n" + "=" * 80)
+            logger.info("SYNCHRONIZING DENORMALIZED COUNTERS")
+            logger.info("=" * 80)
+            CounterSync(self.context.db).sync_all()
 
         # 7. Final statistics
         if not self.config.dry_run:
@@ -225,7 +205,6 @@ class DataGenerationPipeline:
 
         # 8. Summary
         duration = datetime.now() - start_time
-        success = all(r.status == PhaseStatus.COMPLETED for r in phase_results)
 
         logger.info("\n" + "=" * 80)
         logger.info("PIPELINE SUMMARY")

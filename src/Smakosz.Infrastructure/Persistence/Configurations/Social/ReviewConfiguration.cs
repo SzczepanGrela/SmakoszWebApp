@@ -12,6 +12,8 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         builder.HasKey(x => x.ReviewId);
 
+        builder.HasQueryFilter(x => !x.IsDeleted);
+
         builder.Property(x => x.PublicId)
             .IsRequired();
 
@@ -52,6 +54,9 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         builder.Property(x => x.AiModelVersion)
             .HasMaxLength(50);
+
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
 
         builder.Property(x => x.Version)
             .HasDefaultValue(1)

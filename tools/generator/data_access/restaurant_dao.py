@@ -9,7 +9,7 @@ class RestaurantDAO:
     def get_all_restaurants_for_dishes(db: DatabaseConnection) -> list[tuple[int, str, float, str, str]]:
         """Fetch restaurant data needed for dish generation."""
         return db.fetch_all("""
-            SELECT restaurant_id, secret_menu_blueprint, secret_price_multiplier, secret_archetype_modifiers, status
+            SELECT restaurant_id, secret_menu_blueprint, secret_price_multiplier, secret_archetype_modifiers, status, created_at
             FROM restaurants
         """)
 

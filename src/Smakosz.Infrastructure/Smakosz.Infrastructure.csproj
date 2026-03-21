@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Smakosz.Domain\Smakosz.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="SqlObjects\**\*.sql" />
+  </ItemGroup>
+
 </Project>

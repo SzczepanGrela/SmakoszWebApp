@@ -251,6 +251,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "secret_cleanliness_score": round(secret_cleanliness_score, 2),
                     "secret_ambiance_type": secret_ambiance_type,
                     "secret_ambiance_quality": round(secret_ambiance_quality, 3),
+                    "slug": slugify(name),
                     "secret_menu_blueprint": menu_blueprint,
                     "secret_archetype_modifiers": json.dumps(generate_restaurant_archetype_modifiers(menu_blueprint)),
                 }

@@ -29,7 +29,7 @@ class TestPhase6Metadata:
         assert "user_follows" in metadata.required_tables
         assert "review_likes" in metadata.required_tables
         assert "notifications" in metadata.required_tables
-        assert "search_history" in metadata.required_tables
+        assert "search_histories" in metadata.required_tables
         assert "favorite_restaurants" in metadata.required_tables
         assert "data_correction_requests" in metadata.required_tables
         assert "reports" in metadata.required_tables
@@ -111,7 +111,7 @@ class TestPhase6ExecutionStructure:
             5000,   # user_follows count
             25000,  # review_likes count
             15000,  # notifications count
-            8000,   # search_history count
+            8000,   # search_histories count
             2000,   # favorite_restaurants count
             200,    # data_correction_requests count
             150,    # reports count
@@ -137,7 +137,7 @@ class TestPhase6ExecutionStructure:
         assert "user_follows" in result.entities_generated
         assert "review_likes" in result.entities_generated
         assert "notifications" in result.entities_generated
-        assert "search_history" in result.entities_generated
+        assert "search_histories" in result.entities_generated
         assert "favorite_restaurants" in result.entities_generated
         assert "data_correction_requests" in result.entities_generated
         assert "reports" in result.entities_generated

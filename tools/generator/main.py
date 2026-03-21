@@ -24,6 +24,7 @@ from orchestration import (
     PhaseRegistry,
     PipelineConfig,
 )
+from reporting.stats import DatasetStatistics
 from utils.db_connection import DatabaseConnection
 from utils.logging_config import LoggingConfig
 
@@ -104,8 +105,9 @@ Examples:
   %(prog)s --phase phase3_dishes   Run single phase
   %(prog)s --phases 0-3            Run phase range (0 through 3)
   %(prog)s --no-cleanup            Skip database cleanup
-  %(prog)s --keep-triggers         Don't disable triggers (slower but safer)
   %(prog)s -v --generate           Verbose logging
+  %(prog)s --stats                 Dataset statistics only (no generation)
+  %(prog)s --generate --stats      Generate + print NCF statistics
         """
     )
 
@@ -117,7 +119,7 @@ Examples:
     # Options
     parser.add_argument("--users", type=int, help="Override number of users to generate")
     parser.add_argument("--no-cleanup", action="store_true", help="Skip database cleanup")
-    parser.add_argument("--keep-triggers", action="store_true", help="Don't disable triggers")
+    parser.add_argument("--stats", action="store_true", help="Print dataset statistics (NCF-oriented) after generation")
 
     # Logging
     parser.add_argument("--quiet", "-q", action="store_true", help="Only show warnings and errors")
@@ -153,7 +155,6 @@ Examples:
     logger.info(f"Target Database: {connection_params.get('dbname')}")
     logger.info(f"Planned Users: {config.get('num_users', 'N/A'):,}")
     logger.info(f"Cleanup: {'Disabled' if args.no_cleanup else 'Enabled'}")
-    logger.info(f"Triggers: {'Kept' if args.keep_triggers else 'Disabled (Performance Mode)'}")
     logger.debug(f"Connection: {connection_params.get('host')}:{connection_params.get('port')}")
 
     try:
@@ -168,7 +169,6 @@ Examples:
 
             pipeline_config = PipelineConfig(
                 cleanup_before_run=not args.no_cleanup,
-                disable_triggers=not args.keep_triggers,
                 continue_on_error=False
             )
 
@@ -213,6 +213,14 @@ Examples:
             elif args.generate:
                 # Full pipeline
                 logger.info("Running full generation pipeline (Phase 0-6)")
+            elif args.stats:
+                # Stats-only mode (no generation)
+                logger.info("Running dataset statistics on existing data...")
+                ds = DatasetStatistics(db)
+                ds.collect_all()
+                ds.print_report()
+                ds.save_json()
+                return
             else:
                 # No action specified
                 parser.print_help()
@@ -224,6 +232,13 @@ Examples:
 
             # Print statistics
             print_statistics(db)
+
+            # Dataset statistics (NCF-oriented)
+            if args.stats:
+                ds = DatasetStatistics(db)
+                ds.collect_all()
+                ds.print_report()
+                ds.save_json()
 
             # Final summary
             duration = datetime.now() - start_time

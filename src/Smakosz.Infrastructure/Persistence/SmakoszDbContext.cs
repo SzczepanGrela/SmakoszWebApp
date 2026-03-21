@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Infrastructure.Persistence;
 
@@ -8,6 +9,60 @@ public class SmakoszDbContext : DbContext
 {
     public SmakoszDbContext(DbContextOptions<SmakoszDbContext> options) : base(options)
     {
+    }
+
+    public override int SaveChanges()
+    {
+        ApplyConventions();
+        return base.SaveChanges();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ApplyConventions();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void ApplyConventions()
+    {
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.Entity is IAuditableEntity auditable)
+            {
+                if (entry.State == EntityState.Added)
+                    auditable.CreatedAt ??= now;
+                if (entry.State == EntityState.Modified)
+                    auditable.UpdatedAt = now;
+            }
+
+            if (entry.Entity is ISoftDeletable soft && entry.State == EntityState.Deleted)
+            {
+                entry.State = EntityState.Modified;
+                soft.IsDeleted = true;
+                soft.DeletedAt = now;
+            }
+
+            if (entry.Entity is IVersioned versioned && entry.State == EntityState.Modified)
+                versioned.Version++;
+
+            if (entry.Entity is IHasPublicId pub
+                && entry.State == EntityState.Added
+                && pub.PublicId == Guid.Empty)
+                pub.PublicId = Guid.NewGuid();
+
+            // Slug generation
+            if (entry.State == EntityState.Added)
+            {
+                if (entry.Entity is User user && string.IsNullOrEmpty(user.Slug))
+                    user.Slug = SlugGenerator.GenerateSlug(user.Username);
+                if (entry.Entity is Restaurant rest && string.IsNullOrEmpty(rest.Slug))
+                    rest.Slug = SlugGenerator.GenerateSlug(rest.RestaurantName);
+                if (entry.Entity is Dish dish && string.IsNullOrEmpty(dish.Slug))
+                    dish.Slug = SlugGenerator.GenerateSlug(dish.DishName);
+            }
+        }
     }
 
     // Dictionary

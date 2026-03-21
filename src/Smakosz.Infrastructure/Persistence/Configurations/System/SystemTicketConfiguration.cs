@@ -30,7 +30,8 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
             .HasDefaultValue(3);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.Property(x => x.UpdatedAt)
             .HasDefaultValueSql("now()");

@@ -66,6 +66,9 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
         builder.Property(x => x.TrendingScore)
             .HasColumnType("numeric(10,4)");
 
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+
         builder.Property(x => x.Version)
             .HasDefaultValue(1)
             .IsConcurrencyToken();
