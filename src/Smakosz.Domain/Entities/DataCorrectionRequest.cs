@@ -13,6 +13,7 @@ public class DataCorrectionRequest : IVersioned
     public string? ProposedValue { get; set; }
     public string Status { get; set; } = "pending";
     public DateTime? CreatedAt { get; set; }
+    public DateTime? ResponseDeadline { get; set; }
     public int Version { get; set; } = 1;
 
     public User? User { get; set; }
