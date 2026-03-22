@@ -1,0 +1,22 @@
+using Smakosz.Application.Features.Restaurants.Dtos;
+using Smakosz.Application.Features.Dishes.Dtos;
+using Smakosz.Application.Features.Reviews.Dtos;
+
+namespace Smakosz.Application.Features.Home.Dtos;
+
+public class HomeDataDto
+{
+    public required StatsDto Stats { get; init; }
+    public required List<RestaurantCardDto> TrendingRestaurants { get; init; }
+    public required List<DishCardDto> TrendingDishes { get; init; }
+    public required List<DishCardDto> TopRatedDishes { get; init; }
+    public required List<ReviewCardDto> RecentReviews { get; init; }
+    public required List<string> PopularCategories { get; init; }
+}
+
+public class StatsDto
+{
+    public int TotalDishes { get; init; }
+    public int TotalRestaurants { get; init; }
+    public int TotalReviews { get; init; }
+}
