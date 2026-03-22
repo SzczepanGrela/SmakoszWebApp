@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Smakosz.Domain\Smakosz.Domain.csproj" />
+    <ProjectReference Include="..\Smakosz.Application\Smakosz.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

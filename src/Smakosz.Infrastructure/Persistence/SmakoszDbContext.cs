@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Infrastructure.Persistence;
 
-public class SmakoszDbContext : DbContext
+public class SmakoszDbContext : DbContext, ISmakoszDbContext
 {
     public SmakoszDbContext(DbContextOptions<SmakoszDbContext> options) : base(options)
     {
