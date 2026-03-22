@@ -32,6 +32,7 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
 
     public bool IsAvailable => _isAvailable;
     public string? FallbackReason => _fallbackReason;
+    public bool IsUserInMapping(int userId) => _userMap?.ContainsKey(userId) ?? false;
 
     private void TryLoadModel()
     {
