@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.Register;
@@ -13,7 +13,7 @@ public class RegisterHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
@@ -24,18 +24,19 @@ public class RegisterHandlerTests
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _codeHasher = Substitute.For<ICodeHasher>();
+        _verificationCodeService = Substitute.For<IVerificationCodeService>();
         _currentUser = Substitute.For<ICurrentUserService>();
         _emailService = Substitute.For<IEmailService>();
         _forbiddenWords = Substitute.For<IForbiddenWordService>();
         _turnstile = Substitute.For<ITurnstileService>();
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
-        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
+        _verificationCodeService.CreateCodeAsync(Arg.Any<int>(), Arg.Any<Domain.Enums.VerificationCodeType>(), Arg.Any<CancellationToken>())
+            .Returns("123456");
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService, _forbiddenWords, _turnstile);
+        _handler = new RegisterHandler(_db, _passwordHasher, _verificationCodeService, _currentUser, _emailService, _forbiddenWords, _turnstile);
     }
 
     [Fact]
@@ -108,14 +109,14 @@ public class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidCommand_HashesCodeWithCodeHasher()
+    public async Task Handle_ValidCommand_CreatesVerificationCode()
     {
         var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");
 
         await _handler.Handle(command, CancellationToken.None);
 
-        // Assert - verification code is hashed with ICodeHasher, not IPasswordHasher
-        _codeHasher.Received(1).Hash(Arg.Any<string>());
+        await _verificationCodeService.Received(1).CreateCodeAsync(
+            Arg.Any<int>(), Domain.Enums.VerificationCodeType.Register, Arg.Any<CancellationToken>());
     }
 
     [Fact]

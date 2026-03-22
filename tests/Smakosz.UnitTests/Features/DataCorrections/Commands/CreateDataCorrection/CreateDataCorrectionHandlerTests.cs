@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.DataCorrections.Commands.CreateDataCorrection;
 using Smakosz.UnitTests.Common.TestInfrastructure;
@@ -12,13 +13,16 @@ public class CreateDataCorrectionHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IPublicConfigProvider _configProvider;
     private readonly CreateDataCorrectionHandler _handler;
 
     public CreateDataCorrectionHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new CreateDataCorrectionHandler(_db, _currentUser);
+        _configProvider = Substitute.For<IPublicConfigProvider>();
+        _configProvider.GetIntAsync("datacorrection.response_deadline_days", 7, Arg.Any<CancellationToken>()).Returns(7);
+        _handler = new CreateDataCorrectionHandler(_db, _currentUser, _configProvider);
     }
 
     [Fact]
@@ -52,7 +56,7 @@ public class CreateDataCorrectionHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymous = MockExtensions.CreateAnonymousUser();
-        var handler = new CreateDataCorrectionHandler(_db, anonymous);
+        var handler = new CreateDataCorrectionHandler(_db, anonymous, _configProvider);
 
         var result = await handler.Handle(
             new CreateDataCorrectionCommand("slug", "WrongAddress", null, null),

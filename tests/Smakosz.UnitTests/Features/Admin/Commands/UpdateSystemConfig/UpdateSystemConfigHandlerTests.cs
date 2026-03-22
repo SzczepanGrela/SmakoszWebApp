@@ -14,6 +14,7 @@ public class UpdateSystemConfigHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly IDateTimeProvider _dateTime;
+    private readonly IPublicConfigProvider _configProvider;
     private readonly UpdateSystemConfigHandler _handler;
 
     public UpdateSystemConfigHandlerTests()
@@ -22,7 +23,8 @@ public class UpdateSystemConfigHandlerTests
         _currentUser = MockExtensions.CreateAdminUser();
         _dateTime = Substitute.For<IDateTimeProvider>();
         _dateTime.UtcNow.Returns(new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        _handler = new UpdateSystemConfigHandler(_db, _currentUser, _dateTime);
+        _configProvider = Substitute.For<IPublicConfigProvider>();
+        _handler = new UpdateSystemConfigHandler(_db, _currentUser, _dateTime, _configProvider);
     }
 
     [Fact]
@@ -36,6 +38,7 @@ public class UpdateSystemConfigHandlerTests
         _sets.SystemConfigs[0].Key.Should().Be("app.name");
         _sets.SystemConfigs[0].Value.Should().Be("Smakosz");
         _sets.AuditLogs.Should().HaveCount(1);
+        _configProvider.Received(1).InvalidateCache();
     }
 
     [Fact]
@@ -55,7 +58,7 @@ public class UpdateSystemConfigHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new UpdateSystemConfigHandler(_db, nonAdmin, _dateTime);
+        var handler = new UpdateSystemConfigHandler(_db, nonAdmin, _dateTime, _configProvider);
 
         var result = await handler.Handle(
             new UpdateSystemConfigCommand("key", "val"), CancellationToken.None);

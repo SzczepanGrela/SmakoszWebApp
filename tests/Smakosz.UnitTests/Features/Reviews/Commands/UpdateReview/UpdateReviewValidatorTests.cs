@@ -1,13 +1,14 @@
 using FluentAssertions;
 using FluentValidation.TestHelper;
 using Smakosz.Application.Features.Reviews.Commands.UpdateReview;
+using Smakosz.UnitTests.Common.TestInfrastructure;
 
 namespace Smakosz.UnitTests.Features.Reviews.Commands.UpdateReview;
 
 [Trait("Category", "Validators")]
 public class UpdateReviewValidatorTests
 {
-    private readonly UpdateReviewValidator _validator = new();
+    private readonly UpdateReviewValidator _validator = new(new StubValidationConfigProvider());
 
     private static UpdateReviewCommand ValidCommand => new(
         ReviewPublicId: Guid.NewGuid(),
@@ -126,6 +127,13 @@ public class UpdateReviewValidatorTests
     {
         var result = _validator.TestValidate(ValidCommand with { Content = "1234567890" });
         result.ShouldNotHaveValidationErrorFor(x => x.Content);
+    }
+
+    [Fact]
+    public void Validate_ContentTooLong_HasError()
+    {
+        var result = _validator.TestValidate(ValidCommand with { Content = new string('a', 2001) });
+        result.ShouldHaveValidationErrorFor(x => x.Content);
     }
 
     [Fact]

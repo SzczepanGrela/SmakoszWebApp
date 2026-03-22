@@ -13,13 +13,15 @@ public class GetBusinessReviewsHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
     private readonly GetBusinessReviewsHandler _handler;
 
     public GetBusinessReviewsHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
-        _handler = new GetBusinessReviewsHandler(_db, _currentUser);
+        _config = new StubValidationConfigProvider();
+        _handler = new GetBusinessReviewsHandler(_db, _currentUser, _config);
     }
 
     [Fact]
@@ -56,7 +58,7 @@ public class GetBusinessReviewsHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymous = MockExtensions.CreateAnonymousUser();
-        var handler = new GetBusinessReviewsHandler(_db, anonymous);
+        var handler = new GetBusinessReviewsHandler(_db, anonymous, _config);
 
         var result = await handler.Handle(
             new GetBusinessReviewsQuery(new PaginationParams(1, 20)), CancellationToken.None);

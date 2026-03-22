@@ -12,13 +12,15 @@ public class GetBusinessDishesHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
     private readonly GetBusinessDishesHandler _handler;
 
     public GetBusinessDishesHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 10, role: "Business");
-        _handler = new GetBusinessDishesHandler(_db, _currentUser);
+        _config = new StubValidationConfigProvider();
+        _handler = new GetBusinessDishesHandler(_db, _currentUser, _config);
     }
 
     [Fact]

@@ -1,18 +1,19 @@
 using FluentAssertions;
 using FluentValidation.TestHelper;
 using Smakosz.Application.Features.Auth.Commands.Register;
+using Smakosz.UnitTests.Common.TestInfrastructure;
 
 namespace Smakosz.UnitTests.Features.Auth.Commands.Register;
 
 [Trait("Category", "Validators")]
 public class RegisterValidatorTests
 {
-    private readonly RegisterValidator _validator = new();
+    private readonly RegisterValidator _validator = new(new StubValidationConfigProvider());
 
     private static RegisterCommand ValidCommand => new(
         Username: "testuser",
         Email: "test@example.com",
-        Password: "password123"
+        Password: "Password1!"
     );
 
     [Fact]
@@ -106,14 +107,35 @@ public class RegisterValidatorTests
     [Fact]
     public void Validate_PasswordTooShort_HasError()
     {
-        var result = _validator.TestValidate(ValidCommand with { Password = "1234567" });
+        var result = _validator.TestValidate(ValidCommand with { Password = "Abc!12" });
         result.ShouldHaveValidationErrorFor(x => x.Password);
     }
 
     [Fact]
     public void Validate_PasswordMinLength_NoError()
     {
-        var result = _validator.TestValidate(ValidCommand with { Password = "12345678" });
+        var result = _validator.TestValidate(ValidCommand with { Password = "Abcdef1!" });
         result.ShouldNotHaveValidationErrorFor(x => x.Password);
+    }
+
+    [Fact]
+    public void Validate_PasswordTooLong_HasError()
+    {
+        var result = _validator.TestValidate(ValidCommand with { Password = new string('A', 127) + "1!" });
+        result.ShouldHaveValidationErrorFor(x => x.Password);
+    }
+
+    [Fact]
+    public void Validate_PasswordMissingDigit_HasError()
+    {
+        var result = _validator.TestValidate(ValidCommand with { Password = "Password!!" });
+        result.ShouldHaveValidationErrorFor(x => x.Password);
+    }
+
+    [Fact]
+    public void Validate_PasswordMissingSpecialChar_HasError()
+    {
+        var result = _validator.TestValidate(ValidCommand with { Password = "Password12" });
+        result.ShouldHaveValidationErrorFor(x => x.Password);
     }
 }
