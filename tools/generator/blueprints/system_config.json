@@ -21,14 +21,29 @@
       "is_public": false
     },
     "auth.verify_code_max_attempts": {
-      "value": "5",
+      "value": "3",
       "description": "Maksymalna liczba prób wprowadzenia kodu weryfikacyjnego przed jego unieważnieniem.",
       "is_public": false
     },
     "auth.password_min_length": {
       "value": "8",
       "description": "Minimalna długość hasła.",
-      "is_public": false
+      "is_public": true
+    },
+    "auth.password_max_length": {
+      "value": "128",
+      "description": "Maksymalna długość hasła.",
+      "is_public": true
+    },
+    "auth.password_require_digit": {
+      "value": "true",
+      "description": "Czy hasło musi zawierać cyfrę.",
+      "is_public": true
+    },
+    "auth.password_require_special": {
+      "value": "true",
+      "description": "Czy hasło musi zawierać znak specjalny.",
+      "is_public": true
     },
     "auth.username_min_length": {
       "value": "3",
@@ -39,21 +54,6 @@
       "value": "30",
       "description": "Maksymalna długość nazwy użytkownika.",
       "is_public": true
-    },
-    "auth.session_max_concurrent": {
-      "value": "5",
-      "description": "Maksymalna liczba jednoczesnych aktywnych sesji (refresh tokenów) per użytkownik.",
-      "is_public": false
-    },
-    "auth.max_failed_logins": {
-      "value": "5",
-      "description": "Próg nieudanych logowań z jednego IP przed automatycznym banem.",
-      "is_public": false
-    },
-    "auth.ip_ban_duration_min": {
-      "value": "60",
-      "description": "Czas trwania automatycznego banu IP (minuty) po przekroczeniu progu.",
-      "is_public": false
     },
     "moderation.auto_enabled": {
       "value": "true",
@@ -145,9 +145,9 @@
       "description": "Maksymalny rozmiar przesyłanego pliku w MB.",
       "is_public": true
     },
-    "upload.allowed_mime_types": {
-      "value": "image/jpeg,image/png,image/webp",
-      "description": "Dozwolone typy MIME dla przesyłanych zdjęć.",
+    "upload.allowed_types": {
+      "value": ".jpg,.jpeg,.png,.webp",
+      "description": "Dozwolone rozszerzenia plików dla przesyłanych zdjęć.",
       "is_public": true
     },
     "upload.max_photos_per_review": {
@@ -165,9 +165,14 @@
       "description": "Maksymalna długość treści recenzji (znaki).",
       "is_public": true
     },
-    "retention.notifications_days": {
+    "retention.notifications_social_days": {
       "value": "30",
-      "description": "Liczba dni przechowywania historii powiadomień użytkownika.",
+      "description": "Liczba dni przechowywania przeczytanych powiadomień społecznościowych (Like, Follow).",
+      "is_public": false
+    },
+    "retention.notifications_system_days": {
+      "value": "365",
+      "description": "Liczba dni przechowywania przeczytanych powiadomień systemowych (System, Security).",
       "is_public": false
     },
     "retention.system_jobs_days": {
@@ -185,27 +190,27 @@
       "description": "Liczba dni przechowywania recenzji w koszu (soft deleted).",
       "is_public": false
     },
-    "retention.user_grace_days": {
+    "retention.user_deletion_grace_days": {
       "value": "30",
       "description": "Dni do fizycznego usunięcia użytkownika po soft delete.",
       "is_public": false
     },
-    "ui.pagination_default_size": {
+    "search.default_page_size": {
       "value": "20",
       "description": "Domyślny rozmiar strony API.",
       "is_public": true
     },
-    "ui.pagination_max_size": {
+    "search.max_page_size": {
       "value": "100",
       "description": "Maksymalny rozmiar strony API.",
       "is_public": true
     },
-    "ui.trending_window_days": {
+    "trending.window_days": {
       "value": "7",
       "description": "Okno czasowe Bayesian Average (dni).",
       "is_public": false
     },
-    "system.correction_sla_days": {
+    "datacorrection.response_deadline_days": {
       "value": "7",
       "description": "Liczba dni SLA dla właściciela restauracji na reakcję na zgłoszenie korekty danych.",
       "is_public": false

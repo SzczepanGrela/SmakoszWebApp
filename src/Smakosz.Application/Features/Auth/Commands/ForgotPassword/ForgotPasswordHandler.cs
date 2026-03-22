@@ -13,14 +13,14 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly ITurnstileService _turnstile;
 
-    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher, ITurnstileService turnstile)
+    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, IVerificationCodeService verificationCodeService, ITurnstileService turnstile)
     {
         _db = db;
         _emailService = emailService;
-        _codeHasher = codeHasher;
+        _verificationCodeService = verificationCodeService;
         _turnstile = turnstile;
     }
 
@@ -37,18 +37,7 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
         if (user is null)
             return Result.Success;
 
-        var code = GenerateCode();
-
-        var verificationCode = new VerificationCode
-        {
-            UserId = user.UserId,
-            CodeHash = _codeHasher.Hash(code),
-            Type = VerificationCodeType.ResetPassword,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
-        };
-
-        _db.VerificationCodes.Add(verificationCode);
-        await _db.SaveChangesAsync(cancellationToken);
+        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.ResetPassword, cancellationToken);
 
         await _emailService.SendPasswordResetAsync(user.Email, code, cancellationToken);
 
@@ -65,6 +54,4 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
 
         return Result.Success;
     }
-
-    private static string GenerateCode() => Random.Shared.Next(100000, 999999).ToString();
 }

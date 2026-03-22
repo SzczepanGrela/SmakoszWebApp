@@ -20,11 +20,13 @@ public class CreateDataCorrectionHandler : IRequestHandler<CreateDataCorrectionC
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IPublicConfigProvider _configProvider;
 
-    public CreateDataCorrectionHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public CreateDataCorrectionHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IPublicConfigProvider configProvider)
     {
         _db = db;
         _currentUser = currentUser;
+        _configProvider = configProvider;
     }
 
     public async Task<ErrorOr<Success>> Handle(CreateDataCorrectionCommand request, CancellationToken cancellationToken)
@@ -41,6 +43,8 @@ public class CreateDataCorrectionHandler : IRequestHandler<CreateDataCorrectionC
         if (!Enum.TryParse<DataCorrectionIssueType>(request.IssueType, true, out var issueType))
             return Error.Validation("INVALID_ISSUE_TYPE", "Nieprawidłowy typ problemu");
 
+        var deadlineDays = await _configProvider.GetIntAsync("datacorrection.response_deadline_days", 7, cancellationToken);
+
         var correction = new DataCorrectionRequest
         {
             RestaurantId = restaurant.RestaurantId,
@@ -49,7 +53,8 @@ public class CreateDataCorrectionHandler : IRequestHandler<CreateDataCorrectionC
             Description = request.Description,
             ProposedValue = request.ProposedValue != null ? JsonSerializer.Serialize(request.ProposedValue) : null,
             Status = "pending",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ResponseDeadline = DateTime.UtcNow.AddDays(deadlineDays)
         };
 
         _db.DataCorrectionRequests.Add(correction);

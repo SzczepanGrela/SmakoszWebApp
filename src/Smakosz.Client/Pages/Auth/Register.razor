@@ -1,6 +1,7 @@
 @page "/register"
 @layout Smakosz.Client.Layout.AuthLayout
 @inject Smakosz.Client.Services.IAuthService AuthService
+@inject Smakosz.Client.Services.IPublicConfigService ConfigService
 @inject NavigationManager Navigation
 
 <PageTitle>Rejestracja - Smakosz</PageTitle>
@@ -15,7 +16,7 @@
 <EditForm Model="_model" OnValidSubmit="HandleRegister">
     <div class="mb-3">
         <label class="form-label">Nazwa użytkownika</label>
-        <input type="text" class="form-control" @bind="_model.Username" required minlength="3" maxlength="30" />
+        <input type="text" class="form-control" @bind="_model.Username" required minlength="@_usernameMin" maxlength="@_usernameMax" />
     </div>
     <div class="mb-3">
         <label class="form-label">Email</label>
@@ -23,7 +24,7 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Hasło</label>
-        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Placeholder="Min. 8 znaków" />
+        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Placeholder="@($"Min. {_passwordMin} znaków")" />
     </div>
     <div class="mb-3">
         <Smakosz.Client.Components.TurnstileWidget OnVerified="t => _turnstileToken = t" />
@@ -43,6 +44,16 @@
     private string? _error;
     private bool _loading;
     private string? _turnstileToken;
+    private int _usernameMin = 3;
+    private int _usernameMax = 30;
+    private int _passwordMin = 8;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _usernameMin = await ConfigService.GetIntAsync("auth.username_min_length", 3);
+        _usernameMax = await ConfigService.GetIntAsync("auth.username_max_length", 30);
+        _passwordMin = await ConfigService.GetIntAsync("auth.password_min_length", 8);
+    }
 
     private async Task HandleRegister()
     {

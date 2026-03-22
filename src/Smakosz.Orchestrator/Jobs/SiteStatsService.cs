@@ -20,7 +20,8 @@ public class SiteStatsService
     {
         var stats = await _db.SiteStats.FirstAsync(ct);
 
-        var weekAgo = DateTime.UtcNow.AddDays(-7);
+        var windowDays = await GetIntConfigAsync("trending.window_days", 7, ct);
+        var weekAgo = DateTime.UtcNow.AddDays(-windowDays);
         var monthAgo = DateTime.UtcNow.AddDays(-30);
 
         stats.TotalDishes = await _db.Dishes.CountAsync(ct);
@@ -69,5 +70,12 @@ public class SiteStatsService
         _logger.LogInformation(
             "site-stats: dishes={Dishes}, restaurants={Restaurants}, reviews={Reviews}, users={Users}",
             stats.TotalDishes, stats.TotalRestaurants, stats.TotalReviews, stats.TotalUsers);
+    }
+
+    private async Task<int> GetIntConfigAsync(string key, int defaultValue, CancellationToken ct)
+    {
+        var config = await _db.SystemConfigs
+            .FirstOrDefaultAsync(c => c.Key == key, ct);
+        return config is not null && int.TryParse(config.Value, out var v) ? v : defaultValue;
     }
 }

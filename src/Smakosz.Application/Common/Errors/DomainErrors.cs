@@ -134,6 +134,9 @@ public static class DomainErrors
 
         public static readonly Error InvalidFormat =
             Error.Validation("MEDIA_INVALID_FORMAT", "Nieprawidłowy format pliku (dozwolone: jpg, png, webp)");
+
+        public static readonly Error PhotoLimitExceeded =
+            Error.Validation("MEDIA_PHOTO_LIMIT_EXCEEDED", "Osiągnięto limit zdjęć dla tej recenzji");
     }
 
     public static class Content

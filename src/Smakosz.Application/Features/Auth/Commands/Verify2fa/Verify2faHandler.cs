@@ -38,8 +38,17 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
                     && vc.ExpiresAt > DateTime.UtcNow,
                 cancellationToken);
 
-        if (verificationCode is null || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
+        var maxAttempts = await GetMaxAttemptsAsync(cancellationToken);
+
+        if (verificationCode is null || verificationCode.AttemptsCount >= maxAttempts || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
+        {
+            if (verificationCode is not null)
+            {
+                verificationCode.AttemptsCount++;
+                await _db.SaveChangesAsync(cancellationToken);
+            }
             return DomainErrors.Auth.InvalidVerificationCode;
+        }
 
         _db.VerificationCodes.Remove(verificationCode);
 
@@ -66,5 +75,12 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
                 EmailVerified = user.EmailVerified
             }
         };
+    }
+
+    private async Task<int> GetMaxAttemptsAsync(CancellationToken ct)
+    {
+        var config = await _db.SystemConfigs
+            .FirstOrDefaultAsync(c => c.Key == "auth.verify_code_max_attempts", ct);
+        return config is not null && int.TryParse(config.Value, out var v) && v > 0 ? v : 3;
     }
 }

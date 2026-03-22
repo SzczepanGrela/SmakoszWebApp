@@ -31,7 +31,7 @@
     }
     else
     {
-        <small class="text-muted">JPG, PNG lub WebP, max 5 MB</small>
+        <small class="text-muted">JPG, PNG lub WebP, max @MaxSizeMb MB</small>
     }
 </div>
 
@@ -40,8 +40,9 @@
     [Parameter] public int? EntityId { get; set; }
     [Parameter] public string? CurrentImageUrl { get; set; }
     [Parameter] public EventCallback<string> OnImageUploaded { get; set; }
+    [Parameter] public int MaxSizeMb { get; set; } = 5;
 
-    private const long MaxFileSize = 5 * 1024 * 1024;
+    private long MaxFileSize => MaxSizeMb * 1024L * 1024L;
     private static readonly HashSet<string> AllowedTypes = new(StringComparer.OrdinalIgnoreCase)
         { "image/jpeg", "image/png", "image/webp" };
 
@@ -58,7 +59,7 @@
 
         if (file.Size > MaxFileSize)
         {
-            _error = "Plik jest zbyt duży (max 5 MB).";
+            _error = $"Plik jest zbyt duży (max {MaxSizeMb} MB).";
             return;
         }
 

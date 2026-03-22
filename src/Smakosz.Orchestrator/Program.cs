@@ -91,6 +91,9 @@ builder.Services.AddScoped<NcfModelActivationService>();
 builder.Services.AddScoped<ModerationBatchAggregatorService>();
 builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
 builder.Services.AddScoped<ModerationAggregationSchedulerService>();
+builder.Services.AddScoped<SystemJobsCleanupService>();
+builder.Services.AddScoped<SystemLogsCleanupService>();
+builder.Services.AddScoped<SoftDeletedReviewsCleanupService>();
 
 var app = builder.Build();
 
@@ -149,5 +152,14 @@ RecurringJob.AddOrUpdate<HomePageCacheService>(
 
 RecurringJob.AddOrUpdate<ModerationAggregationSchedulerService>(
     "moderation-aggregation", x => x.RunAsync(CancellationToken.None), Cron.Minutely, utc);
+
+RecurringJob.AddOrUpdate<SystemJobsCleanupService>(
+    "system-jobs-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(2, 30), utc);
+
+RecurringJob.AddOrUpdate<SystemLogsCleanupService>(
+    "system-logs-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(3, 15), utc);
+
+RecurringJob.AddOrUpdate<SoftDeletedReviewsCleanupService>(
+    "soft-deleted-reviews-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(3, 30), utc);
 
 await app.RunAsync();

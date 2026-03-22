@@ -14,11 +14,13 @@ public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, 
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
 
-    public GetBusinessDishesHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetBusinessDishesHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IValidationConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<PagedResult<BusinessDishDto>>> Handle(GetBusinessDishesQuery request, CancellationToken cancellationToken)
@@ -47,8 +49,10 @@ public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, 
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        var defaultPageSize = _config.GetInt("search.default_page_size", 20);
+        var maxPageSize = _config.GetInt("search.max_page_size", 100);
         var page = Math.Max(1, request.Page);
-        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+        var pageSize = Math.Clamp(request.PageSize > 0 ? request.PageSize : defaultPageSize, 1, maxPageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         var dishes = await query
