@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Worker.Notifications;
@@ -16,12 +17,14 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
     private readonly ISmakoszDbContext _db;
     private readonly IDateTimeProvider _clock;
     private readonly IMediator _mediator;
+    private readonly ILogger<CompleteJobHandler> _logger;
 
-    public CompleteJobHandler(ISmakoszDbContext db, IDateTimeProvider clock, IMediator mediator)
+    public CompleteJobHandler(ISmakoszDbContext db, IDateTimeProvider clock, IMediator mediator, ILogger<CompleteJobHandler> logger)
     {
         _db = db;
         _clock = clock;
         _mediator = mediator;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<Success>> Handle(CompleteJobCommand request, CancellationToken cancellationToken)
@@ -117,7 +120,9 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             }
         }
 
-        var isAutoApproved = job.EntityType == "edit_request" && verdict == "approved" && toxicityScore < 0.3m;
+        var isAutoApproved = job.EntityType == "edit_request" && verdict == "approved";
+        if (isAutoApproved)
+            _logger.LogInformation("Auto-approved {EntityType} {EntityId} based on worker verdict, toxicityScore={Score:F3}", job.EntityType, job.EntityId, toxicityScore);
         await UpsertModerationResultAsync(moderationEntityType, entityId,
             MapStatus(verdict), verdict, modelName, modelVersion,
             scores, isAutoApproved,
@@ -160,8 +165,10 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
         editRequest.ModerationStatus = MapStatus(verdict);
 
-        if (verdict == "approved" && toxicityScore < 0.3m)
+        if (verdict == "approved")
         {
+            _logger.LogInformation("Auto-approved edit_request {RequestId} based on worker verdict, toxicityScore={Score:F3}", requestId, toxicityScore);
+
             editRequest.Status = EditRequestStatus.Approved;
             editRequest.ResolvedAt = now;
 
@@ -303,13 +310,13 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         if (!string.IsNullOrEmpty(modelVersion))
         {
             var versionConfig = await _db.SystemConfigs
-                .FirstOrDefaultAsync(c => c.Key == "ncf_model_version", ct);
+                .FirstOrDefaultAsync(c => c.Key == "ncf.model_version", ct);
             if (versionConfig is not null)
                 versionConfig.Value = modelVersion;
             else
                 _db.SystemConfigs.Add(new SystemConfig
                 {
-                    Key = "ncf_model_version",
+                    Key = "ncf.model_version",
                     Value = modelVersion,
                     Description = "Current NCF model version",
                     UpdatedAt = now
@@ -374,7 +381,9 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 _ => ModerationEntityType.Review
             };
 
-            var isAutoApproved = entityType == "edit_request" && verdict == "approved" && toxicityScore < 0.3m;
+            var isAutoApproved = entityType == "edit_request" && verdict == "approved";
+            if (isAutoApproved)
+                _logger.LogInformation("Auto-approved {EntityType} {EntityId} based on worker verdict, toxicityScore={Score:F3}", entityType, entityId, toxicityScore);
             await UpsertModerationResultAsync(moderationEntityType, entityId,
                 MapStatus(verdict), verdict, modelName, modelVersion,
                 scores, isAutoApproved,
@@ -436,8 +445,10 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
 
         editRequest.ModerationStatus = MapStatus(verdict);
 
-        if (verdict == "approved" && toxicityScore < 0.3m)
+        if (verdict == "approved")
         {
+            _logger.LogInformation("Auto-approved edit_request {RequestId} based on worker verdict, toxicityScore={Score:F3}", requestId, toxicityScore);
+
             editRequest.Status = EditRequestStatus.Approved;
             editRequest.ResolvedAt = now;
 
