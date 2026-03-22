@@ -33,7 +33,7 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
         _logger = logger;
     }
 
-    public async Task AggregateAsync(CancellationToken ct)
+    public async Task AggregateAsync(int textBatchSize, int imageBatchSize, CancellationToken ct)
     {
         IDisposable? distributedLock = null;
         try
@@ -49,13 +49,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
 
         try
         {
-            var configs = await _db.SystemConfigs
-                .Where(c => c.Key == "moderation.text_batch_size" || c.Key == "moderation.image_batch_size")
-                .ToDictionaryAsync(c => c.Key, c => c.Value, ct);
-
-            var textBatchSize = GetInt(configs, "moderation.text_batch_size", 100);
-            var imageBatchSize = GetInt(configs, "moderation.image_batch_size", 10);
-
             await AggregateTextBatchesAsync(textBatchSize, ct);
             await AggregateImageBatchesAsync(imageBatchSize, ct);
             await WakeGpuIfNeededAsync(ct);
@@ -288,9 +281,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             _logger.LogWarning(ex, "Failed to wake GPU worker");
         }
     }
-
-    private static int GetInt(Dictionary<string, string> configs, string key, int defaultValue)
-        => configs.TryGetValue(key, out var v) && int.TryParse(v, out var i) ? i : defaultValue;
 
     private record BatchItem(string EntityType, int EntityId, string Text);
 }

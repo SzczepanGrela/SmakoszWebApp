@@ -102,7 +102,12 @@ public class NcfTrainingService : INcfTrainingService
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("ncf-training: aggregating pending moderations before GPU wake-up");
-        await _moderationService.AggregateAsync(ct);
+        var modConfigs = await _db.SystemConfigs
+            .Where(c => c.Key == "moderation.text_batch_size" || c.Key == "moderation.image_batch_size")
+            .ToDictionaryAsync(c => c.Key, c => c.Value, ct);
+        var textBatchSize = modConfigs.TryGetValue("moderation.text_batch_size", out var tv) && int.TryParse(tv, out var tbs) ? tbs : 100;
+        var imageBatchSize = modConfigs.TryGetValue("moderation.image_batch_size", out var iv) && int.TryParse(iv, out var ibs) ? ibs : 10;
+        await _moderationService.AggregateAsync(textBatchSize, imageBatchSize, ct);
 
         var gpuClient = _httpFactory.CreateClient("GpuWorker");
         try

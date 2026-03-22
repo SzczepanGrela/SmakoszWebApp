@@ -12,9 +12,9 @@ public class HangfireModerationProxy : IModerationAggregationService
         _jobs = jobs;
     }
 
-    public Task AggregateAsync(CancellationToken ct)
+    public Task AggregateAsync(int textBatchSize, int imageBatchSize, CancellationToken ct)
     {
-        _jobs.Enqueue<IModerationAggregationService>(x => x.AggregateAsync(CancellationToken.None));
+        _jobs.Enqueue<IModerationAggregationService>(x => x.AggregateAsync(textBatchSize, imageBatchSize, CancellationToken.None));
         return Task.CompletedTask;
     }
 }
