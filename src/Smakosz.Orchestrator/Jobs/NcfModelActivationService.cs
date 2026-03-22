@@ -49,6 +49,8 @@ public class NcfModelActivationService
         if (!File.Exists(modelPath))
         {
             _logger.LogError("Downloaded model file not found at {Path}", modelPath);
+            await UpsertConfigAsync("ncf.available", "false", "Whether NCF recommendations are available", _clock.UtcNow, ct);
+            await _db.SaveChangesAsync(ct);
             return;
         }
 
@@ -70,6 +72,8 @@ public class NcfModelActivationService
             if (prediction < 0f || prediction > 10f)
             {
                 _logger.LogError("Smoke test failed: prediction={Prediction} out of range [0,10]", prediction);
+                await UpsertConfigAsync("ncf.available", "false", "Whether NCF recommendations are available", _clock.UtcNow, ct);
+                await _db.SaveChangesAsync(ct);
                 return;
             }
 
@@ -78,6 +82,8 @@ public class NcfModelActivationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Smoke test failed for model {Version}", modelVersion);
+            await UpsertConfigAsync("ncf.available", "false", "Whether NCF recommendations are available", _clock.UtcNow, ct);
+            await _db.SaveChangesAsync(ct);
             return;
         }
 
@@ -97,13 +103,15 @@ public class NcfModelActivationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create symlink");
+            await UpsertConfigAsync("ncf.available", "false", "Whether NCF recommendations are available", _clock.UtcNow, ct);
+            await _db.SaveChangesAsync(ct);
             return;
         }
 
         var now = _clock.UtcNow;
 
-        await UpsertConfigAsync("ncf_available", "true", "Whether NCF recommendations are available", now, ct);
-        await UpsertConfigAsync("ncf_activated_version", modelVersion, "Currently activated NCF model version", now, ct);
+        await UpsertConfigAsync("ncf.available", "true", "Whether NCF recommendations are available", now, ct);
+        await UpsertConfigAsync("ncf.activated_version", modelVersion, "Currently activated NCF model version", now, ct);
 
         await _db.SaveChangesAsync(ct);
 
