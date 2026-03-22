@@ -476,6 +476,8 @@ public static class SeedData
             new SystemConfig { Key = "auth.access_ttl_sec", Value = "900", Description = "Czas zycia access tokena w sekundach", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "auth.verify_code_ttl_min", Value = "15", Description = "TTL kodow OTP w minutach", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "auth.verify_code_max_attempts", Value = "3", Description = "Max prob kodu weryfikacyjnego", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "auth.max_login_attempts", Value = "5", Description = "Max nieudanych prob logowania przed blokada", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "auth.lockout_duration_min", Value = "15", Description = "Czas blokady konta po przekroczeniu limitu prob (minuty)", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "auth.password_min_length", Value = "8", Description = "Min dlugość hasla", IsSecret = false, IsPublic = true },
             new SystemConfig { Key = "auth.password_max_length", Value = "128", Description = "Max dlugość hasla", IsSecret = false, IsPublic = true },
             new SystemConfig { Key = "auth.password_require_digit", Value = "true", Description = "Haslo wymaga cyfry", IsSecret = false, IsPublic = true },
