@@ -184,6 +184,15 @@ public static class DomainErrors
             Error.Conflict("CITY_ALREADY_EXISTS", "Miasto o podanej nazwie już istnieje");
     }
 
+    public static class Tag
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("TAG_NOT_FOUND", "Tag nie został znaleziony");
+
+        public static readonly Error AlreadyExists =
+            Error.Conflict("TAG_ALREADY_EXISTS", "Tag o podanej nazwie już istnieje");
+    }
+
     public static class Ingredient
     {
         public static readonly Error NotFound =

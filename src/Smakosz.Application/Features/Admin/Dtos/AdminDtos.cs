@@ -93,6 +93,17 @@ public class AdminCityDto
     public int RestaurantCount { get; set; }
 }
 
+public class AdminTagDto
+{
+    public int TagId { get; set; }
+    public string TagName { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string TargetEntity { get; set; } = string.Empty;
+    public string? DisplayColor { get; set; }
+    public int UsageCount { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminTicketDto
 {
     public int TicketId { get; set; }

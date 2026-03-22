@@ -30,6 +30,10 @@ public interface IAdminService
     Task<bool> CreateCityAsync(AdminCityDto dto);
     Task<bool> UpdateCityAsync(int id, AdminCityDto dto);
     Task<bool> DeleteCityAsync(int id);
+    Task<PagedResult<AdminTagDto>?> GetTagsAsync(int page = 1, string? search = null);
+    Task<bool> CreateTagAsync(AdminTagDto dto);
+    Task<bool> UpdateTagAsync(int id, AdminTagDto dto);
+    Task<bool> DeleteTagAsync(int id);
     Task<List<AdminSystemConfigDto>> GetSystemConfigAsync();
     Task<bool> UpdateSystemConfigAsync(string key, string value);
     Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null);

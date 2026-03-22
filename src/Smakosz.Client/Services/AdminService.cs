@@ -132,6 +132,24 @@ public class AdminService : IAdminService
     public async Task<bool> DeleteCityAsync(int id)
         => await _api.DeleteAsync($"/api/admin/cities/{id}");
 
+    public Task<PagedResult<AdminTagDto>?> GetTagsAsync(int page = 1, string? search = null)
+        => _api.GetAsync<PagedResult<AdminTagDto>>($"/api/admin/tags?page={page}&search={search}");
+
+    public async Task<bool> CreateTagAsync(AdminTagDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/tags", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> UpdateTagAsync(int id, AdminTagDto dto)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/tags/{id}", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> DeleteTagAsync(int id)
+        => await _api.DeleteAsync($"/api/admin/tags/{id}");
+
     public async Task<List<AdminSystemConfigDto>> GetSystemConfigAsync()
         => await _api.GetAsync<List<AdminSystemConfigDto>>("/api/admin/system-config") ?? [];
 
