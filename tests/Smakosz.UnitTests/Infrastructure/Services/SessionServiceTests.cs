@@ -84,7 +84,7 @@ public class SessionServiceTests
     [Fact]
     public async Task CreateSession_ReadsConfigFromDb()
     {
-        _sets.SystemConfigs.Add(new SystemConfig { Key = "jwt_refresh_ttl_days", Value = "14" });
+        _sets.SystemConfigs.Add(new SystemConfig { Key = "auth.refresh_ttl_days", Value = "14" });
         DbContextMockFactory.Refresh(_db, _sets);
 
         var before = DateTime.UtcNow;
@@ -227,7 +227,7 @@ public class SessionServiceTests
     [Fact]
     public async Task GetAccessTokenLifetimeSeconds_ReadsFromConfig()
     {
-        _sets.SystemConfigs.Add(new SystemConfig { Key = "jwt_access_ttl_sec", Value = "600" });
+        _sets.SystemConfigs.Add(new SystemConfig { Key = "auth.access_ttl_sec", Value = "600" });
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _sut.GetAccessTokenLifetimeSecondsAsync(CancellationToken.None);

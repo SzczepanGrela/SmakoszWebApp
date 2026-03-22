@@ -23,8 +23,8 @@ public class SessionService : ISessionService
         var hash = HashToken(plaintext);
 
         var ttlDays = rememberMe
-            ? await GetIntConfigAsync("jwt_refresh_ttl_days_remember_me", 30, ct)
-            : await GetIntConfigAsync("jwt_refresh_ttl_days", 7, ct);
+            ? await GetIntConfigAsync("auth.refresh_ttl_days_remember", 30, ct)
+            : await GetIntConfigAsync("auth.refresh_ttl_days", 7, ct);
 
         var session = new UserSession
         {
@@ -71,8 +71,8 @@ public class SessionService : ISessionService
         var hash = HashToken(plaintext);
 
         var ttlDays = oldSession.IsRememberMe
-            ? await GetIntConfigAsync("jwt_refresh_ttl_days_remember_me", 30, ct)
-            : await GetIntConfigAsync("jwt_refresh_ttl_days", 7, ct);
+            ? await GetIntConfigAsync("auth.refresh_ttl_days_remember", 30, ct)
+            : await GetIntConfigAsync("auth.refresh_ttl_days", 7, ct);
 
         var newSession = new UserSession
         {
@@ -89,7 +89,7 @@ public class SessionService : ISessionService
 
     public async Task<int> GetAccessTokenLifetimeSecondsAsync(CancellationToken ct)
     {
-        return await GetIntConfigAsync("jwt_access_ttl_sec", 900, ct);
+        return await GetIntConfigAsync("auth.access_ttl_sec", 900, ct);
     }
 
     internal static string HashToken(string token)

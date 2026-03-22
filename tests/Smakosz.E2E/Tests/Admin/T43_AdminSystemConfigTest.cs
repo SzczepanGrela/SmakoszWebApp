@@ -23,10 +23,10 @@ public class T43_AdminSystemConfigTest : SmakoszE2ETestBase
         await AssertPageContainsTextAsync("Konfiguracja systemu");
 
         var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("moderation.auto_approve_threshold"), Is.True,
-            "Should show seeded config key 'moderation.auto_approve_threshold'");
-        Assert.That(pageContent.Contains("api.rate_limit_per_minute"), Is.True,
-            "Should show seeded config key 'api.rate_limit_per_minute'");
+        Assert.That(pageContent.Contains("moderation.text_batch_size"), Is.True,
+            "Should show seeded config key 'moderation.text_batch_size'");
+        Assert.That(pageContent.Contains("auth.access_ttl_sec"), Is.True,
+            "Should show seeded config key 'auth.access_ttl_sec'");
 
         var configRows = Page.Locator(".row.mb-3.align-items-center");
         var configCount = await configRows.CountAsync();
@@ -35,22 +35,22 @@ public class T43_AdminSystemConfigTest : SmakoszE2ETestBase
         {
             var row = configRows.Nth(i);
             var labelText = await row.Locator("label.form-label").InnerTextAsync();
-            if (labelText.Contains("api.rate_limit_per_minute"))
+            if (labelText.Contains("auth.access_ttl_sec"))
             {
                 var input = row.Locator("input.form-control").First;
                 await input.ClearAsync();
-                await input.FillAsync("120");
+                await input.FillAsync("600");
 
                 var saveBtn = row.Locator("button.btn-outline-primary").First;
                 await saveBtn.ClickAsync();
 
                 await Page.WaitForTimeoutAsync(2000);
 
-                await AssertToastAsync("api.rate_limit_per_minute");
+                await AssertToastAsync("auth.access_ttl_sec");
                 return;
             }
         }
 
-        Assert.Fail("Could not find 'api.rate_limit_per_minute' config row to edit");
+        Assert.Fail("Could not find 'auth.access_ttl_sec' config row to edit");
     }
 }
