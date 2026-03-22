@@ -622,6 +622,7 @@ class SocialGraphPhase(BasePhase):
             display_name="Social Graph Generation",
             dependencies=[
                 "phase4_users",
+                "phase5_reviews",
             ],
             required_tables=[
                 "user_follows",

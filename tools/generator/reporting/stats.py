@@ -37,6 +37,7 @@ class DatasetStatistics:
             "social_graph": self._social_graph_stats(),
             "moderation": self._moderation_stats(),
             "temporal": self._temporal_stats(),
+            "integrity": self._integrity_checks(),
         }
 
         logger.info("Statistics collection complete.")
@@ -289,6 +290,193 @@ class DatasetStatistics:
         """)
         return {"reviews_per_month": dict(rows)}
 
+    def _integrity_checks(self) -> list[dict]:
+        """Run data integrity checks.
+
+        Each check returns a dict with:
+          - name: short label
+          - query: SQL that returns a single integer (0 = perfect)
+          - actual: query result
+          - expected: description of what the ideal value should be
+          - status: 'ok' or 'fail'
+        """
+        num_users = self.db.fetch_val("SELECT COUNT(*) FROM users") or 0
+        num_restaurants = self.db.fetch_val("SELECT COUNT(*) FROM restaurants") or 0
+        num_dishes = self.db.fetch_val("SELECT COUNT(*) FROM dishes") or 0
+        num_reviews = self.db.fetch_val("SELECT COUNT(*) FROM reviews") or 0
+
+        checks: list[tuple[str, str, str, str]] = [
+            # --- Relational integrity ---
+            (
+                "Restaurants without dishes",
+                """SELECT COUNT(*) FROM restaurants r
+                   LEFT JOIN dishes d ON r.restaurant_id = d.restaurant_id
+                   WHERE d.dish_id IS NULL AND r.status = 'active'""",
+                "0",
+                "Every active restaurant should have at least one dish",
+            ),
+            (
+                "Dishes without restaurant",
+                """SELECT COUNT(*) FROM dishes d
+                   LEFT JOIN restaurants r ON d.restaurant_id = r.restaurant_id
+                   WHERE r.restaurant_id IS NULL""",
+                "0",
+                "Every dish must belong to an existing restaurant",
+            ),
+            (
+                "Cities without restaurants",
+                """SELECT COUNT(*) FROM cities c
+                   LEFT JOIN restaurants r ON c.city_id = r.city_id
+                   WHERE r.restaurant_id IS NULL""",
+                "0",
+                "Every city should have at least one restaurant",
+            ),
+            (
+                "Reviews referencing missing dishes",
+                """SELECT COUNT(*) FROM reviews r
+                   LEFT JOIN dishes d ON r.dish_id = d.dish_id
+                   WHERE d.dish_id IS NULL""",
+                "0",
+                "Every review must reference an existing dish",
+            ),
+            (
+                "Reviews referencing missing users",
+                """SELECT COUNT(*) FROM reviews r
+                   LEFT JOIN users u ON r.user_id = u.user_id
+                   WHERE u.user_id IS NULL""",
+                "0",
+                "Every review must reference an existing user",
+            ),
+            # --- NULL checks on required fields ---
+            (
+                "Restaurants with NULL postal_code",
+                "SELECT COUNT(*) FROM restaurants WHERE postal_code IS NULL",
+                "0",
+                "All restaurants should have a postal code",
+            ),
+            (
+                "Restaurants with NULL email",
+                "SELECT COUNT(*) FROM restaurants WHERE email IS NULL",
+                "0",
+                "All restaurants should have a contact email",
+            ),
+            (
+                "Cuisine types with NULL icon",
+                "SELECT COUNT(*) FROM cuisine_types WHERE icon IS NULL",
+                "0",
+                "All cuisine types should have an emoji icon",
+            ),
+            (
+                "Dishes with NULL image_url",
+                "SELECT COUNT(*) FROM dishes WHERE image_url IS NULL",
+                "0",
+                "Every dish should have a photo URL",
+            ),
+            # --- Counter sync consistency ---
+            (
+                "Users with wrong review_count",
+                """SELECT COUNT(*) FROM (
+                       SELECT u.user_id, u.review_count, COUNT(r.review_id) real_cnt
+                       FROM users u
+                       LEFT JOIN reviews r ON u.user_id = r.user_id
+                       GROUP BY u.user_id, u.review_count
+                       HAVING u.review_count != COUNT(r.review_id)
+                   ) t""",
+                "0",
+                "users.review_count must match actual COUNT(reviews)",
+            ),
+            (
+                "Dishes with wrong review_count",
+                """SELECT COUNT(*) FROM (
+                       SELECT d.dish_id, d.review_count, COUNT(r.review_id) real_cnt
+                       FROM dishes d
+                       LEFT JOIN reviews r ON d.dish_id = r.dish_id
+                       GROUP BY d.dish_id, d.review_count
+                       HAVING d.review_count != COUNT(r.review_id)
+                   ) t""",
+                "0",
+                "dishes.review_count must match actual COUNT(reviews)",
+            ),
+            # --- Volume sanity (scale with config) ---
+            (
+                "Users without any reviews",
+                """SELECT COUNT(*) FROM users u
+                   LEFT JOIN reviews r ON u.user_id = r.user_id
+                   WHERE r.review_id IS NULL AND u.role = 'user'""",
+                f"< {int(num_users * 0.01)}",
+                f"At most ~1% of users ({int(num_users * 0.01):,}) should have zero reviews",
+            ),
+            (
+                "Dishes never reviewed",
+                """SELECT COUNT(*) FROM dishes d
+                   LEFT JOIN reviews r ON d.dish_id = r.dish_id
+                   WHERE r.review_id IS NULL""",
+                "0",
+                "Every dish should have at least one review",
+            ),
+            (
+                "Duplicate dish slugs",
+                """SELECT COUNT(*) FROM (
+                       SELECT slug FROM dishes GROUP BY slug HAVING COUNT(*) > 1
+                   ) t""",
+                "0",
+                "Dish slugs must be globally unique",
+            ),
+            (
+                "Review likes count",
+                "SELECT COUNT(*) FROM review_likes",
+                f"> {int(num_reviews * 0.5)}",
+                f"Should be ~5x reviews ({num_reviews * 5:,}), at least 50% of review count",
+            ),
+            (
+                "Restaurants with NULL trending_score",
+                """SELECT COUNT(*) FROM restaurants WHERE trending_score IS NULL""",
+                f"< {int(num_restaurants * 0.05)}",
+                "At most ~5% of restaurants should lack a trending score",
+            ),
+            (
+                "Dishes with trending_score (coverage)",
+                """SELECT COUNT(*) FROM dishes WHERE trending_score IS NOT NULL""",
+                f"> {int(num_dishes * 0.5)}",
+                f"At least 50% of dishes ({int(num_dishes * 0.5):,}) should have a trending score",
+            ),
+            (
+                "Self-follows",
+                """SELECT COUNT(*) FROM user_follows
+                   WHERE follower_id = followed_id""",
+                "0",
+                "No user should follow themselves",
+            ),
+            (
+                "Self-review-likes",
+                """SELECT COUNT(*) FROM review_likes rl
+                   JOIN reviews r ON rl.review_id = r.review_id
+                   WHERE rl.user_id = r.user_id""",
+                "0",
+                "No user should like their own review",
+            ),
+        ]
+
+        results = []
+        for name, query, expected, description in checks:
+            try:
+                actual = self.db.fetch_val(query) or 0
+                status = _evaluate_check(actual, expected)
+            except Exception as e:
+                actual = -1
+                status = "error"
+                logger.debug(f"Integrity check '{name}' failed: {e}")
+
+            results.append({
+                "name": name,
+                "actual": actual,
+                "expected": expected,
+                "description": description,
+                "status": status,
+            })
+
+        return results
+
     # ------------------------------------------------------------------
     # Output methods
     # ------------------------------------------------------------------
@@ -447,6 +635,22 @@ class DatasetStatistics:
                 bar_len = int((count / max(rpm.values())) * 30) if rpm else 0
                 lines.append(f"  {month}: {count:>8,}  {'█' * bar_len}")
 
+        # Integrity checks
+        integrity = self.stats.get("integrity", [])
+        if integrity:
+            passed = sum(1 for c in integrity if c["status"] == "ok")
+            total = len(integrity)
+            lines.append("")
+            lines.append(f"DATA INTEGRITY CHECKS ({passed}/{total} passed)")
+            for check in integrity:
+                icon = "ok" if check["status"] == "ok" else "FAIL"
+                lines.append(
+                    f"  [{icon:>4}] {check['name']}: "
+                    f"actual={check['actual']:,}, expected {check['expected']}"
+                )
+                if check["status"] != "ok":
+                    lines.append(f"         -> {check['description']}")
+
         lines.append("")
         lines.append("=" * 80)
 
@@ -472,3 +676,17 @@ def _r(value: float | None, decimals: int = 2) -> float | None:
     if value is None:
         return None
     return round(value, decimals)
+
+def _evaluate_check(actual: int, expected: str) -> str:
+    """Evaluate an integrity check result against expected condition.
+
+    Expected formats: "0", "< 500", "> 10000"
+    """
+    expected = expected.strip()
+    if expected.startswith("<"):
+        threshold = int(expected[1:].strip())
+        return "ok" if actual < threshold else "FAIL"
+    if expected.startswith(">"):
+        threshold = int(expected[1:].strip())
+        return "ok" if actual > threshold else "FAIL"
+    return "ok" if actual == int(expected) else "FAIL"
