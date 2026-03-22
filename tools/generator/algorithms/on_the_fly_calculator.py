@@ -25,8 +25,8 @@ def _get_deterministic_rng(user_id: int, dish_name: str, variant_name: str) -> r
     The same (user_id, dish_name, variant_name) tuple always produces the same RNG state.
     """
     seed_str = f"{user_id}_{dish_name}_{variant_name}"
-    hash_bytes = hashlib.md5(seed_str.encode('utf-8')).digest()
-    seed_int = int.from_bytes(hash_bytes[:8], 'little')
+    hash_bytes = hashlib.md5(seed_str.encode("utf-8")).digest()
+    seed_int = int.from_bytes(hash_bytes[:8], "little")
     return random.Random(seed_int)
 
 class OnTheFlyCalculator:
@@ -37,13 +37,7 @@ class OnTheFlyCalculator:
         """Initialize calculator with blueprint vectors (dishes.json or vectors.json)."""
         self.vectors_data = vectors_data
 
-    def get_contextual_preferences(
-        self,
-        user: dict,
-        dish: dict,
-        variant_name: str,
-        archetype: str
-    ) -> dict[str, float]:
+    def get_contextual_preferences(self, user: dict, dish: dict, variant_name: str, archetype: str) -> dict[str, float]:
         """
         Calculate preference vector on-the-fly using deterministic seeding.
 

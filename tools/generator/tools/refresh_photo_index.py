@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 # Fix Windows console encoding for Polish characters
 if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -52,8 +52,7 @@ def rename_files_in_folder(folder: Path, prefix: str) -> dict[str, str]:
     """
     renames = {}
     # Only rename originals - derived files follow their original
-    originals = sorted([f for f in folder.iterdir()
-                        if f.suffix.lower() in IMAGE_EXTENSIONS and is_original(f)])
+    originals = sorted([f for f in folder.iterdir() if f.suffix.lower() in IMAGE_EXTENSIONS and is_original(f)])
 
     # Phase 1: rename originals to temp names to avoid collisions
     temp_map: list[tuple[Path, str]] = []  # (temp_path, final_name)
@@ -452,7 +451,9 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
         if entries_to_update:
             logger.info(f"Found {len(entries_to_update)} entries without blurhash")
 
-            for entry, root in tqdm(entries_to_update, desc="Generowanie blurhash", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+            for entry, root in tqdm(
+                entries_to_update, desc="Generowanie blurhash", mininterval=1.0, disable=LoggingConfig.is_quiet()
+            ):
                 full_path = root / entry["path"]
                 if full_path.exists():
                     hash_val, w, h = generate_blurhash(full_path)
@@ -486,4 +487,3 @@ if __name__ == "__main__":
     LoggingConfig.setup(level=log_level, quiet=args.quiet)
 
     refresh_index(generate_hash=not args.no_blurhash, rename_files=args.rename)
-

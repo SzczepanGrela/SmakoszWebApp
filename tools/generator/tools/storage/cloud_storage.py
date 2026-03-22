@@ -123,7 +123,8 @@ class R2Provider(CloudStorageProvider):
 
         if not all([endpoint_url, access_key_id, secret_access_key, bucket_name]):
             missing = [
-                name for name, val in [
+                name
+                for name, val in [
                     ("R2_ENDPOINT_URL", endpoint_url),
                     ("R2_ACCESS_KEY_ID", access_key_id),
                     ("R2_SECRET_ACCESS_KEY", secret_access_key),

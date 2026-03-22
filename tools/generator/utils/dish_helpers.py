@@ -80,7 +80,7 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
         "Seafood": 100,
         "Vegan": 120,
         "Curry": 140,
-        "Dim Sum": 190
+        "Dim Sum": 190,
     }
 
     # Estimated portion sizes in grams
@@ -101,7 +101,7 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
         "Seafood": 300,
         "Vegan": 350,
         "Curry": 400,
-        "Dim Sum": 250
+        "Dim Sum": 250,
     }
 
     base_cal_100g = calories_per_100g.get(archetype, 150)
@@ -111,7 +111,7 @@ def generate_dish_calories(archetype: str, price: float, richness: float) -> int
     variance = random.uniform(0.9, 1.1)
 
     # Richness impacts calorie density slightly
-    density_modifier = 0.9 + (richness * 0.2) # 0.9 to 1.1
+    density_modifier = 0.9 + (richness * 0.2)  # 0.9 to 1.1
 
     final_cal_100g = base_cal_100g * variance * density_modifier
 

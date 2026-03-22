@@ -23,12 +23,12 @@ PHOTO_CONFIG = {
     "output_dir": os.getenv("IMAGE_OUTPUT_DIR", "E:/smakosz/images"),
     "cache_file": "data/photo_cache.json",
     # Image sizes (width, height)
-    "size_hero": (1600, 900),       # Hero backgrounds (16:9)
-    "size_full": (1280, 960),       # Detail view, modal (4:3)
-    "size_thumb": (200, 150),       # Cards, lists (4:3)
-    "size_avatar": (300, 300),      # Avatar full size (1:1)
+    "size_hero": (1600, 900),  # Hero backgrounds (16:9)
+    "size_full": (1280, 960),  # Detail view, modal (4:3)
+    "size_thumb": (200, 150),  # Cards, lists (4:3)
+    "size_avatar": (300, 300),  # Avatar full size (1:1)
     "size_ingredient": (200, 200),  # Ingredient icons (1:1)
-    "size_tiny": (50, 50),          # Placeholders only
+    "size_tiny": (50, 50),  # Placeholders only
     # Suffixes for derived sizes (naming convention)
     "suffix_hero": "_hero",
     "suffix_thumb": "_thumb",

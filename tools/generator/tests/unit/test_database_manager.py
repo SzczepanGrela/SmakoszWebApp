@@ -52,9 +52,7 @@ class TestDatabaseCleanupStrategy:
 
         # Should truncate all 3 tables
         execute_calls = mock_db.execute_query.call_args_list
-        truncate_calls = [
-            call for call in execute_calls if "TRUNCATE" in str(call)
-        ]
+        truncate_calls = [call for call in execute_calls if "TRUNCATE" in str(call)]
         assert len(truncate_calls) == 3
 
     def test_query_based_cleanup_disables_fk_checks(self):
@@ -66,10 +64,7 @@ class TestDatabaseCleanupStrategy:
 
         # Should set session_replication_role to replica
         execute_calls = mock_db.execute_query.call_args_list
-        assert any(
-            "session_replication_role" in str(call) and "replica" in str(call)
-            for call in execute_calls
-        )
+        assert any("session_replication_role" in str(call) and "replica" in str(call) for call in execute_calls)
 
     def test_query_based_cleanup_restores_fk_checks(self):
         """Test that FK checks are always restored."""
@@ -80,10 +75,7 @@ class TestDatabaseCleanupStrategy:
 
         # Should restore session_replication_role to origin
         execute_calls = mock_db.execute_query.call_args_list
-        assert any(
-            "session_replication_role" in str(call) and "origin" in str(call)
-            for call in execute_calls
-        )
+        assert any("session_replication_role" in str(call) and "origin" in str(call) for call in execute_calls)
 
     def test_query_based_cleanup_restores_fk_on_error(self):
         """Test that FK checks are restored even if truncate fails."""
@@ -246,9 +238,7 @@ class TestDatabaseManagerIntegration:
         assert any("replica" in str(call) for call in execute_calls)
 
         # 5. Truncate tables
-        truncate_calls = [
-            call for call in execute_calls if "TRUNCATE" in str(call)
-        ]
+        truncate_calls = [call for call in execute_calls if "TRUNCATE" in str(call)]
         assert len(truncate_calls) == 3
 
         # 6. Restore FK checks

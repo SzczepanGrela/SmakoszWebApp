@@ -82,9 +82,7 @@ class TestCalculateContextualVector:
         archetype_base = {"flavor_sweetness": 0.2}
         adaptation_weights = {"flavor_sweetness": 0.5, "_default": 1.0}  # Locked
 
-        contextual = calculate_contextual_vector(
-            user_vector, archetype_base, adaptation_weights
-        )
+        contextual = calculate_contextual_vector(user_vector, archetype_base, adaptation_weights)
 
         # Should stay near base (0.2), not shift to user (0.9)
         assert contextual["flavor_sweetness"] < 0.5
@@ -95,9 +93,7 @@ class TestCalculateContextualVector:
         archetype_base = {"flavor_spiciness": 0.5}
         adaptation_weights = {"flavor_spiciness": 1.8, "_default": 1.0}  # Modifiable
 
-        contextual = calculate_contextual_vector(
-            user_vector, archetype_base, adaptation_weights
-        )
+        contextual = calculate_contextual_vector(user_vector, archetype_base, adaptation_weights)
 
         # Should shift towards user preference (> 0.5)
         assert contextual["flavor_spiciness"] > 0.5
@@ -110,8 +106,7 @@ class TestCalculateContextualVector:
         variant_override = {"physics_richness": 0.8}
 
         contextual = calculate_contextual_vector(
-            user_vector, archetype_base, adaptation_weights,
-            variant_base_override=variant_override
+            user_vector, archetype_base, adaptation_weights, variant_base_override=variant_override
         )
 
         assert contextual["physics_richness"] == 0.8
@@ -126,9 +121,7 @@ class TestCalculateAffinity:
         adaptation_weights = {"_default": 1.0}
         base_characteristics = dict.fromkeys(DIMENSIONS, 0.5)
 
-        affinity = calculate_affinity(
-            user_vector, dish_vector, adaptation_weights, base_characteristics
-        )
+        affinity = calculate_affinity(user_vector, dish_vector, adaptation_weights, base_characteristics)
 
         assert affinity > 0.95
 
@@ -144,9 +137,7 @@ class TestCalculateAffinity:
         adaptation_weights = {"physics_temperature": 0.1, "_default": 1.0}
         base_characteristics = {"physics_temperature": 0.1}  # Cold expected
 
-        affinity = calculate_affinity(
-            user_vector, dish_vector, adaptation_weights, base_characteristics
-        )
+        affinity = calculate_affinity(user_vector, dish_vector, adaptation_weights, base_characteristics)
 
         # Should be significantly penalized
         assert affinity < 0.7

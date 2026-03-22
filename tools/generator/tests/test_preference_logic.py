@@ -228,19 +228,19 @@ def test_culinary_aberration_penalized():
     hot_ice_cream = {"physics_temperature": 0.9}
 
     affinity_normal = calculate_affinity(
-        neutral_user, cold_ice_cream,
-        ice_cream_weights, base_characteristics=ice_cream_base
+        neutral_user, cold_ice_cream, ice_cream_weights, base_characteristics=ice_cream_base
     )
 
     affinity_aberrant = calculate_affinity(
-        neutral_user, hot_ice_cream,
-        ice_cream_weights, base_characteristics=ice_cream_base
+        neutral_user, hot_ice_cream, ice_cream_weights, base_characteristics=ice_cream_base
     )
 
     # Hot ice cream should have SIGNIFICANTLY lower affinity than cold ice cream
     penalty_impact = affinity_normal - affinity_aberrant
 
-    assert penalty_impact > 0.1, f"Aberration not penalized! Normal={affinity_normal:.3f}, Aberrant={affinity_aberrant:.3f}"
+    assert penalty_impact > 0.1, (
+        f"Aberration not penalized! Normal={affinity_normal:.3f}, Aberrant={affinity_aberrant:.3f}"
+    )
     assert affinity_aberrant < affinity_normal, "Hot ice cream should have lower affinity"
 
     logger.info(f"   [OK] Normal ice cream: {affinity_normal:.3f}")
@@ -260,8 +260,8 @@ def test_reproducible_noise():
 
         def get_deterministic_rng(user_id, dish_name, variant_name):
             seed_str = f"{user_id}_{dish_name}_{variant_name}"
-            hash_bytes = hashlib.md5(seed_str.encode('utf-8')).digest()
-            seed_int = int.from_bytes(hash_bytes[:8], 'little')
+            hash_bytes = hashlib.md5(seed_str.encode("utf-8")).digest()
+            seed_int = int.from_bytes(hash_bytes[:8], "little")
             return random.Random(seed_int)
 
         # Same inputs

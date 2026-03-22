@@ -46,7 +46,7 @@ LOCAL_IMAGES_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
 WORKERS = 10
 
 # R2 Path Prefixes (v2 Architecture)
-MOCK_PREFIX = "smakosz/images/mock/"           # For generated mock data (dishes, restaurants, avatars)
+MOCK_PREFIX = "smakosz/images/mock/"  # For generated mock data (dishes, restaurants, avatars)
 INGREDIENTS_PREFIX = "smakosz/images/ingredients/"  # For shared ingredient icons
 
 class R2Mirror:
@@ -66,21 +66,21 @@ class R2Mirror:
     def run(self):
         """Execute the Sync process with interactive mode selection."""
         print("\n--- R2 Sync Tool (v2 - Prefix Architecture) ---")
-        print("1. Dosyłanie (Upload Only) - Nadpisuje pliki, NIE usuwa nic z R2.")
-        print("2. Mirror Mock (Pełna Synchronizacja) - Nadpisuje pliki i USUWA z R2 (TYLKO smakosz/images/mock/).")
+        print("1. Upload Only - Overwrites files, does NOT delete anything from R2.")
+        print("2. Mirror Mock (Full Sync) - Overwrites files and DELETES from R2 (ONLY smakosz/images/mock/).")
         print(f"\nPrefix for mock data: {MOCK_PREFIX}")
         print(f"Prefix for ingredients: {INGREDIENTS_PREFIX}")
 
-        mode = input("\nWybierz tryb (1/2): ").strip()
+        mode = input("\nSelect mode (1/2): ").strip()
 
         if mode not in ["1", "2"]:
-            print("Niepoprawny wybór. Anulowano.")
+            print("Invalid selection. Cancelled.")
             return
 
         logger.info(f"Scanning local directory: {LOCAL_IMAGES_DIR}")
 
         # 1. Scan local files and categorize by type
-        mock_files: dict[str, Path] = {}      # dishes/, restaurants/, avatars/
+        mock_files: dict[str, Path] = {}  # dishes/, restaurants/, avatars/
         ingredient_files: dict[str, Path] = {}  # ingredients/
 
         for path in LOCAL_IMAGES_DIR.rglob("*"):
@@ -123,8 +123,8 @@ class R2Mirror:
                 logger.warning("=" * 60)
                 logger.info("NOTE: Files outside mock prefix are PROTECTED and will NOT be deleted.")
 
-                res = input("Czy na pewno chcesz USUNĄĆ te pliki z R2? (tak/nie): ").lower().strip()
-                if res in ["tak", "yes", "y"]:
+                res = input("Are you sure you want to DELETE these files from R2? (yes/no): ").lower().strip()
+                if res in ["yes", "y"]:
                     logger.info("Deleting orphaned mock files...")
                     count = self.provider.delete_batch(to_delete)
                     logger.info(f"Deleted {count} files from mock prefix.")

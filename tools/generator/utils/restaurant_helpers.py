@@ -94,8 +94,3 @@ class RestaurantNameGenerator:
             return f"{random.choice(['Ocean', 'Sea', 'Blue', 'Harbor'])} {random.choice(['Catch', 'Fish', 'Grill', 'Kitchen'])}"
         else:
             return f"{random.choice(prefixes)} {random.choice(suffixes)}"
-
-    def reset(self):
-        """Reset the generator state (clear all tracked names and counters)."""
-        self._used_restaurant_names.clear()
-        self._name_counter.clear()

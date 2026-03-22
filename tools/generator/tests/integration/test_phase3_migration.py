@@ -52,6 +52,7 @@ class TestPhase3Registration:
 
         # Register all dependencies
         from generators.phase1_definitions import CitiesPhase
+
         registry.register(CitiesPhase())  # Required by RestaurantsPhase
         registry.register(IngredientsPhase())
         registry.register(RestaurantsPhase())
@@ -87,11 +88,7 @@ class TestPhase3DependencyValidation:
         mock_db.fetch_all.return_value = []  # No ingredients
 
         phase = DishesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={"num_dishes": 100},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={"num_dishes": 100}, phase_registry=PhaseRegistry())
 
         # Should execute but might handle empty ingredients gracefully
         with patch("generators.phase3_dishes.generate_dishes") as mock_gen:
@@ -108,11 +105,7 @@ class TestPhase3DependencyValidation:
         mock_db = MagicMock()
 
         phase = DishesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Simulate error due to missing restaurants
         with patch("generators.phase3_dishes.generate_dishes") as mock_gen:
@@ -137,11 +130,7 @@ class TestPhase3ExecutionStructure:
         ]
 
         phase = DishesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={"num_dishes": 100},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={"num_dishes": 100}, phase_registry=PhaseRegistry())
 
         # Mock the generate_dishes function
         with patch("generators.phase3_dishes.generate_dishes"):
@@ -171,11 +160,7 @@ class TestPhase3ErrorHandling:
         mock_db = MagicMock()
 
         phase = DishesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock generate_dishes to raise an exception
         with patch("generators.phase3_dishes.generate_dishes") as mock_gen:

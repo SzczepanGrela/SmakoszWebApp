@@ -48,10 +48,19 @@ class DatasetStatistics:
 
     def _row_counts(self) -> dict[str, int]:
         tables = [
-            "users", "restaurants", "dishes", "reviews",
-            "user_follows", "review_likes", "notifications",
-            "favorite_restaurants", "saved_dishes", "search_histories",
-            "media_assets", "data_correction_requests", "reports",
+            "users",
+            "restaurants",
+            "dishes",
+            "reviews",
+            "user_follows",
+            "review_likes",
+            "notifications",
+            "favorite_restaurants",
+            "saved_dishes",
+            "search_histories",
+            "media_assets",
+            "data_correction_requests",
+            "reports",
         ]
         counts = {}
         for table in tables:
@@ -77,9 +86,13 @@ class DatasetStatistics:
             """)
             if row:
                 result[col] = {
-                    "mean": _r(row[0]), "std": _r(row[1]),
-                    "min": row[2], "max": row[3],
-                    "p25": _r(row[4]), "median": _r(row[5]), "p75": _r(row[6]),
+                    "mean": _r(row[0]),
+                    "std": _r(row[1]),
+                    "min": row[2],
+                    "max": row[3],
+                    "p25": _r(row[4]),
+                    "median": _r(row[5]),
+                    "p75": _r(row[6]),
                 }
 
             dist_rows = self.db.fetch_all(f"""
@@ -157,8 +170,11 @@ class DatasetStatistics:
         if not row:
             return {}
         return {
-            "mean": _r(row[0]), "std": _r(row[1]), "median": _r(row[2]),
-            "min": row[3], "max": row[4],
+            "mean": _r(row[0]),
+            "std": _r(row[1]),
+            "median": _r(row[2]),
+            "min": row[3],
+            "max": row[4],
         }
 
     def _dish_popularity_stats(self) -> dict:
@@ -172,8 +188,11 @@ class DatasetStatistics:
         if not row:
             return {}
         return {
-            "mean": _r(row[0]), "std": _r(row[1]), "median": _r(row[2]),
-            "min": row[3], "max": row[4],
+            "mean": _r(row[0]),
+            "std": _r(row[1]),
+            "median": _r(row[2]),
+            "min": row[3],
+            "max": row[4],
         }
 
     def _restaurant_distribution(self) -> dict:
@@ -194,7 +213,7 @@ class DatasetStatistics:
             ) t
         """)
         return {
-            "by_city": {city: cnt for city, cnt in by_city},
+            "by_city": dict(by_city),
             "by_price_level": {str(pl): cnt for pl, cnt in by_price},
             "avg_restaurant_rating": {
                 "mean": _r(avg_row[0]) if avg_row else None,
@@ -256,8 +275,8 @@ class DatasetStatistics:
             GROUP BY ai_verdict ORDER BY COUNT(*) DESC
         """)
         return {
-            "content_status": {s: c for s, c in by_status},
-            "ai_verdict": {v: c for v, c in by_verdict},
+            "content_status": dict(by_status),
+            "ai_verdict": dict(by_verdict),
         }
 
     def _temporal_stats(self) -> dict:
@@ -268,7 +287,7 @@ class DatasetStatistics:
             GROUP BY DATE_TRUNC('month', visit_date)
             ORDER BY DATE_TRUNC('month', visit_date)
         """)
-        return {"reviews_per_month": {m: c for m, c in rows}}
+        return {"reviews_per_month": dict(rows)}
 
     # ------------------------------------------------------------------
     # Output methods
@@ -301,12 +320,8 @@ class DatasetStatistics:
             dr = ratings["dish_rating"]
             lines.append("")
             lines.append("RATING DISTRIBUTION (dish_rating, scale 1-10)")
-            lines.append(
-                f"  Mean: {dr['mean']}  |  Std: {dr['std']}  |  Median: {dr['median']}"
-            )
-            lines.append(
-                f"  P25: {dr['p25']}  |  P75: {dr['p75']}  |  Min: {dr['min']}  |  Max: {dr['max']}"
-            )
+            lines.append(f"  Mean: {dr['mean']}  |  Std: {dr['std']}  |  Median: {dr['median']}")
+            lines.append(f"  P25: {dr['p25']}  |  P75: {dr['p75']}  |  Min: {dr['min']}  |  Max: {dr['max']}")
             dist = dr.get("distribution", {})
             if dist:
                 max_count = max(dist.values()) if dist else 1
@@ -329,21 +344,10 @@ class DatasetStatistics:
         if ncf:
             lines.append("")
             lines.append("NCF INTERACTION MATRIX")
-            lines.append(
-                f"  Users: {ncf['users']:,}  |  Items (dishes): {ncf['items']:,}"
-            )
-            lines.append(
-                f"  Interactions: {ncf['interactions']:,}  |  "
-                f"Matrix size: {ncf['matrix_size']:,}"
-            )
-            lines.append(
-                f"  Sparsity: {ncf['sparsity'] * 100:.2f}%  |  "
-                f"Density: {ncf['density'] * 100:.4f}%"
-            )
-            lines.append(
-                f"  Avg ratings/user: {ncf['avg_per_user']}  |  "
-                f"Avg ratings/dish: {ncf['avg_per_item']}"
-            )
+            lines.append(f"  Users: {ncf['users']:,}  |  Items (dishes): {ncf['items']:,}")
+            lines.append(f"  Interactions: {ncf['interactions']:,}  |  Matrix size: {ncf['matrix_size']:,}")
+            lines.append(f"  Sparsity: {ncf['sparsity'] * 100:.2f}%  |  Density: {ncf['density'] * 100:.4f}%")
+            lines.append(f"  Avg ratings/user: {ncf['avg_per_user']}  |  Avg ratings/dish: {ncf['avg_per_item']}")
 
         # Cold start
         cs = self.stats.get("cold_start", {})
@@ -391,8 +395,7 @@ class DatasetStatistics:
             if "follows" in sg:
                 f = sg["follows"]
                 lines.append(
-                    f"  Follows: {f['total']:,} "
-                    f"(avg {f['avg_per_user']}/user, std {f['std']}, max {f['max']})"
+                    f"  Follows: {f['total']:,} (avg {f['avg_per_user']}/user, std {f['std']}, max {f['max']})"
                 )
             if "review_likes" in sg:
                 rl = sg["review_likes"]
@@ -402,10 +405,7 @@ class DatasetStatistics:
                 )
             if "favorites" in sg:
                 fv = sg["favorites"]
-                lines.append(
-                    f"  Favorites: {fv['total']:,} "
-                    f"(avg {fv['avg_per_user']}/user, std {fv['std']})"
-                )
+                lines.append(f"  Favorites: {fv['total']:,} (avg {fv['avg_per_user']}/user, std {fv['std']})")
 
         # Restaurant distribution
         rd = self.stats.get("restaurant_distribution", {})
@@ -420,15 +420,11 @@ class DatasetStatistics:
             by_pl = rd.get("by_price_level", {})
             if by_pl:
                 total = sum(by_pl.values())
-                pl_str = ", ".join(
-                    f"L{pl}: {cnt} ({cnt / total * 100:.0f}%)" for pl, cnt in by_pl.items()
-                )
+                pl_str = ", ".join(f"L{pl}: {cnt} ({cnt / total * 100:.0f}%)" for pl, cnt in by_pl.items())
                 lines.append(f"  Price levels: {pl_str}")
             avg_r = rd.get("avg_restaurant_rating", {})
             if avg_r.get("mean"):
-                lines.append(
-                    f"  Avg restaurant rating: {avg_r['mean']} (std {avg_r['std']})"
-                )
+                lines.append(f"  Avg restaurant rating: {avg_r['mean']} (std {avg_r['std']})")
 
         # Moderation
         mod = self.stats.get("moderation", {})
@@ -438,9 +434,7 @@ class DatasetStatistics:
             cs_data = mod.get("content_status", {})
             if cs_data:
                 total = sum(cs_data.values())
-                parts = [
-                    f"{s}: {c} ({c / total * 100:.1f}%)" for s, c in cs_data.items()
-                ]
+                parts = [f"{s}: {c} ({c / total * 100:.1f}%)" for s, c in cs_data.items()]
                 lines.append(f"  Content status: {', '.join(parts)}")
 
         # Temporal

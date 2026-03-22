@@ -32,24 +32,14 @@ class TestPhase0Migration:
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         # Mock file reading to avoid filesystem dependency
         import json
         from unittest.mock import mock_open, patch
 
         mock_config = {
-            "SYSTEM_CONFIG": {
-                "APP_NAME": {
-                    "value": "Smakosz",
-                    "description": "Application name",
-                    "is_public": True
-                }
-            }
+            "SYSTEM_CONFIG": {"APP_NAME": {"value": "Smakosz", "description": "Application name", "is_public": True}}
         }
 
         with patch("builtins.open", mock_open(read_data=json.dumps(mock_config))):
@@ -68,11 +58,7 @@ class TestPhase0Migration:
         phase = SystemConfigPhase(blueprints_dir="nonexistent")
 
         mock_db = MagicMock()
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         result = phase.execute(context)
 
@@ -113,9 +99,7 @@ class TestPhase0Migration:
         }
 
         phase = SystemConfigPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db, config={}, phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         with patch("builtins.open", mock_open(read_data=json.dumps(mock_config))):
             phase.execute(context)

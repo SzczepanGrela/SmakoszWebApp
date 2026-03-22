@@ -79,19 +79,10 @@ class TestHeroImagesPhaseExecution:
         from unittest.mock import mock_open
 
         mock_db = MagicMock()
-        fake_index = {
-            "images": [
-                {"filename": f"hero_{i:03d}.webp", "source": "pixabay"}
-                for i in range(12)
-            ]
-        }
+        fake_index = {"images": [{"filename": f"hero_{i:03d}.webp", "source": "pixabay"} for i in range(12)]}
 
         phase = HeroImagesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         with (
             patch("generators.phase1_definitions.HERO_INDEX_PATH") as mock_path,
@@ -112,11 +103,7 @@ class TestHeroImagesPhaseExecution:
         mock_db = MagicMock()
 
         phase = HeroImagesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         with patch("generators.phase1_definitions.HERO_INDEX_PATH") as mock_path:
             mock_path.exists.return_value = False
@@ -131,11 +118,7 @@ class TestHeroImagesPhaseExecution:
         mock_db.execute_query.side_effect = RuntimeError("DB connection lost")
 
         phase = HeroImagesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         result = phase.execute(context)
 
@@ -152,11 +135,7 @@ class TestHeroImagesPhaseExecution:
         fake_index = {"images": [{"filename": "hero_001.webp", "source": "pixabay"}]}
 
         phase = HeroImagesPhase(blueprints_dir="blueprints")
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         with (
             patch("generators.phase1_definitions.HERO_INDEX_PATH") as mock_path,

@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 try:
-    import blurhash  # type: ignore
+    import blurhash
+
     _BLURHASH_AVAILABLE = True
 except ImportError:
     _BLURHASH_AVAILABLE = False

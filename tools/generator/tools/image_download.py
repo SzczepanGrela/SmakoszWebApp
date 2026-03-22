@@ -107,9 +107,7 @@ class ImageDownloadService:
 
                 if BLURHASH_AVAILABLE:
                     try:
-                        metadata["blurhash"] = blurhash.encode(
-                            np.array(existing_img), components_x=4, components_y=3
-                        )
+                        metadata["blurhash"] = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
                     except Exception:
                         pass
 
@@ -129,10 +127,7 @@ class ImageDownloadService:
                 img = img.convert("RGB")
 
             if img.width < size[0] or img.height < size[1]:
-                logger.debug(
-                    f"Skipping low-res image: {img.width}x{img.height} "
-                    f"(min: {size[0]}x{size[1]})"
-                )
+                logger.debug(f"Skipping low-res image: {img.width}x{img.height} (min: {size[0]}x{size[1]})")
                 return (False, None)
 
             img_ratio = img.width / img.height
@@ -157,9 +152,7 @@ class ImageDownloadService:
             hash_str: str | None = None
             if BLURHASH_AVAILABLE:
                 try:
-                    hash_str = blurhash.encode(
-                        np.array(img), components_x=4, components_y=3
-                    )
+                    hash_str = blurhash.encode(np.array(img), components_x=4, components_y=3)
                 except Exception as e:
                     logger.debug(f"BlurHash generation failed for {url}: {e}")
 
@@ -223,9 +216,7 @@ class ImageDownloadService:
 
                 if BLURHASH_AVAILABLE:
                     try:
-                        metadata["blurhash"] = blurhash.encode(
-                            np.array(existing_img), components_x=4, components_y=3
-                        )
+                        metadata["blurhash"] = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
                     except Exception:
                         pass
 
@@ -251,9 +242,7 @@ class ImageDownloadService:
                 hash_str: str | None = None
                 if BLURHASH_AVAILABLE:
                     try:
-                        hash_str = blurhash.encode(
-                            np.array(existing_img), components_x=4, components_y=3
-                        )
+                        hash_str = blurhash.encode(np.array(existing_img), components_x=4, components_y=3)
                     except Exception:
                         pass
 
@@ -268,9 +257,7 @@ class ImageDownloadService:
 
                 return (True, metadata)
             except Exception as e:
-                logger.debug(
-                    f"Error generating derived sizes from existing {save_path_full}: {e}"
-                )
+                logger.debug(f"Error generating derived sizes from existing {save_path_full}: {e}")
                 return (True, None)
 
         # Full file does NOT exist - download fresh.
@@ -284,10 +271,7 @@ class ImageDownloadService:
                 img = img.convert("RGB")
 
             if img.width < full_size[0] or img.height < full_size[1]:
-                logger.debug(
-                    f"Skipping low-res image: {img.width}x{img.height} "
-                    f"(min: {full_size[0]}x{full_size[1]})"
-                )
+                logger.debug(f"Skipping low-res image: {img.width}x{img.height} (min: {full_size[0]}x{full_size[1]})")
                 return (False, None)
 
             parent.mkdir(parents=True, exist_ok=True)
@@ -305,9 +289,7 @@ class ImageDownloadService:
             hash_str = None
             if BLURHASH_AVAILABLE:
                 try:
-                    hash_str = blurhash.encode(
-                        np.array(img_full), components_x=4, components_y=3
-                    )
+                    hash_str = blurhash.encode(np.array(img_full), components_x=4, components_y=3)
                 except Exception as e:
                     logger.debug(f"BlurHash generation failed for {url}: {e}")
 
@@ -353,9 +335,7 @@ class ImageDownloadService:
                 if url in self.seen_urls:
                     old_rel_path = self.seen_urls[url]
                     if (self.output_dir / old_rel_path).exists():
-                        _, metadata = self.process_image(
-                            url, self.output_dir / old_rel_path, target_size
-                        )
+                        _, metadata = self.process_image(url, self.output_dir / old_rel_path, target_size)
                         result = {"path": old_rel_path}
                         if metadata:
                             result.update(metadata)
@@ -405,9 +385,7 @@ class ImageDownloadService:
                     old_rel_path = self.seen_urls[url]
                     old_full_path = self.output_dir / old_rel_path
                     if old_full_path.exists():
-                        _, metadata = self.process_image_multi_size(
-                            url, old_full_path, include_tiny, avatar_mode
-                        )
+                        _, metadata = self.process_image_multi_size(url, old_full_path, include_tiny, avatar_mode)
                         result = {"path": old_rel_path}
                         if metadata:
                             result.update(metadata)

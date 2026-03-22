@@ -19,7 +19,7 @@ from utils.image_processor import resize_and_crop
 class TestPixabayAPIHandling:
     """Tests for Pixabay API interaction with mocking."""
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_api_response_parsed_correctly(self, mock_get, mock_pixabay_response):
         """Verify API response parsing extracts image URLs."""
         mock_get.return_value.json.return_value = mock_pixabay_response
@@ -33,7 +33,7 @@ class TestPixabayAPIHandling:
         assert len(data["hits"]) == 1
         assert "webformatURL" in data["hits"][0]
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_empty_response_handled(self, mock_get):
         """Empty API response should be handled gracefully."""
         mock_get.return_value.json.return_value = {"total": 0, "hits": []}
@@ -44,7 +44,7 @@ class TestPixabayAPIHandling:
 
         assert len(data["hits"]) == 0
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_api_error_handled(self, mock_get):
         """API errors should be handled without crashing."""
         mock_get.return_value.status_code = 429  # Rate limited
@@ -57,7 +57,7 @@ class TestPixabayAPIHandling:
 class TestImageDownload:
     """Tests for image download functionality."""
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_image_saved_to_correct_path(self, mock_get):
         """Downloaded images should be saved to correct directory."""
         # Mock image download
@@ -75,7 +75,7 @@ class TestImageDownload:
             assert output_path.exists()
             assert output_path.read_bytes() == b"fake_image_data"
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_duplicate_images_skipped(self, mock_get):
         """Already existing images should not be re-downloaded."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -91,9 +91,7 @@ class TestSearchTermGeneration:
 
     def test_pixabay_term_from_variant(self):
         """Variant with pixabay_term should use it for search."""
-        variant_data = {
-            "pixabay_term": "pizza margherita"
-        }
+        variant_data = {"pixabay_term": "pizza margherita"}
 
         search_term = variant_data.get("pixabay_term", "food")
 
@@ -203,15 +201,13 @@ class TestMultiSizeProcessing:
             # OUTPUT_DIR must be patched BEFORE constructing PixabayDownloader so
             # that ImageDownloadService receives the correct output_dir at init time.
             with (
-                patch.object(fp.PixabayDownloader, '_get_api_key', return_value='test_key'),
-                patch('tools.fetch_photos.OUTPUT_DIR', output_dir),
+                patch.object(fp.PixabayDownloader, "_get_api_key", return_value="test_key"),
+                patch("tools.fetch_photos.OUTPUT_DIR", output_dir),
             ):
                 downloader = fp.PixabayDownloader()
-                with patch.object(downloader.session, 'get', return_value=mock_response):
+                with patch.object(downloader.session, "get", return_value=mock_response):
                     success, metadata = downloader.process_image_multi_size(
-                        "https://example.com/image.jpg",
-                        full_path,
-                        include_tiny=False
+                        "https://example.com/image.jpg", full_path, include_tiny=False
                     )
 
             # Verify files were created
@@ -252,7 +248,7 @@ class TestImageProviders:
         """ProviderManager should initialize with available providers."""
         from tools.image_providers import ProviderManager
 
-        with patch.dict('os.environ', {'PIXABAY_API_KEY': 'test', 'UNSPLASH_ACCESS_KEY': 'test'}):
+        with patch.dict("os.environ", {"PIXABAY_API_KEY": "test", "UNSPLASH_ACCESS_KEY": "test"}):
             manager = ProviderManager()
             assert len(manager.providers) >= 1
 
@@ -260,7 +256,7 @@ class TestImageProviders:
         """PixabayProvider should be enabled when API key is set."""
         from tools.image_providers import PixabayProvider
 
-        with patch.dict('os.environ', {'PIXABAY_API_KEY': 'test_key'}):
+        with patch.dict("os.environ", {"PIXABAY_API_KEY": "test_key"}):
             provider = PixabayProvider()
             assert provider.name == "pixabay"
             assert provider.enabled is True
@@ -269,7 +265,7 @@ class TestImageProviders:
         """UnsplashProvider should be enabled when API key is set."""
         from tools.image_providers import UnsplashProvider
 
-        with patch.dict('os.environ', {'UNSPLASH_ACCESS_KEY': 'test_key'}):
+        with patch.dict("os.environ", {"UNSPLASH_ACCESS_KEY": "test_key"}):
             provider = UnsplashProvider()
             assert provider.name == "unsplash"
             assert provider.enabled is True
@@ -278,11 +274,11 @@ class TestImageProviders:
         """UnsplashProvider should be disabled when API key is missing."""
         from tools.image_providers import UnsplashProvider
 
-        with patch.dict('os.environ', {'UNSPLASH_ACCESS_KEY': ''}, clear=True):
+        with patch.dict("os.environ", {"UNSPLASH_ACCESS_KEY": ""}, clear=True):
             provider = UnsplashProvider()
             assert provider.enabled is False
 
-    @patch('requests.Session.get')
+    @patch("requests.Session.get")
     def test_unsplash_search_parses_response(self, mock_get):
         """UnsplashProvider should correctly parse API response."""
         from tools.image_providers import UnsplashProvider
@@ -297,13 +293,13 @@ class TestImageProviders:
                     "height": 3000,
                     "urls": {"raw": "https://images.unsplash.com/photo-abc123"},
                     "user": {"name": "Test User", "username": "testuser"},
-                    "links": {"html": "https://unsplash.com/photos/abc123"}
+                    "links": {"html": "https://unsplash.com/photos/abc123"},
                 }
             ]
         }
         mock_get.return_value = mock_response
 
-        with patch.dict('os.environ', {'UNSPLASH_ACCESS_KEY': 'test_key'}):
+        with patch.dict("os.environ", {"UNSPLASH_ACCESS_KEY": "test_key"}):
             provider = UnsplashProvider()
             results = provider.search("restaurant interior", 5)
 
@@ -323,7 +319,7 @@ class TestImageProviders:
             provider_id="12345",
             width=1920,
             height=1080,
-            credit={"name": "Test", "link": "https://example.com"}
+            credit={"name": "Test", "link": "https://example.com"},
         )
 
         assert result.url == "https://example.com/image.jpg"

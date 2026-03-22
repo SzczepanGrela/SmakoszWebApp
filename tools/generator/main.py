@@ -108,7 +108,7 @@ Examples:
   %(prog)s -v --generate           Verbose logging
   %(prog)s --stats                 Dataset statistics only (no generation)
   %(prog)s --generate --stats      Generate + print NCF statistics
-        """
+        """,
     )
 
     # Execution mode
@@ -161,16 +161,9 @@ Examples:
         with DatabaseConnection(connection_params) as db:
             # Setup orchestration
             registry = setup_phase_registry(blueprints_dir="blueprints")
-            context = ExecutionContext(
-                db=db,
-                config=config,
-                phase_registry=registry
-            )
+            context = ExecutionContext(db=db, config=config, phase_registry=registry)
 
-            pipeline_config = PipelineConfig(
-                cleanup_before_run=not args.no_cleanup,
-                continue_on_error=False
-            )
+            pipeline_config = PipelineConfig(cleanup_before_run=not args.no_cleanup, continue_on_error=False)
 
             # Determine which phases to run
             phase_ids = None  # None = run all

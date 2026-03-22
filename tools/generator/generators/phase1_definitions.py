@@ -135,7 +135,7 @@ class CitiesPhase(BasePhase):
             dependencies=[],  # No dependencies - parallel with others
             required_tables=["cities"],
             cleanup_tables=["cities"],
-            estimated_duration=2
+            estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -154,19 +154,31 @@ class CitiesPhase(BasePhase):
 
             # Polish postal code prefixes by major city
             POSTAL_CODE_PREFIXES = {
-                "Warszawa": "00", "Kraków": "30", "Wrocław": "50", "Łódź": "90",
-                "Poznań": "60", "Gdańsk": "80", "Szczecin": "70", "Bydgoszcz": "85",
-                "Lublin": "20", "Białystok": "15", "Katowice": "40", "Gdynia": "81",
-                "Toruń": "87", "Rzeszów": "35", "Kielce": "25", "Olsztyn": "10",
-                "Opole": "45", "Gorzów Wlkp.": "66",
+                "Warszawa": "00",
+                "Kraków": "30",
+                "Wrocław": "50",
+                "Łódź": "90",
+                "Poznań": "60",
+                "Gdańsk": "80",
+                "Szczecin": "70",
+                "Bydgoszcz": "85",
+                "Lublin": "20",
+                "Białystok": "15",
+                "Katowice": "40",
+                "Gdynia": "81",
+                "Toruń": "87",
+                "Rzeszów": "35",
+                "Kielce": "25",
+                "Olsztyn": "10",
+                "Opole": "45",
+                "Gorzów Wlkp.": "66",
             }
 
             city_data = []
             for city_name in city_config:
-                city_data.append({
-                    "city_name": city_name,
-                    "postal_code_prefix": POSTAL_CODE_PREFIXES.get(city_name, "00")
-                })
+                city_data.append(
+                    {"city_name": city_name, "postal_code_prefix": POSTAL_CODE_PREFIXES.get(city_name, "00")}
+                )
 
             if not city_data:
                 raise ValueError("No cities found in CITY_CONFIG")
@@ -180,7 +192,7 @@ class CitiesPhase(BasePhase):
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={"cities": len(city_data)}
+                entities_generated={"cities": len(city_data)},
             )
 
         except Exception as e:
@@ -191,7 +203,7 @@ class CitiesPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
 
 class CuisineTypesPhase(BasePhase):
@@ -218,7 +230,7 @@ class CuisineTypesPhase(BasePhase):
             dependencies=[],  # No dependencies - parallel with others
             required_tables=["cuisine_types"],
             cleanup_tables=["cuisine_types"],
-            estimated_duration=2
+            estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -233,26 +245,67 @@ class CuisineTypesPhase(BasePhase):
 
             # Map themes to display names
             CUISINE_DISPLAY_NAMES = {
-                "Pizzeria": "Włoska", "Kebab": "Turecka", "Burgerownia": "Amerykańska",
-                "Kuchnia Polska": "Polska", "Sushi Bar": "Japońska",
-                "Wegańska Kawiarnia": "Wegańska", "Kuchnia Chińska": "Chińska",
-                "Kuchnia Indyjska": "Indyjska", "Kuchnia Meksykańska": "Meksykańska",
-                "Kuchnia Francuska": "Francuska", "Kuchnia Włoska": "Włoska",
-                "Kuchnia Tajska": "Tajska", "Ramen Bar": "Japońska",
-                "Kawiarnia": "Kawiarnia", "Food Truck": "Street Food",
-                "Smażalnia Ryb": "Ryby", "BBQ & Grill": "BBQ",
-                "Taqueria": "Meksykańska", "Creperie": "Naleśnikarnia",
+                "Pizzeria": "Włoska",
+                "Kebab": "Turecka",
+                "Burgerownia": "Amerykańska",
+                "Kuchnia Polska": "Polska",
+                "Sushi Bar": "Japońska",
+                "Wegańska Kawiarnia": "Wegańska",
+                "Kuchnia Chińska": "Chińska",
+                "Kuchnia Indyjska": "Indyjska",
+                "Kuchnia Meksykańska": "Meksykańska",
+                "Kuchnia Francuska": "Francuska",
+                "Kuchnia Włoska": "Włoska",
+                "Kuchnia Tajska": "Tajska",
+                "Ramen Bar": "Japońska",
+                "Kawiarnia": "Kawiarnia",
+                "Food Truck": "Street Food",
+                "Smażalnia Ryb": "Ryby",
+                "BBQ & Grill": "BBQ",
+                "Taqueria": "Meksykańska",
+                "Creperie": "Naleśnikarnia",
                 "Piekarnia": "Piekarnia",
+            }
+
+            CUISINE_ICONS = {
+                "Amerykański Diner": "\U0001f32d",  # 🌭
+                "Bar Meksykański": "\U0001f32e",  # 🌮
+                "Bar Tapas": "\U0001f372",  # 🍲
+                "Burgerownia": "\U0001f354",  # 🍔
+                "Francuskie Bistro": "\U0001f950",  # 🥐
+                "Grecka Taverna": "\U0001f957",  # 🥗
+                "Kanapkownia": "\U0001f96a",  # 🥪
+                "Kawiarnia": "\u2615",  # ☕
+                "Kebab": "\U0001f959",  # 🥙
+                "Korean BBQ": "\U0001f969",  # 🥩
+                "Kuchnia Azjatycka": "\U0001f961",  # 🥡
+                "Kuchnia Bliskowschodnia": "\U0001f9c6",  # 🧆
+                "Kuchnia Indyjska": "\U0001f35b",  # 🍛
+                "Kuchnia Polska": "\U0001f95f",  # 🥟
+                "Kuchnia Turecka": "\U0001f959",  # 🥙
+                "Kuchnia Wietnamska": "\U0001f35c",  # 🍜
+                "Kuchnia Włoska": "\U0001f35d",  # 🍝
+                "Lodziarnia": "\U0001f366",  # 🍦
+                "Niemiecki Pub": "\U0001f37a",  # 🍺
+                "Piekarnia z Kawiarnią": "\U0001f35e",  # 🍞
+                "Ramen Bar": "\U0001f35c",  # 🍜
+                "Restauracja z Owocami Morza": "\U0001f99e",  # 🦞
+                "Steakhouse": "\U0001f969",  # 🥩
+                "Sushi Bar": "\U0001f363",  # 🍣
+                "Wykwintna Restauracja": "\U0001f377",  # 🍷
+                "Wędzarnia BBQ": "\U0001f525",  # 🔥
             }
 
             cuisine_data = []
             for theme_name in themes:
                 display_name = CUISINE_DISPLAY_NAMES.get(theme_name, theme_name)
-                cuisine_data.append({
-                    "name": theme_name.lower().replace(" ", "_"),
-                    "display_name": display_name,
-                    "icon": None
-                })
+                cuisine_data.append(
+                    {
+                        "name": theme_name.lower().replace(" ", "_"),
+                        "display_name": display_name,
+                        "icon": CUISINE_ICONS.get(theme_name),
+                    }
+                )
 
             if cuisine_data:
                 context.db.insert_bulk("cuisine_types", cuisine_data)
@@ -264,7 +317,7 @@ class CuisineTypesPhase(BasePhase):
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={"cuisine_types": len(cuisine_data)}
+                entities_generated={"cuisine_types": len(cuisine_data)},
             )
 
         except Exception as e:
@@ -275,7 +328,7 @@ class CuisineTypesPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
 
 class IngredientsPhase(BasePhase):
@@ -302,7 +355,7 @@ class IngredientsPhase(BasePhase):
             dependencies=[],  # No dependencies - parallel with others
             required_tables=["ingredients"],
             cleanup_tables=["ingredients"],
-            estimated_duration=10
+            estimated_duration=10,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -333,8 +386,17 @@ class IngredientsPhase(BasePhase):
                 logger.warning("No ingredients found in dishes.json")
 
             allergens = {
-                "orzechy", "krewetki", "mleko", "gluten", "jaja", "soja",
-                "ryby", "seler", "gorczyca", "sezam", "łupin",
+                "orzechy",
+                "krewetki",
+                "mleko",
+                "gluten",
+                "jaja",
+                "soja",
+                "ryby",
+                "seler",
+                "gorczyca",
+                "sezam",
+                "łupin",
             }
 
             # Load dietary keywords
@@ -351,7 +413,7 @@ class IngredientsPhase(BasePhase):
                 desc="Generating ingredients",
                 unit=" ingredient",
                 mininterval=1.0,
-                disable=LoggingConfig.is_quiet()
+                disable=LoggingConfig.is_quiet(),
             ):
                 ing_lower = ingredient.lower()
 
@@ -398,34 +460,32 @@ class IngredientsPhase(BasePhase):
                     icon_url = generate_ingredient_icon_url(ingredient)
                     icon_blurhash = None
 
-                ingredient_data.append({
-                    "ingredient_name": ingredient,
-                    "icon_url": icon_url,
-                    "icon_blurhash": icon_blurhash,
-                    "is_allergen": is_allergen,
-                    "is_vegetarian": is_vegetarian,
-                    "is_vegan": is_vegan,
-                    "is_gluten_free": is_gluten_free,
-                    "is_lactose_free": is_lactose_free
-                })
+                ingredient_data.append(
+                    {
+                        "ingredient_name": ingredient,
+                        "icon_url": icon_url,
+                        "icon_blurhash": icon_blurhash,
+                        "is_allergen": is_allergen,
+                        "is_vegetarian": is_vegetarian,
+                        "is_vegan": is_vegan,
+                        "is_gluten_free": is_gluten_free,
+                        "is_lactose_free": is_lactose_free,
+                    }
+                )
 
             context.db.insert_bulk("ingredients", ingredient_data)
 
             duration = time.time() - start_time
             allergen_count = sum(1 for i in ingredient_data if i["is_allergen"])
             logger.info(
-                f"✓ Generated {len(ingredient_data)} ingredients "
-                f"({allergen_count} allergens) in {duration:.2f}s"
+                f"✓ Generated {len(ingredient_data)} ingredients ({allergen_count} allergens) in {duration:.2f}s"
             )
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={
-                    "ingredients": len(ingredient_data),
-                    "allergens": allergen_count
-                }
+                entities_generated={"ingredients": len(ingredient_data), "allergens": allergen_count},
             )
 
         except Exception as e:
@@ -436,7 +496,7 @@ class IngredientsPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
 
 class TagsPhase(BasePhase):
@@ -459,7 +519,7 @@ class TagsPhase(BasePhase):
             dependencies=[],  # No dependencies - parallel with others
             required_tables=["tags"],
             cleanup_tables=["tags"],
-            estimated_duration=2
+            estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -516,11 +576,7 @@ class TagsPhase(BasePhase):
             ]
 
             for tag in tqdm(
-                tags,
-                desc="Generating tag colors",
-                unit=" tag",
-                mininterval=1.0,
-                disable=LoggingConfig.is_quiet()
+                tags, desc="Generating tag colors", unit=" tag", mininterval=1.0, disable=LoggingConfig.is_quiet()
             ):
                 tag["display_color"] = generate_tag_color(tag["category"], tag["tag_name"])
 
@@ -533,7 +589,7 @@ class TagsPhase(BasePhase):
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.COMPLETED,
                 duration_seconds=duration,
-                entities_generated={"tags": len(tags)}
+                entities_generated={"tags": len(tags)},
             )
 
         except Exception as e:
@@ -544,7 +600,7 @@ class TagsPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
 
 class HeroImagesPhase(BasePhase):
@@ -612,18 +668,20 @@ class HeroImagesPhase(BasePhase):
                 credit_text = None
                 if img.get("source", "").lower() == "unsplash":
                     credit_text = f"{img.get('credit_user', 'Unknown')} / Unsplash"
-                hero_data.append({
-                    "public_id": str(uuid.uuid4()),
-                    "entity_type": "hero",
-                    "entity_id": idx,
-                    "url": url,
-                    "blurhash": img.get("blurhash"),
-                    "width": img.get("width", 1600),
-                    "height": img.get("height", 900),
-                    "is_primary": False,
-                    "status": "approved",
-                    "credit_text": credit_text,
-                })
+                hero_data.append(
+                    {
+                        "public_id": str(uuid.uuid4()),
+                        "entity_type": "hero",
+                        "entity_id": idx,
+                        "url": url,
+                        "blurhash": img.get("blurhash"),
+                        "width": img.get("width", 1600),
+                        "height": img.get("height", 900),
+                        "is_primary": False,
+                        "status": "approved",
+                        "credit_text": credit_text,
+                    }
+                )
 
             if hero_data:
                 context.db.insert_bulk("media_assets", hero_data)
@@ -648,4 +706,3 @@ class HeroImagesPhase(BasePhase):
                 entities_generated={},
                 error=e,
             )
-

@@ -15,6 +15,7 @@ Usage:
   python tools/refetch_photos.py restaurant --all
   python tools/refetch_photos.py ingredient --name "Mozzarella"
 """
+
 import argparse
 import json
 import logging
@@ -77,6 +78,7 @@ def _download_single(url: str, save_path: Path, target_size: tuple[int, int]) ->
 
         # Save raw bytes to temp, open, process
         from io import BytesIO
+
         img = Image.open(BytesIO(resp.content))
         if img.mode != "RGB":
             img = img.convert("RGB")
@@ -126,7 +128,9 @@ def _download_and_rename(
     target_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Search Pixabay (with optional category filter)
-    logger.info(f"  Searching: Searching: '{search_term}'" + (f" [category={pixabay_category}]" if pixabay_category else ""))
+    logger.info(
+        f"  Searching: Searching: '{search_term}'" + (f" [category={pixabay_category}]" if pixabay_category else "")
+    )
     results = _pixabay.search(search_term, count * 3, orientation=orientation, category=pixabay_category)
 
     if not results:
@@ -179,7 +183,10 @@ def refetch_dish(category: str, dish_name: str, term: str | None, count: int):
 
     logger.info(f"--- Refetching DISH: {category} / {dish_name} ---")
     _download_and_rename(
-        target_dir, term, dish_slug, count,
+        target_dir,
+        term,
+        dish_slug,
+        count,
     )
 
 def refetch_dish_category(category: str, count: int):
@@ -218,7 +225,10 @@ def refetch_restaurant(theme_name: str, term: str | None, count: int):
 
     logger.info(f"--- Refetching RESTAURANT: {theme_name} ---")
     _download_and_rename(
-        target_dir, term, slug, count,
+        target_dir,
+        term,
+        slug,
+        count,
     )
 
 def refetch_all_restaurants(count: int):
@@ -251,7 +261,10 @@ def refetch_ingredient(ing_name: str, term: str | None, count: int):
 
     logger.info(f"--- Refetching INGREDIENT: {ing_name} ---")
     _download_and_rename(
-        target_dir, term, safe_name, count,
+        target_dir,
+        term,
+        safe_name,
+        count,
         target_size=SIZE_INGREDIENT,
         generate_thumbs=False,  # ingredients don't use thumbs
         orientation="all",

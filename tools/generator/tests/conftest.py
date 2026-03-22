@@ -62,20 +62,16 @@ def sample_archetype() -> dict:
                 "physics_temperature": 0.9,
                 "flavor_sweetness": 0.2,
             },
-            "default_weights": {
-                "physics_temperature": 0.1,
-                "flavor_sweetness": 0.5,
-                "_default": 1.0
-            }
+            "default_weights": {"physics_temperature": 0.1, "flavor_sweetness": 0.5, "_default": 1.0},
         },
         "variants": {
             "Test Variant": {
                 "price_multiplier": {"mean": 1.0, "stdev": 0.1},
                 "ingredients": ["flour", "water"],
                 "characteristics": {"physics_richness": 0.7},
-                "weights": None
+                "weights": None,
             }
-        }
+        },
     }
 
 @pytest.fixture
@@ -84,9 +80,7 @@ def sample_user() -> dict:
     return {
         "user_id": 1,
         "username": "test_user",
-        "secret_characteristics_vector": {
-            dim: {"value": 0.5, "tolerance": 0.2} for dim in DIMENSIONS
-        }
+        "secret_characteristics_vector": {dim: {"value": 0.5, "tolerance": 0.2} for dim in DIMENSIONS},
     }
 
 @pytest.fixture
@@ -97,7 +91,7 @@ def sample_dish() -> dict:
         "dish_name": "Test Pizza",
         "secret_archetype": "Pizza",
         "secret_variant_name": "Margherita",
-        "secret_characteristics_vector": dict.fromkeys(DIMENSIONS, 0.5)
+        "secret_characteristics_vector": dict.fromkeys(DIMENSIONS, 0.5),
     }
 
 @pytest.fixture
@@ -108,7 +102,7 @@ def sample_restaurant() -> dict:
         "name": "Test Restaurant",
         "avg_rating": 4.0,
         "price_range": 2,
-        "secret_quality_modifiers": {}
+        "secret_quality_modifiers": {},
     }
 
 @pytest.fixture
@@ -131,9 +125,9 @@ def mock_pixabay_response():
                 "id": 12345,
                 "webformatURL": "https://pixabay.com/get/test_image.jpg",
                 "largeImageURL": "https://pixabay.com/get/test_image_large.jpg",
-                "previewURL": "https://pixabay.com/get/test_image_preview.jpg"
+                "previewURL": "https://pixabay.com/get/test_image_preview.jpg",
             }
-        ]
+        ],
     }
 
 @pytest.fixture

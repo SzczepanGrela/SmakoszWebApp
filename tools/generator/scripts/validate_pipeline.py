@@ -248,6 +248,7 @@ def main():
     except Exception as e:
         print(f"\n[FAIL] FATAL ERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

@@ -38,9 +38,7 @@ class PipelineResult:
     @property
     def succeeded_phases(self) -> list[str]:
         """Get list of successfully completed phase IDs."""
-        return [
-            r.phase_id for r in self.phase_results if r.status == PhaseStatus.COMPLETED
-        ]
+        return [r.phase_id for r in self.phase_results if r.status == PhaseStatus.COMPLETED]
 
     @property
     def failed_phases(self) -> list[str]:
@@ -118,9 +116,7 @@ class DataGenerationPipeline:
                 p.metadata.phase_id
                 for p in sorted(
                     all_phases,
-                    key=lambda p: int(
-                        p.metadata.phase_id.replace("phase", "").split("_")[0]
-                    ),
+                    key=lambda p: int(p.metadata.phase_id.replace("phase", "").split("_")[0]),
                 )
             ]
             logger.info(f"Running ALL phases: {len(phase_ids)} phases")
@@ -129,9 +125,7 @@ class DataGenerationPipeline:
 
         # 2. Resolve dependencies (topological sort)
         try:
-            sorted_phase_ids = self.context.phase_registry.resolve_dependencies(
-                phase_ids
-            )
+            sorted_phase_ids = self.context.phase_registry.resolve_dependencies(phase_ids)
             logger.info(f"Resolved execution order: {sorted_phase_ids}")
         except ValueError as e:
             logger.error(f"Dependency resolution failed: {e}")
@@ -160,30 +154,20 @@ class DataGenerationPipeline:
 
         # 4. Execute phases
         for idx, phase_id in enumerate(sorted_phase_ids, 1):
-            logger.info(
-                f"\n{'=' * 80}\n"
-                f"Phase {idx}/{len(sorted_phase_ids)}: {phase_id}\n"
-                f"{'=' * 80}"
-            )
+            logger.info(f"\n{'=' * 80}\nPhase {idx}/{len(sorted_phase_ids)}: {phase_id}\n{'=' * 80}")
 
             result = self._execute_phase(phase_id)
             phase_results.append(result)
 
             if result.status == PhaseStatus.FAILED:
                 if not self.config.continue_on_error:
-                    logger.error(
-                        f"Pipeline aborted due to failure in {phase_id}"
-                    )
+                    logger.error(f"Pipeline aborted due to failure in {phase_id}")
                     break
                 else:
-                    logger.warning(
-                        f"Phase {phase_id} failed but continuing (continue_on_error=True)"
-                    )
+                    logger.warning(f"Phase {phase_id} failed but continuing (continue_on_error=True)")
             elif result.status == PhaseStatus.COMPLETED:
                 self.context.mark_completed(phase_id)
-                logger.info(
-                    f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s"
-                )
+                logger.info(f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s")
             elif result.status == PhaseStatus.SKIPPED:
                 logger.info(f"⊘ Phase {phase_id} skipped")
 
@@ -210,7 +194,9 @@ class DataGenerationPipeline:
         logger.info("PIPELINE SUMMARY")
         logger.info("=" * 80)
         logger.info(f"Total duration: {duration}")
-        logger.info(f"Phases completed: {len([r for r in phase_results if r.status == PhaseStatus.COMPLETED])}/{len(phase_results)}")
+        logger.info(
+            f"Phases completed: {len([r for r in phase_results if r.status == PhaseStatus.COMPLETED])}/{len(phase_results)}"
+        )
         logger.info(f"Success: {success}")
 
         if not success:

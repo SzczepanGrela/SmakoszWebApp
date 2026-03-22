@@ -81,7 +81,7 @@ Examples:
   %(prog)s phase3_dishes                  Run dishes phase
   %(prog)s phase5_reviews --no-cleanup    Run reviews without cleanup
   %(prog)s phase2_restaurants -v          Run with verbose logging
-        """
+        """,
     )
 
     parser.add_argument("phase_id", type=str, help="Phase ID to run (e.g., phase3_dishes)")
@@ -128,16 +128,9 @@ Examples:
         with DatabaseConnection(connection_params) as db:
             # Setup
             registry = setup_phase_registry()
-            context = ExecutionContext(
-                db=db,
-                config=GENERATION_CONFIG,
-                phase_registry=registry
-            )
+            context = ExecutionContext(db=db, config=GENERATION_CONFIG, phase_registry=registry)
 
-            pipeline_config = PipelineConfig(
-                cleanup_before_run=not args.no_cleanup,
-                continue_on_error=False
-            )
+            pipeline_config = PipelineConfig(cleanup_before_run=not args.no_cleanup, continue_on_error=False)
 
             # Execute single phase
             pipeline = DataGenerationPipeline(context, pipeline_config)

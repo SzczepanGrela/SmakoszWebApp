@@ -13,7 +13,9 @@ class UserDAO:
     @staticmethod
     def get_all_users_for_social(db: DatabaseConnection) -> list[tuple[int, str, int, bool]]:
         """Fetch user data for social graph generation."""
-        return db.fetch_all("SELECT user_id, username, home_city_id, secret_is_influencer FROM users WHERE role = 'user'")
+        return db.fetch_all(
+            "SELECT user_id, username, home_city_id, secret_is_influencer FROM users WHERE role = 'user'"
+        )
 
     @staticmethod
     def get_all_users_for_reviews(db: DatabaseConnection) -> list[tuple]:

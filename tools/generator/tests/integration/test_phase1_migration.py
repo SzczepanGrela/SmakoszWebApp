@@ -91,12 +91,14 @@ class TestPhase1Registration:
         registry.register(TagsPhase())
 
         # Resolve dependencies for all Phase 1 phases
-        resolved = registry.resolve_dependencies([
-            "phase1_cities",
-            "phase1_cuisines",
-            "phase1_ingredients",
-            "phase1_tags",
-        ])
+        resolved = registry.resolve_dependencies(
+            [
+                "phase1_cities",
+                "phase1_cuisines",
+                "phase1_ingredients",
+                "phase1_tags",
+            ]
+        )
 
         # Since no dependencies, order should match input
         # (or be a valid permutation - all are parallel)
@@ -128,11 +130,7 @@ class TestPhase1Execution:
             MockLoader.return_value = mock_loader
 
             phase = CitiesPhase(blueprints_dir="blueprints")
-            context = ExecutionContext(
-                db=mock_db,
-                config={},
-                phase_registry=PhaseRegistry()
-            )
+            context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
             result = phase.execute(context)
 
@@ -166,11 +164,7 @@ class TestPhase1Execution:
             MockLoader.return_value = mock_loader
 
             phase = CuisineTypesPhase(blueprints_dir="blueprints")
-            context = ExecutionContext(
-                db=mock_db,
-                config={},
-                phase_registry=PhaseRegistry()
-            )
+            context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
             result = phase.execute(context)
 
@@ -184,11 +178,7 @@ class TestPhase1Execution:
         mock_db.insert_bulk = Mock()
 
         phase = TagsPhase()
-        context = ExecutionContext(
-            db=mock_db,
-            config={},
-            phase_registry=PhaseRegistry()
-        )
+        context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
         result = phase.execute(context)
 
@@ -207,15 +197,7 @@ class TestPhase1Execution:
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 
-        mock_dishes = {
-            "Pizza": {
-                "variants": {
-                    "Margherita": {
-                        "ingredients": ["mozzarella", "pomidory", "bazylia"]
-                    }
-                }
-            }
-        }
+        mock_dishes = {"Pizza": {"variants": {"Margherita": {"ingredients": ["mozzarella", "pomidory", "bazylia"]}}}}
 
         mock_global_config = {
             "DIETARY_KEYWORDS": {
@@ -226,10 +208,11 @@ class TestPhase1Execution:
             }
         }
 
-        with patch("generators.phase1_definitions.BlueprintLoader") as MockLoader, \
-             patch("generators.phase1_definitions.PhotoPools") as MockPhotoP, \
-             patch("generators.phase1_definitions.tqdm", side_effect=lambda x, **kwargs: x):
-
+        with (
+            patch("generators.phase1_definitions.BlueprintLoader") as MockLoader,
+            patch("generators.phase1_definitions.PhotoPools") as MockPhotoP,
+            patch("generators.phase1_definitions.tqdm", side_effect=lambda x, **kwargs: x),
+        ):
             mock_loader = Mock()
             mock_loader.load_blueprint.side_effect = [
                 mock_dishes,  # First call: dishes.json
@@ -240,16 +223,12 @@ class TestPhase1Execution:
             mock_photo_pools = Mock()
             mock_photo_pools.get_ingredient_photo.return_value = {
                 "url": "http://example.com/photo.jpg",
-                "blurhash": "ABC123"
+                "blurhash": "ABC123",
             }
             MockPhotoP.return_value = mock_photo_pools
 
             phase = IngredientsPhase(blueprints_dir="blueprints")
-            context = ExecutionContext(
-                db=mock_db,
-                config={},
-                phase_registry=PhaseRegistry()
-            )
+            context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
             result = phase.execute(context)
 
@@ -270,11 +249,7 @@ class TestPhase1ErrorHandling:
             MockLoader.return_value = mock_loader
 
             phase = CitiesPhase(blueprints_dir="nonexistent")
-            context = ExecutionContext(
-                db=mock_db,
-                config={},
-                phase_registry=PhaseRegistry()
-            )
+            context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
             result = phase.execute(context)
 
@@ -292,11 +267,7 @@ class TestPhase1ErrorHandling:
             MockLoader.return_value = mock_loader
 
             phase = CitiesPhase(blueprints_dir="blueprints")
-            context = ExecutionContext(
-                db=mock_db,
-                config={},
-                phase_registry=PhaseRegistry()
-            )
+            context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
 
             result = phase.execute(context)
 

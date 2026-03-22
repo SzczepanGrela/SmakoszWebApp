@@ -96,6 +96,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     city_config = loader.load_blueprint("cities.json").get("CITY_CONFIG", {})
 
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
+    city_postal_map = dict(db.fetch_all("SELECT city_name, postal_code_prefix FROM cities"))
 
     global_target = int(GENERATION_CONFIG["num_restaurants"])  # type: ignore
 
@@ -144,7 +145,9 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
     available_themes = list(restaurant_rules.get("RESTAURANT_THEMES", {}).keys())
 
-    for city_id, city_name in tqdm(cities, desc="Generating restaurants", unit=" city", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+    for city_id, city_name in tqdm(
+        cities, desc="Generating restaurants", unit=" city", mininterval=1.0, disable=LoggingConfig.is_quiet()
+    ):
         num_restaurants = city_counts.get(city_name, 0)
         city_info = city_config.get(city_name, {})
 
@@ -171,7 +174,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                 secret_price_multiplier = random.uniform(0.9, 1.3)
                 price_level = 2
                 base_quality_mean = 0.65
-            else: # Fine Dining
+            else:  # Fine Dining
                 secret_price_multiplier = random.uniform(1.4, 2.5)
                 price_level = 3
                 base_quality_mean = 0.85
@@ -230,6 +233,8 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "restaurant_name": name,
                     "cuisine_type": theme,
                     "price_level": price_level,
+                    "postal_code": f"{city_postal_map.get(city_name, '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
+                    "email": f"kontakt@{slugify(name)}.pl",
                     "address": f"{fake.street_address()}, {city_name}",
                     "latitude": round(lat, 6),
                     "longitude": round(lon, 6),
@@ -261,11 +266,13 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             display_order = 1
             for section_def in menu_config:
                 if random.random() <= section_def.get("chance", 1.0):
-                    menu_sections_data.append({
-                        "restaurant_id": restaurant_id_counter,
-                        "section_name": section_def["name"],
-                        "display_order": display_order
-                    })
+                    menu_sections_data.append(
+                        {
+                            "restaurant_id": restaurant_id_counter,
+                            "section_name": section_def["name"],
+                            "display_order": display_order,
+                        }
+                    )
                     display_order += 1
 
             restaurant_id_counter += 1
@@ -274,7 +281,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     actual_restaurant_ids = db.insert_bulk_returning("restaurants", restaurant_data, "restaurant_id")
     logger.info(f"Successfully inserted {len(actual_restaurant_ids)} restaurants")
 
-    counter_to_db_id = {i+1: actual_id for i, actual_id in enumerate(actual_restaurant_ids)}
+    counter_to_db_id = {i + 1: actual_id for i, actual_id in enumerate(actual_restaurant_ids)}
 
     if menu_sections_data:
         for section in menu_sections_data:
@@ -290,51 +297,54 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
 def _generate_description(theme: str, tier: str, city_name: str) -> str:
     if theme == "Pizzeria":
-        base = random.choice([
-            f"Najlepsza pizza w mieście {city_name}.",
-            "Prawdziwa włoska receptura i piec opalany drewnem.",
-            "Rodzinna pizzeria z tradycjami.",
-            "Chrupiące ciasto i świeże składniki."
-        ])
+        base = random.choice(
+            [
+                f"Najlepsza pizza w mieście {city_name}.",
+                "Prawdziwa włoska receptura i piec opalany drewnem.",
+                "Rodzinna pizzeria z tradycjami.",
+                "Chrupiące ciasto i świeże składniki.",
+            ]
+        )
     elif theme == "Burgerownia":
-        base = random.choice([
-            "Soczyste burgery ze 100% wołowiny.",
-            "Kraftowe burgery i domowe frytki.",
-            f"Prawdziwy amerykański klimat w sercu {city_name}.",
-            "Autorskie sosy i bułki wypiekane na miejscu."
-        ])
+        base = random.choice(
+            [
+                "Soczyste burgery ze 100% wołowiny.",
+                "Kraftowe burgery i domowe frytki.",
+                f"Prawdziwy amerykański klimat w sercu {city_name}.",
+                "Autorskie sosy i bułki wypiekane na miejscu.",
+            ]
+        )
     elif theme == "Sushi Bar":
-        base = random.choice([
-            "Świeże ryby i autentyczne japońskie smaki.",
-            "Mistrzowie sushi zapraszają na kulinarną podróż.",
-            "Tradycja i nowoczesność na jednym talerzu.",
-            "Najlepsze sushi w okolicy."
-        ])
+        base = random.choice(
+            [
+                "Świeże ryby i autentyczne japońskie smaki.",
+                "Mistrzowie sushi zapraszają na kulinarną podróż.",
+                "Tradycja i nowoczesność na jednym talerzu.",
+                "Najlepsze sushi w okolicy.",
+            ]
+        )
     elif tier == "Fine Dining":
-        base = random.choice([
-            "Elegancja i wyrafinowany smak.",
-            "Autorska kuchnia szefa kuchni dla wymagających.",
-            "Wyjątkowe doświadczenie kulinarne.",
-            "Idealne miejsce na romantyczną kolację lub spotkanie biznesowe."
-        ])
+        base = random.choice(
+            [
+                "Elegancja i wyrafinowany smak.",
+                "Autorska kuchnia szefa kuchni dla wymagających.",
+                "Wyjątkowe doświadczenie kulinarne.",
+                "Idealne miejsce na romantyczną kolację lub spotkanie biznesowe.",
+            ]
+        )
     elif tier == "Budget":
-        base = random.choice([
-            "Szybko, smacznie i tanio.",
-            "Najlepszy stosunek jakości do ceny.",
-            "Ulubione miejsce studentów i nie tylko.",
-            "Domowe smaki w dobrej cenie."
-        ])
+        base = random.choice(
+            [
+                "Szybko, smacznie i tanio.",
+                "Najlepszy stosunek jakości do ceny.",
+                "Ulubione miejsce studentów i nie tylko.",
+                "Domowe smaki w dobrej cenie.",
+            ]
+        )
     else:
         base = f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników."
 
     return base
-
-def _select_restaurant_theme(rules: dict) -> str:
-    # This function is deprecated by logic in main loop but kept for compatibility if needed
-    themes = list(rules.get("RESTAURANT_THEMES", {}).keys())
-    if not themes:
-         return "Pizzeria"
-    return random.choice(themes)
 
 def _get_menu_blueprint(theme: str) -> str:
     return THEME_TO_MENU_BLUEPRINT.get(theme, "General")
@@ -347,7 +357,9 @@ def _assign_restaurant_tags(db: DatabaseConnection):
 
     tag_assignments = []
 
-    for restaurant_id, _theme in tqdm(restaurants, desc="Assigning tags", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+    for restaurant_id, _theme in tqdm(
+        restaurants, desc="Assigning tags", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()
+    ):
         num_tags = random.randint(2, 4)
         selected_tags = random.sample(tags, min(num_tags, len(tags)))
 
@@ -412,7 +424,9 @@ def _assign_opening_hours(db: DatabaseConnection):
     restaurants = RestaurantDAO.get_restaurants_with_cuisine(db)
     hours_data = []
 
-    for restaurant_id, theme in tqdm(restaurants, desc="Generating hours", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()):
+    for restaurant_id, theme in tqdm(
+        restaurants, desc="Generating hours", unit=" restaurant", mininterval=1.0, disable=LoggingConfig.is_quiet()
+    ):
         schedule = _get_schedule_for_theme(theme)
 
         for day in range(1, 8):  # ISO 8601: 1=Mon, 7=Sun
@@ -464,7 +478,7 @@ def _get_schedule_for_theme(theme: str) -> dict:
         close_range = (22, 23)
     elif theme in ["Kebab", "Fast Food"]:
         open_range = (10, 11)
-        close_range = (23, 25) # Allow late night up to 01:00 (25)
+        close_range = (23, 25)  # Allow late night up to 01:00 (25)
 
     weekday_open = random_time(open_range[0], open_range[1])
     weekday_close = random_time(close_range[0], close_range[1])
@@ -521,7 +535,7 @@ class RestaurantsPhase(BasePhase):
             dependencies=["phase1_cities"],  # Requires cities table
             required_tables=["restaurants", "restaurant_opening_hours", "menu_sections"],
             cleanup_tables=["restaurants", "restaurant_opening_hours", "menu_sections", "restaurant_tags"],
-            estimated_duration=30
+            estimated_duration=30,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
@@ -550,8 +564,8 @@ class RestaurantsPhase(BasePhase):
                 entities_generated={
                     "restaurants": restaurant_count,
                     "menu_sections": menu_sections_count,
-                    "opening_hours": opening_hours_count
-                }
+                    "opening_hours": opening_hours_count,
+                },
             )
 
         except Exception as e:
@@ -562,6 +576,5 @@ class RestaurantsPhase(BasePhase):
                 status=PhaseStatus.FAILED,
                 duration_seconds=duration,
                 entities_generated={},
-                error=e
+                error=e,
             )
-

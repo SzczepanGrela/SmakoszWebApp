@@ -223,4 +223,3 @@ class ReviewTextGenerator:
             return template.format(**variables)
         except KeyError:
             return template
-

@@ -114,14 +114,16 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     with Pool(
         processes=num_processes,
         initializer=worker_init_phase6,
-        initargs=(WorkerContext(
-            db_params=db_params,
-            user_ids=user_ids,
-            users_by_city=users_by_city,
-            top_1_percent=top_1_percent,
-            top_10_percent=top_10_percent,
-            username_map=username_map,
-        ),),
+        initargs=(
+            WorkerContext(
+                db_params=db_params,
+                user_ids=user_ids,
+                users_by_city=users_by_city,
+                top_1_percent=top_1_percent,
+                top_10_percent=top_10_percent,
+                username_map=username_map,
+            ),
+        ),
     ) as pool:
         for result in tqdm(
             pool.imap_unordered(process_follows_chunk, user_chunks),
@@ -151,7 +153,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                                    metadata, priority, public_id,
                                    send_email, email_status,
                                    send_push, push_status,
-                                   severity, is_read, is_deleted)
+                                   severity, is_read, is_deleted,
+                                   created_at)
         SELECT
             uf.followed_id,
             uf.follower_id,
@@ -167,7 +170,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             gen_random_uuid(),
             false, 'none',
             false, 'none',
-            'info', false, false
+            'info', false, false,
+            uf.created_at
         FROM user_follows uf
         JOIN users u ON uf.follower_id = u.user_id
     """)
@@ -228,7 +232,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         review_authors_array = np.array([review_authors[rid] for rid in review_ids])
         liked_review_authors = np.repeat(review_authors_array, like_counts)
 
-        self_like_mask = (liker_user_ids == liked_review_authors)
+        self_like_mask = liker_user_ids == liked_review_authors
         valid_likes_mask = ~self_like_mask
 
         logger.info(f"Filtering self-likes: Removed {np.sum(self_like_mask):,} self-likes")
@@ -283,7 +287,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         db.execute_query("""
             INSERT INTO notifications (user_id, actor_id, type, title, message, metadata, priority,
                                        public_id, send_email, email_status, send_push, push_status, severity,
-                                       is_read, is_deleted)
+                                       is_read, is_deleted, created_at)
             SELECT
                 r.user_id,          -- Recipient
                 rl.user_id,         -- Actor
@@ -304,7 +308,8 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 'none',
                 'info',
                 false,
-                false
+                false,
+                NOW()
             FROM review_likes rl
             JOIN reviews r ON rl.review_id = r.review_id
             JOIN dishes d ON r.dish_id = d.dish_id
@@ -436,10 +441,12 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
         picked_restaurants = np.random.choice(restaurant_ids, size=num_favs, replace=False)
 
         for r_id in picked_restaurants:
-            favorite_data.append({
-                "user_id": int(u_id),
-                "restaurant_id": int(r_id),
-            })
+            favorite_data.append(
+                {
+                    "user_id": int(u_id),
+                    "restaurant_id": int(r_id),
+                }
+            )
 
     if favorite_data:
         db.insert_bulk("favorite_restaurants", favorite_data)
@@ -450,20 +457,53 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     # 1. Seed Reason Definitions
     logger.info("Seeding report reason definitions...")
     reason_definitions = [
-        {"reason_code": "spam", "label_pl": "Spam lub reklama", "description": "Treści reklamowe, powtarzające się.", "severity_score": 1},
-        {"reason_code": "offensive", "label_pl": "Treści obraźliwe", "description": "Wulgaryzmy, mowa nienawiści.", "severity_score": 3},
-        {"reason_code": "fake", "label_pl": "Fałszywa informacja", "description": "Wprowadzanie w błąd, fake news.", "severity_score": 2},
-        {"reason_code": "irrelevant", "label_pl": "Nie na temat", "description": "Treść nie związana z restauracją.", "severity_score": 1},
-        {"reason_code": "harassment", "label_pl": "Nękanie", "description": "Ataki personalne na użytkowników/obsługę.", "severity_score": 4},
-        {"reason_code": "sexual", "label_pl": "Treści seksualne", "description": "Nagość, pornografia.", "severity_score": 5},
+        {
+            "reason_code": "spam",
+            "label_pl": "Spam lub reklama",
+            "description": "Treści reklamowe, powtarzające się.",
+            "severity_score": 1,
+        },
+        {
+            "reason_code": "offensive",
+            "label_pl": "Treści obraźliwe",
+            "description": "Wulgaryzmy, mowa nienawiści.",
+            "severity_score": 3,
+        },
+        {
+            "reason_code": "fake",
+            "label_pl": "Fałszywa informacja",
+            "description": "Wprowadzanie w błąd, fake news.",
+            "severity_score": 2,
+        },
+        {
+            "reason_code": "irrelevant",
+            "label_pl": "Nie na temat",
+            "description": "Treść nie związana z restauracją.",
+            "severity_score": 1,
+        },
+        {
+            "reason_code": "harassment",
+            "label_pl": "Nękanie",
+            "description": "Ataki personalne na użytkowników/obsługę.",
+            "severity_score": 4,
+        },
+        {
+            "reason_code": "sexual",
+            "label_pl": "Treści seksualne",
+            "description": "Nagość, pornografia.",
+            "severity_score": 5,
+        },
     ]
 
     for r in reason_definitions:
-        db.execute_query("""
+        db.execute_query(
+            """
             INSERT INTO report_reason_definitions (reason_code, label_pl, description, severity_score)
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (reason_code) DO NOTHING
-        """, (r["reason_code"], r["label_pl"], r["description"], r["severity_score"]))
+        """,
+            (r["reason_code"], r["label_pl"], r["description"], r["severity_score"]),
+        )
     db.commit()
 
     mod_users = db.fetch_all("SELECT user_id FROM users WHERE role IN ('admin', 'moderator')")
@@ -495,7 +535,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "status": status,
                 "resolved_by_admin_id": resolved_by,
                 "resolved_at": resolved_at,
-                "version": 1
+                "version": 1,
             }
 
             report_id = db.insert_single("reports", report_data)
@@ -504,10 +544,7 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
             picked_reasons = random.sample(report_reasons_keys, num_reasons)
 
             for code in picked_reasons:
-                assignments_buffer.append({
-                    "report_id": report_id,
-                    "reason_code": code
-                })
+                assignments_buffer.append({"report_id": report_id, "reason_code": code})
 
     # 2. Report Photos
     photo_sample = db.fetch_all("SELECT asset_id FROM media_assets WHERE entity_type = 'review' LIMIT 1000")
@@ -527,15 +564,14 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
                 "status": status,
                 "resolved_by_admin_id": None,
                 "resolved_at": None,
-                "version": 1
+                "version": 1,
             }
 
             report_id = db.insert_single("reports", report_data)
 
-            assignments_buffer.append({
-                "report_id": report_id,
-                "reason_code": str(np.random.choice(["sexual", "offensive", "irrelevant"]))
-            })
+            assignments_buffer.append(
+                {"report_id": report_id, "reason_code": str(np.random.choice(["sexual", "offensive", "irrelevant"]))}
+            )
 
     if assignments_buffer:
         db.insert_bulk("report_reason_assignments", assignments_buffer)
@@ -642,17 +678,14 @@ class SocialGraphPhase(BasePhase):
             notifications_count = context.db.fetch_val("SELECT COUNT(*) FROM notifications") or 0
             search_count = context.db.fetch_val("SELECT COUNT(*) FROM search_histories") or 0
             favorites_count = context.db.fetch_val("SELECT COUNT(*) FROM favorite_restaurants") or 0
-            corrections_count = context.db.fetch_val(
-                "SELECT COUNT(*) FROM data_correction_requests"
-            ) or 0
+            corrections_count = context.db.fetch_val("SELECT COUNT(*) FROM data_correction_requests") or 0
             reports_count = context.db.fetch_val("SELECT COUNT(*) FROM reports") or 0
 
             duration = time.time() - start_time
 
             logger.info(f"Phase 6 completed in {duration:.2f}s")
             logger.info(
-                f"Generated: {follows_count:,} follows, {likes_count:,} likes, "
-                f"{notifications_count:,} notifications"
+                f"Generated: {follows_count:,} follows, {likes_count:,} likes, {notifications_count:,} notifications"
             )
             logger.info(
                 f"Additional: {search_count:,} searches, {favorites_count:,} favorites, "

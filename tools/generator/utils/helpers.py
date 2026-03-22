@@ -24,11 +24,3 @@ def safe_divide(numerator: float, denominator: float, default: float = 1.0) -> f
         return numerator / denominator
     except (TypeError, ZeroDivisionError):
         return default
-
-def safe_float(value: Any, default: float = 0.0) -> float:
-    if value is None or value == "":
-        return default
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return default

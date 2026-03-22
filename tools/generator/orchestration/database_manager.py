@@ -60,10 +60,7 @@ class DatabaseCleanupStrategy:
             return
 
         # Format table names (schema.table for system schema)
-        table_list = [
-            f"{schema}.{table}" if schema == "system" else table
-            for schema, table in tables
-        ]
+        table_list = [f"{schema}.{table}" if schema == "system" else table for schema, table in tables]
 
         logger.info(f"Found {len(table_list)} tables to truncate")
 
@@ -202,10 +199,7 @@ class DatabaseManager:
         self.strategy = strategy
 
         if strategy not in ("query_based", "cascade"):
-            raise ValueError(
-                f"Unknown cleanup strategy: {strategy}. "
-                f"Must be 'query_based' or 'cascade'"
-            )
+            raise ValueError(f"Unknown cleanup strategy: {strategy}. Must be 'query_based' or 'cascade'")
 
     def cleanup(self, confirm: bool = False, auto_confirm: bool = False) -> None:
         """
@@ -246,9 +240,7 @@ class DatabaseManager:
             if self.strategy == "query_based":
                 DatabaseCleanupStrategy.query_based(self.db)
             elif self.strategy == "cascade":
-                DatabaseCleanupStrategy.cascade_truncate(
-                    self.db, self.CLEANUP_TABLE_ORDER
-                )
+                DatabaseCleanupStrategy.cascade_truncate(self.db, self.CLEANUP_TABLE_ORDER)
         except Exception as e:
             logger.error(f"Database cleanup failed: {e}", exc_info=True)
 
@@ -256,9 +248,7 @@ class DatabaseManager:
             if self.strategy == "query_based":
                 logger.warning("Falling back to cascade strategy...")
                 try:
-                    DatabaseCleanupStrategy.cascade_truncate(
-                        self.db, self.CLEANUP_TABLE_ORDER
-                    )
+                    DatabaseCleanupStrategy.cascade_truncate(self.db, self.CLEANUP_TABLE_ORDER)
                 except Exception as e2:
                     logger.error(f"Cascade cleanup also failed: {e2}", exc_info=True)
                     raise

@@ -22,20 +22,12 @@ class GenerationConfigSchema(BaseModel):
     """
 
     # Core entity counts
-    num_users: int = Field(
-        gt=0, le=1_000_000, description="Number of users to generate"
-    )
-    num_restaurants: int = Field(
-        gt=0, le=100_000, description="Number of restaurants to generate"
-    )
-    num_dishes: int = Field(
-        gt=0, le=1_000_000, description="Number of dishes to generate"
-    )
+    num_users: int = Field(gt=0, le=1_000_000, description="Number of users to generate")
+    num_restaurants: int = Field(gt=0, le=100_000, description="Number of restaurants to generate")
+    num_dishes: int = Field(gt=0, le=1_000_000, description="Number of dishes to generate")
 
     # Review generation
-    avg_reviews_per_user: int = Field(
-        gt=0, le=1000, description="Average reviews per user"
-    )
+    avg_reviews_per_user: int = Field(gt=0, le=1000, description="Average reviews per user")
     power_user_percentage: float = Field(
         ge=0.0,
         le=1.0,
@@ -43,36 +35,20 @@ class GenerationConfigSchema(BaseModel):
     )
 
     # Distribution parameters
-    zipf_alpha: float = Field(
-        gt=0.0, le=3.0, description="Zipf distribution alpha parameter"
-    )
-    default_mood_propensity: float = Field(
-        ge=0.0, le=1.0, description="Default mood propensity (0.0-1.0)"
-    )
+    zipf_alpha: float = Field(gt=0.0, le=3.0, description="Zipf distribution alpha parameter")
+    default_mood_propensity: float = Field(ge=0.0, le=1.0, description="Default mood propensity (0.0-1.0)")
 
     # Performance settings
-    worker_cpu_usage_percent: float = Field(
-        ge=0.1, le=1.0, description="CPU usage for multiprocessing (0.1-1.0)"
-    )
-    max_db_connections_limit: int = Field(
-        ge=1, le=100, description="Max database connections for workers"
-    )
+    worker_cpu_usage_percent: float = Field(ge=0.1, le=1.0, description="CPU usage for multiprocessing (0.1-1.0)")
+    max_db_connections_limit: int = Field(ge=1, le=100, description="Max database connections for workers")
 
     # Percentages (0-100)
-    premium_restaurant_pct: int = Field(
-        ge=0, le=100, description="Percentage of premium restaurants"
-    )
-    budget_restaurant_pct: int = Field(
-        ge=0, le=100, description="Percentage of budget restaurants"
-    )
+    premium_restaurant_pct: int = Field(ge=0, le=100, description="Percentage of premium restaurants")
+    budget_restaurant_pct: int = Field(ge=0, le=100, description="Percentage of budget restaurants")
 
     # Boolean flags
-    enable_dietary_restrictions: bool = Field(
-        default=True, description="Enable dietary restriction tracking"
-    )
-    enable_allergen_tracking: bool = Field(
-        default=True, description="Enable allergen tracking"
-    )
+    enable_dietary_restrictions: bool = Field(default=True, description="Enable dietary restriction tracking")
+    enable_allergen_tracking: bool = Field(default=True, description="Enable allergen tracking")
 
     # Pydantic v2 configuration
     model_config = ConfigDict(
@@ -111,8 +87,7 @@ class GenerationConfigSchema(BaseModel):
             total = premium + v
             if total > 100:
                 raise ValueError(
-                    f"premium_restaurant_pct ({premium}) + budget_restaurant_pct "
-                    f"({v}) = {total}% exceeds 100%"
+                    f"premium_restaurant_pct ({premium}) + budget_restaurant_pct ({v}) = {total}% exceeds 100%"
                 )
         return v
 
@@ -124,8 +99,7 @@ class GenerationConfigSchema(BaseModel):
         # This should be feasible to distribute across restaurants
         if v < 100:
             raise ValueError(
-                f"num_users ({v}) is too low. Minimum 100 users recommended "
-                f"for realistic data distribution."
+                f"num_users ({v}) is too low. Minimum 100 users recommended for realistic data distribution."
             )
         return v
 

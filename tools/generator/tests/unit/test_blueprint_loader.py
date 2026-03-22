@@ -24,8 +24,7 @@ class TestDishesBlueprint:
                 continue
 
             for field in required_fields:
-                assert field in archetype_data, \
-                    f"Archetype '{archetype_name}' missing required field '{field}'"
+                assert field in archetype_data, f"Archetype '{archetype_name}' missing required field '{field}'"
 
     def test_archetype_base_has_characteristics(self, dishes_json):
         """Each archetype_base must have characteristics and default_weights."""
@@ -34,10 +33,8 @@ class TestDishesBlueprint:
                 continue
 
             base = archetype_data.get("archetype_base", {})
-            assert "characteristics" in base, \
-                f"Archetype '{archetype_name}' missing archetype_base.characteristics"
-            assert "default_weights" in base, \
-                f"Archetype '{archetype_name}' missing archetype_base.default_weights"
+            assert "characteristics" in base, f"Archetype '{archetype_name}' missing archetype_base.characteristics"
+            assert "default_weights" in base, f"Archetype '{archetype_name}' missing archetype_base.default_weights"
 
     def test_all_variants_have_ingredients(self, dishes_json):
         """Each variant must have ingredients list."""
@@ -46,10 +43,10 @@ class TestDishesBlueprint:
                 continue
 
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
-                assert "ingredients" in variant_data, \
-                    f"Variant '{archetype_name}.{variant_name}' missing ingredients"
-                assert isinstance(variant_data["ingredients"], list), \
+                assert "ingredients" in variant_data, f"Variant '{archetype_name}.{variant_name}' missing ingredients"
+                assert isinstance(variant_data["ingredients"], list), (
                     f"Variant '{archetype_name}.{variant_name}' ingredients must be list"
+                )
 
     def test_variant_price_multiplier_reasonable(self, dishes_json):
         """Variant price multipliers should be within reasonable range."""
@@ -61,8 +58,9 @@ class TestDishesBlueprint:
                 multiplier = variant_data.get("price_multiplier", {})
                 if isinstance(multiplier, dict):
                     mean = multiplier.get("mean", 1.0)
-                    assert 0.1 <= mean <= 5.0, \
+                    assert 0.1 <= mean <= 5.0, (
                         f"Variant '{archetype_name}.{variant_name}' price multiplier {mean} out of range"
+                    )
 
     def test_characteristics_values_normalized(self, dishes_json):
         """All characteristic values should be between 0 and 1."""
@@ -73,15 +71,13 @@ class TestDishesBlueprint:
             # Check archetype base characteristics
             base_chars = archetype_data.get("archetype_base", {}).get("characteristics", {})
             for dim, val in base_chars.items():
-                assert 0.0 <= val <= 1.0, \
-                    f"Archetype '{archetype_name}' characteristic {dim}={val} out of [0,1]"
+                assert 0.0 <= val <= 1.0, f"Archetype '{archetype_name}' characteristic {dim}={val} out of [0,1]"
 
             # Check variant characteristics
             for variant_name, variant_data in archetype_data.get("variants", {}).items():
                 var_chars = variant_data.get("characteristics", {})
                 for dim, val in var_chars.items():
-                    assert 0.0 <= val <= 1.0, \
-                        f"Variant '{archetype_name}.{variant_name}' {dim}={val} out of [0,1]"
+                    assert 0.0 <= val <= 1.0, f"Variant '{archetype_name}.{variant_name}' {dim}={val} out of [0,1]"
 
 class TestMenuTemplatesBlueprint:
     """Tests for menu_templates.json structure."""
@@ -104,8 +100,9 @@ class TestMenuTemplatesBlueprint:
                     for arch in category_archetypes:
                         archetype_name = arch if isinstance(arch, str) else arch.get("archetype", "")
                         if archetype_name:
-                            assert archetype_name in valid_archetypes, \
+                            assert archetype_name in valid_archetypes, (
                                 f"Template '{template_name}' references unknown archetype '{archetype_name}'"
+                            )
 
 class TestIngredientsBlueprint:
     """Tests for ingredients_list.json structure."""
