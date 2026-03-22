@@ -1,0 +1,28 @@
+[DEFAULT]
+ignoreip = 127.0.0.1/8 100.64.0.0/10 31.128.13.231
+
+[sshd]
+enabled = true
+port = 2137
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 1d
+
+[nginx-proxy-manager]
+enabled = true
+filter = nginx-proxy-manager
+port = http,https
+logpath = /opt/npm-proxy/data/logs/proxy-host-*_access.log
+maxretry = 5
+findtime = 600
+bantime = 1d
+
+[smakosz-auth]
+enabled = true
+filter = smakosz-auth
+port = http,https
+logpath = /opt/npm-proxy/data/logs/proxy-host-*_access.log
+maxretry = 10
+findtime = 300
+bantime = 1h
