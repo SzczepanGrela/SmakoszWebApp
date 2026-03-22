@@ -62,6 +62,10 @@
         {
             Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
         }
+        else if (result.Error?.Code == "AUTH_ACCOUNT_LOCKED")
+        {
+            _error = "Konto tymczasowo zablokowane z powodu zbyt wielu prób logowania. Spróbuj ponownie za kilka minut.";
+        }
         else
         {
             _error = result.Error?.Message ?? "Nieprawidłowy email lub hasło.";

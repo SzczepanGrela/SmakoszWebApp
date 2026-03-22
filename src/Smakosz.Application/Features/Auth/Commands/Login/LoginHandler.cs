@@ -17,8 +17,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly ISessionService _sessionService;
     private readonly ICurrentUserService _currentUser;
     private readonly ITurnstileService _turnstile;
+    private readonly IValidationConfigProvider _config;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -26,6 +27,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         _sessionService = sessionService;
         _currentUser = currentUser;
         _turnstile = turnstile;
+        _config = config;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -64,7 +66,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant() && !u.IsDeleted, cancellationToken);
 
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        if (user is not null && user.LockedUntilUtc > now)
         {
             _db.SecurityLogs.Add(new SecurityLog
             {
@@ -72,12 +74,41 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 IpAddress = ipAddress,
                 UserAgent = _currentUser.UserAgent,
                 Email = request.Email.ToLowerInvariant(),
-                CreatedAt = DateTime.UtcNow
+                Details = "{\"reason\": \"account_locked\"}",
+                CreatedAt = now
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+            return DomainErrors.Auth.AccountLocked;
+        }
+
+        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        {
+            if (user is not null)
+            {
+                user.FailedLoginCount++;
+                var maxAttempts = _config.GetInt("auth.max_login_attempts", 5);
+                if (user.FailedLoginCount >= maxAttempts)
+                {
+                    var lockoutMin = _config.GetInt("auth.lockout_duration_min", 15);
+                    user.LockedUntilUtc = now.AddMinutes(lockoutMin);
+                }
+            }
+
+            _db.SecurityLogs.Add(new SecurityLog
+            {
+                EventType = SecurityEventType.FailedLogin,
+                IpAddress = ipAddress,
+                UserAgent = _currentUser.UserAgent,
+                Email = request.Email.ToLowerInvariant(),
+                CreatedAt = now
             });
             await _db.SaveChangesAsync(cancellationToken);
 
             return DomainErrors.Auth.InvalidCredentials;
         }
+
+        user.FailedLoginCount = 0;
+        user.LockedUntilUtc = null;
 
         if (!user.IsActive)
             return DomainErrors.Auth.AccountInactive;
@@ -92,7 +123,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = now;
         await _db.SaveChangesAsync(cancellationToken);
 
         return new AuthResultDto

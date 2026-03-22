@@ -25,6 +25,16 @@
       "description": "Maksymalna liczba prób wprowadzenia kodu weryfikacyjnego przed jego unieważnieniem.",
       "is_public": false
     },
+    "auth.max_login_attempts": {
+      "value": "5",
+      "description": "Maksymalna liczba nieudanych prób logowania przed tymczasową blokadą konta.",
+      "is_public": false
+    },
+    "auth.lockout_duration_min": {
+      "value": "15",
+      "description": "Czas blokady konta po przekroczeniu limitu prób logowania (minuty).",
+      "is_public": false
+    },
     "auth.password_min_length": {
       "value": "8",
       "description": "Minimalna długość hasła.",
