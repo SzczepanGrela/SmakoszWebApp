@@ -7,5 +7,6 @@ public enum SecurityEventType
     SuspiciousActivity,
     PasswordReset,
     BannedRegistration,
-    PasswordChanged
+    PasswordChanged,
+    AccountDeleted
 }

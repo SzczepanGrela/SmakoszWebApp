@@ -10,4 +10,6 @@ public interface IEmailService
     Task SendContactConfirmationAsync(string email, string contactName, string subject, CancellationToken ct = default);
     Task SendContactResponseAsync(string email, string responseText, CancellationToken ct = default);
     Task SendNotificationDigestAsync(string email, string subject, IReadOnlyList<NotificationItem> notifications, CancellationToken ct = default);
+    Task SendAccountDeletionCodeAsync(string email, string code, CancellationToken ct = default);
+    Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default);
 }

@@ -45,4 +45,16 @@ public class StubEmailService : IEmailService
         _logger.LogInformation("[Email Stub] Notification digest ({Count} items) sent to {Email}: {Subject}", notifications.Count, email, subject);
         return Task.CompletedTask;
     }
+
+    public Task SendAccountDeletionCodeAsync(string email, string code, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Account deletion code {Code} sent to {Email}", code, email);
+        return Task.CompletedTask;
+    }
+
+    public Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Account deletion confirmation sent to {Email}", email);
+        return Task.CompletedTask;
+    }
 }

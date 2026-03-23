@@ -64,6 +64,22 @@ public class BrevoEmailService : IEmailService
         return SendAsync(email, subject, html, ct);
     }
 
+    public Task SendAccountDeletionCodeAsync(string email, string code, CancellationToken ct = default)
+        => SendCodeEmailAsync(email, "Potwierdzenie usunięcia konta",
+            "Usuni&#281;cie konta Smakosz", "Tw&oacute;j kod potwierdzaj&#261;cy usuni&#281;cie konta:", code,
+            "Kod wygasa za 15 minut. Je&#347;li to nie Ty &mdash; natychmiast zmie&#324; has&#322;o.", ct);
+
+    public Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default)
+    {
+        var inner = EmailTemplateBuilder.BuildContentSection(
+            "Konto oznaczone do usuni&#281;cia",
+            "Twoje konto Smakosz zosta&#322;o oznaczone do trwa&#322;ego usuni&#281;cia.",
+            "Wszystkie dane zostan&#261; usuni&#281;te po 30 dniach.",
+            "Je&#347;li chcesz anulowa&#263; usuni&#281;cie &mdash; skontaktuj si&#281; z administracj&#261;.");
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, "Smakosz - konto oznaczone do usunięcia", html, ct);
+    }
+
     private Task SendCodeEmailAsync(string email, string subject, string heading, string label, string code, string footer, CancellationToken ct)
     {
         var inner = EmailTemplateBuilder.BuildCodeSection(heading, label, code, footer);

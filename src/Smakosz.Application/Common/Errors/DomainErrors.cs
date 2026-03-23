@@ -250,6 +250,13 @@ public static class DomainErrors
             Error.Validation("REVIEW_LIKE_CANNOT_LIKE_OWN", "Nie można polubić własnej recenzji");
     }
 
+    public static class Account
+    {
+        public static readonly Error IsRestaurantOwner =
+            Error.Forbidden("ACCOUNT_IS_RESTAURANT_OWNER",
+                "Nie można usunąć konta właściciela restauracji. Skontaktuj się z administracją.");
+    }
+
     public static class Captcha
     {
         public static readonly Error VerificationFailed =
