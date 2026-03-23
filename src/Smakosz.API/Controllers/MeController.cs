@@ -14,6 +14,7 @@ using Smakosz.Application.Features.Me.Commands.UnsaveDish;
 using Smakosz.Application.Features.Me.Commands.RemovePushSubscription;
 using Smakosz.Application.Features.Me.Commands.SavePushSubscription;
 using Smakosz.Application.Features.Me.Commands.UpdateNotificationSettings;
+using Smakosz.Application.Features.Me.Commands.DeleteAccount;
 using Smakosz.Application.Features.Me.Commands.UpdateProfile;
 using Smakosz.Application.Features.Me.Queries.GetFavoriteRestaurants;
 using Smakosz.Application.Features.Me.Queries.GetMyFollowers;
@@ -219,6 +220,20 @@ public class MeController : ApiController
     {
         var key = _configuration["Vapid:PublicKey"] ?? string.Empty;
         return Ok(new { publicKey = key });
+    }
+
+    [HttpPost("delete-account/request")]
+    public async Task<IActionResult> RequestAccountDeletion([FromBody] RequestAccountDeletionCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("delete-account/confirm")]
+    public async Task<IActionResult> ConfirmAccountDeletion([FromBody] ConfirmAccountDeletionCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
     }
 
     [HttpPost("push-subscriptions")]
