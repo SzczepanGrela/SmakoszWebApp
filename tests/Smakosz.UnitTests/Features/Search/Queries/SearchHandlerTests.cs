@@ -218,6 +218,5 @@ public class SearchHandlerTests
         result.Value.AppliedFilters.Type.Should().Be("restaurants");
         result.Value.AppliedFilters.Cuisines.Should().Contain("Italian").And.Contain("Polish");
         result.Value.AppliedFilters.Dietary.Should().Contain("vegan");
-        result.Value.AppliedFilters.GeoEnabled.Should().BeFalse();
     }
 }

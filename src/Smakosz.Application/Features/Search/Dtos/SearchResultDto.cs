@@ -18,5 +18,4 @@ public class AppliedFiltersDto
     public string Type { get; init; } = default!;
     public List<string> Cuisines { get; init; } = [];
     public List<string> Dietary { get; init; } = [];
-    public bool GeoEnabled { get; init; }
 }

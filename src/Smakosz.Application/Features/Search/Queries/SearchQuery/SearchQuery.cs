@@ -14,9 +14,6 @@ public record SearchQuery(
     int? MinPrice = null,
     int? MaxPrice = null,
     string? Dietary = null,
-    decimal? Lat = null,
-    decimal? Lng = null,
-    int Radius = 5,
     string SortBy = "rating",
     string SortDir = "desc",
     string? Tags = null

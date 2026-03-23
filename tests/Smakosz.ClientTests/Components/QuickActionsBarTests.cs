@@ -5,12 +5,11 @@ namespace Smakosz.ClientTests.Components;
 public class QuickActionsBarTests : BunitTestBase
 {
     [Fact]
-    public void RendersRandomDishAndNearbyButtons()
+    public void RendersRandomDishButton()
     {
         var cut = RenderComponent<QuickActionsBar>();
 
         cut.Markup.Should().Contain("Losowe danie");
-        cut.Markup.Should().Contain("W pobliżu");
     }
 
     [Fact]
@@ -44,14 +43,4 @@ public class QuickActionsBarTests : BunitTestBase
         nav.Uri.Should().Contain("/dishes/random-dish");
     }
 
-    [Fact]
-    public void ClickNearby_NavigatesToSearch()
-    {
-        var cut = RenderComponent<QuickActionsBar>();
-        var nearbyBtn = cut.FindAll("button").First(b => b.TextContent.Contains("W pobliżu"));
-        nearbyBtn.Click();
-
-        var nav = Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
-        nav.Uri.Should().Contain("/search?type=restaurants");
-    }
 }

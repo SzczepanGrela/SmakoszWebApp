@@ -83,8 +83,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             {
                 Type = request.Type,
                 Cuisines = cuisineList,
-                Dietary = dietaryList,
-                GeoEnabled = request.Lat.HasValue && request.Lng.HasValue
+                Dietary = dietaryList
             }
         };
     }
