@@ -97,4 +97,16 @@ public class UserProfileService : IUserProfileService
 
     public Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1)
         => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/me/reviews?page={page}");
+
+    public async Task<bool> RequestAccountDeletionAsync(string password)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/me/delete-account/request", new { Password = password });
+        return response.Success;
+    }
+
+    public async Task<bool> ConfirmAccountDeletionAsync(string code)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/me/delete-account/confirm", new { Code = code });
+        return response.Success;
+    }
 }

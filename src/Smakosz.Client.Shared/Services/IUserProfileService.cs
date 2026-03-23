@@ -24,4 +24,6 @@ public interface IUserProfileService
     Task<bool> RevokeSessionAsync(long sessionId);
     Task<bool> RevokeAllSessionsAsync();
     Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1);
+    Task<bool> RequestAccountDeletionAsync(string password);
+    Task<bool> ConfirmAccountDeletionAsync(string code);
 }
