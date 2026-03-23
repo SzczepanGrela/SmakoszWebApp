@@ -70,6 +70,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RestaurantOwner", p => p.RequireRole("Restaurant"));
 });
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SmakoszDbContext>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -142,6 +145,7 @@ app.UseCors("AllowClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 await app.RunAsync();
 

@@ -64,6 +64,9 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = ["default"];
 });
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SmakoszDbContext>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -106,6 +109,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.MapHangfireDashboard("/hangfire");
 
