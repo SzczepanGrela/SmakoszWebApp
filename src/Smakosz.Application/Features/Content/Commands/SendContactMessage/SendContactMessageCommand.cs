@@ -83,15 +83,7 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
 
         try
         {
-            await _email.SendDigestAsync(request.Email, "Smakosz - potwierdzenie wiadomości",
-                $"""
-                <h2>Dziękujemy za kontakt!</h2>
-                <p>Cześć {request.Name},</p>
-                <p>Otrzymaliśmy Twoją wiadomość dotyczącą: <strong>{request.Subject}</strong></p>
-                <p>Postaramy się odpowiedzieć jak najszybciej.</p>
-                <br/>
-                <p>Pozdrawiamy,<br/>Zespół Smakosz</p>
-                """, cancellationToken);
+            await _email.SendContactConfirmationAsync(request.Email, request.Name, request.Subject, cancellationToken);
         }
         catch (Exception ex)
         {

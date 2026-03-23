@@ -63,13 +63,7 @@ public class RespondToContactHandler : IRequestHandler<RespondToContactCommand, 
 
         var contactEmail = emailMatch.Groups[1].Value;
 
-        await _email.SendDigestAsync(contactEmail, "Smakosz - odpowiedź na Twoją wiadomość",
-            $"""
-            <h2>Odpowiedź na Twoją wiadomość</h2>
-            <p>{request.Response.Replace("\n", "<br/>")}</p>
-            <br/>
-            <p>Pozdrawiamy,<br/>Zespół Smakosz</p>
-            """, cancellationToken);
+        await _email.SendContactResponseAsync(contactEmail, request.Response, cancellationToken);
 
         _db.ModerationLogs.Add(new ModerationLog
         {

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 
 namespace Smakosz.Infrastructure.Services;
 
@@ -27,9 +28,21 @@ public class StubEmailService : IEmailService
         return Task.CompletedTask;
     }
 
-    public Task SendDigestAsync(string email, string subject, string htmlBody, CancellationToken ct = default)
+    public Task SendContactConfirmationAsync(string email, string contactName, string subject, CancellationToken ct = default)
     {
-        _logger.LogInformation("[Email Stub] Digest to {Email}: {Subject}", email, subject);
+        _logger.LogInformation("[Email Stub] Contact confirmation sent to {Email} (name={Name}, subject={Subject})", email, contactName, subject);
+        return Task.CompletedTask;
+    }
+
+    public Task SendContactResponseAsync(string email, string responseText, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Contact response sent to {Email}", email);
+        return Task.CompletedTask;
+    }
+
+    public Task SendNotificationDigestAsync(string email, string subject, IReadOnlyList<NotificationItem> notifications, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Notification digest ({Count} items) sent to {Email}: {Subject}", notifications.Count, email, subject);
         return Task.CompletedTask;
     }
 }

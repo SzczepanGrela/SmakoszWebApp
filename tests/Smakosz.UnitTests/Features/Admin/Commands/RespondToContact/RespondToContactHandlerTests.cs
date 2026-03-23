@@ -44,8 +44,8 @@ public class RespondToContactHandlerTests
 
         result.IsError.Should().BeFalse();
         ticket.Status.Should().Be(TicketStatus.Resolved);
-        await _email.Received(1).SendDigestAsync(
-            "jan@example.com", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _email.Received(1).SendContactResponseAsync(
+            "jan@example.com", "Thank you for contacting us.", Arg.Any<CancellationToken>());
     }
 
     [Fact]

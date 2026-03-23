@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Common.Models;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
@@ -47,12 +48,11 @@ public class NotificationDigestService
                 ? notifications[0].Title
                 : $"Masz {notifications.Count} nowych powiadomień";
 
-            var body = string.Join("<hr/>",
-                notifications.Select(n => $"<h3>{n.Title}</h3><p>{n.Message}</p>"));
+            var items = notifications.Select(n => new NotificationItem(n.Title, n.Message)).ToList();
 
             try
             {
-                await _email.SendDigestAsync(user.Email, subject, body, ct);
+                await _email.SendNotificationDigestAsync(user.Email, subject, items, ct);
 
                 foreach (var n in notifications)
                     n.EmailStatus = EmailStatus.Sent;
