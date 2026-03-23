@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Smakosz.Client.Pages.Public;
 using Smakosz.ClientTests.Common;
 
@@ -159,5 +160,38 @@ public class DishDetailsTests : BunitTestBase
         cut.WaitForState(() => cut.Markup.Contains("Pizza Margherita"));
 
         cut.Find("a[href='/review/add?dish=pizza-margherita']").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void DefaultRender_DoesNotShowRandomDishButton()
+    {
+        var dishService = Services.GetRequiredService<IDishService>();
+        var reviewService = Services.GetRequiredService<IReviewService>();
+        dishService.GetBySlugAsync("pizza-margherita").Returns(CreateDish());
+        reviewService.GetByDishAsync("pizza-margherita", Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>())
+            .Returns(CreateReviews());
+
+        var cut = RenderComponent<DishDetails>(p => p.Add(c => c.Slug, "pizza-margherita"));
+        cut.WaitForState(() => cut.Markup.Contains("Pizza Margherita"));
+
+        cut.Markup.Should().NotContain("Nowe losowe danie");
+    }
+
+    [Fact]
+    public void FromRandom_ShowsRandomDishButton()
+    {
+        var dishService = Services.GetRequiredService<IDishService>();
+        var reviewService = Services.GetRequiredService<IReviewService>();
+        dishService.GetBySlugAsync("pizza-margherita").Returns(CreateDish());
+        reviewService.GetByDishAsync("pizza-margherita", Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>())
+            .Returns(CreateReviews());
+
+        var nav = Services.GetRequiredService<NavigationManager>();
+        nav.NavigateTo("/dishes/pizza-margherita?fromRandom=true");
+
+        var cut = RenderComponent<DishDetails>(p => p.Add(c => c.Slug, "pizza-margherita"));
+        cut.WaitForState(() => cut.Markup.Contains("Pizza Margherita"));
+
+        cut.Markup.Should().Contain("Nowe losowe danie");
     }
 }
