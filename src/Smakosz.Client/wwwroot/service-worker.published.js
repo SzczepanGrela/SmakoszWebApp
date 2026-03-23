@@ -1,47 +1,59 @@
-const CACHE_NAME = 'smakosz-cache-v1';
+// Based on the official Blazor WASM PWA template with versioned cache from manifest.
+
+self.importScripts('./service-worker-assets.js');
+
+const cacheNamePrefix = 'offline-cache-';
+const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;
+const offlineAssetsInclude = [/\.dll$/, /\.pdb$/, /\.wasm/, /\.html/, /\.js$/, /\.json$/, /\.css$/, /\.woff$/, /\.png$/, /\.jpe?g$/, /\.gif$/, /\.ico$/, /\.blat$/, /\.dat$/, /\.webmanifest$/];
+const offlineAssetsExclude = [/^service-worker\.js$/];
+const base = "/";
+const baseUrl = new URL(base, self.origin);
+const manifestUrlList = self.assetsManifest.assets.map(asset => new URL(asset.url, baseUrl).href);
 
 self.addEventListener('install', event => event.waitUntil(onInstall(event)));
 self.addEventListener('activate', event => event.waitUntil(onActivate(event)));
 self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
 self.addEventListener('push', event => event.waitUntil(onPush(event)));
 self.addEventListener('notificationclick', event => event.waitUntil(onNotificationClick(event)));
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 async function onInstall(event) {
     console.info('Service worker: Install');
-    const assetsManifest = await caches.match('service-worker-assets.js');
-    // Cache framework files
+
+    const assetsRequests = self.assetsManifest.assets
+        .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
+        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
+        .map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
+
+    const cache = await caches.open(cacheName);
+    await cache.addAll(assetsRequests);
 }
 
 async function onActivate(event) {
     console.info('Service worker: Activate');
+
     const cacheKeys = await caches.keys();
     await Promise.all(cacheKeys
-        .filter(key => key !== CACHE_NAME)
+        .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
         .map(key => caches.delete(key)));
+
+    // One-time migration: remove old hardcoded cache from previous SW version
+    await caches.delete('smakosz-cache-v1');
 }
 
 async function onFetch(event) {
-    // For navigation requests, serve index.html from cache
-    if (event.request.mode === 'navigate') {
-        try {
-            return await fetch(event.request);
-        } catch {
-            return caches.match('index.html');
-        }
+    let cachedResponse = null;
+
+    if (event.request.method === 'GET') {
+        const shouldServeIndexHtml = event.request.mode === 'navigate';
+        const request = shouldServeIndexHtml ? 'index.html' : event.request;
+        const cache = await caches.open(cacheName);
+        cachedResponse = await cache.match(request);
     }
 
-    // For other requests, try cache first, then network
-    const cachedResponse = await caches.match(event.request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-
-    try {
-        const response = await fetch(event.request);
-        return response;
-    } catch {
-        return new Response('', { status: 408, statusText: 'Request timed out.' });
-    }
+    return cachedResponse || fetch(event.request);
 }
 
 async function onPush(event) {

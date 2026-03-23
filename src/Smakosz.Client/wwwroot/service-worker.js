@@ -12,3 +12,6 @@
 self.addEventListener('fetch', () => { });
 self.addEventListener('push', () => { });
 self.addEventListener('notificationclick', () => { });
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
