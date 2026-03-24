@@ -14,6 +14,8 @@ COPY src/Smakosz.Application/ src/Smakosz.Application/
 COPY src/Smakosz.Client.Shared/ src/Smakosz.Client.Shared/
 COPY src/Smakosz.Client.Ops/ src/Smakosz.Client.Ops/
 COPY src/Smakosz.Client/ src/Smakosz.Client/
+RUN test -f src/Smakosz.Client/wwwroot/appsettings.json \
+    || echo '{}' > src/Smakosz.Client/wwwroot/appsettings.json
 RUN dotnet publish src/Smakosz.Client/Smakosz.Client.csproj -c Release -o /app/publish --no-restore
 
 FROM nginx:alpine AS runtime
