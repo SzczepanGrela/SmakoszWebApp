@@ -157,6 +157,31 @@
                         }
                     </div>
                 </div>
+
+                <!-- Moje recenzje -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-comments me-2"></i>Moje recenzje</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (_reviews != null && _reviews.Data.Any())
+                        {
+                            @foreach (var review in _reviews.Data)
+                            {
+                                <ReviewCard Review="@review" />
+                            }
+                            @if (_reviews.Pagination.TotalPages > 1)
+                            {
+                                <Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviews" />
+                            }
+                        }
+                        else
+                        {
+                            <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji"
+                                        Description="Nie napisales/as jeszcze zadnej recenzji." />
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }
@@ -165,6 +190,7 @@
 @code {
     private MyProfileDto? _profile;
     private MyProfileDto? _profileBackup;
+    private PagedResult<ReviewCardDto>? _reviews;
     private bool _loading = true;
     private bool _editMode;
     private bool _saving;
@@ -173,7 +199,13 @@
     protected override async Task OnInitializedAsync()
     {
         _profile = await UserProfileService.GetMyProfileAsync();
+        _reviews = await UserProfileService.GetMyReviewsAsync();
         _loading = false;
+    }
+
+    private async Task LoadReviews(int page)
+    {
+        _reviews = await UserProfileService.GetMyReviewsAsync(page);
     }
 
     private void ToggleEdit()

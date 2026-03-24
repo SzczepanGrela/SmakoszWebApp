@@ -1,3 +1,4 @@
+@implements IDisposable
 @inject Smakosz.Client.Services.INotificationService NotificationService
 
 <a href="/notifications" class="nav-link notification-bell position-relative">
@@ -10,9 +11,32 @@
 
 @code {
     private int _unreadCount;
+    private System.Threading.Timer? _timer;
 
     protected override async Task OnInitializedAsync()
     {
-        _unreadCount = await NotificationService.GetUnreadCountAsync();
+        await RefreshCount();
+        _timer = new System.Threading.Timer(async _ =>
+        {
+            await RefreshCount();
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+    }
+
+    private async Task RefreshCount()
+    {
+        try
+        {
+            _unreadCount = await NotificationService.GetUnreadCountAsync();
+        }
+        catch
+        {
+            // Silently ignore refresh failures
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }
