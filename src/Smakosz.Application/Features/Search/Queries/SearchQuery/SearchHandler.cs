@@ -79,6 +79,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         CancellationToken cancellationToken)
     {
         var query = _db.Restaurants
+            .AsNoTracking()
             .Include(r => r.City)
             .Where(r => r.Status == RestaurantStatus.Active)
             .AsQueryable();
@@ -140,6 +141,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         CancellationToken cancellationToken)
     {
         var query = _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
                 .ThenInclude(r => r!.City)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)

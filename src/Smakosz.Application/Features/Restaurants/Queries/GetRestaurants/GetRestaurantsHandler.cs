@@ -25,6 +25,7 @@ public class GetRestaurantsHandler : IRequestHandler<GetRestaurantsQuery, ErrorO
         CancellationToken cancellationToken)
     {
         var query = _db.Restaurants
+            .AsNoTracking()
             .Include(r => r.City)
             .Where(r => r.Status == RestaurantStatus.Active)
             .AsQueryable();

@@ -33,14 +33,41 @@ public interface ISmakoszDbContext
     DbSet<SavedDish> SavedDishes { get; }
     DbSet<FavoriteRestaurant> FavoriteRestaurants { get; }
 
+    // Dictionary (additional)
+    DbSet<ReportReasonDefinition> ReportReasonDefinitions { get; }
+    DbSet<RejectionReason> RejectionReasons { get; }
+
     // Social / Content
     DbSet<MediaAsset> MediaAssets { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<Review> Reviews { get; }
     DbSet<ReviewLike> ReviewLikes { get; }
+    DbSet<Report> Reports { get; }
+    DbSet<ReportReasonAssignment> ReportReasonAssignments { get; }
+    DbSet<DataCorrectionRequest> DataCorrectionRequests { get; }
+    DbSet<RestaurantEditRequest> RestaurantEditRequests { get; }
+    DbSet<IngredientSuggestion> IngredientSuggestions { get; }
+    DbSet<UserNotificationSettings> UserNotificationSettings { get; }
+
+    // Audit
+    DbSet<AuditLog> AuditLogs { get; }
 
     // System
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<SystemConfig> SystemConfigs { get; }
+    DbSet<SystemNode> SystemNodes { get; }
+    DbSet<ServiceAccount> ServiceAccounts { get; }
+    DbSet<SystemJob> SystemJobs { get; }
+    DbSet<JobProgress> JobProgresses { get; }
+    DbSet<SystemLog> SystemLogs { get; }
+    DbSet<SecurityLog> SecurityLogs { get; }
+    DbSet<EmailLog> EmailLogs { get; }
+    DbSet<ModerationLog> ModerationLogs { get; }
+    DbSet<AiLog> AiLogs { get; }
+    DbSet<SystemTicket> SystemTickets { get; }
+    DbSet<BannedIdentifier> BannedIdentifiers { get; }
+    DbSet<ForbiddenWord> ForbiddenWords { get; }
+    DbSet<FileToDelete> FilesToDelete { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

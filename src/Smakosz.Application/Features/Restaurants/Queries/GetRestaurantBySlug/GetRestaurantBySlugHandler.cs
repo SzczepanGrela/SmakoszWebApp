@@ -23,6 +23,7 @@ public class GetRestaurantBySlugHandler : IRequestHandler<GetRestaurantBySlugQue
         CancellationToken cancellationToken)
     {
         var restaurant = await _db.Restaurants
+            .AsNoTracking()
             .Include(r => r.City)
             .Include(r => r.OpeningHours)
             .Include(r => r.MenuSections)

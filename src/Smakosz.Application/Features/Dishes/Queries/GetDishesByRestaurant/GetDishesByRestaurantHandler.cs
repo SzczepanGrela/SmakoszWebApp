@@ -26,6 +26,7 @@ public class GetDishesByRestaurantHandler
         CancellationToken cancellationToken)
     {
         var restaurant = await _db.Restaurants
+            .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Slug == request.RestaurantSlug, cancellationToken);
 
         if (restaurant is null)
@@ -39,6 +40,7 @@ public class GetDishesByRestaurantHandler
             : [];
 
         var result = await _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.RestaurantId == restaurant.RestaurantId && d.IsAvailable)
             .OrderBy(d => d.DishName)

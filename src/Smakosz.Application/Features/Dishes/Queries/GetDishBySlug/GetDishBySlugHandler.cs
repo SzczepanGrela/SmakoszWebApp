@@ -21,6 +21,7 @@ public class GetDishBySlugHandler : IRequestHandler<GetDishBySlugQuery, ErrorOr<
     public async Task<ErrorOr<DishDetailDto>> Handle(GetDishBySlugQuery request, CancellationToken cancellationToken)
     {
         var dish = await _db.Dishes
+            .AsNoTracking()
             .Include(d => d.Restaurant)
                 .ThenInclude(r => r!.City)
             .FirstOrDefaultAsync(d => d.Slug == request.Slug, cancellationToken);
