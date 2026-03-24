@@ -68,7 +68,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nieprawidłowy email lub hasło.";
+            _error = result.Error?.GetDisplayMessage() ?? "Nieprawidłowy email lub hasło.";
         }
         _loading = false;
     }

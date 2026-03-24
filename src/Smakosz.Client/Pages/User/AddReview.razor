@@ -266,7 +266,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udało się opublikować recenzji. Spróbuj ponownie.";
+            _error = result.Error?.GetDisplayMessage() ?? "Nie udało się opublikować recenzji. Spróbuj ponownie.";
         }
         _submitting = false;
     }
