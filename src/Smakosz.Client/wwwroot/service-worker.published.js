@@ -55,7 +55,13 @@ async function onFetch(event) {
         cachedResponse = await cache.match(request);
     }
 
-    return cachedResponse || fetch(event.request);
+    if (cachedResponse) return cachedResponse;
+
+    try {
+        return await fetch(event.request);
+    } catch {
+        return new Response('', { status: 503 });
+    }
 }
 
 async function onPush(event) {
