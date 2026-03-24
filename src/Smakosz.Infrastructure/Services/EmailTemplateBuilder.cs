@@ -23,7 +23,7 @@ public static class EmailTemplateBuilder
             <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
             <!-- Header -->
             <tr><td style="background-color:{BrandDark};padding:24px;text-align:center;border-radius:12px 12px 0 0;">
-            <span style="font-size:28px;color:{BrandPrimary};font-weight:bold;">&#127860; Smakosz</span>
+            <img src="https://smakosz.xyz/favicon-96x96.png" alt="Smakosz" width="36" height="36" style="vertical-align:middle;margin-right:10px;" /><span style="font-size:28px;color:{BrandPrimary};font-weight:bold;vertical-align:middle;">Smakosz</span>
             </td></tr>
             <!-- Content -->
             <tr><td style="background-color:#ffffff;padding:32px;border-radius:0 0 12px 12px;">
