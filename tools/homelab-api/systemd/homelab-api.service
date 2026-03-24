@@ -1,0 +1,18 @@
+[Unit]
+Description=HomeLab REST API
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+User=homelab-api
+Group=homelab-api
+WorkingDirectory=/home/homelab-api
+EnvironmentFile=/home/homelab-api/.env
+ExecStart=/home/homelab-api/venv/bin/python /home/homelab-api/app.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=false
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
