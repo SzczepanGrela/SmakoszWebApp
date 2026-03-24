@@ -170,7 +170,7 @@ else
                     {
                         @foreach (var review in _reviews.Data)
                         {
-                            <ReviewCard Review="@review" ShowDish="false" ShowActions="true" />
+                            <ReviewCard Review="@review" ShowDish="false" ShowRestaurant="false" ShowActions="true" />
                         }
                         <Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviewPage" />
                     }
