@@ -10,6 +10,7 @@ public class SystemTicket : IAuditableEntity, IVersioned
     public long ReferenceId { get; set; }
     public TicketStatus Status { get; set; } = TicketStatus.Open;
     public int Priority { get; set; } = 3;
+    public string? Description { get; set; }
     public int? AssignedAdminId { get; set; }
     public DateTime? LockedAt { get; set; }
     public DateTime? CreatedAt { get; set; }

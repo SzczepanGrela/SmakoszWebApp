@@ -29,6 +29,9 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
         builder.Property(x => x.Priority)
             .HasDefaultValue(3);
 
+        builder.Property(x => x.Description)
+            .HasMaxLength(5000);
+
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
@@ -47,8 +50,7 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
             .OnDelete(DeleteBehavior.SetNull);
 
         // Indexes
-        builder.HasIndex(x => new { x.TicketType, x.ReferenceId })
-            .IsUnique();
+        builder.HasIndex(x => new { x.TicketType, x.ReferenceId });
 
         builder.HasIndex(x => new { x.Status, x.Priority })
             .IsDescending(false, true);

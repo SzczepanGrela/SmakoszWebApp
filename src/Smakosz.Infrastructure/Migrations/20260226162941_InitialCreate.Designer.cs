@@ -14,7 +14,7 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260221143900_InitialCreate")]
+    [Migration("20260226162941_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -115,10 +115,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("PostalCodePrefix")
-                        .HasMaxLength(2)
-                        .HasColumnType("character varying(2)")
-                        .HasColumnName("postal_code_prefix");
+                    b.Property<string>("Region")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("region");
 
                     b.HasKey("CityId")
                         .HasName("pk_cities");
@@ -324,7 +324,9 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.Property<string>("SecretCharacteristicsVector")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
                         .HasColumnName("secret_characteristics_vector");
 
                     b.Property<string>("SecretPenaltyVector")
@@ -2763,6 +2765,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)")
+                        .HasColumnName("description");
+
                     b.Property<DateTime?>("LockedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("locked_at");
@@ -2814,7 +2821,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDatabaseName("ix_tickets_status_priority");
 
                     b.HasIndex("TicketType", "ReferenceId")
-                        .IsUnique()
                         .HasDatabaseName("ix_tickets_ticket_type_reference_id");
 
                     b.ToTable("tickets", "system");
@@ -3004,7 +3010,9 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.Property<string>("SecretCharacteristicsVector")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
                         .HasColumnName("secret_characteristics_vector");
 
                     b.Property<string>("SecretCleanlinessPreference")
