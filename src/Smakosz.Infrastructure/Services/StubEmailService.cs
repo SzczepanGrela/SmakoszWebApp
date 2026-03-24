@@ -26,4 +26,10 @@ public class StubEmailService : IEmailService
         _logger.LogInformation("[Email Stub] 2FA code {Code} sent to {Email}", code, email);
         return Task.CompletedTask;
     }
+
+    public Task SendDigestAsync(string email, string subject, string htmlBody, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Digest to {Email}: {Subject}", email, subject);
+        return Task.CompletedTask;
+    }
 }

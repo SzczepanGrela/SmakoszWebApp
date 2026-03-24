@@ -23,5 +23,11 @@ public class StubFileStorageService : IFileStorageService
         return Task.CompletedTask;
     }
 
+    public Task<string> UploadRawAsync(Stream data, string key, string contentType, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Storage Stub] Raw upload {Key} ({ContentType})", key, contentType);
+        return Task.FromResult($"https://stub-cdn.local/{key}");
+    }
+
     public string GetPublicUrl(string key) => $"https://cdn.smakosz.pl/{key}";
 }

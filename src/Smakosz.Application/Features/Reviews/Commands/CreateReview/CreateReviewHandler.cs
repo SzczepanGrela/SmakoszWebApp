@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Reviews.Dtos;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Reviews.Commands.CreateReview;
@@ -57,6 +59,25 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
 
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync(cancellationToken);
+
+        if (review.ContentStatus == ReviewContentStatus.Pending)
+        {
+            _db.SystemJobs.Add(new SystemJob
+            {
+                Type = "text_moderation",
+                Status = JobStatus.Pending,
+                Priority = 5,
+                EntityId = review.ReviewId.ToString(),
+                EntityType = "review",
+                Payload = JsonSerializer.Serialize(new
+                {
+                    review_id = review.ReviewId,
+                    text = review.Content,
+                    language = "pl"
+                })
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+        }
 
         var savedReview = await _db.Reviews
             .Include(r => r.User)

@@ -94,6 +94,12 @@ public class R2FileStorageService : IFileStorageService
         }
     }
 
+    public async Task<string> UploadRawAsync(Stream data, string key, string contentType, CancellationToken ct = default)
+    {
+        await UploadToR2Async(data, key, contentType, ct);
+        return GetPublicUrl(key);
+    }
+
     public string GetPublicUrl(string key) => $"{_options.PublicUrl.TrimEnd('/')}/{key}";
 
     private async Task UploadToR2Async(Stream stream, string key, string contentType, CancellationToken ct)

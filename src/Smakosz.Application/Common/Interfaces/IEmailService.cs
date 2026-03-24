@@ -5,4 +5,5 @@ public interface IEmailService
     Task SendVerificationCodeAsync(string email, string code, CancellationToken ct = default);
     Task SendPasswordResetAsync(string email, string code, CancellationToken ct = default);
     Task Send2faCodeAsync(string email, string code, CancellationToken ct = default);
+    Task SendDigestAsync(string email, string subject, string htmlBody, CancellationToken ct = default);
 }
