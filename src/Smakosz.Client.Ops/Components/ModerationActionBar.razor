@@ -1,0 +1,46 @@
+@namespace Smakosz.Client.Ops.Components
+
+<div class="d-flex gap-2 align-items-center">
+    @if (!_showReason)
+    {
+        <button class="btn btn-success btn-sm" @onclick="HandleApprove">
+            <i class="fa-solid fa-check me-1"></i>Zatwierdz
+        </button>
+        <button class="btn btn-danger btn-sm" @onclick="() => _showReason = true">
+            <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+        </button>
+    }
+    else
+    {
+        <div class="input-group input-group-sm" style="max-width:400px;">
+            <input type="text" class="form-control" @bind="_reason" placeholder="Powód odrzucenia..." />
+            <button class="btn btn-danger" @onclick="HandleReject">
+                <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="() => _showReason = false">
+                Anuluj
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<(string Action, string? Reason)> OnModerate { get; set; }
+
+    private bool _showReason;
+    private string _reason = "";
+
+    private async Task HandleApprove()
+    {
+        await OnModerate.InvokeAsync(("approve", null));
+        _showReason = false;
+        _reason = "";
+    }
+
+    private async Task HandleReject()
+    {
+        await OnModerate.InvokeAsync(("reject", _reason));
+        _showReason = false;
+        _reason = "";
+    }
+}

@@ -1,0 +1,11 @@
+<div class="hero-section text-center text-white d-flex align-items-center justify-content-center"
+     style="@(BackgroundUrl != null ? $"background-image:url('{BackgroundUrl}');" : "")">
+    <div class="container">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? BackgroundUrl { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

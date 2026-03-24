@@ -1,0 +1,24 @@
+<div class="dropdown">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="fa-solid fa-sort me-1"></i>@CurrentLabel
+    </button>
+    <ul class="dropdown-menu">
+        @foreach (var opt in Options)
+        {
+            <li>
+                <button class="dropdown-item @(opt.Value == CurrentSort ? "active" : "")"
+                        @onclick="() => OnSortChange.InvokeAsync(opt.Value)">
+                    @opt.Label
+                </button>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter] public string CurrentSort { get; set; } = "";
+    [Parameter] public List<SortOption> Options { get; set; } = [];
+    [Parameter] public EventCallback<string> OnSortChange { get; set; }
+
+    private string CurrentLabel => Options.FirstOrDefault(o => o.Value == CurrentSort)?.Label ?? "Sortuj";
+}

@@ -1,0 +1,116 @@
+@page "/admin/users"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Uzytkownicy - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-users me-2"></i>Uzytkownicy</h2>
+    <div class="input-group" style="max-width:300px;">
+        <input type="text" class="form-control form-control-sm" @bind="_search" @onkeydown="HandleSearchKey" placeholder="Szukaj uzytkownika..." />
+        <button class="btn btn-outline-primary btn-sm" @onclick="DoSearch"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_users == null || !_users.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-users" Title="Brak uzytkownikow" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Uzytkownik</th>
+                    <th>Email</th>
+                    <th>Rola</th>
+                    <th>Status</th>
+                    <th>Recenzje</th>
+                    <th>Dolaczyl</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _users.Data)
+                {
+                    <tr>
+                        <td class="fw-medium">
+                            <a href="/admin/users/@user.PublicId" class="text-decoration-none" style="color:var(--accent-color);">@user.Username</a>
+                        </td>
+                        <td>@user.Email @(user.EmailVerified ? "" : "(niezweryfikowany)")</td>
+                        <td><span class="badge bg-info">@user.Role</span></td>
+                        <td>
+                            @if (user.IsBanned)
+                            {
+                                <span class="badge bg-danger">Zbanowany</span>
+                            }
+                            else if (user.IsActive)
+                            {
+                                <span class="badge bg-success">Aktywny</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Nieaktywny</span>
+                            }
+                        </td>
+                        <td>@user.ReviewCount</td>
+                        <td class="text-muted small">@user.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                @if (user.IsBanned)
+                                {
+                                    <button class="btn btn-outline-success" @onclick='() => UserAction(user.PublicId, "unban")' title="Odbanuj">
+                                        <i class="fa-solid fa-unlock"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-danger" @onclick='() => UserAction(user.PublicId, "ban")' title="Zbanuj">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_users.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_users.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminUserDto>? _users;
+    private string _search = "";
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _users = await AdminService.GetUsersAsync(page, string.IsNullOrWhiteSpace(_search) ? null : _search);
+        _loading = false;
+    }
+
+    private async Task DoSearch() => await LoadPage(1);
+    private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
+
+    private async Task UserAction(Guid id, string action)
+    {
+        var success = await AdminService.UpdateUserAsync(id, action);
+        if (success) { Toast.ShowSuccess("Uzytkownik zaktualizowany."); await LoadPage(1); }
+        else Toast.ShowError("Operacja nieudana.");
+    }
+}

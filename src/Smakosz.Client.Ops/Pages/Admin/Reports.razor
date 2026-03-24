@@ -1,0 +1,102 @@
+@page "/admin/reports"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Raporty - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-flag me-2"></i>Raporty</h2>
+    <div class="btn-group btn-group-sm">
+        <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
+        <button class="btn @(_statusFilter == "pending" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("pending")'>Oczekujace</button>
+        <button class="btn @(_statusFilter == "resolved" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("resolved")'>Rozwiązane</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_reports == null || !_reports.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-flag" Title="Brak raportow" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Powód</th>
+                    <th>Typ</th>
+                    <th>Zgłaszający</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var report in _reports.Data)
+                {
+                    <tr>
+                        <td>
+                            <strong>@report.Reason</strong>
+                            @if (!string.IsNullOrEmpty(report.Description))
+                            {
+                                <small class="text-muted d-block">@report.Description</small>
+                            }
+                        </td>
+                        <td><span class="badge bg-info">@report.EntityType</span></td>
+                        <td>@report.ReportedBy</td>
+                        <td><StatusBadge Status="@report.Status" /></td>
+                        <td class="text-muted small">@report.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (report.Status == "pending")
+                            {
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-success" @onclick='() => Resolve(report.Id, "resolved")'>
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" @onclick='() => Resolve(report.Id, "dismissed")'>
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_reports.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_reports.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminReportDto>? _reports;
+    private string? _statusFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _reports = await AdminService.GetReportsAsync(page, _statusFilter);
+        _loading = false;
+    }
+
+    private async Task FilterByStatus(string? status) { _statusFilter = status; await LoadPage(1); }
+
+    private async Task Resolve(int id, string resolution)
+    {
+        var success = await AdminService.ResolveReportAsync(id, resolution);
+        if (success) { Toast.ShowSuccess("Raport zaktualizowany."); await LoadPage(1); }
+        else Toast.ShowError("Operacja nieudana.");
+    }
+}

@@ -1,0 +1,48 @@
+@namespace Smakosz.Client.Components
+@using Smakosz.Client.Models
+
+<div class="opening-hours-editor">
+    @foreach (var hours in Hours)
+    {
+        <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded" style="background:var(--card-bg);">
+            <div style="width:120px;" class="fw-medium">@DayName(hours.DayOfWeek)</div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="@(!hours.IsClosed)"
+                       @onchange="e => ToggleDay(hours, (bool)e.Value!)" />
+                <label class="form-check-label small">@(hours.IsClosed ? "Zamknięte" : "Otwarte")</label>
+            </div>
+            @if (!hours.IsClosed)
+            {
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                    <input type="time" class="form-control form-control-sm" style="max-width:140px;"
+                           value="@hours.OpenTime"
+                           @onchange="e => hours.OpenTime = e.Value?.ToString() ?? string.Empty" />
+                    <span class="text-muted">-</span>
+                    <input type="time" class="form-control form-control-sm" style="max-width:140px;"
+                           value="@hours.CloseTime"
+                           @onchange="e => hours.CloseTime = e.Value?.ToString() ?? string.Empty" />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<OpeningHoursDto> Hours { get; set; } = [];
+
+    private void ToggleDay(OpeningHoursDto hours, bool isOpen)
+    {
+        hours.IsClosed = !isOpen;
+        if (isOpen && string.IsNullOrEmpty(hours.OpenTime))
+        {
+            hours.OpenTime = "10:00";
+            hours.CloseTime = "22:00";
+        }
+    }
+
+    private static string DayName(int day) => day switch
+    {
+        0 => "Niedziela", 1 => "Poniedziałek", 2 => "Wtorek", 3 => "Środa",
+        4 => "Czwartek", 5 => "Piątek", 6 => "Sobota", _ => ""
+    };
+}

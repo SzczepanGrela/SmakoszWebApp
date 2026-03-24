@@ -1,0 +1,84 @@
+@page "/users/{Slug}"
+@inject Smakosz.Client.Services.IUserProfileService UserProfileService
+@inject Smakosz.Client.Services.IReviewService ReviewService
+
+<PageTitle>@(_profile?.Username ?? "Profil") - Smakosz</PageTitle>
+
+@if (_loading)
+{
+    <Smakosz.Client.Components.LoadingSpinner Text="Ladowanie profilu..." />
+}
+else if (_profile == null)
+{
+    <div class="container mt-5">
+        <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono uzytkownika" ActionText="Strona glowna" ActionUrl="/" />
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="profile-header text-center">
+            <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
+                 alt="@_profile.Username" class="profile-avatar rounded-circle mb-3" />
+            <h2>@_profile.Username</h2>
+            @if (!string.IsNullOrEmpty(_profile.Bio))
+            {
+                <p class="text-muted">@_profile.Bio</p>
+            }
+            @if (!string.IsNullOrEmpty(_profile.City))
+            {
+                <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i>@_profile.City</small>
+            }
+            <div class="d-flex justify-content-center gap-4 mt-3">
+                <div class="text-center">
+                    <div class="fw-bold">@_profile.ReviewCount</div>
+                    <small class="text-muted">Recenzji</small>
+                </div>
+                <a href="/users/@Slug/followers" class="text-center text-decoration-none" style="color:var(--text-color);">
+                    <div class="fw-bold">@_profile.FollowerCount</div>
+                    <small class="text-muted">Obserwujacych</small>
+                </a>
+                <a href="/users/@Slug/following" class="text-center text-decoration-none" style="color:var(--text-color);">
+                    <div class="fw-bold">@_profile.FollowingCount</div>
+                    <small class="text-muted">Obserwuje</small>
+                </a>
+            </div>
+            <div class="mt-3">
+                <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowing" OnToggle="() => _profile.IsFollowing = !_profile.IsFollowing" />
+            </div>
+        </div>
+
+        <Smakosz.Client.Components.SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
+        @if (_reviews != null && _reviews.Data.Any())
+        {
+            @foreach (var review in _reviews.Data)
+            {
+                <Smakosz.Client.Components.ReviewCard Review="@review" />
+            }
+            <Smakosz.Client.Components.Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviews" />
+        }
+        else
+        {
+            <Smakosz.Client.Components.EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = default!;
+    private Smakosz.Client.Models.UserPublicProfileDto? _profile;
+    private Smakosz.Client.Models.PagedResult<Smakosz.Client.Models.ReviewCardDto>? _reviews;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profile = await UserProfileService.GetUserProfileAsync(Slug);
+        await LoadReviews(1);
+        _loading = false;
+    }
+
+    private async Task LoadReviews(int page)
+    {
+        _reviews = await ReviewService.GetByUserAsync(Slug, page);
+    }
+}

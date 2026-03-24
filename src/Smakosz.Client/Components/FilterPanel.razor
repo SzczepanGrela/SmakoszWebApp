@@ -1,0 +1,9 @@
+<div class="filters-panel @(IsCollapsible ? "collapse-panel" : "")">
+    <h5 class="mb-3"><i class="fa-solid fa-filter me-2"></i>Filtry</h5>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool IsCollapsible { get; set; }
+}

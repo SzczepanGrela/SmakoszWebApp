@@ -1,0 +1,19 @@
+@using Smakosz.Client.Helpers
+
+<div class="d-flex align-items-center gap-3 p-2">
+    <img src="@ImageHelper.GetAvatarUrl(User.AvatarUrl, User.Username)" class="rounded-circle"
+         style="width:48px;height:48px;object-fit:cover;" alt="@User.Username" />
+    <div class="flex-grow-1">
+        <a href="/users/@User.Slug" class="fw-bold text-decoration-none" style="color:var(--text-color);">@User.Username</a>
+        <small class="text-muted d-block">@User.ReviewCount recenzji</small>
+    </div>
+    @if (ShowFollowButton)
+    {
+        <FollowButton IsFollowing="false" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Smakosz.Client.Models.UserSummaryDto User { get; set; } = default!;
+    [Parameter] public bool ShowFollowButton { get; set; }
+}

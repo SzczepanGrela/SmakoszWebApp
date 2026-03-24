@@ -1,0 +1,113 @@
+@page "/restaurant/dashboard"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+
+<PageTitle>Dashboard - Panel restauracji</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ladowanie panelu..." />
+}
+else if (_dashboard == null)
+{
+    <EmptyState Icon="fa-solid fa-chart-line" Title="Brak danych" />
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="fa-solid fa-chart-line me-2"></i>Dashboard
+        </h2>
+        <StatusBadge Status="@_dashboard.Status" />
+    </div>
+
+    <!-- Stats cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.TotalReviews</div>
+                <small class="text-muted">Recenzje</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@(_dashboard.AvgRating?.ToString("F1") ?? "-")</div>
+                <small class="text-muted">Srednia ocena</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.TotalDishes</div>
+                <small class="text-muted">Dania w menu</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_dashboard.ViewsThisMonth</div>
+                <small class="text-muted">Wyswietlenia (miesiac)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly activity -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Aktywnosc tygodniowa</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Wyswietlenia</th>
+                            <th>Recenzje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in _dashboard.WeeklyStats)
+                        {
+                            <tr>
+                                <td>@stat.Date</td>
+                                <td>@stat.Views</td>
+                                <td>@stat.Reviews</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <a href="/restaurant/dishes/add" class="card shadow-sm text-decoration-none p-4 text-center h-100" style="color:var(--text-color);">
+                <i class="fa-solid fa-plus fa-2x mb-2" style="color:var(--accent-color);"></i>
+                <h6>Dodaj nowe danie</h6>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="/restaurant/reviews" class="card shadow-sm text-decoration-none p-4 text-center h-100" style="color:var(--text-color);">
+                <i class="fa-solid fa-comments fa-2x mb-2" style="color:var(--accent-color);"></i>
+                <h6>Zobacz recenzje</h6>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="/restaurant/stats" class="card shadow-sm text-decoration-none p-4 text-center h-100" style="color:var(--text-color);">
+                <i class="fa-solid fa-chart-bar fa-2x mb-2" style="color:var(--accent-color);"></i>
+                <h6>Statystyki</h6>
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    private BusinessDashboardDto? _dashboard;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dashboard = await BusinessService.GetDashboardAsync();
+        _loading = false;
+    }
+}

@@ -1,0 +1,105 @@
+@page "/restaurant/stats"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+
+<PageTitle>Statystyki - Panel restauracji</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-chart-bar me-2"></i>Statystyki</h2>
+    <div class="btn-group">
+        <button class="btn @(_period == "week" ? "btn-primary" : "btn-outline-primary") btn-sm" @onclick='() => ChangePeriod("week")'>Tydzien</button>
+        <button class="btn @(_period == "month" ? "btn-primary" : "btn-outline-primary") btn-sm" @onclick='() => ChangePeriod("month")'>Miesiac</button>
+        <button class="btn @(_period == "year" ? "btn-primary" : "btn-outline-primary") btn-sm" @onclick='() => ChangePeriod("year")'>Rok</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <!-- Summary cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_stats.Sum(s => s.Views)</div>
+                <small class="text-muted">Laczne wyswietlenia</small>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_stats.Sum(s => s.Reviews)</div>
+                <small class="text-muted">Nowe recenzje</small>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold" style="color:var(--accent-color);">@(_stats.Any() ? _stats.Average(s => s.Views).ToString("F0") : "0")</div>
+                <small class="text-muted">Srednia wyswietlen/dzien</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data table -->
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Szczegolowe dane</h5></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Wyswietlenia</th>
+                            <th>Recenzje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in _stats)
+                        {
+                            <tr>
+                                <td>@stat.Date</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height:6px;">
+                                            <div class="progress-bar" style="width:@(MaxViews > 0 ? stat.Views * 100.0 / MaxViews : 0)%;background:var(--accent-color);"></div>
+                                        </div>
+                                        <span class="small" style="min-width:40px;">@stat.Views</span>
+                                    </div>
+                                </td>
+                                <td>@stat.Reviews</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<BusinessStatsDto> _stats = [];
+    private string _period = "week";
+    private bool _loading = true;
+
+    private int MaxViews => _stats.Any() ? _stats.Max(s => s.Views) : 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+    }
+
+    private async Task ChangePeriod(string period)
+    {
+        _period = period;
+        await LoadStats();
+    }
+
+    private async Task LoadStats()
+    {
+        _loading = true;
+        _stats = await BusinessService.GetStatsAsync(_period);
+        _loading = false;
+    }
+}

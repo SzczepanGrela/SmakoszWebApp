@@ -1,0 +1,8 @@
+<button class="btn btn-sm @(IsSaved ? "btn-danger" : "btn-outline-danger")" @onclick="OnToggle">
+    <i class="@(IsSaved ? "fa-solid" : "fa-regular") fa-heart"></i>
+</button>
+
+@code {
+    [Parameter] public bool IsSaved { get; set; }
+    [Parameter] public EventCallback OnToggle { get; set; }
+}

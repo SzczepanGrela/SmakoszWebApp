@@ -1,0 +1,41 @@
+@inject Smakosz.Client.Services.IAuthService AuthService
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <div class="dropdown">
+            <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(null, context.User.Identity?.Name)"
+                     class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" alt="" />
+                <span>@context.User.Identity?.Name</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/profile"><i class="fa-solid fa-user me-2"></i>Moj profil</a></li>
+                <li><a class="dropdown-item" href="/saved"><i class="fa-solid fa-heart me-2"></i>Zapisane</a></li>
+                <li><a class="dropdown-item" href="/profile/settings"><i class="fa-solid fa-gear me-2"></i>Ustawienia</a></li>
+                <AuthorizeView Roles="restaurant">
+                    <Authorized Context="bizCtx">
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="/restaurant/dashboard"><i class="fa-solid fa-store me-2"></i>Moja restauracja</a></li>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="admin,moderator">
+                    <Authorized Context="adminCtx">
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="/admin"><i class="fa-solid fa-shield-halved me-2"></i>Panel admin</a></li>
+                    </Authorized>
+                </AuthorizeView>
+                <li><hr class="dropdown-divider" /></li>
+                <li><button class="dropdown-item text-danger" @onclick="Logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Wyloguj</button></li>
+            </ul>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

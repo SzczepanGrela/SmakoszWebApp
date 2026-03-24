@@ -1,0 +1,58 @@
+@page "/restaurant/hours"
+@layout BusinessLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@inject IBusinessService BusinessService
+@inject ToastService Toast
+
+<PageTitle>Godziny otwarcia - Panel restauracji</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <OpeningHoursEditor Hours="@_hours" />
+
+            <hr />
+            <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
+                @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz godziny
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private List<OpeningHoursDto> _hours = [];
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hours = await BusinessService.GetOpeningHoursAsync();
+        _loading = false;
+    }
+
+    private async Task HandleSave()
+    {
+        _saving = true;
+        _error = null;
+        var success = await BusinessService.UpdateOpeningHoursAsync(_hours);
+        if (success)
+            Toast.ShowSuccess("Godziny otwarcia zostaly zaktualizowane.");
+        else
+            _error = "Nie udalo sie zapisac zmian.";
+        _saving = false;
+    }
+}

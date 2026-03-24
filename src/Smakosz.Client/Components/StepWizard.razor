@@ -1,0 +1,73 @@
+@namespace Smakosz.Client.Components
+
+<div class="step-wizard mb-4">
+    <div class="d-flex justify-content-between mb-3">
+        @for (int i = 0; i < Steps.Count; i++)
+        {
+            var step = i;
+            <div class="text-center flex-fill">
+                <div class="step-indicator @(step < CurrentStep ? "completed" : step == CurrentStep ? "active" : "")"
+                     style="width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+                            background:@(step <= CurrentStep ? "var(--accent-color)" : "#dee2e6");color:@(step <= CurrentStep ? "white" : "#6c757d");
+                            font-weight:bold;">
+                    @if (step < CurrentStep)
+                    {
+                        <i class="fa-solid fa-check"></i>
+                    }
+                    else
+                    {
+                        @(step + 1)
+                    }
+                </div>
+                <div class="small mt-1 @(step == CurrentStep ? "fw-bold" : "text-muted")">@Steps[step]</div>
+            </div>
+        }
+    </div>
+    <div class="progress mb-4" style="height:4px;">
+        <div class="progress-bar" style="width:@(Steps.Count > 1 ? (CurrentStep * 100.0 / (Steps.Count - 1)) : 100)%;background:var(--accent-color);"></div>
+    </div>
+    @ChildContent
+    <div class="d-flex justify-content-between mt-4">
+        <button class="btn btn-outline-secondary" @onclick="PreviousStep" disabled="@(CurrentStep == 0)">
+            <i class="fa-solid fa-arrow-left me-1"></i>Wstecz
+        </button>
+        @if (CurrentStep < Steps.Count - 1)
+        {
+            <button class="btn btn-primary" @onclick="NextStep">
+                Dalej<i class="fa-solid fa-arrow-right ms-1"></i>
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-success" @onclick="OnFinish">
+                <i class="fa-solid fa-check me-1"></i>Zakoncz
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> Steps { get; set; } = [];
+    [Parameter] public int CurrentStep { get; set; }
+    [Parameter] public EventCallback<int> CurrentStepChanged { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnFinish { get; set; }
+
+    private async Task NextStep()
+    {
+        if (CurrentStep < Steps.Count - 1)
+        {
+            CurrentStep++;
+            await CurrentStepChanged.InvokeAsync(CurrentStep);
+        }
+    }
+
+    private async Task PreviousStep()
+    {
+        if (CurrentStep > 0)
+        {
+            CurrentStep--;
+            await CurrentStepChanged.InvokeAsync(CurrentStep);
+        }
+    }
+}

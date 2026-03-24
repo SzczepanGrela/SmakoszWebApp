@@ -1,0 +1,9 @@
+<button class="btn btn-sm @(IsFavorite ? "btn-danger" : "btn-outline-danger")" @onclick="OnToggle">
+    <i class="@(IsFavorite ? "fa-solid" : "fa-regular") fa-heart me-1"></i>
+    @(IsFavorite ? "Ulubiona" : "Dodaj do ulubionych")
+</button>
+
+@code {
+    [Parameter] public bool IsFavorite { get; set; }
+    [Parameter] public EventCallback OnToggle { get; set; }
+}

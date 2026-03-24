@@ -1,0 +1,68 @@
+@page "/admin/ingredient-suggestions"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject ToastService Toast
+
+<PageTitle>Sugestie składników - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-lightbulb me-2"></i>Sugestie składników</h2>
+
+<p class="text-muted mb-4">Składniki sugerowane przez uzytkownikow lub AI, oczekujace na dodanie do bazy.</p>
+
+@if (!_suggestions.Any())
+{
+    <EmptyState Icon="fa-solid fa-lightbulb" Title="Brak sugestii" Description="Nie ma oczekujacych sugestii skladnikow." />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Nazwa</th><th>Sugerowana kategoria</th><th>Źródło</th><th>Data</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var s in _suggestions)
+                {
+                    <tr>
+                        <td class="fw-medium">@s.Name</td>
+                        <td>@(s.Category ?? "-")</td>
+                        <td><span class="badge bg-info">@s.Source</span></td>
+                        <td class="text-muted small">@s.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="text-end">
+                            <button class="btn btn-success btn-sm me-1" @onclick="() => Accept(s)">
+                                <i class="fa-solid fa-check me-1"></i>Dodaj
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => Dismiss(s)">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private record Suggestion(string Name, string? Category, string Source, DateTime CreatedAt);
+
+    private List<Suggestion> _suggestions = new()
+    {
+        new("Tofu wedzony", "Bialko", "AI", DateTime.UtcNow.AddDays(-2)),
+        new("Mleko kokosowe", "Nabiał rosliny", "uzytkownik", DateTime.UtcNow.AddDays(-1)),
+        new("Sezam czarny", "Nasiona", "AI", DateTime.UtcNow.AddHours(-5)),
+        new("Miso pasta", "Przyprawy", "uzytkownik", DateTime.UtcNow.AddDays(-3))
+    };
+
+    private void Accept(Suggestion s)
+    {
+        _suggestions.Remove(s);
+        Toast.ShowSuccess($"Skladnik \"{s.Name}\" dodany do bazy.");
+    }
+
+    private void Dismiss(Suggestion s)
+    {
+        _suggestions.Remove(s);
+        Toast.ShowSuccess("Sugestia odrzucona.");
+    }
+}

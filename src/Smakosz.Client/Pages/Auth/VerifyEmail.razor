@@ -1,0 +1,59 @@
+@page "/verify-email"
+@layout Smakosz.Client.Layout.AuthLayout
+@inject Smakosz.Client.Services.IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Weryfikacja email - Smakosz</PageTitle>
+
+<div class="text-center">
+    <i class="fa-solid fa-envelope-open-text fa-3x mb-3" style="color:var(--primary-color);"></i>
+    <h4 class="mb-3">Zweryfikuj swoj email</h4>
+    @if (!string.IsNullOrEmpty(Email))
+    {
+        <p class="text-muted">Wyslalismy kod weryfikacyjny na adres <strong>@Email</strong></p>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger mt-3"><i class="fa-solid fa-circle-exclamation me-2"></i>@_error</div>
+}
+@if (_success)
+{
+    <div class="alert alert-success mt-3"><i class="fa-solid fa-check-circle me-2"></i>Email zweryfikowany! Przekierowywanie...</div>
+}
+
+<div class="mt-4">
+    <label class="form-label">Kod weryfikacyjny</label>
+    <input type="text" class="form-control form-control-lg text-center" maxlength="6" @bind="_code" placeholder="000000" />
+</div>
+<button class="btn btn-primary w-100 mt-3 @(_loading ? "loading" : "")" @onclick="Verify" disabled="@_loading">
+    @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+    Zweryfikuj
+</button>
+
+@code {
+    [SupplyParameterFromQuery] public string? Email { get; set; }
+    private string _code = "";
+    private string? _error;
+    private bool _loading;
+    private bool _success;
+
+    private async Task Verify()
+    {
+        _loading = true;
+        _error = null;
+        var result = await AuthService.VerifyEmailAsync(new Smakosz.Client.Models.VerifyEmailRequest { Code = _code });
+        if (result.Success)
+        {
+            _success = true;
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nieprawidlowy kod.";
+        }
+        _loading = false;
+    }
+}

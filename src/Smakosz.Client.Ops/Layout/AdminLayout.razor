@@ -1,0 +1,109 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="fa-solid fa-utensils me-2"></i>Smakosz
+        </a>
+        <span class="navbar-text fw-bold">
+            <i class="fa-solid fa-shield-halved me-1"></i>Panel Administratora
+        </span>
+    </div>
+</nav>
+
+<div class="d-flex" style="padding-top:76px;">
+    <!-- Sidebar -->
+    <nav class="admin-sidebar d-none d-lg-block" style="width:260px;min-width:260px;">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin", true)" href="/admin">
+                    <i class="fa-solid fa-chart-pie me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/tickets")" href="/admin/tickets">
+                    <i class="fa-solid fa-ticket me-2"></i>Zgloszenia
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/photos")" href="/admin/photos">
+                    <i class="fa-solid fa-images me-2"></i>Moderacja zdjec
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/reviews")" href="/admin/reviews">
+                    <i class="fa-solid fa-comments me-2"></i>Moderacja recenzji
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/reports")" href="/admin/reports">
+                    <i class="fa-solid fa-flag me-2"></i>Raporty
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/edit-requests")" href="/admin/edit-requests">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Prośby o edycję
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/users")" href="/admin/users">
+                    <i class="fa-solid fa-users me-2"></i>Uzytkownicy
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/restaurants")" href="/admin/restaurants">
+                    <i class="fa-solid fa-store me-2"></i>Restauracje
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/ingredients")" href="/admin/ingredients">
+                    <i class="fa-solid fa-carrot me-2"></i>Składniki
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/cities")" href="/admin/cities">
+                    <i class="fa-solid fa-city me-2"></i>Miasta
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/system-config")" href="/admin/system-config">
+                    <i class="fa-solid fa-gear me-2"></i>Konfiguracja
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/logs")" href="/admin/logs">
+                    <i class="fa-solid fa-file-lines me-2"></i>Logi
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/ai-models")" href="/admin/ai-models">
+                    <i class="fa-solid fa-robot me-2"></i>Modele AI
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/admin/jobs")" href="/admin/jobs">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Zadania
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Content -->
+    <div class="flex-grow-1 p-4" style="min-height:calc(100vh - 76px);">
+        @Body
+    </div>
+</div>
+
+@code {
+    private string ActiveClass(string href, bool exact = false)
+    {
+        var uri = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (exact)
+            return (uri == "admin" || uri == "admin/") ? "active" : "";
+        return Navigation.Uri.Contains(href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+}

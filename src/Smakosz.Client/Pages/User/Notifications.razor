@@ -1,0 +1,146 @@
+@page "/notifications"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject INotificationService NotificationService
+@inject NavigationManager Navigation
+
+<PageTitle>Powiadomienia - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="fa-solid fa-bell me-2"></i>Powiadomienia</h1>
+        <div class="d-flex gap-2">
+            @if (_result != null && _result.Data.Any(n => !n.IsRead))
+            {
+                <button class="btn btn-outline-primary btn-sm" @onclick="MarkAllAsRead" disabled="@_markingAll">
+                    @if (_markingAll)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    <i class="fa-solid fa-check-double me-1"></i>Oznacz wszystkie jako przeczytane
+                </button>
+            }
+            <a href="/profile/notifications" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-gear me-1"></i>Ustawienia
+            </a>
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <LoadingSpinner Text="Ladowanie powiadomien..." />
+    }
+    else if (_result == null || !_result.Data.Any())
+    {
+        <EmptyState Icon="fa-solid fa-bell-slash" Title="Brak powiadomien"
+                    Description="Nie masz jeszcze zadnych powiadomien. Wrocisz tu, gdy pojawia sie nowe." />
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var notification in _result.Data)
+            {
+                <div class="list-group-item list-group-item-action @(!notification.IsRead ? "list-group-item-light border-start border-primary border-3" : "")"
+                     style="cursor:pointer;" @onclick="() => HandleNotificationClick(notification)">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-3 flex-grow-1">
+                            <div class="mt-1">
+                                <i class="@GetNotificationIcon(notification.Type) @(!notification.IsRead ? "text-primary" : "text-muted")"
+                                   style="font-size:1.25rem;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <strong class="@(!notification.IsRead ? "" : "fw-normal")">@notification.Title</strong>
+                                    @if (!notification.IsRead)
+                                    {
+                                        <span class="badge bg-primary rounded-pill" style="font-size:0.6rem;">Nowe</span>
+                                    }
+                                </div>
+                                <p class="mb-1 text-muted small">@notification.Message</p>
+                                <small class="text-muted">
+                                    <i class="fa-regular fa-clock me-1"></i>@DateTimeHelper.TimeAgo(notification.CreatedAt)
+                                </small>
+                            </div>
+                        </div>
+                        <div>
+                            @if (!notification.IsRead)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" title="Oznacz jako przeczytane"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => MarkAsRead(notification)">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4">
+            <Pagination Info="@_result.Pagination" OnPageChange="LoadPage" />
+        </div>
+    }
+</div>
+
+@code {
+    private PagedResult<NotificationDto>? _result;
+    private bool _loading = true;
+    private bool _markingAll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _result = await NotificationService.GetNotificationsAsync(page);
+        _loading = false;
+    }
+
+    private async Task MarkAsRead(NotificationDto notification)
+    {
+        await NotificationService.MarkAsReadAsync(notification.Id);
+        notification.IsRead = true;
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        _markingAll = true;
+        await NotificationService.MarkAllAsReadAsync();
+        if (_result != null)
+        {
+            foreach (var n in _result.Data)
+            {
+                n.IsRead = true;
+            }
+        }
+        _markingAll = false;
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notification)
+    {
+        if (!notification.IsRead)
+        {
+            await NotificationService.MarkAsReadAsync(notification.Id);
+            notification.IsRead = true;
+        }
+
+        if (!string.IsNullOrEmpty(notification.ActionUrl))
+        {
+            Navigation.NavigateTo(notification.ActionUrl);
+        }
+    }
+
+    private static string GetNotificationIcon(string type) => type.ToLowerInvariant() switch
+    {
+        "review_reply" => "fa-solid fa-reply",
+        "new_follower" => "fa-solid fa-user-plus",
+        "recommendation" => "fa-solid fa-wand-magic-sparkles",
+        "review_helpful" => "fa-solid fa-thumbs-up",
+        "system" => "fa-solid fa-circle-info",
+        "warning" => "fa-solid fa-triangle-exclamation",
+        _ => "fa-solid fa-bell"
+    };
+}

@@ -1,0 +1,209 @@
+@page "/review/edit/{Id:guid}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IReviewService ReviewService
+@inject IUserProfileService UserProfileService
+@inject NavigationManager Navigation
+@inject ToastService Toast
+
+<PageTitle>Edytuj recenzje - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4"><i class="fa-solid fa-pen me-2"></i>Edytuj recenzje</h1>
+
+            @if (_loading)
+            {
+                <LoadingSpinner Text="Ladowanie recenzji..." />
+            }
+            else if (_review == null)
+            {
+                <EmptyState Icon="fa-solid fa-file-circle-question" Title="Nie znaleziono recenzji"
+                            Description="Recenzja o podanym ID nie istnieje lub nie masz do niej dostepu."
+                            ActionText="Powrot do profilu" ActionUrl="/profile" />
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                    </div>
+                }
+
+                <!-- Dish info -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-utensils me-2"></i>Danie</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <h5 class="mb-1">@_review.DishName</h5>
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-store me-1"></i>@_review.RestaurantName
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ratings -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-star me-2"></i>Oceny</h5>
+                    </div>
+                    <div class="card-body">
+                        <RatingInput Label="Ocena dania" Value="@_model.DishRating"
+                                     ValueChanged="v => _model.DishRating = v" />
+                        <RatingInput Label="Obsluga" Value="@_model.ServiceRating"
+                                     ValueChanged="v => _model.ServiceRating = v" />
+                        <RatingInput Label="Czystosc" Value="@_model.CleanlinessRating"
+                                     ValueChanged="v => _model.CleanlinessRating = v" />
+                        <RatingInput Label="Atmosfera" Value="@_model.AmbianceRating"
+                                     ValueChanged="v => _model.AmbianceRating = v" />
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-comment me-2"></i>Szczegóły</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Treść recenzji</label>
+                            <textarea class="form-control" rows="5" @bind="_model.Content"
+                                      placeholder="Opisz swoje doswiadczenie..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Data wizyty</label>
+                            <input type="date" class="form-control" @bind="_visitDate" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" @onclick="GoBack">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Anuluj
+                    </button>
+                    <button class="btn btn-primary btn-lg" @onclick="HandleSubmit" disabled="@_submitting">
+                        @if (_submitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz zmiany
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ReviewCardDto? _review;
+    private UpdateReviewDto _model = new();
+    private DateTime _visitDate = DateTime.Today;
+    private bool _loading = true;
+    private bool _submitting;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReview();
+        _loading = false;
+    }
+
+    private async Task LoadReview()
+    {
+        var profile = await UserProfileService.GetMyProfileAsync();
+        if (profile?.Slug == null) return;
+
+        var page = 1;
+        while (true)
+        {
+            var result = await ReviewService.GetByUserAsync(profile.Slug, page, 50);
+            if (result == null || !result.Data.Any()) break;
+
+            _review = result.Data.FirstOrDefault(r => r.PublicId == Id);
+            if (_review != null) break;
+
+            if (page >= result.Pagination.TotalPages) break;
+            page++;
+        }
+
+        if (_review != null)
+        {
+            _model = new UpdateReviewDto
+            {
+                DishRating = _review.DishRating,
+                ServiceRating = _review.ServiceRating,
+                CleanlinessRating = _review.CleanlinessRating,
+                AmbianceRating = _review.AmbianceRating,
+                Content = _review.Content,
+                VisitDate = _review.VisitDate
+            };
+
+            if (DateTime.TryParse(_review.VisitDate, out var parsed))
+            {
+                _visitDate = parsed;
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _error = null;
+
+        if (_model.DishRating < 1)
+        {
+            _error = "Ocena dania jest wymagana (minimum 1).";
+            return;
+        }
+        if (_model.ServiceRating < 1)
+        {
+            _error = "Ocena obslugi jest wymagana (minimum 1).";
+            return;
+        }
+        if (_model.CleanlinessRating < 1)
+        {
+            _error = "Ocena czystosci jest wymagana (minimum 1).";
+            return;
+        }
+        if (_model.AmbianceRating < 1)
+        {
+            _error = "Ocena atmosfery jest wymagana (minimum 1).";
+            return;
+        }
+
+        _model.VisitDate = _visitDate.ToString("yyyy-MM-dd");
+        _submitting = true;
+
+        var result = await ReviewService.UpdateAsync(Id, _model);
+        if (result.Success)
+        {
+            Toast.ShowSuccess("Recenzja zostala zaktualizowana!");
+            Navigation.NavigateTo($"/dish/{_review!.DishSlug}");
+        }
+        else
+        {
+            _error = result.Error?.Message ?? "Nie udalo sie zaktualizowac recenzji. Sprobuj ponownie.";
+        }
+        _submitting = false;
+    }
+
+    private void GoBack()
+    {
+        if (_review != null)
+        {
+            Navigation.NavigateTo($"/dish/{_review.DishSlug}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/profile");
+        }
+    }
+}

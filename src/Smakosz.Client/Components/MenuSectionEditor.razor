@@ -1,0 +1,125 @@
+@namespace Smakosz.Client.Components
+@using Smakosz.Client.Models
+
+<div class="menu-section-editor">
+    @if (Sections.Any())
+    {
+        <div class="list-group mb-3">
+            @for (int i = 0; i < Sections.Count; i++)
+            {
+                var index = i;
+                var menuSection = Sections[index];
+                <div class="list-group-item d-flex align-items-center gap-3">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" @onclick="() => MoveUp(index)" disabled="@(index == 0)">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="() => MoveDown(index)" disabled="@(index == Sections.Count - 1)">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
+                    <span class="badge bg-secondary">@menuSection.DisplayOrder</span>
+                    @if (_editingIndex == index)
+                    {
+                        <input type="text" class="form-control form-control-sm" @bind="_editName"
+                               @onkeydown="HandleEditKey" />
+                        <button class="btn btn-success btn-sm" @onclick="() => SaveEdit(index)">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="flex-grow-1 fw-medium">@menuSection.SectionName</span>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="() => StartEdit(index)">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveSection(index)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="input-group">
+        <input type="text" class="form-control" @bind="_newSectionName" placeholder="Nowa sekcja menu..."
+               @onkeydown="HandleAddKey" />
+        <button class="btn btn-primary" @onclick="AddSection" disabled="@string.IsNullOrWhiteSpace(_newSectionName)">
+            <i class="fa-solid fa-plus me-1"></i>Dodaj
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<MenuSectionDto> Sections { get; set; } = [];
+    [Parameter] public EventCallback<List<MenuSectionDto>> SectionsChanged { get; set; }
+
+    private string _newSectionName = "";
+    private int? _editingIndex;
+    private string _editName = "";
+
+    private async Task AddSection()
+    {
+        if (string.IsNullOrWhiteSpace(_newSectionName)) return;
+        Sections.Add(new MenuSectionDto
+        {
+            SectionName = _newSectionName.Trim(),
+            DisplayOrder = Sections.Count + 1
+        });
+        _newSectionName = "";
+        await SectionsChanged.InvokeAsync(Sections);
+    }
+
+    private async Task RemoveSection(int index)
+    {
+        Sections.RemoveAt(index);
+        ReorderSections();
+        await SectionsChanged.InvokeAsync(Sections);
+    }
+
+    private async Task MoveUp(int index)
+    {
+        if (index <= 0) return;
+        (Sections[index], Sections[index - 1]) = (Sections[index - 1], Sections[index]);
+        ReorderSections();
+        await SectionsChanged.InvokeAsync(Sections);
+    }
+
+    private async Task MoveDown(int index)
+    {
+        if (index >= Sections.Count - 1) return;
+        (Sections[index], Sections[index + 1]) = (Sections[index + 1], Sections[index]);
+        ReorderSections();
+        await SectionsChanged.InvokeAsync(Sections);
+    }
+
+    private void StartEdit(int index)
+    {
+        _editingIndex = index;
+        _editName = Sections[index].SectionName;
+    }
+
+    private void CancelEdit() => _editingIndex = null;
+    private void HandleEditKey(KeyboardEventArgs e) { if (e.Key == "Enter" && _editingIndex.HasValue) _ = SaveEdit(_editingIndex.Value); }
+    private void HandleAddKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = AddSection(); }
+
+    private async Task SaveEdit(int index)
+    {
+        if (!string.IsNullOrWhiteSpace(_editName))
+        {
+            Sections[index].SectionName = _editName.Trim();
+            await SectionsChanged.InvokeAsync(Sections);
+        }
+        _editingIndex = null;
+    }
+
+    private void ReorderSections()
+    {
+        for (int i = 0; i < Sections.Count; i++)
+            Sections[i].DisplayOrder = i + 1;
+    }
+}

@@ -1,0 +1,16 @@
+@namespace Smakosz.Client.Components
+<span class="badge @BadgeColor">@Status</span>
+
+@code {
+    [Parameter, EditorRequired] public string Status { get; set; } = default!;
+    [Parameter] public string? Color { get; set; }
+
+    private string BadgeColor => Color ?? Status.ToLowerInvariant() switch
+    {
+        "active" or "approved" or "completed" or "resolved" => "bg-success",
+        "pending" or "open" or "scheduled" => "bg-warning text-dark",
+        "rejected" or "banned" or "error" => "bg-danger",
+        "training" or "idle" => "bg-info",
+        _ => "bg-secondary"
+    };
+}

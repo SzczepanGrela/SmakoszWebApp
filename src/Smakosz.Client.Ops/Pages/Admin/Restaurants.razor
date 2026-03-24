@@ -1,0 +1,57 @@
+@page "/admin/restaurants"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Restauracje - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-store me-2"></i>Restauracje</h2>
+    <div class="input-group" style="max-width:300px;">
+        <input type="text" class="form-control form-control-sm" @bind="_search" @onkeydown="HandleSearchKey" placeholder="Szukaj restauracji..." />
+        <button class="btn btn-outline-primary btn-sm" @onclick="DoSearch"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_restaurants == null || !_restaurants.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-store" Title="Brak restauracji" />
+}
+else
+{
+    <div class="row">
+        @foreach (var r in _restaurants.Data)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <RestaurantCard Restaurant="@r" />
+            </div>
+        }
+    </div>
+
+    @if (_restaurants.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_restaurants.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<RestaurantCardDto>? _restaurants;
+    private string _search = "";
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _restaurants = await AdminService.GetRestaurantsAsync(page, string.IsNullOrWhiteSpace(_search) ? null : _search);
+        _loading = false;
+    }
+
+    private async Task DoSearch() => await LoadPage(1);
+    private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
+}

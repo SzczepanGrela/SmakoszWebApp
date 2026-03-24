@@ -1,0 +1,151 @@
+@page "/business/register"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IBusinessService BusinessService
+@inject NavigationManager Navigation
+@inject ToastService Toast
+@inject SmakoszApiClient Api
+
+<PageTitle>Rejestracja restauracji - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4"><i class="fa-solid fa-store me-2"></i>Zarejestruj restauracje</h1>
+
+            <StepWizard Steps="@_steps" @bind-CurrentStep="_currentStep" OnFinish="HandleSubmit">
+                @if (_currentStep == 0)
+                {
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">Podstawowe informacje</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Nazwa restauracji *</label>
+                                <input type="text" class="form-control" @bind="_model.RestaurantName" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Typ kuchni</label>
+                                <select class="form-select" @bind="_model.CuisineType">
+                                    <option value="">Wybierz...</option>
+                                    <option>Polska</option>
+                                    <option>Włoska</option>
+                                    <option>Azjatycka</option>
+                                    <option>Amerykanska</option>
+                                    <option>Meksykanska</option>
+                                    <option>Francuska</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Poziom cenowy</label>
+                                <select class="form-select" @bind="_model.PriceLevel">
+                                    <option value="1">$ - Budzetowy</option>
+                                    <option value="2">$$ - Sredni</option>
+                                    <option value="3">$$$ - Wyzszy</option>
+                                    <option value="4">$$$$ - Premium</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (_currentStep == 1)
+                {
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">Dane kontaktowe</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Miasto</label>
+                                <select class="form-select" @bind="_model.CityId">
+                                    <option value="">Wybierz miasto...</option>
+                                    @foreach (var city in _cities)
+                                    {
+                                        <option value="@city.Id">@city.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Adres *</label>
+                                <input type="text" class="form-control" @bind="_model.Address" placeholder="ul. Przykładowa 1, Warszawa" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Telefon</label>
+                                <input type="tel" class="form-control" @bind="_model.Phone" placeholder="+48 123 456 789" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Email</label>
+                                <input type="email" class="form-control" @bind="_model.Email" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Strona www</label>
+                                <input type="url" class="form-control" @bind="_model.Website" placeholder="https://..." />
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">Opis i podsumowanie</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Opis restauracji</label>
+                                <textarea class="form-control" rows="4" @bind="_model.Description"
+                                          placeholder="Opowiedz o swojej restauracji..."></textarea>
+                            </div>
+                            <hr />
+                            <h6 class="fw-bold">Podsumowanie</h6>
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Nazwa</dt>
+                                <dd class="col-sm-8">@_model.RestaurantName</dd>
+                                <dt class="col-sm-4">Kuchnia</dt>
+                                <dd class="col-sm-8">@(_model.CuisineType ?? "Nie podano")</dd>
+                                <dt class="col-sm-4">Adres</dt>
+                                <dd class="col-sm-8">@(_model.Address ?? "Nie podano")</dd>
+                                <dt class="col-sm-4">Telefon</dt>
+                                <dd class="col-sm-8">@(_model.Phone ?? "Nie podano")</dd>
+                            </dl>
+                        </div>
+                    </div>
+                }
+            </StepWizard>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private BusinessRestaurantDto _model = new();
+    private int _currentStep;
+    private string? _error;
+    private List<CityDto> _cities = [];
+    private readonly List<string> _steps = ["Podstawowe", "Kontakt", "Podsumowanie"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cities = await Api.GetAsync<List<CityDto>>("/api/cities") ?? [];
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(_model.RestaurantName))
+        {
+            _error = "Nazwa restauracji jest wymagana.";
+            return;
+        }
+
+        var success = await BusinessService.RegisterBusinessAsync(_model);
+        if (success)
+        {
+            Toast.ShowSuccess("Wniosek o rejestracje zostal wyslany!");
+            Navigation.NavigateTo("/business/pending");
+        }
+        else
+        {
+            _error = "Nie udalo sie wyslac wniosku. Sprobuj ponownie.";
+        }
+    }
+}

@@ -1,0 +1,95 @@
+@page "/admin"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Dashboard - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ladowanie panelu..." />
+}
+else if (_dashboard == null)
+{
+    <EmptyState Icon="fa-solid fa-chart-pie" Title="Brak danych" />
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <AdminStatCard Icon="fa-solid fa-users" Label="Uzytkownicy" Value="@_dashboard.TotalUsers.ToString()" Color="#4A90D9" />
+        </div>
+        <div class="col-md-3 mb-3">
+            <AdminStatCard Icon="fa-solid fa-store" Label="Restauracje" Value="@_dashboard.TotalRestaurants.ToString()" Color="#D4A574" />
+        </div>
+        <div class="col-md-3 mb-3">
+            <AdminStatCard Icon="fa-solid fa-bowl-food" Label="Dania" Value="@_dashboard.TotalDishes.ToString()" Color="#6CB85D" />
+        </div>
+        <div class="col-md-3 mb-3">
+            <AdminStatCard Icon="fa-solid fa-comments" Label="Recenzje" Value="@_dashboard.TotalReviews.ToString()" Color="#B8860B" />
+        </div>
+    </div>
+
+    <!-- Pending items -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <a href="/admin/tickets" class="text-decoration-none">
+                <AdminStatCard Icon="fa-solid fa-ticket" Label="Oczekujace zgloszenia" Value="@_dashboard.PendingTickets.ToString()" Color="#E74C3C" />
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/admin/photos" class="text-decoration-none">
+                <AdminStatCard Icon="fa-solid fa-images" Label="Zdjęcia do moderacji" Value="@_dashboard.PendingPhotos.ToString()" Color="#F39C12" />
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/admin/reviews" class="text-decoration-none">
+                <AdminStatCard Icon="fa-solid fa-comments" Label="Recenzje do moderacji" Value="@_dashboard.PendingReviews.ToString()" Color="#9B59B6" />
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/admin/edit-requests" class="text-decoration-none">
+                <AdminStatCard Icon="fa-solid fa-pen-to-square" Label="Prośby o edycję" Value="@_dashboard.PendingEditRequests.ToString()" Color="#1ABC9C" />
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Ostatnia aktywnosc</h5></div>
+        <div class="card-body p-0">
+            @if (_dashboard.RecentActivity.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var activity in _dashboard.RecentActivity)
+                    {
+                        <div class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <StatusBadge Status="@activity.Type" />
+                                <span class="ms-2">@activity.Description</span>
+                            </div>
+                            <small class="text-muted">@activity.CreatedAt.ToString("dd.MM HH:mm")</small>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center p-3 mb-0">Brak aktywnosci.</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private AdminDashboardDto? _dashboard;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dashboard = await AdminService.GetDashboardAsync();
+        _loading = false;
+    }
+}
