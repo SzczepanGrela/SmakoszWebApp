@@ -34,7 +34,7 @@ else
                             <small class="text-muted d-block">@review.VisitDate</small>
                         </div>
                     </div>
-                    <StatusBadge Status="@review.ContentStatus" />
+                    <StatusBadge Status="@ContentStatusName(review.ContentStatus)" />
                 </div>
 
                 <div class="d-flex gap-3 mb-2 small">
@@ -80,4 +80,13 @@ else
         _reviews = await BusinessService.GetReviewsAsync(page);
         _loading = false;
     }
+
+    private static string ContentStatusName(int status) => status switch
+    {
+        0 => "none",
+        1 => "pending",
+        2 => "approved",
+        3 => "rejected",
+        _ => "unknown"
+    };
 }

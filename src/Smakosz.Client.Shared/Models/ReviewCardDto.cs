@@ -8,7 +8,7 @@ public class ReviewCardDto
     public int CleanlinessRating { get; set; }
     public int AmbianceRating { get; set; }
     public string? Content { get; set; }
-    public string ContentStatus { get; set; } = default!;
+    public int ContentStatus { get; set; }
     public string VisitDate { get; set; } = default!;
     public int HelpfulCount { get; set; }
     public bool IsHelpfulByMe { get; set; }
