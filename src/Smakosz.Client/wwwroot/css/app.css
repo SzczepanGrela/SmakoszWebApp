@@ -342,31 +342,19 @@ main {
 }
 
 /* Review cards */
+/* Review Card - Compact */
 .review-card {
     background: var(--card-bg);
     border: 1px solid var(--secondary-color);
     border-left: 4px solid var(--primary-color);
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--shadow-color);
-    margin-bottom: 1rem;
+    padding: 14px;
     transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.review-card .flex-grow-1 {
-    min-width: 0;
-}
-
-.review-card p {
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-
-.review-content-clamp {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .review-card:hover {
@@ -375,12 +363,309 @@ main {
     box-shadow: 0 6px 20px var(--shadow-color);
 }
 
-.review-card-small {
-    border-radius: 6px;
+.review-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
-.review-card-small .card-body {
-    padding: 1rem;
+.review-card-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.review-card-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.review-card-username {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    display: block;
+}
+
+.review-card-username:hover {
+    color: var(--accent-color);
+}
+
+.review-card-dish {
+    font-size: 11px;
+    color: var(--accent-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    display: block;
+}
+
+.review-card-dish:hover {
+    text-decoration: underline;
+}
+
+.review-card-restaurant {
+    font-size: 11px;
+    color: #8b7355;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.review-card-badge {
+    background: var(--primary-color);
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 700;
+    font-size: 15px;
+    min-width: 42px;
+    flex-shrink: 0;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Rating pills */
+.review-pills {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.review-pill {
+    background: var(--background-color);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: var(--text-color);
+}
+
+.review-pill-value {
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+/* Content clamp */
+.review-content-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 6px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Footer */
+.review-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 8px;
+    font-size: 11px;
+    color: #8b7355;
+}
+
+/* Like pill */
+.review-like-pill {
+    background: var(--background-color);
+    border-radius: 12px;
+    padding: 3px 12px;
+    color: #8b7355;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.review-like-pill:hover {
+    background: var(--secondary-color);
+}
+
+.review-like-pill--active {
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+}
+
+.review-like-pill--active:hover {
+    background: var(--accent-color);
+}
+
+/* Detail Modal */
+.review-detail-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.review-detail-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.review-detail-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.review-detail-username {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.review-detail-username:hover {
+    color: var(--accent-color);
+}
+
+.review-detail-dish {
+    font-size: 13px;
+    color: var(--accent-color);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.review-detail-dish:hover {
+    text-decoration: underline;
+}
+
+.review-detail-restaurant {
+    font-size: 12px;
+    color: #8b7355;
+}
+
+.review-detail-date {
+    font-size: 12px;
+    color: #8b7355;
+    margin-top: 2px;
+}
+
+.review-detail-badge {
+    background: var(--primary-color);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 20px;
+    flex-shrink: 0;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.review-ratings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.review-rating-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.review-rating-label {
+    font-size: 12px;
+    color: #8b7355;
+    min-width: 70px;
+}
+
+.review-rating-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--secondary-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.review-rating-bar-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.review-rating-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-color);
+    min-width: 24px;
+    text-align: right;
+}
+
+.review-detail-content {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 14px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.review-detail-content--clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.review-detail-readmore {
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.review-detail-readmore:hover {
+    text-decoration: underline;
+}
+
+.review-detail-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #8b7355;
+    padding-top: 12px;
+    border-top: 1px solid var(--secondary-color);
+}
+
+@media (max-width: 480px) {
+    .review-ratings-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Filters panel */
@@ -724,7 +1009,7 @@ button.nav-link {
 /* Horizontal Carousel */
 .carousel-wrapper {
     position: relative;
-    overflow: hidden;
+    padding: 0 24px;
 }
 
 .carousel-track {
@@ -792,11 +1077,11 @@ button.nav-link {
 }
 
 .carousel-arrow-left {
-    left: -8px;
+    left: 0;
 }
 
 .carousel-arrow-right {
-    right: -8px;
+    right: 0;
 }
 
 /* Modal enhancements */
