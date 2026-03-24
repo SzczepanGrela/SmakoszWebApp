@@ -35,4 +35,5 @@ public class UserSummaryDto
     public string? AvatarUrl { get; set; }
     public string? AvatarBlurhash { get; set; }
     public int ReviewCount { get; set; }
+    public bool IsFollowing { get; set; }
 }

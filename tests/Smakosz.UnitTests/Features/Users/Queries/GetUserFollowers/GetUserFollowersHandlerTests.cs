@@ -18,7 +18,8 @@ public class GetUserFollowersHandlerTests
     public GetUserFollowersHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
-        _handler = new GetUserFollowersHandler(_db);
+        var currentUser = MockExtensions.CreateAnonymousUser();
+        _handler = new GetUserFollowersHandler(_db, currentUser);
     }
 
     [Fact]
