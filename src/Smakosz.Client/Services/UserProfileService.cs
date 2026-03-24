@@ -57,4 +57,43 @@ public class UserProfileService : IUserProfileService
         var response = await _api.PutApiResponseAsync<object>("/api/me/notification-settings", settings);
         return response.Success;
     }
+
+    public async Task<bool> SaveDishAsync(string dishSlug)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/me/saved-dishes/{dishSlug}", null);
+        return response.Success;
+    }
+
+    public Task<bool> UnsaveDishAsync(string dishSlug)
+        => _api.DeleteAsync($"/api/me/saved-dishes/{dishSlug}");
+
+    public async Task<bool> FavoriteRestaurantAsync(string restaurantSlug)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/me/favorite-restaurants/{restaurantSlug}", null);
+        return response.Success;
+    }
+
+    public Task<bool> UnfavoriteRestaurantAsync(string restaurantSlug)
+        => _api.DeleteAsync($"/api/me/favorite-restaurants/{restaurantSlug}");
+
+    public async Task<bool> FollowUserAsync(string slug)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/me/following/{slug}", null);
+        return response.Success;
+    }
+
+    public Task<bool> UnfollowUserAsync(string slug)
+        => _api.DeleteAsync($"/api/me/following/{slug}");
+
+    public Task<bool> RevokeSessionAsync(Guid sessionId)
+        => _api.DeleteAsync($"/api/me/sessions/{sessionId}");
+
+    public async Task<bool> RevokeAllSessionsAsync()
+    {
+        var response = await _api.DeleteApiResponseAsync("/api/me/sessions");
+        return response.Success;
+    }
+
+    public Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1)
+        => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/me/reviews?page={page}");
 }

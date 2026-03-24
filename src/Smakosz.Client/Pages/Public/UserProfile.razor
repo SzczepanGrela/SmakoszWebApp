@@ -43,9 +43,13 @@ else
                     <small class="text-muted">Obserwuje</small>
                 </a>
             </div>
-            <div class="mt-3">
-                <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowing" OnToggle="() => _profile.IsFollowing = !_profile.IsFollowing" />
-            </div>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="mt-3">
+                        <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowing" OnToggle="ToggleFollow" />
+                    </div>
+                </Authorized>
+            </AuthorizeView>
         </div>
 
         <Smakosz.Client.Components.SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
@@ -80,5 +84,21 @@ else
     private async Task LoadReviews(int page)
     {
         _reviews = await ReviewService.GetByUserAsync(Slug, page);
+    }
+
+    private async Task ToggleFollow()
+    {
+        if (_profile == null) return;
+        bool success;
+        if (_profile.IsFollowing)
+            success = await UserProfileService.UnfollowUserAsync(Slug);
+        else
+            success = await UserProfileService.FollowUserAsync(Slug);
+
+        if (success)
+        {
+            _profile.IsFollowing = !_profile.IsFollowing;
+            _profile.FollowerCount += _profile.IsFollowing ? 1 : -1;
+        }
     }
 }
