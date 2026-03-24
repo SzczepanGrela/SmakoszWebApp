@@ -12,7 +12,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<AuthTokenHandler>();
 builder.Services.AddHttpClient("SmakoszAPI", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:5001");
+    var apiBase = builder.Configuration["ApiBaseUrl"];
+    if (string.IsNullOrEmpty(apiBase))
+        apiBase = builder.HostEnvironment.BaseAddress.TrimEnd('/');
+    client.BaseAddress = new Uri(apiBase);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddScoped(sp =>

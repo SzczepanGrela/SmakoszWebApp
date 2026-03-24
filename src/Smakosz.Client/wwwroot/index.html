@@ -60,7 +60,7 @@
 
     <!-- App JS -->
     <script>
-        fetch('appsettings.json').then(function(r){return r.json()}).then(function(c){window.__smakoszApiUrl=c.ApiBaseUrl||''}).catch(function(){});
+        fetch('appsettings.json').then(function(r){return r.json()}).then(function(c){window.__smakoszApiUrl=c.ApiBaseUrl||''}).catch(function(){window.__smakoszApiUrl=window.location.origin;});
     </script>
     <script src="js/blurhash.js"></script>
     <script src="js/turnstile.js"></script>
