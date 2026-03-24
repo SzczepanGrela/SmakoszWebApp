@@ -11,13 +11,13 @@ public interface IBusinessService
     Task<bool> UpdateOpeningHoursAsync(List<OpeningHoursDto> hours);
     Task<List<MenuSectionDto>> GetMenuSectionsAsync();
     Task<bool> UpdateMenuSectionsAsync(List<MenuSectionDto> sections);
-    Task<PagedResult<DishCardDto>?> GetDishesAsync(int page = 1);
+    Task<PagedResult<BusinessDishDto>?> GetDishesAsync(int page = 1);
     Task<DishDetailDto?> GetDishAsync(Guid id);
     Task<bool> CreateDishAsync(DishDetailDto dish);
     Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish);
     Task<bool> DeleteDishAsync(Guid id);
     Task<PagedResult<ReviewCardDto>?> GetReviewsAsync(int page = 1);
-    Task<List<BusinessStatsDto>> GetStatsAsync(string period = "week");
+    Task<BusinessStatsDto?> GetStatsAsync();
     Task<List<EditRequestSummaryDto>> GetEditRequestsAsync();
     Task<RegistrationStatusDto?> GetRegistrationStatusAsync();
     Task<bool> RegisterBusinessAsync(BusinessRestaurantDto dto);

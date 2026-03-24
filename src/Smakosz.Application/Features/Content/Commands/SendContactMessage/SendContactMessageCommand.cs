@@ -55,6 +55,7 @@ public class SendContactMessageHandler : IRequestHandler<SendContactMessageComma
             ReferenceId = 0,
             Status = TicketStatus.Open,
             Priority = 3,
+            Description = $"Od: {request.Name} <{request.Email}>\nTemat: {request.Subject}\n\n{request.Message}",
             CreatedAt = _dateTime.UtcNow
         };
 

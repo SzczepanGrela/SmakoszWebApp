@@ -44,8 +44,9 @@ public class GetBusinessDashboardHandler : IRequestHandler<GetBusinessDashboardQ
         return new BusinessDashboardDto
         {
             RestaurantName = restaurant.RestaurantName,
+            ImageUrl = restaurant.ImageUrl,
             Status = restaurant.Status.ToString(),
-            AverageRating = (decimal)(restaurant.AvgFoodScore ?? 0),
+            AvgRating = restaurant.AvgFoodScore,
             TotalReviews = totalReviews,
             TotalDishes = totalDishes,
             TotalMenuSections = totalSections

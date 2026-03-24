@@ -86,8 +86,8 @@ else
 }
 
 @code {
-    private PagedResult<DishCardDto>? _dishes;
-    private DishCardDto? _dishToDelete;
+    private PagedResult<BusinessDishDto>? _dishes;
+    private BusinessDishDto? _dishToDelete;
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
@@ -102,7 +102,7 @@ else
         _loading = false;
     }
 
-    private void ConfirmDelete(DishCardDto dish) => _dishToDelete = dish;
+    private void ConfirmDelete(BusinessDishDto dish) => _dishToDelete = dish;
 
     private async Task HandleDelete()
     {
@@ -120,7 +120,7 @@ else
         _dishToDelete = null;
     }
 
-    private async Task ToggleAvailability(DishCardDto dish, bool isAvailable)
+    private async Task ToggleAvailability(BusinessDishDto dish, bool isAvailable)
     {
         var success = await BusinessService.UpdateDishAvailabilityAsync(dish.PublicId, isAvailable);
         if (success)

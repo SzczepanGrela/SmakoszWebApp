@@ -3,8 +3,9 @@ namespace Smakosz.Application.Features.Business.Dtos;
 public class BusinessDashboardDto
 {
     public string RestaurantName { get; init; } = default!;
+    public string? ImageUrl { get; init; }
     public string Status { get; init; } = default!;
-    public decimal AverageRating { get; init; }
+    public double? AvgRating { get; init; }
     public int TotalReviews { get; init; }
     public int TotalDishes { get; init; }
     public int TotalMenuSections { get; init; }
@@ -38,10 +39,14 @@ public class BusinessMenuSectionDto
 public class BusinessDishDto
 {
     public int DishId { get; init; }
+    public Guid PublicId { get; init; }
     public string DishName { get; init; } = default!;
     public string Slug { get; init; } = default!;
     public decimal? Price { get; init; }
     public string? Description { get; init; }
+    public string? ImageUrl { get; init; }
+    public double? AvgRating { get; init; }
+    public int ReviewCount { get; init; }
     public bool IsAvailable { get; init; }
 }
 

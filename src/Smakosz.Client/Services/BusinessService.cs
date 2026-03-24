@@ -39,8 +39,8 @@ public class BusinessService : IBusinessService
         return response.Success;
     }
 
-    public Task<PagedResult<DishCardDto>?> GetDishesAsync(int page = 1)
-        => _api.GetAsync<PagedResult<DishCardDto>>($"/api/business/dishes?page={page}");
+    public Task<PagedResult<BusinessDishDto>?> GetDishesAsync(int page = 1)
+        => _api.GetAsync<PagedResult<BusinessDishDto>>($"/api/business/dishes?page={page}");
 
     public Task<DishDetailDto?> GetDishAsync(Guid id)
         => _api.GetAsync<DishDetailDto>($"/api/business/dishes/{id}");
@@ -63,8 +63,8 @@ public class BusinessService : IBusinessService
     public Task<PagedResult<ReviewCardDto>?> GetReviewsAsync(int page = 1)
         => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/business/reviews?page={page}");
 
-    public async Task<List<BusinessStatsDto>> GetStatsAsync(string period = "week")
-        => await _api.GetAsync<List<BusinessStatsDto>>($"/api/business/stats?period={period}") ?? [];
+    public Task<BusinessStatsDto?> GetStatsAsync()
+        => _api.GetAsync<BusinessStatsDto>("/api/business/stats");
 
     public async Task<List<EditRequestSummaryDto>> GetEditRequestsAsync()
         => await _api.GetAsync<List<EditRequestSummaryDto>>("/api/business/edit-requests") ?? [];

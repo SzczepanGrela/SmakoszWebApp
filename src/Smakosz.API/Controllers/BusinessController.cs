@@ -123,9 +123,9 @@ public class BusinessController : ApiController
     }
 
     [HttpGet("dishes")]
-    public async Task<IActionResult> GetDishes([FromQuery] int? menuSectionId = null)
+    public async Task<IActionResult> GetDishes([FromQuery] int? menuSectionId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _mediator.Send(new GetBusinessDishesQuery(menuSectionId));
+        var result = await _mediator.Send(new GetBusinessDishesQuery(menuSectionId, page, pageSize));
         return ToActionResult(result);
     }
 
