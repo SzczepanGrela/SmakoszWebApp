@@ -16,4 +16,5 @@ public class DishCardDto
     public bool IsVegan { get; set; }
     public bool IsGlutenFree { get; set; }
     public bool IsSaved { get; set; }
+    public bool IsAvailable { get; set; } = true;
 }

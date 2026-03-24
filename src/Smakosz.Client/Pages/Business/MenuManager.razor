@@ -31,7 +31,7 @@ else
 
     <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
         @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz zmiany w menu
+        <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz kolejnosc sekcji
     </button>
 }
 
@@ -43,6 +43,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadSections();
+    }
+
+    private async Task LoadSections()
+    {
+        _loading = true;
         _sections = await BusinessService.GetMenuSectionsAsync();
         _loading = false;
     }
@@ -53,7 +59,7 @@ else
         _error = null;
         var success = await BusinessService.UpdateMenuSectionsAsync(_sections);
         if (success)
-            Toast.ShowSuccess("Menu zostalo zaktualizowane.");
+            Toast.ShowSuccess("Kolejnosc sekcji zostala zaktualizowana.");
         else
             _error = "Nie udalo sie zapisac zmian.";
         _saving = false;
