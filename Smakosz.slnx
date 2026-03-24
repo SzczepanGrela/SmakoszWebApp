@@ -7,6 +7,7 @@
     <Project Path="src/Smakosz.Client/Smakosz.Client.csproj" />
     <Project Path="src/Smakosz.Client.Shared/Smakosz.Client.Shared.csproj" />
     <Project Path="src/Smakosz.Client.Ops/Smakosz.Client.Ops.csproj" />
+    <Project Path="src/Smakosz.Orchestrator/Smakosz.Orchestrator.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj" />
