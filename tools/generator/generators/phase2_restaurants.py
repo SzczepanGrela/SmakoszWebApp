@@ -96,7 +96,13 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     city_config = loader.load_blueprint("cities.json").get("CITY_CONFIG", {})
 
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
-    city_postal_map = dict(db.fetch_all("SELECT city_name, postal_code_prefix FROM cities"))
+    city_postal_map = {
+        "Warszawa": "00", "Kraków": "30", "Wrocław": "50", "Łódź": "90",
+        "Poznań": "60", "Gdańsk": "80", "Szczecin": "70", "Bydgoszcz": "85",
+        "Lublin": "20", "Białystok": "15", "Katowice": "40", "Gdynia": "81",
+        "Toruń": "87", "Rzeszów": "35", "Kielce": "25", "Olsztyn": "10",
+        "Opole": "45", "Gorzów Wlkp.": "66",
+    }
 
     global_target = int(GENERATION_CONFIG["num_restaurants"])  # type: ignore
 
