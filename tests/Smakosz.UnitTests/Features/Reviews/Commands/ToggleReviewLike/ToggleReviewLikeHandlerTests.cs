@@ -3,6 +3,7 @@ using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Reviews.Commands.ToggleReviewLike;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -93,5 +94,62 @@ public class ToggleReviewLikeHandlerTests
         result.Value.IsLiked.Should().BeFalse();
         result.Value.HelpfulCount.Should().Be(2);
         await _db.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_WhenLiked_CreatesNotificationForReviewAuthor()
+    {
+        var review = new ReviewBuilder().WithUserId(99).WithHelpfulCount(0).Build();
+        _sets.Reviews.Add(review);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        await _handler.Handle(new ToggleReviewLikeCommand(review.PublicId), CancellationToken.None);
+
+        _sets.Notifications.Should().ContainSingle(n =>
+            n.UserId == 99
+            && n.ActorId == 1
+            && n.Type == NotificationType.Like
+            && n.GroupKey == $"like:review:{review.ReviewId}");
+    }
+
+    [Fact]
+    public async Task Handle_WhenUnliked_DoesNotCreateNotification()
+    {
+        var review = new ReviewBuilder().WithUserId(99).WithHelpfulCount(1).Build();
+        var existingLike = new ReviewLike { UserId = 1, ReviewId = review.ReviewId, CreatedAt = DateTime.UtcNow };
+        _sets.Reviews.Add(review);
+        _sets.ReviewLikes.Add(existingLike);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        await _handler.Handle(new ToggleReviewLikeCommand(review.PublicId), CancellationToken.None);
+
+        _sets.Notifications.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_WhenLikedAgain_GroupsNotification()
+    {
+        var review = new ReviewBuilder().WithUserId(99).WithHelpfulCount(1).Build();
+        var existingNotification = new Notification
+        {
+            UserId = 99,
+            ActorId = 50,
+            Type = NotificationType.Like,
+            GroupKey = $"like:review:{review.ReviewId}",
+            Counter = 1,
+            IsRead = false,
+            Title = "Polubienie recenzji",
+            Message = "Ktoś polubił Twoją recenzję.",
+            CreatedAt = DateTime.UtcNow.AddHours(-1)
+        };
+        _sets.Reviews.Add(review);
+        _sets.Notifications.Add(existingNotification);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        await _handler.Handle(new ToggleReviewLikeCommand(review.PublicId), CancellationToken.None);
+
+        _sets.Notifications.Should().HaveCount(1);
+        existingNotification.Counter.Should().Be(2);
+        existingNotification.ActorId.Should().Be(1);
     }
 }
