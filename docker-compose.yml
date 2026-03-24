@@ -78,7 +78,7 @@ services:
     image: ghcr.io/szczepangrela/smakoszwebapp/client:latest
     restart: unless-stopped
     volumes:
-      - ./config/client-appsettings.json:/usr/share/nginx/html/appsettings.json:ro
+      - ./config/client-appsettings.json:/usr/share/nginx/html/appsettings.Production.json:ro
     ports:
       - "127.0.0.1:5003:80"
     healthcheck:
