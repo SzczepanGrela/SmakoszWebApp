@@ -77,11 +77,11 @@ public class ReviewCardTests : BunitTestBase
         review.Content = null;
         var cut = RenderComponent<ReviewCard>(p => p.Add(c => c.Review, review));
 
-        cut.FindAll("p.mt-2").Should().BeEmpty();
+        cut.FindAll(".review-content-clamp").Should().BeEmpty();
     }
 
     [Fact]
-    public void ShowActionsWithAuth_ReportButtonVisible()
+    public void ShowActionsWithAuth_ReportButtonVisibleInModal()
     {
         SetAuthenticatedUser("testuser", "User");
         var review = CreateReview();
@@ -90,16 +90,20 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
+        cut.Find(".review-card").Click();
+
         cut.FindAll("button[title='Zgłoś recenzję']").Should().NotBeEmpty();
     }
 
     [Fact]
-    public void ShowActionsAnonymous_ReportButtonHidden()
+    public void ShowActionsAnonymous_ReportButtonHiddenInModal()
     {
         var review = CreateReview();
         var cut = RenderComponent<ReviewCard>(p => p
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
+
+        cut.Find(".review-card").Click();
 
         cut.FindAll("button[title='Zgłoś recenzję']").Should().BeEmpty();
     }
@@ -121,6 +125,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
+        cut.Find(".review-card").Click();
         cut.Find("button[title='Zgłoś recenzję']").Click();
 
         cut.WaitForState(() => cut.Markup.Contains("Spam"));
@@ -146,6 +151,7 @@ public class ReviewCardTests : BunitTestBase
             .Add(c => c.Review, review)
             .Add(c => c.ShowActions, true));
 
+        cut.Find(".review-card").Click();
         cut.Find("button[title='Zgłoś recenzję']").Click();
         cut.WaitForState(() => cut.Markup.Contains("Spam"));
 
