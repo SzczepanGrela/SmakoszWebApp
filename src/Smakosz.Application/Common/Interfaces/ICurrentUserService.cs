@@ -7,5 +7,7 @@ public interface ICurrentUserService
     string? Role { get; }
     bool IsAdmin { get; }
     bool IsAuthenticated { get; }
+    string? IpAddress { get; }
+    string? UserAgent { get; }
 }
 

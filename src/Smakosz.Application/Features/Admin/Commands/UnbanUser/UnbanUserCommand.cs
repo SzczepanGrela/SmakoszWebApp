@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.UnbanUser;
 
@@ -41,6 +42,13 @@ public class UnbanUserHandler : IRequestHandler<UnbanUserCommand, ErrorOr<Succes
             return DomainErrors.User.NotFound;
 
         user.IsBanned = false;
+
+        var bannedEmail = await _db.BannedIdentifiers
+            .FirstOrDefaultAsync(b => b.Type == BannedIdentifierType.Email && b.Value == user.Email, cancellationToken);
+
+        if (bannedEmail is not null)
+            _db.BannedIdentifiers.Remove(bannedEmail);
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;

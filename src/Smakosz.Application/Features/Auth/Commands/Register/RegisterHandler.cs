@@ -5,6 +5,7 @@ using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Dtos;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Auth.Commands.Register;
@@ -14,12 +15,14 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthResu
     private readonly ISmakoszDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICurrentUserService _currentUser;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ICurrentUserService currentUser)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _currentUser = currentUser;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -35,6 +38,34 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthResu
 
         if (usernameExists)
             return DomainErrors.Auth.UsernameAlreadyExists;
+
+        var emailDomain = request.Email.ToLowerInvariant().Split('@')[1];
+        var ipAddress = _currentUser.IpAddress;
+        var now = DateTime.UtcNow;
+
+        var isBanned = await _db.BannedIdentifiers.AnyAsync(b =>
+            (b.ExpiresAt == null || b.ExpiresAt > now) &&
+            (
+                (b.Type == BannedIdentifierType.Email && b.Value == request.Email.ToLowerInvariant()) ||
+                (b.Type == BannedIdentifierType.EmailDomain && b.Value == emailDomain) ||
+                (b.Type == BannedIdentifierType.Ip && ipAddress != null && b.Value == ipAddress)
+            ), cancellationToken);
+
+        if (isBanned)
+        {
+            _db.SecurityLogs.Add(new SecurityLog
+            {
+                EventType = SecurityEventType.BannedRegistration,
+                IpAddress = ipAddress,
+                UserAgent = _currentUser.UserAgent,
+                Email = request.Email.ToLowerInvariant(),
+                Details = "{\"reason\": \"banned_identifier\"}",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return DomainErrors.Auth.IdentifierBanned;
+        }
 
         var user = new User
         {
