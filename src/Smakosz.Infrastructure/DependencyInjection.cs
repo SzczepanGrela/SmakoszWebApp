@@ -31,8 +31,8 @@ public static class DependencyInjection
             var brevoOptions = new BrevoOptions
             {
                 ApiKey = brevoApiKey,
-                SenderEmail = configuration.GetSection(BrevoOptions.SectionName)["SenderEmail"] ?? "noreply@smakosz.xyz",
-                SenderName = configuration.GetSection(BrevoOptions.SectionName)["SenderName"] ?? "Smakosz"
+                SenderEmail = configuration.GetSection(BrevoOptions.SectionName)["SenderEmail"] ?? string.Empty,
+                SenderName = configuration.GetSection(BrevoOptions.SectionName)["SenderName"] ?? string.Empty
             };
             services.AddSingleton(brevoOptions);
             services.AddHttpClient<IEmailService, BrevoEmailService>();
