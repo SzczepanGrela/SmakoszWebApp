@@ -25,7 +25,7 @@ public class GetContentPageHandler : IRequestHandler<GetContentPageQuery, ErrorO
         ["contact"] = new ContentPageDto
         {
             Title = "Kontakt",
-            Content = "Masz pytania? Napisz do nas na kontakt@smakosz.pl",
+            Content = "Masz pytania? Napisz do nas na kontakt@smakosz.xyz",
             LastUpdated = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         }
     };
