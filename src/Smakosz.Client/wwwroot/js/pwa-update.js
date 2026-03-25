@@ -1,5 +1,6 @@
 navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
     .then(function (reg) {
+        if (navigator.serviceWorker.controller) reg.update();
         setInterval(function () { reg.update(); }, 60 * 60 * 1000);
         if (reg.waiting) { showUpdateToast(reg.waiting); return; }
         reg.addEventListener('updatefound', function () {
