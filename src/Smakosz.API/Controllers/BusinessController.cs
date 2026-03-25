@@ -11,6 +11,7 @@ using Smakosz.Application.Features.Business.Commands.UpdateDishAvailability;
 using Smakosz.Application.Features.Business.Commands.UpdateMenuSection;
 using Smakosz.Application.Features.Business.Commands.UpdateOpeningHours;
 using Smakosz.Application.Features.Business.Commands.UpdateRestaurant;
+using Smakosz.Application.Features.Business.Commands.CreateEditRequest;
 using Smakosz.Application.Features.Business.Dtos;
 using Smakosz.Application.Features.Business.Queries.GetBusinessDishDetail;
 using Smakosz.Application.Features.Business.Queries.GetBusinessDishes;
@@ -190,8 +191,20 @@ public class BusinessController : ApiController
         var result = await _mediator.Send(new GetBusinessEditRequestsQuery());
         return ToActionResult(result);
     }
+
+    [HttpPost("edit-requests")]
+    public async Task<IActionResult> CreateEditRequest([FromBody] CreateEditRequestRequest request)
+    {
+        var result = await _mediator.Send(new CreateEditRequestCommand(
+            request.ChangeType, request.Payload, request.NewName, request.NewDescription,
+            request.NewAddress, request.NewPhone, request.NewWebsite));
+        return ToNoContentResult(result);
+    }
 }
 
+public record CreateEditRequestRequest(
+    string ChangeType, string? Payload, string? NewName, string? NewDescription,
+    string? NewAddress, string? NewPhone, string? NewWebsite);
 public record UpdateDishAvailabilityRequest(bool IsAvailable);
 public record UpdateMenuSectionRequest(string Name);
 public record UpdateDishRequest(string? Name, decimal? Price, string? Description, int? Calories, bool? IsAvailable);

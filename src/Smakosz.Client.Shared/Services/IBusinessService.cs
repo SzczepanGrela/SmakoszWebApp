@@ -25,4 +25,9 @@ public interface IBusinessService
     Task<bool> UpdateMenuSectionAsync(int sectionId, string name);
     Task<bool> DeleteMenuSectionAsync(int sectionId);
     Task<bool> UpdateDishAvailabilityAsync(Guid publicId, bool isAvailable);
+    Task<bool> CreateEditRequestAsync(CreateEditRequestDto dto);
 }
+
+public record CreateEditRequestDto(
+    string ChangeType, string? Payload, string? NewName, string? NewDescription,
+    string? NewAddress, string? NewPhone, string? NewWebsite);

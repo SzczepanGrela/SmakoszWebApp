@@ -13,13 +13,23 @@ public class AdminService : IAdminService
         => _api.GetAsync<AdminDashboardDto>("/api/admin/dashboard");
 
     // Tickets
-    public Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null)
-        => _api.GetAsync<PagedResult<AdminTicketDto>>($"/api/admin/tickets?page={page}&status={status}");
+    public Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null, string? ticketType = null)
+        => _api.GetAsync<PagedResult<AdminTicketDto>>($"/api/admin/tickets?page={page}&status={status}&ticketType={ticketType}");
+
+    public Task<AdminTicketDetailDto?> GetTicketDetailAsync(int id)
+        => _api.GetAsync<AdminTicketDetailDto>($"/api/admin/tickets/{id}");
 
     public async Task<bool> UpdateTicketStatusAsync(int id, string status)
     {
         var response = await _api.PutApiResponseAsync<object>($"/api/admin/tickets/{id}/status", new { Status = status });
         return response.Success;
+    }
+
+    public async Task<bool> RespondToContactAsync(int id, string response)
+    {
+        var result = await _api.PostApiResponseAsync<object>($"/api/admin/tickets/{id}/respond",
+            new { Response = response });
+        return result.Success;
     }
 
     // Photos

@@ -9,7 +9,7 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetTickets;
 
-public record GetTicketsQuery(PaginationParams Pagination, string? Status = null)
+public record GetTicketsQuery(PaginationParams Pagination, string? Status = null, string? TicketType = null)
     : IRequest<ErrorOr<PagedResult<AdminTicketDto>>>;
 
 public class GetTicketsHandler : IRequestHandler<GetTicketsQuery, ErrorOr<PagedResult<AdminTicketDto>>>
@@ -34,6 +34,12 @@ public class GetTicketsHandler : IRequestHandler<GetTicketsQuery, ErrorOr<PagedR
             Enum.TryParse<TicketStatus>(request.Status, true, out var statusEnum))
         {
             query = query.Where(t => t.Status == statusEnum);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.TicketType) &&
+            Enum.TryParse<TicketType>(request.TicketType, true, out var typeEnum))
+        {
+            query = query.Where(t => t.TicketType == typeEnum);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

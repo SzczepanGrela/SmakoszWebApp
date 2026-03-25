@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Smakosz.Application.Common.Models;
+using Smakosz.Application.Features.DataCorrections.Commands.CreateDataCorrection;
 using Smakosz.Application.Features.Dishes.Queries.GetDishesByRestaurant;
+using Smakosz.Application.Features.IngredientSuggestions.Commands.CreateIngredientSuggestion;
 using Smakosz.Application.Features.Restaurants.Queries.GetRestaurantBySlug;
 using Smakosz.Application.Features.Restaurants.Queries.GetRestaurants;
 
@@ -54,4 +57,24 @@ public class RestaurantsController : ApiController
         var result = await _mediator.Send(query);
         return ToActionResult(result);
     }
+
+    [Authorize]
+    [HttpPost("{slug}/corrections")]
+    public async Task<IActionResult> CreateCorrection(string slug, [FromBody] CreateCorrectionRequest request)
+    {
+        var result = await _mediator.Send(new CreateDataCorrectionCommand(slug, request.IssueType, request.Description, request.ProposedValue));
+        return ToNoContentResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{slug}/ingredient-suggestions")]
+    public async Task<IActionResult> CreateIngredientSuggestion(string slug, [FromBody] CreateIngredientSuggestionRequest request)
+    {
+        var result = await _mediator.Send(new CreateIngredientSuggestionCommand(
+            slug, request.SuggestedName, request.IsAllergen, request.IsVegetarian, request.IsVegan, request.IsGlutenFree, request.IsLactoseFree));
+        return ToNoContentResult(result);
+    }
 }
+
+public record CreateCorrectionRequest(string IssueType, string? Description, string? ProposedValue);
+public record CreateIngredientSuggestionRequest(string SuggestedName, bool IsAllergen, bool IsVegetarian, bool IsVegan, bool IsGlutenFree, bool IsLactoseFree);

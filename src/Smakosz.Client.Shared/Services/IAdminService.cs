@@ -5,8 +5,10 @@ namespace Smakosz.Client.Services;
 public interface IAdminService
 {
     Task<AdminDashboardDto?> GetDashboardAsync();
-    Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null);
+    Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null, string? ticketType = null);
+    Task<AdminTicketDetailDto?> GetTicketDetailAsync(int id);
     Task<bool> UpdateTicketStatusAsync(int id, string status);
+    Task<bool> RespondToContactAsync(int id, string response);
     Task<PagedResult<AdminPhotoDto>?> GetPendingPhotosAsync(int page = 1);
     Task<bool> ModeratePhotoAsync(Guid id, string action, string? reason = null);
     Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1);
