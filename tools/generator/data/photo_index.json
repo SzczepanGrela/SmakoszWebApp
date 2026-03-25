@@ -3,20 +3,8 @@
     "burger": {
       "bbq_burger": [
         {
-          "path": "dishes/burger/bbq_burger/bbq_burger_001.webp",
-          "blurhash": "LFI4CD~A164:-9RjEMV?$l%2Ios:",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/burger/bbq_burger/bbq_burger_002.webp",
           "blurhash": "LEG8=s-fG1R5~pIbI:xB5vIdn1t2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/bbq_burger/bbq_burger_003.webp",
-          "blurhash": "LJH_3,tSwbIV_Mo_M|WF%h-iR*Rj",
           "width": 1280,
           "height": 960
         },
@@ -41,12 +29,6 @@
           "height": 960
         },
         {
-          "path": "dishes/burger/burger_klasyczny/burger_klasyczny_002.webp",
-          "blurhash": "LPJ%q8~ptS%g=_S~NIoz4;9ZIAs7",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/burger/burger_klasyczny/burger_klasyczny_003.webp",
           "blurhash": "LIGkq7rU17IA?dD%X-wa5F9zout5",
           "width": 1280,
@@ -57,65 +39,9 @@
           "blurhash": "LcLgOxxVtmxYPEt7t8NGO]Iqs8NG",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_klasyczny/burger_klasyczny_005.webp",
-          "blurhash": "LZGa:h$$4=SN-.oyIVV[0hNxxZaL",
-          "width": 1280,
-          "height": 960
-        }
-      ],
-      "burger_pikantny": [
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_001.webp",
-          "blurhash": "LaIDs-jKEjEQ1PxsnkxDIpNH$yob",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_002.webp",
-          "blurhash": "LXHKOcWa9^E416xYxGxYIpWnxWsl",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_003.webp",
-          "blurhash": "LTH^X^1NEh=s02Iot7og6,=_wII:",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_004.webp",
-          "blurhash": "LMJi|7$+5Rv~0QIo=r-lFw$gnPEg",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_005.webp",
-          "blurhash": "LFA]QW}?nPIp9bxC-Ts:Eg5TNK%0",
-          "width": 1280,
-          "height": 960
         }
       ],
       "burger_weganski": [
-        {
-          "path": "dishes/burger/burger_weganski/burger_weganski_001.webp",
-          "blurhash": "LHKJ;]M}O[xs0hoc9GNH0hM{VYM|",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_weganski/burger_weganski_002.webp",
-          "blurhash": "LGB2}eoz0$NG-;tRNGRj7NkW=Zr?",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_weganski/burger_weganski_003.webp",
-          "blurhash": "LNBf93%MbbR*0gV?jYWDR*I;ayxZ",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/burger/burger_weganski/burger_weganski_005.webp",
           "blurhash": "L8A0dbGYIDD-9HMyNs=^0NM|?H-o",
@@ -124,24 +50,6 @@
         }
       ],
       "burger_z_bekonem": [
-        {
-          "path": "dishes/burger/burger_z_bekonem/burger_z_bekonem_001.webp",
-          "blurhash": "LH8gB4n%0goyIpfkxZWB9bWo=_jG",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_z_bekonem/burger_z_bekonem_002.webp",
-          "blurhash": "LVP;*z0fT|-:?u$%xvbb_1v}M}Nw",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_z_bekonem/burger_z_bekonem_003.webp",
-          "blurhash": "LWJsXIs:0-k8%JW:M}aMS0R+E3t3",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/burger/burger_z_bekonem/burger_z_bekonem_004.webp",
           "blurhash": "LFI|su}@I:9b~74=NGJB8}59Mzai",
@@ -157,26 +65,8 @@
       ],
       "cheeseburger": [
         {
-          "path": "dishes/burger/cheeseburger/cheeseburger_001.webp",
-          "blurhash": "LJJthd4:RqM|02-TR:IW.A?FNKR*",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/cheeseburger/cheeseburger_002.webp",
-          "blurhash": "LGD8UNRP5YE359t7R*t60hbv=?%0",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/burger/cheeseburger/cheeseburger_003.webp",
           "blurhash": "LKCh+RRj0jS1ENt6WVWV9cWr=^s:",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/cheeseburger/cheeseburger_004.webp",
-          "blurhash": "LcNuIJ0iM|xV#TV]ofoy%fs+I;WX",
           "width": 1280,
           "height": 960
         },
@@ -189,110 +79,24 @@
       ],
       "chicken_burger": [
         {
-          "path": "dishes/burger/chicken_burger/chicken_burger_001.webp",
-          "blurhash": "LCGaq7~V%M-pznbFIoV@%#WCNHNI",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_001.webp",
-          "blurhash": "LaIDs-jKEjEQ1PxsnkxDIpNH$yob",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_002.webp",
-          "blurhash": "LXHKOcWa9^E416xYxGxYIpWnxWsl",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_003.webp",
-          "blurhash": "LTH^X^1NEh=s02Iot7og6,=_wII:",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/burger/chicken_burger/chicken_burger_005.webp",
           "blurhash": "LtO{:8tm.Aoz-raiTJV@%zVtRSoJ",
           "width": 1280,
           "height": 960
         }
       ],
-      "double_cheeseburger": [
-        {
-          "path": "dishes/burger/cheeseburger/cheeseburger_001.webp",
-          "blurhash": "LJJthd4:RqM|02-TR:IW.A?FNKR*",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/cheeseburger/cheeseburger_002.webp",
-          "blurhash": "LGD8UNRP5YE359t7R*t60hbv=?%0",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/cheeseburger/cheeseburger_004.webp",
-          "blurhash": "LcNuIJ0iM|xV#TV]ofoy%fs+I;WX",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "fish_burger": [
-        {
-          "path": "dishes/burger/fish_burger/fish_burger_001.webp",
-          "blurhash": "LJNutT+[PAkr5a=o9cr;.m-PIYNM",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/burger/fish_burger/fish_burger_002.webp",
           "blurhash": "LqPFfboe.Togt7j[bbax%$WBtRof",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/chicken_burger/chicken_burger_001.webp",
-          "blurhash": "LCGaq7~V%M-pznbFIoV@%#WCNHNI",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_001.webp",
-          "blurhash": "LaIDs-jKEjEQ1PxsnkxDIpNH$yob",
           "width": 1280,
           "height": 960
         }
       ],
       "mushroom_swiss": [
         {
-          "path": "dishes/burger/chicken_burger/chicken_burger_001.webp",
-          "blurhash": "LCGaq7~V%M-pznbFIoV@%#WCNHNI",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/burger_pikantny/burger_pikantny_001.webp",
-          "blurhash": "LaIDs-jKEjEQ1PxsnkxDIpNH$yob",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/burger/mushroom_swiss/mushroom_swiss_003.webp",
           "blurhash": "LTH^t,ET9^Iu1R-nn*xVE3ob-PWU",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/mushroom_swiss/mushroom_swiss_004.webp",
-          "blurhash": "LGDk}NM{0gt7%fV@D*xa5=s:$eoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/burger/mushroom_swiss/mushroom_swiss_005.webp",
-          "blurhash": "LiHc.G$M0%S~jGxZWVRk$$a#afoJ",
           "width": 1280,
           "height": 960
         }
@@ -300,12 +104,6 @@
     },
     "curry": {
       "butter_chicken": [
-        {
-          "path": "dishes/curry/butter_chicken/butter_chicken_001.webp",
-          "blurhash": "LJK15av|5TEL9[R:bJxs10E3Z%s:",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/curry/butter_chicken/butter_chicken_002.webp",
           "blurhash": "LiN+b98_*0i^}[%MS$Rk%~ofogtR",
@@ -359,18 +157,6 @@
           "height": 960
         },
         {
-          "path": "dishes/curry/korma_curry/korma_curry_003.webp",
-          "blurhash": "LdNK9f?Hpyoe%LWBWUt7Tfofn2V[",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_004.webp",
-          "blurhash": "LbI.v25U11f*xYR,R+s-I=$$WWR,",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/curry/korma_curry/korma_curry_005.webp",
           "blurhash": "LPK^+w${EUNg~Ts,EAR+.AWW-;%1",
           "width": 1280,
@@ -378,18 +164,6 @@
         }
       ],
       "massaman_curry": [
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_003.webp",
-          "blurhash": "LdNK9f?Hpyoe%LWBWUt7Tfofn2V[",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_004.webp",
-          "blurhash": "LbI.v25U11f*xYR,R+s-I=$$WWR,",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/curry/korma_curry/korma_curry_005.webp",
           "blurhash": "LPK^+w${EUNg~Ts,EAR+.AWW-;%1",
@@ -410,18 +184,6 @@
         }
       ],
       "panang_curry": [
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_003.webp",
-          "blurhash": "LdNK9f?Hpyoe%LWBWUt7Tfofn2V[",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_004.webp",
-          "blurhash": "LbI.v25U11f*xYR,R+s-I=$$WWR,",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/curry/korma_curry/korma_curry_005.webp",
           "blurhash": "LPK^+w${EUNg~Ts,EAR+.AWW-;%1",
@@ -449,18 +211,6 @@
           "height": 960
         },
         {
-          "path": "dishes/curry/tikka_masala/tikka_masala_002.webp",
-          "blurhash": "LJPF*.x]_4RPyYxsn+k9.7Rp8xof",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/curry/tikka_masala/tikka_masala_003.webp",
-          "blurhash": "LUG7@^-T0eF3WUNexZNGAcEhrps8",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/naan/naan_czosnkowy/naan_czosnkowy_003.webp",
           "blurhash": "LVLq2,4=%h%h?wMcoes+?b%fxtVr",
           "width": 1280,
@@ -468,18 +218,6 @@
         }
       ],
       "vindaloo": [
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_003.webp",
-          "blurhash": "LdNK9f?Hpyoe%LWBWUt7Tfofn2V[",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/curry/korma_curry/korma_curry_004.webp",
-          "blurhash": "LbI.v25U11f*xYR,R+s-I=$$WWR,",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/curry/korma_curry/korma_curry_005.webp",
           "blurhash": "LPK^+w${EUNg~Ts,EAR+.AWW-;%1",
@@ -605,12 +343,6 @@
           "height": 960
         },
         {
-          "path": "dishes/dania_bbq/wedzony_kurczak/wedzony_kurczak_004.webp",
-          "blurhash": "LHD9h-VV%fV{%jITobX94[n4$~Rk",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/dania_bbq/wedzony_kurczak/wedzony_kurczak_005.webp",
           "blurhash": "L6Au?FJ85mni}?$%xFxDEh$%sn=w",
           "width": 1280,
@@ -655,12 +387,6 @@
         {
           "path": "dishes/danie_azjatyckie/bibimbap/bibimbap_001.webp",
           "blurhash": "LbNKCnR+.9xtt7j]RjWV_4xbD$kD",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/danie_azjatyckie/bibimbap/bibimbap_002.webp",
-          "blurhash": "LVGIAe$$xYxb~WoIt7t7T1W=IqWV",
           "width": 1280,
           "height": 960
         }
@@ -721,12 +447,6 @@
         {
           "path": "dishes/danie_azjatyckie/mapo_tofu/mapo_tofu_002.webp",
           "blurhash": "LFIEU;rA?b,-_4I@IqIpb_xY$KkX",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/danie_azjatyckie/mapo_tofu/mapo_tofu_003.webp",
-          "blurhash": "LNGH@==x4U%N-hxYtmXAI9%L?cbI",
           "width": 1280,
           "height": 960
         },
@@ -837,12 +557,6 @@
     "danie_bliskowschodnie": {
       "falafel": [
         {
-          "path": "dishes/danie_bliskowschodnie/falafel/falafel_001.webp",
-          "blurhash": "LiOf.9DhpJa0xtn}RPM{?wxaVsx]",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/danie_bliskowschodnie/falafel/falafel_002.webp",
           "blurhash": "L;ON2Uogx[od?bWBRiay?wkBnmWV",
           "width": 1280,
@@ -895,12 +609,6 @@
           "height": 960
         },
         {
-          "path": "dishes/danie_bliskowschodnie/lahmacun/lahmacun_002.webp",
-          "blurhash": "L4L3Sq~B0#?Y%Ob;9E%20N-Or?oh",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/danie_bliskowschodnie/lahmacun/lahmacun_003.webp",
           "blurhash": "LIHUB~0-KRMK_NE3%MoM5YMy$f%L",
           "width": 1280,
@@ -909,12 +617,6 @@
         {
           "path": "dishes/danie_bliskowschodnie/lahmacun/lahmacun_004.webp",
           "blurhash": "LOI{=@kDEht7~BR,WUoe1jR+s8WV",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/danie_bliskowschodnie/lahmacun/lahmacun_005.webp",
-          "blurhash": "LLJ%B,*I?u?GFbS#ozxa9aE2M|Sg",
           "width": 1280,
           "height": 960
         }
@@ -1163,12 +865,6 @@
           "blurhash": "LfMFzC5sS%x]0#-QslRP57wIRjnh",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/danie_koreanskie/kimchi/kimchi_005.webp",
-          "blurhash": "LZJj}9IpIpxa~pogt8xu9vnN$%x]",
-          "width": 1280,
-          "height": 960
         }
       ],
       "samgyeopsal": [
@@ -1287,12 +983,6 @@
           "blurhash": "LbJk0_s=.T-.^*IoS7jE_2oxx^Rk",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/danie_niemieckie/sauerbraten/sauerbraten_005.webp",
-          "blurhash": "LHEU*}%LAuSeELWVs,RQ0$WBn4n+",
-          "width": 1280,
-          "height": 960
         }
       ],
       "schnitzel": [
@@ -1333,12 +1023,6 @@
         {
           "path": "dishes/danie_polskie/bigos/bigos_001.webp",
           "blurhash": "LPG8Gq9u0L-o?HS5IVRkEMxas-M{",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/danie_polskie/bigos/bigos_003.webp",
-          "blurhash": "LcKAc^IBysTJpIkqr?jFK+t4nls:",
           "width": 1280,
           "height": 960
         },
@@ -1441,12 +1125,6 @@
           "height": 960
         },
         {
-          "path": "dishes/danie_polskie/pieczen_rzymska/pieczen_rzymska_002.webp",
-          "blurhash": "LcJtn-E4?DkF~poLxtt7acn%%1M{",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/danie_polskie/pieczen_rzymska/pieczen_rzymska_004.webp",
           "blurhash": "LNHnNZR65=so9z%1wII@0#s:OYV@",
           "width": 1280,
@@ -1462,12 +1140,6 @@
     },
     "deser": {
       "baklava": [
-        {
-          "path": "dishes/deser/baklava/baklava_001.webp",
-          "blurhash": "LKJ89F=;t7.TxCb_WCZ~OtyFRPR4",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/deser/baklava/baklava_002.webp",
           "blurhash": "LTMiil?aJVs.~pJDxujZXoo}o#jH",
@@ -1495,18 +1167,6 @@
       ],
       "brownie": [
         {
-          "path": "dishes/deser/brownie/brownie_002.webp",
-          "blurhash": "LJHK:*.5x]t#~DnQ?ZnV?[j^r^%K",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/brownie/brownie_003.webp",
-          "blurhash": "LMJF[09bSJNI0h$_aPt6xT$kogEN",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/brownie/brownie_004.webp",
           "blurhash": "LqL;dCbH_NaexuMxW=oz-;kCIURP",
           "width": 1280,
@@ -1521,18 +1181,6 @@
           "height": 960
         },
         {
-          "path": "dishes/deser/churros/churros_003.webp",
-          "blurhash": "LTEx5}WY9vxE-UR-aef60$NH-TR+",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/churros/churros_004.webp",
-          "blurhash": "LCKTrCr._KbbyCt%?a=twGtmiw%J",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/churros/churros_005.webp",
           "blurhash": "LTKv$=*0yYXo-oaxIp$zEME2nhs8",
           "width": 1280,
@@ -1540,24 +1188,6 @@
         }
       ],
       "ciasto_czekoladowe": [
-        {
-          "path": "dishes/deser/ciasto_czekoladowe/ciasto_czekoladowe_001.webp",
-          "blurhash": "LbNmsQRi?wxa_2xuofoL.9kCIAa|",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/ciasto_czekoladowe/ciasto_czekoladowe_002.webp",
-          "blurhash": "LXKd9:-nWUMx~qRioen%%#IoM{of",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/ciasto_czekoladowe/ciasto_czekoladowe_003.webp",
-          "blurhash": "LFExkUMz0e-=-BJ7R*S#I8kExcV=",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/deser/ciasto_czekoladowe/ciasto_czekoladowe_005.webp",
           "blurhash": "LUKnPTxu~qbbM{WBRjj[-;WBD%oL",
@@ -1567,26 +1197,8 @@
       ],
       "creme_brulee": [
         {
-          "path": "dishes/deser/creme_brulee/creme_brulee_001.webp",
-          "blurhash": "LdM6-Yxb_NozMxVst7WXyYxuRkR-",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_brulee/creme_brulee_002.webp",
-          "blurhash": "L9IzVK~A~C$it+ABR5,=5Qv|S}O=",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/creme_brulee/creme_brulee_003.webp",
           "blurhash": "LMK0Z}I.%3Ri_ME29@XkxHbIRj$+",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_brulee/creme_brulee_004.webp",
-          "blurhash": "LWKJe[~T-nxVFxNaxZr?Egxtxtxt",
           "width": 1280,
           "height": 960
         },
@@ -1603,42 +1215,12 @@
           "blurhash": "LHDId#579us8_NITV?I;?bE1n%t7",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_brulee/creme_brulee_004.webp",
-          "blurhash": "LWKJe[~T-nxVFxNaxZr?Egxtxtxt",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_caramel/creme_caramel_003.webp",
-          "blurhash": "LLH-MFmRjJS$~9RPE3tRI;Sh%1s-",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_brulee/creme_brulee_001.webp",
-          "blurhash": "LdM6-Yxb_NozMxVst7WXyYxuRkR-",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/creme_caramel/creme_caramel_005.webp",
-          "blurhash": "L97dd+jD0LXU-;WAIUt70fWr-os8",
-          "width": 1280,
-          "height": 960
         }
       ],
       "eklerki": [
         {
           "path": "dishes/deser/eklerki/eklerki_001.webp",
           "blurhash": "LVNTXh_Nxu-;%#jFW.IU?cX8ITjb",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/eklerki/eklerki_002.webp",
-          "blurhash": "LNI4b3Mx0gRjRQt8NGoyIpj]jYj@",
           "width": 1280,
           "height": 960
         },
@@ -1663,24 +1245,6 @@
           "height": 960
         },
         {
-          "path": "dishes/deser/lawa_czekoladowa/lawa_czekoladowa_002.webp",
-          "blurhash": "LcKd9|9Z?^=|#ko#W;n3%#xbo3tR",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/lawa_czekoladowa/lawa_czekoladowa_003.webp",
-          "blurhash": "LSK^BM56.T=a}r.RwJrqcZcZ-Cs:",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/lawa_czekoladowa/lawa_czekoladowa_004.webp",
-          "blurhash": "LPK^8C0}Xopc:5pHIAEz~q-o$gkB",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/lawa_czekoladowa/lawa_czekoladowa_005.webp",
           "blurhash": "LaK,aE4:tmxZ|?%gVsV?-;tl$*w{",
           "width": 1280,
@@ -1691,18 +1255,6 @@
         {
           "path": "dishes/deser/makowiec/makowiec_001.webp",
           "blurhash": "L7AAUKK4E2S~0Kt5s:niE3w#X8NH",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/makowiec/makowiec_002.webp",
-          "blurhash": "LJM7GG~XIY%MIAD*M{-pIKNE9HRO",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/makowiec/makowiec_003.webp",
-          "blurhash": "LUGvR^NFTKV@NMoJf6j[ysoyNHWB",
           "width": 1280,
           "height": 960
         },
@@ -1721,20 +1273,8 @@
       ],
       "panna_cotta": [
         {
-          "path": "dishes/deser/panna_cotta/panna_cotta_001.webp",
-          "blurhash": "LUH.NaD%E0xt-=D%jYt70KIU%2jb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/panna_cotta/panna_cotta_002.webp",
           "blurhash": "LjK_F1Dg%0tQ%Mfiofxux^S6IUM{",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/panna_cotta/panna_cotta_003.webp",
-          "blurhash": "LXP=7-x@.S%M?bt7ozRjloVtX8R%",
           "width": 1280,
           "height": 960
         },
@@ -1759,12 +1299,6 @@
           "height": 960
         },
         {
-          "path": "dishes/deser/profiterole/profiterole_002.webp",
-          "blurhash": "LHM6Op-:xDt7x:RPVsad7%xuxCjb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/profiterole/profiterole_003.webp",
           "blurhash": "LKH.TV~VF}uO-=I9Mct8PXxv#Qa0",
           "width": 1280,
@@ -1779,32 +1313,8 @@
       ],
       "sernik": [
         {
-          "path": "dishes/deser/sernik/sernik_001.webp",
-          "blurhash": "LMJ@m}^*?G~o?b4nIUkqTM$|xt9b",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/sernik/sernik_002.webp",
-          "blurhash": "LpJ7%SjFIVNHRPa#ozt70LkCRjV@",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/sernik/sernik_003.webp",
           "blurhash": "L8E.FN-o0goz1O-p={oK5E?GsjRj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/sernik/sernik_004.webp",
-          "blurhash": "LNMjBY0LtlrZ;LIp9ZaKx[Ionixb",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/sernik/sernik_005.webp",
-          "blurhash": "LVG[yUIps+a}?vxtM_M_.AskRjn~",
           "width": 1280,
           "height": 960
         }
@@ -1817,51 +1327,13 @@
           "height": 960
         },
         {
-          "path": "dishes/deser/szarlotka/szarlotka_002.webp",
-          "blurhash": "LPH_JT.Sysx^RjV@t6WXyYkCt6V@",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/szarlotka/szarlotka_003.webp",
-          "blurhash": "LKIXsuyD9FtR8wIt-pWARjV]x[%K",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/szarlotka/szarlotka_004.webp",
           "blurhash": "LOJ@tL?wOs%Nj[RPoea#o~t7xuV@",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/szarlotka/szarlotka_005.webp",
-          "blurhash": "LNBV|cs:4:WBR-ayjrj[0LWB?Gof",
-          "width": 1280,
-          "height": 960
-        }
-      ],
-      "tarta_cytrynowa": [
-        {
-          "path": "dishes/deser/tarta_cytrynowa/tarta_cytrynowa_002.webp",
-          "blurhash": "LWLpB5%M%KxX~VI]RkRk-UxrR-W=",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/tarta_cytrynowa/tarta_cytrynowa_003.webp",
-          "blurhash": "LSGu20kBE4s,-ooeNHoL0ioKxZbI",
           "width": 1280,
           "height": 960
         }
       ],
       "tarta_jablkowa": [
-        {
-          "path": "dishes/deser/szarlotka/szarlotka_003.webp",
-          "blurhash": "LKIXsuyD9FtR8wIt-pWARjV]x[%K",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/deser/tarta_jablkowa/tarta_jabłkowa_002.webp",
           "blurhash": "L7LVaARhOm+@V_ShROix9xR7n50h",
@@ -1889,26 +1361,8 @@
       ],
       "tiramisu": [
         {
-          "path": "dishes/deser/tiramisu/tiramisu_001.webp",
-          "blurhash": "LIJ7R2~p?cE2+[9ZIoM{jda$Shog",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/tiramisu/tiramisu_002.webp",
-          "blurhash": "LaGRF@xt9vS5M{s:R+Ri0LR+xDRj",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/deser/tiramisu/tiramisu_003.webp",
           "blurhash": "LPKU7W?uDjDj0Mng-;oz579FM{bH",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/deser/tiramisu/tiramisu_005.webp",
-          "blurhash": "LCHL3o^iKl0L.8_4RO?b57IVxaxa",
           "width": 1280,
           "height": 960
         }
@@ -1925,12 +1379,6 @@
         {
           "path": "dishes/dodatek/grillowane_warzywa/grillowane_warzywa_002.webp",
           "blurhash": "LCGa%f~AGG%z?H9%aL-Ux]-;yD9]",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/stek/steak_frites/steak_frites_005.webp",
-          "blurhash": "LHHU,iMo~nm_5PO*r3d?%MiuM{pF",
           "width": 1280,
           "height": 960
         },
@@ -2077,20 +1525,8 @@
     "frytki": {
       "frytki_cajun": [
         {
-          "path": "dishes/frytki/frytki_cajun/temp_000.webp",
-          "blurhash": "LNJG#[^fjY$~~SofM}$~NejZM|S5",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/frytki/frytki_cajun/temp_002.webp",
           "blurhash": "LRDR.txt9wWVE4kCxZfR0%R-%0oe",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_cajun/temp_004.webp",
-          "blurhash": "LLLe*x^godxC},f5NJoJWo$zoyxY",
           "width": 800,
           "height": 600
         },
@@ -2115,31 +1551,13 @@
       ],
       "frytki_klasyczne": [
         {
-          "path": "dishes/frytki/frytki_klasyczne/temp_007.webp",
-          "blurhash": "LPH1_4VCE8NI0LtS%2ROA1Rkskoz",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/frytki/frytki_klasyczne/temp_008.webp",
           "blurhash": "LIMFQ~NGF|t69a-4NG$y0*%KS6Ip",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_klasyczne/temp_009.webp",
-          "blurhash": "LCIC$M-T0~aL9woLI;a#1Kt6J8oc",
           "width": 800,
           "height": 600
         }
       ],
       "frytki_pikantne": [
-        {
-          "path": "dishes/frytki/frytki_pikantne/temp_001.webp",
-          "blurhash": "LLGtf^I_KQ=]%N%MIrR%15s,VtNG",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/frytki/frytki_pikantne/temp_004.webp",
           "blurhash": "LPJZ3O$i9^s,=wRkt6s.1NbF$$R,",
@@ -2167,20 +1585,8 @@
       ],
       "frytki_z_batatow": [
         {
-          "path": "dishes/frytki/frytki_z_batatow/temp_004.webp",
-          "blurhash": "LYLL?d%NFyxs1f,DslEhKjT0xDxD",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/frytki/frytki_z_batatow/temp_007.webp",
           "blurhash": "LJGa|B.85SM{~Wx]xGNLx^S##PRP",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_z_batatow/temp_009.webp",
-          "blurhash": "LoKdrTt8ysxa%MaexvofTKt7s9WB",
           "width": 800,
           "height": 600
         }
@@ -2199,26 +1605,8 @@
           "height": 600
         },
         {
-          "path": "dishes/frytki/frytki_z_czosnkiem/temp_004.webp",
-          "blurhash": "LBL2t-E09G?G=|E1E2-:22E2V?oz",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_z_czosnkiem/temp_006.webp",
-          "blurhash": "LEH^R^rqEOMytpNHNLkDNiI]kVNg",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/frytki/frytki_z_czosnkiem/temp_007.webp",
           "blurhash": "LEE.2.-OAc5VtlxB-StR0N-poHog",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_z_czosnkiem/temp_008.webp",
-          "blurhash": "LBJZ@{-;1+p{H=%$6Vzo9GyD%0u5",
           "width": 800,
           "height": 600
         }
@@ -2239,12 +1627,6 @@
         {
           "path": "dishes/frytki/frytki_z_serem_i_bekonem/temp_002.webp",
           "blurhash": "LJH_3+tSwIIV_Mo_M|WF%h-iR*Rj",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/frytki/frytki_z_serem_i_bekonem/temp_003.webp",
-          "blurhash": "LHLWh6vzrqIB?[RPMxtS0KnNt8b^",
           "width": 800,
           "height": 600
         },
@@ -2291,12 +1673,6 @@
           "height": 960
         },
         {
-          "path": "dishes/goraca_czekolada/goraca_czekolada_z_bita_smietana/goraca_czekolada_z_bita_smietana_003.webp",
-          "blurhash": "LDNA6ZN#xW01~W4nRk?bbcRioztS",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/goraca_czekolada/goraca_czekolada_z_bita_smietana/goraca_czekolada_z_bita_smietana_004.webp",
           "blurhash": "LLByW~-U0LIVxtbHRjae9FNH-;xu",
           "width": 1280,
@@ -2313,20 +1689,8 @@
           "height": 960
         },
         {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_002.webp",
-          "blurhash": "LCINsq4mM|xv_NoN9aIqt.JDs*RP",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/herbata/herbata_czarna/herbata_czarna_003.webp",
           "blurhash": "LME.|WD*Rjsp_MM|oyjbxuMyoyoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_004.webp",
-          "blurhash": "LJCPI:-pxvxa~C%2ogxvx^r=nhoe",
           "width": 1280,
           "height": 960
         }
@@ -2339,20 +1703,8 @@
           "height": 960
         },
         {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_002.webp",
-          "blurhash": "LCINsq4mM|xv_NoN9aIqt.JDs*RP",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/herbata/herbata_czarna/herbata_czarna_003.webp",
           "blurhash": "LME.|WD*Rjsp_MM|oyjbxuMyoyoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_004.webp",
-          "blurhash": "LJCPI:-pxvxa~C%2ogxvx^r=nhoe",
           "width": 1280,
           "height": 960
         }
@@ -2365,20 +1717,8 @@
           "height": 960
         },
         {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_002.webp",
-          "blurhash": "LCINsq4mM|xv_NoN9aIqt.JDs*RP",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/herbata/herbata_czarna/herbata_czarna_003.webp",
           "blurhash": "LME.|WD*Rjsp_MM|oyjbxuMyoyoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_004.webp",
-          "blurhash": "LJCPI:-pxvxa~C%2ogxvx^r=nhoe",
           "width": 1280,
           "height": 960
         }
@@ -2391,20 +1731,8 @@
           "height": 960
         },
         {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_002.webp",
-          "blurhash": "LCINsq4mM|xv_NoN9aIqt.JDs*RP",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/herbata/herbata_czarna/herbata_czarna_003.webp",
           "blurhash": "LME.|WD*Rjsp_MM|oyjbxuMyoyoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_004.webp",
-          "blurhash": "LJCPI:-pxvxa~C%2ogxvx^r=nhoe",
           "width": 1280,
           "height": 960
         }
@@ -2417,20 +1745,8 @@
           "height": 960
         },
         {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_002.webp",
-          "blurhash": "LCINsq4mM|xv_NoN9aIqt.JDs*RP",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/herbata/herbata_czarna/herbata_czarna_003.webp",
           "blurhash": "LME.|WD*Rjsp_MM|oyjbxuMyoyoe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/herbata/herbata_czarna/herbata_czarna_004.webp",
-          "blurhash": "LJCPI:-pxvxa~C%2ogxvx^r=nhoe",
           "width": 1280,
           "height": 960
         }
@@ -2438,12 +1754,6 @@
     },
     "kanapka": {
       "bajgiel_z_lososiem": [
-        {
-          "path": "dishes/kanapka/bajgiel_z_lososiem/temp_000.webp",
-          "blurhash": "LGD9VMD$.TS1?bITxttQ9uNEw@f4",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/kanapka/bajgiel_z_lososiem/temp_001.webp",
           "blurhash": "LOG8$O4n.TxW%M0KxtV@0Lxui]oz",
@@ -2469,12 +1779,6 @@
           "height": 600
         },
         {
-          "path": "dishes/kanapka/bajgiel_z_lososiem/temp_006.webp",
-          "blurhash": "LpNcKEof?wt6xZj[WCay%gj@%gaz",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/bajgiel_z_lososiem/temp_009.webp",
           "blurhash": "LYIglia}S$M|~Wf5t7M{?boMt7s,",
           "width": 800,
@@ -2482,18 +1786,6 @@
         }
       ],
       "bajgiel_z_serem_kremowym": [
-        {
-          "path": "dishes/makaron/mac_and_cheese/temp_006.webp",
-          "blurhash": "LJKAsB#6kE%1*JosD*RjESx]NZWV",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_002.webp",
           "blurhash": "LHJG[sUb9Hx[D+W@wGXT8^Kkx]V?",
@@ -2545,44 +1837,14 @@
       ],
       "banh_mi_thit": [
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_002.webp",
-          "blurhash": "L8BVCF10o|}q-mIo=wIqtQR%=wNc",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/banh_mi_thit/temp_004.webp",
           "blurhash": "LHHdK#-qDiM_~XxbSfNaDjRlS~s:",
           "width": 800,
           "height": 600
         },
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_005.webp",
-          "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/banh_mi_thit/temp_006.webp",
           "blurhash": "LNIqS,^KbIV_~3s+x]jImlRPxYxW",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_008.webp",
-          "blurhash": "LFC~SH0gRRtQ9?W?%KRQIBxu%JRR",
           "width": 800,
           "height": 600
         },
@@ -2607,32 +1869,8 @@
           "height": 600
         },
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_005.webp",
-          "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/banh_mi_thit/temp_006.webp",
           "blurhash": "LNIqS,^KbIV_~3s+x]jImlRPxYxW",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_008.webp",
-          "blurhash": "LFC~SH0gRRtQ9?W?%KRQIBxu%JRR",
           "width": 800,
           "height": 600
         },
@@ -2651,38 +1889,14 @@
       ],
       "kanapka_caprese": [
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_caprese/temp_001.webp",
           "blurhash": "LPF#Eu-:5nMyNFIoR*sD1dM|,Dfk",
           "width": 800,
           "height": 600
         },
         {
-          "path": "dishes/kanapka/kanapka_caprese/temp_002.webp",
-          "blurhash": "LiKxJ8n$krogxCxuRkaz.AkCoIjt",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_caprese/temp_003.webp",
           "blurhash": "LgNTB;Ip*0aK%Mt8WVj[PCaen4oz",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_005.webp",
-          "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
           "width": 800,
           "height": 600
         },
@@ -2707,18 +1921,6 @@
       ],
       "kanapka_clubhouse": [
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/kanapka_clubhouse/temp_001.webp",
-          "blurhash": "LDHUg|WBawNd3ZO[Z~xa%hVW%Ms-",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_clubhouse/temp_002.webp",
           "blurhash": "LIHnK8~UxZtQIpR+%1Ip9GMxS4xs",
           "width": 800,
@@ -2737,37 +1939,13 @@
           "height": 600
         },
         {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_005.webp",
-          "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/banh_mi_thit/temp_006.webp",
           "blurhash": "LNIqS,^KbIV_~3s+x]jImlRPxYxW",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_008.webp",
-          "blurhash": "LFC~SH0gRRtQ9?W?%KRQIBxu%JRR",
           "width": 800,
           "height": 600
         }
       ],
       "kanapka_z_kurczakiem": [
-        {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/kanapka/kanapka_z_kurczakiem/temp_001.webp",
           "blurhash": "LhJ@tBx]tSV]0JWAs+S3XoRjt6WA",
@@ -2799,12 +1977,6 @@
           "height": 600
         },
         {
-          "path": "dishes/kanapka/kanapka_z_kurczakiem/temp_006.webp",
-          "blurhash": "LwPsR@t7?wof?HofNGWB%hWBRjof",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_z_kurczakiem/temp_007.webp",
           "blurhash": "LiP=sItR%$ob.Sx^niM_.TROMxbE",
           "width": 800,
@@ -2824,12 +1996,6 @@
         }
       ],
       "kanapka_z_szynka": [
-        {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/kanapka/kanapka_z_szynka/temp_001.webp",
           "blurhash": "LWI|RUOpE_wO~WEMNGV[E+Rkw}ad",
@@ -2893,32 +2059,14 @@
           "height": 600
         },
         {
-          "path": "dishes/kanapka/banh_mi_thit/temp_000.webp",
-          "blurhash": "LCGaq7~V%M-p*_bFIoV@%#WCNHNI",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_z_tunczykiem/temp_003.webp",
           "blurhash": "LMLoNMn,KdR7JO~V^QoJCNxZXONI",
           "width": 800,
           "height": 600
         },
         {
-          "path": "dishes/kanapka/bajgiel_z_serem_kremowym/temp_001.webp",
-          "blurhash": "LKP6554T9axt4TxvR*WUx^bt%LR*",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/kanapka/kanapka_z_tunczykiem/temp_005.webp",
           "blurhash": "LjJ@I7Nax]V@9ZR*RPs:0LRjWBxu",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/kanapka/kanapka_z_tunczykiem/temp_008.webp",
-          "blurhash": "LKK0+[9F-obv~W4TDit6.l?ua1M{",
           "width": 800,
           "height": 600
         },
@@ -2933,20 +2081,8 @@
     "kawa": {
       "americano": [
         {
-          "path": "dishes/kawa/americano/americano_001.webp",
-          "blurhash": "LGC$}{~q0KIA4n4nM{x]D%n$?H%M",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/kawa/americano/americano_002.webp",
           "blurhash": "L%QSxS.8%gWB_NIUM{oeS6n~n~kC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kawa/americano/americano_003.webp",
-          "blurhash": "LyM=|A0NjD-o%1tQRjVst7SORPkB",
           "width": 1280,
           "height": 960
         },
@@ -2959,37 +2095,13 @@
       ],
       "cappuccino": [
         {
-          "path": "dishes/kawa/cappuccino/cappuccino_001.webp",
-          "blurhash": "LND9Fx%2E1Rj9ZxZxuR*0LM{xZt7",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kawa/americano/americano_001.webp",
-          "blurhash": "LGC$}{~q0KIA4n4nM{x]D%n$?H%M",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/kawa/cappuccino/cappuccino_003.webp",
           "blurhash": "LbJ@,r8_4:tS*0ITnN%29Fj[WBog",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kawa/cappuccino/cappuccino_005.webp",
-          "blurhash": "LQI}x0M_IUZ}~WRQ%3Dh9GMws+Ir",
           "width": 1280,
           "height": 960
         }
       ],
       "espresso": [
-        {
-          "path": "dishes/kawa/americano/americano_001.webp",
-          "blurhash": "LGC$}{~q0KIA4n4nM{x]D%n$?H%M",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/kawa/cappuccino/cappuccino_003.webp",
           "blurhash": "LbJ@,r8_4:tS*0ITnN%29Fj[WBog",
@@ -3017,12 +2129,6 @@
           "height": 960
         },
         {
-          "path": "dishes/kawa/americano/americano_001.webp",
-          "blurhash": "LGC$}{~q0KIA4n4nM{x]D%n$?H%M",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/kawa/latte/latte_005.webp",
           "blurhash": "LbEB?2s.0gNHj]ayoeoe4=WC-ot6",
           "width": 1280,
@@ -3041,12 +2147,6 @@
           "blurhash": "LmI#S_oyRjogoIt7Ioae00IVt6V@",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/kawa/mrozona_kawa/mrozona_kawa_003.webp",
-          "blurhash": "LcE{60-oV@s:0eNHogR*r=oLjZoL",
-          "width": 1280,
-          "height": 960
         }
       ]
     },
@@ -3063,33 +2163,9 @@
           "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/kebab/adana_kebab/adana_kebab_004.webp",
-          "blurhash": "LNKd9+tRyYxs009bM{WBS~IqMwRP",
-          "width": 1280,
-          "height": 960
         }
       ],
       "doner_kebab": [
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_001.webp",
-          "blurhash": "LVLf{$_3yY%gtRxvngV@pyR.xuni",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_002.webp",
-          "blurhash": "LoOWNcM{.8xZ?bWAR*kC?wxuV@bc",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_003.webp",
-          "blurhash": "LjI4hLNG0g%2IVWBR*s:E7V@nzt8",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/kebab/doner_kebab/doner_kebab_005.webp",
           "blurhash": "LqNTXbS1_Nxa%LjYWBa}.8s:jbR*",
@@ -3098,12 +2174,6 @@
         }
       ],
       "gyros": [
-        {
-          "path": "dishes/kebab/gyros/gyros_001.webp",
-          "blurhash": "LMGkwC?]elIU4nRO%ft7XBRpNG%1",
-          "width": 800,
-          "height": 600
-        },
         {
           "path": "dishes/kebab/gyros/gyros_002.webp",
           "blurhash": "LFKA+y^kT}YQ-64mWBxt0KgNH=Z#",
@@ -3137,18 +2207,6 @@
           "height": 960
         },
         {
-          "path": "dishes/kebab/adana_kebab/adana_kebab_004.webp",
-          "blurhash": "LNKd9+tRyYxs009bM{WBS~IqMwRP",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/kebab_box/kebab_box_003.webp",
-          "blurhash": "LXJ%LAo}E*R+1+n-RkWVIuxr$es,",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/salatka/salatka_orientalna/sałatka_orientalna_001.webp",
           "blurhash": "LKJQQCi{.mjc-o-6oySO1QbunNs.",
           "width": 1280,
@@ -3156,18 +2214,6 @@
         }
       ],
       "kebab_klasyczny": [
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_003.webp",
-          "blurhash": "LjI4hLNG0g%2IVWBR*s:E7V@nzt8",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_002.webp",
-          "blurhash": "LoOWNcM{.8xZ?bWAR*kC?wxuV@bc",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/kebab/kebab_klasyczny/kebab_klasyczny_003.webp",
           "blurhash": "L8LfQ~icE4MyH@?G9Hxa22WV9Zxu",
@@ -3179,12 +2225,6 @@
           "blurhash": "LIG*]3x_Y7%gDNIU4.obIpWAMyWB",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/kebab/kebab_klasyczny/kebab_klasyczny_005.webp",
-          "blurhash": "LBJi%%E1j^rrq[^j0fIpIVEL5R%L",
-          "width": 1280,
-          "height": 960
         }
       ],
       "kebab_w_bulce": [
@@ -3193,48 +2233,12 @@
           "blurhash": "LXNJg,-=x]%g?aROIUV@?wadDjMx",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_001.webp",
-          "blurhash": "LVLf{$_3yY%gtRxvngV@pyR.xuni",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_003.webp",
-          "blurhash": "LjI4hLNG0g%2IVWBR*s:E7V@nzt8",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/doner_kebab/doner_kebab_002.webp",
-          "blurhash": "LoOWNcM{.8xZ?bWAR*kC?wxuV@bc",
-          "width": 1280,
-          "height": 960
         }
       ],
       "shawarma": [
         {
-          "path": "dishes/kebab/shawarma/shawarma_001.webp",
-          "blurhash": "LXQl,x9ZyY$g%NoLRiof%%xFVXXT",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/mexican/tortilla_z_kurczakiem/tortilla_z_kurczakiem_003.webp",
           "blurhash": "LZJtqq01K0%f-DIot7sCELxts:Rj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_005.webp",
-          "blurhash": "LOG*yV4:9b%10MxuIokCWFjEs,t7",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/kebab/shawarma/shawarma_004.webp",
-          "blurhash": "LrOC~bS4t8kC?wxabIj[?woeR*n*",
           "width": 1280,
           "height": 960
         }
@@ -3973,12 +2977,6 @@
           "height": 600
         },
         {
-          "path": "dishes/makaron/mac_and_cheese/temp_006.webp",
-          "blurhash": "LJKAsB#6kE%1*JosD*RjESx]NZWV",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/makaron/mac_and_cheese/temp_007.webp",
           "blurhash": "LOIqJw%e0eS$Mwt6bbM|9F9ZM|M|",
           "width": 800,
@@ -4367,12 +3365,6 @@
       ],
       "tortellini": [
         {
-          "path": "dishes/makaron/tortellini/tortellini_001.webp",
-          "blurhash": "LAF#:b~o0MO]-=VqI:nN0OI=o|Q,",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/makaron/tortellini/tortellini_002.webp",
           "blurhash": "LaKKJ~s:pKX89ua~ngf6PEW.Rjn,",
           "width": 800,
@@ -4517,12 +3509,6 @@
           "height": 960
         },
         {
-          "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_005.webp",
-          "blurhash": "LOG*yV4:9b%10MxuIokCWFjEs,t7",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/mexican/tortilla_z_kurczakiem/tortilla_z_kurczakiem_003.webp",
           "blurhash": "LZJtqq01K0%f-DIot7sCELxts:Rj",
           "width": 1280,
@@ -4577,20 +3563,8 @@
           "height": 600
         },
         {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_002.webp",
           "blurhash": "LbIXR59E0y-;=akDIno}4-xW-pIo",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_003.webp",
-          "blurhash": "LIF5HYxuHqMc-:RjIpay4:V?tmbw",
           "width": 800,
           "height": 600
         },
@@ -4623,12 +3597,6 @@
         {
           "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_000.webp",
           "blurhash": "LKPYF[WE_NNFUGMyMfWUF^IArsWA",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
           "width": 800,
           "height": 600
         },
@@ -4701,12 +3669,6 @@
           "blurhash": "LQJQi^~p^*a0?cX7-nxa^%IVIoIp",
           "width": 800,
           "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
-          "width": 800,
-          "height": 600
         }
       ],
       "shake_karmelowy": [
@@ -4717,32 +3679,8 @@
           "height": 600
         },
         {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_002.webp",
           "blurhash": "LbIXR59E0y-;=akDIno}4-xW-pIo",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_003.webp",
-          "blurhash": "LIF5HYxuHqMc-:RjIpay4:V?tmbw",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/shake_karmelowy/temp_005.webp",
-          "blurhash": "LLI}R{?G0gShaJayS4R*58bIMwoJ",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/shake_karmelowy/temp_006.webp",
-          "blurhash": "LaKKN6IVRjoI_NoIaxRk?bWBoft6",
           "width": 800,
           "height": 600
         },
@@ -4781,20 +3719,8 @@
           "height": 600
         },
         {
-          "path": "dishes/milkshake/shake_nutella/temp_002.webp",
-          "blurhash": "LTNTOF8{~q-;x[tkkVog?bVs8_WC",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/milkshake/shake_nutella/temp_004.webp",
           "blurhash": "LbK+fHOXFeoe5TNH$$oy0$M|aKM|",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
           "width": 800,
           "height": 600
         },
@@ -4819,12 +3745,6 @@
           "height": 600
         },
         {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/milkshake/shake_oreo/temp_004.webp",
           "blurhash": "LZOpx$M{~q?bkCayofjt?bxuM{IU",
           "width": 800,
@@ -4841,12 +3761,6 @@
           "blurhash": "LrF=%Kj[Rjj[01aeofayxaofoffQ",
           "width": 800,
           "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_003.webp",
-          "blurhash": "LIF5HYxuHqMc-:RjIpay4:V?tmbw",
-          "width": 800,
-          "height": 600
         }
       ],
       "shake_pistacjowy": [
@@ -4859,12 +3773,6 @@
         {
           "path": "dishes/milkshake/shake_pistacjowy/temp_002.webp",
           "blurhash": "LWOWQuXTyZoN?GozRkV@yZn%R4bE",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
           "width": 800,
           "height": 600
         }
@@ -4921,12 +3829,6 @@
       ],
       "shake_waniliowy": [
         {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_001.webp",
-          "blurhash": "LVHVL@pH02-nE0o}%M$yMxf5-:xt",
-          "width": 800,
-          "height": 600
-        },
-        {
           "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_000.webp",
           "blurhash": "LKPYF[WE_NNFUGMyMfWUF^IArsWA",
           "width": 800,
@@ -4941,12 +3843,6 @@
         {
           "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_002.webp",
           "blurhash": "LbIXR59E0y-;=akDIno}4-xW-pIo",
-          "width": 800,
-          "height": 600
-        },
-        {
-          "path": "dishes/milkshake/koktajl_mleczny_klasyczny/temp_003.webp",
-          "blurhash": "LIF5HYxuHqMc-:RjIpay4:V?tmbw",
           "width": 800,
           "height": 600
         },
@@ -5161,24 +4057,6 @@
           "blurhash": "LWMZtHRPYPofbaofoLa|*Jt7VYbH",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/napoj_bezalkoholowy/cola/cola_003.webp",
-          "blurhash": "LGC?_.4TD$ITV=D%-;R,-;IUV@xv",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/napoj_bezalkoholowy/cola/cola_004.webp",
-          "blurhash": "LXOpV*Mx?wfh_Nx]MxV?%gRjMyxu",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/napoj_bezalkoholowy/cola/cola_005.webp",
-          "blurhash": "LSF.i3bHaKw{|{SLNaoLI:WVxGoL",
-          "width": 1280,
-          "height": 960
         }
       ],
       "lemoniada": [
@@ -5217,12 +4095,6 @@
         {
           "path": "dishes/napoj_bezalkoholowy/lemoniada/lemoniada_001.webp",
           "blurhash": "LUN^J1Dgbc-:xuM_t7WBx_XAR+M{",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/napoj_bezalkoholowy/lemoniada_malinowa/lemoniada_malinowa_003.webp",
-          "blurhash": "LNR-|$T}LLkWu4xZvzbbE0f*nmn,",
           "width": 1280,
           "height": 960
         },
@@ -5280,18 +4152,6 @@
         }
       ],
       "zielone_smoothie": [
-        {
-          "path": "dishes/napoj_bezalkoholowy/zielone_smoothie/zielone_smoothie_001.webp",
-          "blurhash": "LcLg:,M|-rRP?dxrs;M{?bjuM{k9",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/napoj_bezalkoholowy/zielone_smoothie/zielone_smoothie_002.webp",
-          "blurhash": "LKKm%*^*s[?I~pt79G-pTf-:D%-;",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/napoj_bezalkoholowy/sok_jablkowy/sok_jabłkowy_004.webp",
           "blurhash": "LFJu40RK%j%jvNpLWAR*;RVtTdaa",
@@ -5399,12 +4259,6 @@
           "height": 960
         },
         {
-          "path": "dishes/pho/pho_bo/pho_bo_004.webp",
-          "blurhash": "LMF=ja^+RjRj4oM_IUNG0L%2_1t8",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pho/pho_bo/pho_bo_005.webp",
           "blurhash": "L99%q?tRxv%M%ft8ofxu02D*ROMy",
           "width": 1280,
@@ -5427,12 +4281,6 @@
         {
           "path": "dishes/pho/pho_bo/pho_bo_003.webp",
           "blurhash": "LUEe*.ba0LWVSdX5s,oeIVWBtkt6",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pho/pho_bo/pho_bo_004.webp",
-          "blurhash": "LMF=ja^+RjRj4oM_IUNG0L%2_1t8",
           "width": 1280,
           "height": 960
         },
@@ -5607,48 +4455,12 @@
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
         }
       ],
       "pierogi_slodkie_z_jagodami": [
         {
           "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_002.webp",
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
           "width": 1280,
           "height": 960
         }
@@ -5659,48 +4471,12 @@
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
         }
       ],
       "pierogi_z_kapusta_i_grzybami": [
         {
           "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_002.webp",
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
           "width": 1280,
           "height": 960
         }
@@ -5711,48 +4487,12 @@
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
         }
       ],
       "pierogi_z_serem": [
         {
           "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_002.webp",
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
           "width": 1280,
           "height": 960
         }
@@ -5763,24 +4503,6 @@
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
         }
       ],
       "pierogi_z_ziemniakami_i_boczkiem": [
@@ -5789,48 +4511,10 @@
           "blurhash": "LTODRW-.?wso9YRNMckYNFs+s+fl",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_003.webp",
-          "blurhash": "LKHw.Fv|0L~CXTxZsmo#0g9t?G%2",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_005.webp",
-          "blurhash": "LgN+twI;Y7ni-:emMxafuPoLaKba",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pierogi/pierogi_ruskie/pierogi_ruskie_004.webp",
-          "blurhash": "L+KAvBs:RkjsRkofRkay0LR*ofWC",
-          "width": 1280,
-          "height": 960
         }
       ]
     },
     "piwo": {
-      "pilsner": [
-        {
-          "path": "dishes/piwo/pilsner/pilsner_001.webp",
-          "blurhash": "LSHLIvNa9[,I0|M_xWXTnnxbRjSc",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/piwo/pilsner/pilsner_002.webp",
-          "blurhash": "LLE-EeI;0#s.Or-9RkR+0hW;=_R+",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/piwo/pilsner/pilsner_004.webp",
-          "blurhash": "LMECwc00?bRORj%MNGogIUWVn$Ip",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "piwo_ipa": [
         {
           "path": "dishes/piwo/piwo_ipa/piwo_ipa_001.webp",
@@ -5855,12 +4539,6 @@
           "blurhash": "LPF|-#NwNHxa1NxDs-W=0#R,j[R+",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/piwo/pilsner/pilsner_004.webp",
-          "blurhash": "LMECwc00?bRORj%MNGogIUWVn$Ip",
-          "width": 1280,
-          "height": 960
         }
       ],
       "piwo_lager": [
@@ -5881,12 +4559,6 @@
           "blurhash": "LcFYfQ4nN_WC_N9FxaWBo}IU$*js",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/piwo/piwo_lager/piwo_lager_005.webp",
-          "blurhash": "LOGum|D%0L%2J=a#%0WBEnoenNt7",
-          "width": 1280,
-          "height": 960
         }
       ],
       "piwo_pszeniczne": [
@@ -5899,12 +4571,6 @@
         {
           "path": "dishes/piwo/piwo_pszeniczne/piwo_pszeniczne_002.webp",
           "blurhash": "LmFYMqNG0L%MXmNFnN%MM|t6t7NG",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/piwo/piwo_pszeniczne/piwo_pszeniczne_003.webp",
-          "blurhash": "LLD[zt?G0~X40fIVrXr?J;t7={oN",
           "width": 1280,
           "height": 960
         },
@@ -5931,12 +4597,6 @@
           "height": 960
         },
         {
-          "path": "dishes/pizza/bbq_chicken/bbq_chicken_002.webp",
-          "blurhash": "LUGjKFxD0$R+AFENxGs,9vs-%0WC",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/bbq_chicken/bbq_chicken_004.webp",
           "blurhash": "LAMF,hS%~pxC?[R.aItQ8_bcVso}",
           "width": 1280,
@@ -5957,12 +4617,6 @@
           "height": 960
         },
         {
-          "path": "dishes/pizza/calzone_klasyczne/calzone_klasyczne_002.webp",
-          "blurhash": "LWHw[WOuItM{xvkDV?aJ0faIacxD",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/calzone_klasyczne/calzone_klasyczne_003.webp",
           "blurhash": "LYKmCV%KxwRk~CxZW;ogE2Rnadof",
           "width": 1280,
@@ -5977,32 +4631,8 @@
       ],
       "capricciosa": [
         {
-          "path": "dishes/pizza/capricciosa/capricciosa_001.webp",
-          "blurhash": "LiNcZfogV_nipyR-j=xZxws:a$S#",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_002.webp",
-          "blurhash": "LiLppytmoikV_4X9X8jFtmV@V?en",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/capricciosa/capricciosa_003.webp",
           "blurhash": "L*MGq@ocozWB_NWCofaft7ayV@kB",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_004.webp",
-          "blurhash": "LVK+ok0h0LyD%zn5MxXT59=wShn$",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_005.webp",
-          "blurhash": "LNJ%2a}T1joc~ARnIp-npHEM9bRj",
           "width": 1280,
           "height": 960
         }
@@ -6015,18 +4645,6 @@
           "height": 960
         },
         {
-          "path": "dishes/pizza/capricciosa/capricciosa_001.webp",
-          "blurhash": "LiNcZfogV_nipyR-j=xZxws:a$S#",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_002.webp",
-          "blurhash": "LiLppytmoikV_4X9X8jFtmV@V?en",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/capricciosa/capricciosa_003.webp",
           "blurhash": "L*MGq@ocozWB_NWCofaft7ayV@kB",
           "width": 1280,
@@ -6034,24 +4652,6 @@
         }
       ],
       "diavola": [
-        {
-          "path": "dishes/pizza/diavola/diavola_001.webp",
-          "blurhash": "LCKS|T-n_LM}sD4;9aD*%fx@tQxZ",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_005.webp",
-          "blurhash": "LNJ%2a}T1joc~ARnIp-npHEM9bRj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/diavola/diavola_003.webp",
-          "blurhash": "LTMF|3$$E2tR~qs:WXtR6QNGf+xu",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/pizza/diavola/diavola_004.webp",
           "blurhash": "LJMq%sEyR.5T}@t5soxsM|WYE*OY",
@@ -6067,20 +4667,8 @@
       ],
       "funghi": [
         {
-          "path": "dishes/pizza/funghi/funghi_001.webp",
-          "blurhash": "LVG*=qE1t8jE0gM|oIofD*xuRiof",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/funghi/funghi_002.webp",
           "blurhash": "LIH_3ya|_3-V~V9GxHIV14oeE2NH",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/funghi/funghi_003.webp",
-          "blurhash": "LCE28|JPIA?b.mD%IA%N7}v~IU%M",
           "width": 1280,
           "height": 960
         },
@@ -6099,32 +4687,8 @@
       ],
       "hawajska": [
         {
-          "path": "dishes/pizza/hawajska/hawajska_001.webp",
-          "blurhash": "LeN8sTxDWEs.0#WAxaWB5Taxs:fP",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_001.webp",
-          "blurhash": "LiNcZfogV_nipyR-j=xZxws:a$S#",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_002.webp",
-          "blurhash": "LiLppytmoikV_4X9X8jFtmV@V?en",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/capricciosa/capricciosa_003.webp",
           "blurhash": "L*MGq@ocozWB_NWCofaft7ayV@kB",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_004.webp",
-          "blurhash": "LVK+ok0h0LyD%zn5MxXT59=wShn$",
           "width": 1280,
           "height": 960
         }
@@ -6133,24 +4697,6 @@
         {
           "path": "dishes/pizza/margherita/margherita_001.webp",
           "blurhash": "LZLMO[kVNbad9GbvWBjY1OV@smR*",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/funghi/funghi_003.webp",
-          "blurhash": "LCE28|JPIA?b.mD%IA%N7}v~IU%M",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/margherita/margherita_003.webp",
-          "blurhash": "LHLN6_t*E1Si4U4pR4RP9^SQx]iw",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/margherita/margherita_004.webp",
-          "blurhash": "LINk@c?]mR#;yBQ.t,tR%fVE9Gr;",
           "width": 1280,
           "height": 960
         },
@@ -6189,12 +4735,6 @@
       ],
       "prosciutto_e_funghi": [
         {
-          "path": "dishes/pizza/prosciutto_e_funghi/prosciutto_e_funghi_001.webp",
-          "blurhash": "LFKvNan3}HBPG7Nu^5%KWTELr=#;",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/funghi/funghi_004.webp",
           "blurhash": "LCIDmb-jeVoz~Ur;JB%10-=_M{a$",
           "width": 1280,
@@ -6207,57 +4747,13 @@
           "height": 960
         },
         {
-          "path": "dishes/pizza/prosciutto_e_funghi/prosciutto_e_funghi_004.webp",
-          "blurhash": "LhLC|}%2o|nh0LW?R-kCInozaeWY",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/pizza/prosciutto_e_funghi/prosciutto_e_funghi_005.webp",
           "blurhash": "LCG*l]-SEBxW_Nn#S*WAERIUE3WA",
           "width": 1280,
           "height": 960
         }
       ],
-      "quattro_formaggi": [
-        {
-          "path": "dishes/pizza/quattro_formaggi/quattro_formaggi_001.webp",
-          "blurhash": "LSIyOH-n0~IpNHxFXRR+0hIWWW%1",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_002.webp",
-          "blurhash": "LiLppytmoikV_4X9X8jFtmV@V?en",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_005.webp",
-          "blurhash": "LNJ%2a}T1joc~ARnIp-npHEM9bRj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/funghi/funghi_001.webp",
-          "blurhash": "LVG*=qE1t8jE0gM|oIofD*xuRiof",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "vegetariana": [
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_001.webp",
-          "blurhash": "LiNcZfogV_nipyR-j=xZxws:a$S#",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/pizza/capricciosa/capricciosa_002.webp",
-          "blurhash": "LiLppytmoikV_4X9X8jFtmV@V?en",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/pizza/vegetariana/vegetariana_003.webp",
           "blurhash": "LdLNSroM~qxt-;WAxZjZ_3oJpIR,",
@@ -6657,12 +5153,6 @@
           "blurhash": "LXG*yN$y9JE1W=NG%1f+0NM{?Ft6",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/zupa/krem_z_kalafiora/krem_z_kalafiora_005.webp",
-          "blurhash": "LED]I?NH_N%1v}8{D%nhFfV@-7RQ",
-          "width": 1280,
-          "height": 960
         }
       ],
       "pikantne_miso_ramen": [
@@ -6701,18 +5191,6 @@
         {
           "path": "dishes/ramen/shoyu_ramen/shoyu_ramen_002.webp",
           "blurhash": "LDH-cMVsQ9=}#AbY-;RkIvxurBof",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/ramen/shoyu_ramen/shoyu_ramen_003.webp",
-          "blurhash": "LBH1@}iZE19ayEmlxvxw00T0I:ah",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/ramen/shoyu_ramen/shoyu_ramen_004.webp",
-          "blurhash": "LMHUkAtQtRVq.Tx^%2D%WGo~kXt7",
           "width": 1280,
           "height": 960
         },
@@ -6769,38 +5247,6 @@
           "blurhash": "LGEx|W~T15Dn%#V=V_Ir0=It$z%e",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_ai_frutti_di_mare/risotto_ai_frutti_di_mare_004.webp",
-          "blurhash": "LcO3tVxtyZtR%1RjtRogpft7Mwt7",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_ai_frutti_di_mare/risotto_ai_frutti_di_mare_005.webp",
-          "blurhash": "LQF=R4=GnPsADNxZXSR*%LIUSgkW",
-          "width": 1280,
-          "height": 960
-        }
-      ],
-      "risotto_alla_milanese": [
-        {
-          "path": "dishes/risotto/risotto_ai_frutti_di_mare/risotto_ai_frutti_di_mare_004.webp",
-          "blurhash": "LcO3tVxtyZtR%1RjtRogpft7Mwt7",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_alla_milanese/risotto_alla_milanese_002.webp",
-          "blurhash": "LjPrzKj=Pqofb{WVoHogTzj[a0oz",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_alla_milanese/risotto_alla_milanese_005.webp",
-          "blurhash": "L4Bx=+IU7}nPSiozenW=C,V@icbH",
-          "width": 1280,
-          "height": 960
         }
       ],
       "risotto_al_pomodoro": [
@@ -6817,12 +5263,6 @@
           "height": 960
         },
         {
-          "path": "dishes/risotto/risotto_al_pomodoro/risotto_al_pomodoro_003.webp",
-          "blurhash": "LDKwLG?^Zh8{s%xBIr-CO@D%pI$*",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/risotto/risotto_al_pomodoro/risotto_al_pomodoro_004.webp",
           "blurhash": "LDIF0Q4.Rc=z9v%L-9WGVjxGadNe",
           "width": 1280,
@@ -6833,18 +5273,6 @@
         {
           "path": "dishes/risotto/risotto_con_zucca/risotto_con_zucca_001.webp",
           "blurhash": "LJIg$9S%4;%g16-UwukCMID*IUMx",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_con_zucca/risotto_con_zucca_002.webp",
-          "blurhash": "LJH^|m-WN2rCL}Di%KxY59t7?FgN",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/risotto/risotto_con_zucca/risotto_con_zucca_003.webp",
-          "blurhash": "LULg5{-;_Nxu_3M{i^jY_N%MV@s-",
           "width": 1280,
           "height": 960
         }
@@ -6965,18 +5393,6 @@
     "salatka": {
       "coleslaw": [
         {
-          "path": "dishes/salatka/coleslaw/coleslaw_001.webp",
-          "blurhash": "LBIE,^KRM1v|?JM{.Rp08y%1ITRO",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/salatka/coleslaw/coleslaw_002.webp",
-          "blurhash": "LPG@*}Ef0Kxa$*oyI;V[4.ShxGR*",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/salatka/coleslaw/coleslaw_003.webp",
           "blurhash": "LMHdQx100Jso-n-A9wWBI9kBtRWB",
           "width": 1280,
@@ -7083,12 +5499,6 @@
         {
           "path": "dishes/salatka/salatka_jarzynowa/sałatka_jarzynowa_001.webp",
           "blurhash": "LFHLSH~q5aj=+dbC4-oM9$-X}@In",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/salatka/coleslaw/coleslaw_002.webp",
-          "blurhash": "LPG@*}Ef0Kxa$*oyI;V[4.ShxGR*",
           "width": 1280,
           "height": 960
         },
@@ -7421,12 +5831,6 @@
     "sorbet": {
       "sorbet_cytrynowy": [
         {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
           "width": 1280,
@@ -7446,12 +5850,6 @@
         }
       ],
       "sorbet_kokosowy": [
-        {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
@@ -7473,12 +5871,6 @@
       ],
       "sorbet_limonkowy": [
         {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
           "width": 1280,
@@ -7487,24 +5879,12 @@
         {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_004.webp",
           "blurhash": "LQJ@q9MK-=k;x[V@s;aK?^tlNYnj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sorbet/sorbet_limonkowy/sorbet_limonkowy_005.webp",
-          "blurhash": "LQG8cx9t4,x[-TR-f+oc4-t6xcV@",
           "width": 1280,
           "height": 960
         }
       ],
       "sorbet_malinowy": [
         {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
           "width": 1280,
@@ -7515,21 +5895,9 @@
           "blurhash": "LQJ@q9MK-=k;x[V@s;aK?^tlNYnj",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/sorbet/sorbet_limonkowy/sorbet_limonkowy_005.webp",
-          "blurhash": "LQG8cx9t4,x[-TR-f+oc4-t6xcV@",
-          "width": 1280,
-          "height": 960
         }
       ],
       "sorbet_mango": [
-        {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
@@ -7551,12 +5919,6 @@
       ],
       "sorbet_passionfruit": [
         {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
           "width": 1280,
@@ -7567,21 +5929,9 @@
           "blurhash": "LQJ@q9MK-=k;x[V@s;aK?^tlNYnj",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/sorbet/sorbet_limonkowy/sorbet_limonkowy_005.webp",
-          "blurhash": "LQG8cx9t4,x[-TR-f+oc4-t6xcV@",
-          "width": 1280,
-          "height": 960
         }
       ],
       "sorbet_truskawkowy": [
-        {
-          "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_001.webp",
-          "blurhash": "LVF}saaec[XTRPW;oKs:K%WB$Pxb",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/sorbet/sorbet_cytrynowy/sorbet_cytrynowy_002.webp",
           "blurhash": "LVHVL?pH02-nE0o}%M$yMxf5-:xt",
@@ -7653,12 +6003,6 @@
           "blurhash": "LLC}tcRjJ7xG12RjxZozK3WUWER-",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/stek/steak_frites/steak_frites_005.webp",
-          "blurhash": "LHHU,iMo~nm_5PO*r3d?%MiuM{pF",
-          "width": 1280,
-          "height": 960
         }
       ],
       "stek_ribeye": [
@@ -7713,12 +6057,6 @@
           "height": 960
         },
         {
-          "path": "dishes/stek/stek_t_bone/stek_t_bone_004.webp",
-          "blurhash": "LMFg?_,H9a-U}t$jR*n+9tX7tRV[",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/stek/stek_t_bone/stek_t_bone_005.webp",
           "blurhash": "LZK9x}WUEMkV}]S#I:Rj64E1R%s:",
           "width": 1280,
@@ -7731,18 +6069,6 @@
         {
           "path": "dishes/sushi/avocado_maki/avocado_maki_003.webp",
           "blurhash": "LKI|gw}8DjInMdnix]Nu9]T0Mxr?",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/avocado_maki/avocado_maki_004.webp",
-          "blurhash": "LWG+2BI:r{W.o|xVR-af^-a$t3ay",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/avocado_maki/avocado_maki_005.webp",
-          "blurhash": "LXF~5Lt7wcnN~BI;t8s:$eWXn+aK",
           "width": 1280,
           "height": 960
         }
@@ -7759,48 +6085,12 @@
           "blurhash": "LrK9G6$$AWKLtQt6w{V[10ofwdi{",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_004.webp",
-          "blurhash": "LUL4D^.7%f#-R$ofWBoz_MV[aKEM",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_005.webp",
-          "blurhash": "LJN14QT0?w-;?wxuM{M_krskRjay",
-          "width": 1280,
-          "height": 960
         }
       ],
       "dragon_roll": [
         {
-          "path": "dishes/sushi/dragon_roll/dragon_roll_001.webp",
-          "blurhash": "LEE.nWFfM_%N~VIqt2JD?aM|-OE3",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sushi/california_roll/california_roll_003.webp",
           "blurhash": "LrK9G6$$AWKLtQt6w{V[10ofwdi{",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_004.webp",
-          "blurhash": "LUL4D^.7%f#-R$ofWBoz_MV[aKEM",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_005.webp",
-          "blurhash": "LJN14QT0?w-;?wxuM{M_krskRjay",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/dragon_roll/dragon_roll_005.webp",
-          "blurhash": "LSG8TKx]E1xGt7NGaeIo0LM{s:WB",
           "width": 1280,
           "height": 960
         }
@@ -7857,38 +6147,6 @@
           "height": 960
         }
       ],
-      "philadelphia_roll": [
-        {
-          "path": "dishes/sushi/philadelphia_roll/philadelphia_roll_001.webp",
-          "blurhash": "LfFEcas:OsRj?Gj[ozjZ0#R+wcof",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/philadelphia_roll/philadelphia_roll_002.webp",
-          "blurhash": "LYE{8on.FJjENds,njg20OtO$iah",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/philadelphia_roll/philadelphia_roll_003.webp",
-          "blurhash": "LJEfG-%F%fN2~Wt3IYRp0PIYDls:",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/philadelphia_roll/philadelphia_roll_004.webp",
-          "blurhash": "LNB.}soz0haKNdaeslbc0hWC=_oe",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_004.webp",
-          "blurhash": "LUL4D^.7%f#-R$ofWBoz_MV[aKEM",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "pikantne_maki_z_tunczyka": [
         {
           "path": "dishes/sushi/pikantne_maki_z_tunczyka/pikantne_maki_z_tunczyka_001.webp",
@@ -7905,44 +6163,6 @@
         {
           "path": "dishes/sushi/avocado_maki/avocado_maki_003.webp",
           "blurhash": "LKI|gw}8DjInMdnix]Nu9]T0Mxr?",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/avocado_maki/avocado_maki_004.webp",
-          "blurhash": "LWG+2BI:r{W.o|xVR-af^-a$t3ay",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/avocado_maki/avocado_maki_005.webp",
-          "blurhash": "LXF~5Lt7wcnN~BI;t8s:$eWXn+aK",
-          "width": 1280,
-          "height": 960
-        }
-      ],
-      "rainbow_roll": [
-        {
-          "path": "dishes/sushi/california_roll/california_roll_004.webp",
-          "blurhash": "LUL4D^.7%f#-R$ofWBoz_MV[aKEM",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_005.webp",
-          "blurhash": "LJN14QT0?w-;?wxuM{M_krskRjay",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/dragon_roll/dragon_roll_005.webp",
-          "blurhash": "LSG8TKx]E1xGt7NGaeIo0LM{s:WB",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/rainbow_roll/rainbow_roll_004.webp",
-          "blurhash": "LgH^t_bwIrWC~CtSkCWBxb%2%1s.",
           "width": 1280,
           "height": 960
         }
@@ -7981,37 +6201,13 @@
       ],
       "spicy_salmon_roll": [
         {
-          "path": "dishes/sushi/california_roll/california_roll_005.webp",
-          "blurhash": "LJN14QT0?w-;?wxuM{M_krskRjay",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/spicy_salmon_roll/spicy_salmon_roll_002.webp",
-          "blurhash": "LDJtIm$*E3S$I,MeICSw4~0geo-o",
-          "width": 1280,
-          "height": 960
-        },
-        {
           "path": "dishes/sushi/spicy_salmon_roll/spicy_salmon_roll_003.webp",
           "blurhash": "LrRUv{R.*0xY%hVXRPkqysx]e9Rj",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/spicy_salmon_roll/spicy_salmon_roll_004.webp",
-          "blurhash": "L2Dk[4^j_N0M+a4o.R==Lz-.Dktd",
           "width": 1280,
           "height": 960
         }
       ],
       "tempura_roll": [
-        {
-          "path": "dishes/sushi/tempura_roll/tempura_roll_001.webp",
-          "blurhash": "LACijm$$^OoG~pEMVsI:9[bvR%J9",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/sushi/tempura_roll/tempura_roll_002.webp",
           "blurhash": "LNJ*kt9I%Mkr8^RSkVNGIw00jXV@",
@@ -8021,18 +6217,6 @@
         {
           "path": "dishes/sushi/tempura_roll/tempura_roll_003.webp",
           "blurhash": "LNJ%HuSz59=_o}NLNIt60jE3kCR-",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_004.webp",
-          "blurhash": "LUL4D^.7%f#-R$ofWBoz_MV[aKEM",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/sushi/california_roll/california_roll_005.webp",
-          "blurhash": "LJN14QT0?w-;?wxuM{M_krskRjay",
           "width": 1280,
           "height": 960
         }
@@ -8237,14 +6421,6 @@
           "height": 960
         }
       ],
-      "croquetas": [
-        {
-          "path": "dishes/tapas/croquetas/croquetas_002.webp",
-          "blurhash": "LBC6V@Mx0L-:xuM|azR*IqRkIUxu",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "gambas_al_ajillo": [
         {
           "path": "dishes/tapas/gambas_al_ajillo/gambas_al_ajillo_001.webp",
@@ -8278,12 +6454,6 @@
         }
       ],
       "paella_valenciana": [
-        {
-          "path": "dishes/tapas/paella_valenciana/paella_valenciana_001.webp",
-          "blurhash": "LpJQQ4kWRQs9~UozaLjsEOkCofof",
-          "width": 1280,
-          "height": 960
-        },
         {
           "path": "dishes/tapas/paella_valenciana/paella_valenciana_002.webp",
           "blurhash": "LKG7}6aK5Tr@~Wr?S4V@2MjF$#WC",
@@ -8389,12 +6559,6 @@
           "blurhash": "LIEyVw?wT1of$|IUM{t79aITITM_",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_005.webp",
-          "blurhash": "LOG*yV4:9b%10MxuIokCWFjEs,t7",
-          "width": 1280,
-          "height": 960
         }
       ],
       "wrap_z_kurczakiem": [
@@ -8415,12 +6579,6 @@
           "blurhash": "LIEyVw?wT1of$|IUM{t79aITITM_",
           "width": 1280,
           "height": 960
-        },
-        {
-          "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_005.webp",
-          "blurhash": "LOG*yV4:9b%10MxuIokCWFjEs,t7",
-          "width": 1280,
-          "height": 960
         }
       ],
       "wrap_z_lososiem": [
@@ -8439,12 +6597,6 @@
         {
           "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_004.webp",
           "blurhash": "LIEyVw?wT1of$|IUM{t79aITITM_",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/wrap/wrap_wegetarianski/wrap_wegetarianski_005.webp",
-          "blurhash": "LOG*yV4:9b%10MxuIokCWFjEs,t7",
           "width": 1280,
           "height": 960
         }
@@ -8507,12 +6659,6 @@
         {
           "path": "dishes/zupa/gazpacho/gazpacho_003.webp",
           "blurhash": "LKBMMaE20f-oMxt7xuWA9]xDw]Si",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/zupa/gazpacho/gazpacho_005.webp",
-          "blurhash": "LRLEsLHX9FIo=|%LxFRPx]x]MxRO",
           "width": 1280,
           "height": 960
         }
@@ -8607,20 +6753,6 @@
           "height": 960
         }
       ],
-      "krem_z_kalafiora": [
-        {
-          "path": "dishes/zupa/krem_z_kalafiora/krem_z_kalafiora_002.webp",
-          "blurhash": "LUGS0^JAMxIVNanhNHoM00%0tRt6",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/zupa/krem_z_kalafiora/krem_z_kalafiora_005.webp",
-          "blurhash": "LED]I?NH_N%1v}8{D%nhFfV@-7RQ",
-          "width": 1280,
-          "height": 960
-        }
-      ],
       "krem_z_pomidorow": [
         {
           "path": "dishes/zupa/krem_z_pomidorow/krem_z_pomidorow_001.webp",
@@ -8675,14 +6807,6 @@
         {
           "path": "dishes/zupa/minestrone/minestrone_005.webp",
           "blurhash": "LcO{~yI9x^-p_NRjD%M{yEWCVrM{",
-          "width": 1280,
-          "height": 960
-        }
-      ],
-      "ogorkowa": [
-        {
-          "path": "dishes/zupa/ogorkowa/ogorkowa_004.webp",
-          "blurhash": "LRJj*iNHoh-oyCSgNFV@_4nhMxM{",
           "width": 1280,
           "height": 960
         }
@@ -8813,12 +6937,6 @@
         {
           "path": "dishes/zupa/zurek/zurek_002.webp",
           "blurhash": "LiMiQbs:?^j[MyWVn$juuiju-;of",
-          "width": 1280,
-          "height": 960
-        },
-        {
-          "path": "dishes/zupa/krem_z_kalafiora/krem_z_kalafiora_005.webp",
-          "blurhash": "LED]I?NH_N%1v}8{D%nhFfV@-7RQ",
           "width": 1280,
           "height": 960
         },
