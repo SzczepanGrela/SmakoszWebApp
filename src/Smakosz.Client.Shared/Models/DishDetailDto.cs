@@ -34,6 +34,7 @@ public class DishIngredientDto
     public int IngredientId { get; set; }
     public string Name { get; set; } = default!;
     public string? IconUrl { get; set; }
+    public string? IconBlurhash { get; set; }
     public bool IsAllergen { get; set; }
     public bool IsVegetarian { get; set; }
     public bool IsVegan { get; set; }

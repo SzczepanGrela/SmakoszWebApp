@@ -14,7 +14,11 @@
                     <div class="d-flex align-items-center gap-2 py-1 border-bottom">
                         @if (!string.IsNullOrEmpty(ingredient.IconUrl))
                         {
-                            <img src="@ingredient.IconUrl" alt="" style="width:20px;height:20px;" />
+                            <BlurHashImage Src="@ingredient.IconUrl" Alt="@ingredient.Name"
+                                           BlurHash="@ingredient.IconBlurhash"
+                                           ContainerStyle="width:20px;height:20px;flex-shrink:0;"
+                                           CssClass="rounded w-100 h-100"
+                                           ImgStyle="object-fit:cover;" />
                         }
                         else
                         {

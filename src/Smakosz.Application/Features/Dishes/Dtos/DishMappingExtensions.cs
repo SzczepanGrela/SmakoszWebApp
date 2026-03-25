@@ -63,6 +63,7 @@ public static class DishMappingExtensions
                 IngredientId = di.Ingredient.IngredientId,
                 Name = di.Ingredient.IngredientName,
                 IconUrl = di.Ingredient.IconUrl,
+                IconBlurhash = di.Ingredient.IconBlurhash,
                 IsAllergen = di.Ingredient.IsAllergen,
                 IsVegetarian = di.Ingredient.IsVegetarian,
                 IsVegan = di.Ingredient.IsVegan,
