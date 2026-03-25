@@ -13,8 +13,8 @@ public static class ImageVariants
 
     public static IReadOnlyList<ImageVariant> ForEntityType(MediaEntityType type) => type switch
     {
-        MediaEntityType.Dish => [Full, Thumb],
-        MediaEntityType.Restaurant => [Full, Thumb, Hero],
+        MediaEntityType.Dish => [Full, Thumb, Tiny],
+        MediaEntityType.Restaurant => [Full, Thumb, Tiny, Hero],
         MediaEntityType.User => [Full, Tiny],
         MediaEntityType.Hero => [Full],
         MediaEntityType.Review => [Full, Thumb],
