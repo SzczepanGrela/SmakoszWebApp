@@ -28,7 +28,7 @@ class PhotoPools:
             self.r2_domain = self.r2_domain.rstrip("/")
             logger.info(f"PhotoPools: Using R2 Public Domain: {self.r2_domain}")
         else:
-            logger.info("PhotoPools: Using local paths (/images/mock/)")
+            logger.info("PhotoPools: Using local paths (/seed/)")
 
     def _load_index(self) -> dict[str, Any]:
         """
@@ -69,7 +69,7 @@ class PhotoPools:
         """
         if self.r2_domain:
             return f"{self.r2_domain}/seed/{path}"
-        return f"/images/mock/{path}"
+        return f"/seed/{path}"
 
     def _extract_photo_data(self, photo_entry: str | dict) -> tuple[str, str | None, int | None, int | None]:
         """
@@ -124,9 +124,8 @@ class PhotoPools:
             photos = [p for sublist in cat_data.values() for p in sublist]
 
         if not photos:
-            # Dynamic fallback using placehold.co
-            text = f"{category} {variant}".replace(" ", "+")
-            return {"url": f"https://placehold.co/600x400?text={text}", "blurhash": None, "width": 600, "height": 400}
+            logger.error(f"No photos available for dish: {category}/{variant}")
+            return {"url": None, "blurhash": None, "width": None, "height": None}
 
         used = self._get_used(restaurant_id, "dishes")
 
@@ -168,9 +167,8 @@ class PhotoPools:
 
             photos = self.index.get("restaurants", {}).get(slugify(theme), [])
         if not photos:
-            # Dynamic fallback using placehold.co
-            text = f"{theme} Interior".replace(" ", "+")
-            return {"url": f"https://placehold.co/800x600?text={text}", "blurhash": None, "width": 800, "height": 600}
+            logger.error(f"No photos available for restaurant theme: {theme}")
+            return {"url": None, "blurhash": None, "width": None, "height": None}
 
         used = self._get_used(restaurant_id, "interior")
 
@@ -225,9 +223,8 @@ class PhotoPools:
             photos = [p for sublist in cat_data.values() for p in sublist]
 
         if not photos:
-            # Dynamic fallback using placehold.co
-            text = f"Review: {variant}".replace(" ", "+")
-            return {"url": f"https://placehold.co/400x300?text={text}", "blurhash": None, "width": 400, "height": 300}
+            logger.error(f"No photos available for review: {archetype}/{variant}")
+            return {"url": None, "blurhash": None, "width": None, "height": None}
 
         selected = random.choice(photos)
         selected_path, selected_hash, width, height = self._extract_photo_data(selected)
@@ -247,24 +244,17 @@ class PhotoPools:
         Get custom user avatar metadata from the avatar pool.
 
         Randomly selects from the pre-downloaded avatar image pool (300x300 squares).
-        Falls back to placehold.co if no avatars are available in the index.
+        Returns None URL if no avatars are available in the index.
 
         Returns:
             dict: {"url": str, "blurhash": str | None, "width": int | None, "height": int | None}
         """
         avatars: list = self.index.get("avatars", [])
 
-        # Fallback: If no avatars downloaded, use placeholder
+        # Fallback: If no avatars downloaded, log warning and return None
         if not avatars:
-            logger.debug("No avatars in index - using placehold.co fallback")
-            avatar_styles = [
-                "https://placehold.co/300x300/3498db/ffffff?text=Real+User",
-                "https://placehold.co/300x300/e74c3c/ffffff?text=Custom+Avatar",
-                "https://placehold.co/300x300/2ecc71/ffffff?text=Uploaded+Photo",
-                "https://placehold.co/300x300/f39c12/ffffff?text=User+Photo",
-                "https://placehold.co/300x300/9b59b6/ffffff?text=Profile+Pic",
-            ]
-            return {"url": random.choice(avatar_styles), "blurhash": None, "width": 300, "height": 300}
+            logger.warning("No avatars in index - photo_index may be missing avatar data")
+            return {"url": None, "blurhash": None, "width": None, "height": None}
 
         # Select random avatar from pool and format with R2/local domain
         selected = random.choice(avatars)
