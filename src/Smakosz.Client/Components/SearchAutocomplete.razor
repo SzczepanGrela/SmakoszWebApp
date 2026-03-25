@@ -1,0 +1,181 @@
+@using Smakosz.Client.Helpers
+@inject ISearchService SearchService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="search-autocomplete position-relative" @onfocusout="OnFocusOut">
+    <input type="search"
+           class="@CssClass"
+           placeholder="@Placeholder"
+           value="@Value"
+           @oninput="OnInput"
+           @onkeydown="OnKeyDown"
+           @onkeydown:preventDefault="_preventKeyDefault"
+           @onfocus="OnFocus"
+           autocomplete="off" />
+
+    @if (_loading)
+    {
+        <div class="position-absolute end-0 top-50 translate-middle-y me-3" style="z-index:5;">
+            <span class="spinner-border spinner-border-sm text-muted"></span>
+        </div>
+    }
+
+    @if (_showDropdown && _suggestions?.Count > 0)
+    {
+        <div class="autocomplete-dropdown">
+            @for (var i = 0; i < _suggestions.Count; i++)
+            {
+                var index = i;
+                var item = _suggestions[i];
+                <a class="autocomplete-item @(index == _selectedIndex ? "active" : "")"
+                   href="@GetItemUrl(item)"
+                   @onclick="() => NavigateToItem(item)"
+                   @onclick:preventDefault
+                   @onmouseenter="() => _selectedIndex = index">
+                    <div class="autocomplete-item-img">
+                        <BlurHashImage Src="@GetImage(item)"
+                                       BlurHash="@item.ImageBlurhash"
+                                       Alt="@item.Name"
+                                       ContainerStyle="width:36px;height:36px;border-radius:6px;overflow:hidden;"
+                                       ImgStyle="object-fit:cover;width:100%;height:100%;" />
+                    </div>
+                    <div class="autocomplete-item-text">
+                        <div class="autocomplete-item-name">@item.Name</div>
+                        @if (!string.IsNullOrEmpty(item.Subtitle))
+                        {
+                            <small class="autocomplete-item-subtitle">
+                                <i class="@GetTypeIcon(item.Type) me-1"></i>@item.Subtitle
+                            </small>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Placeholder { get; set; } = "Szukaj...";
+    [Parameter] public string CssClass { get; set; } = "form-control";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public EventCallback<string> OnSearch { get; set; }
+
+    private List<SuggestItemDto>? _suggestions;
+    private bool _showDropdown;
+    private bool _loading;
+    private int _selectedIndex = -1;
+    private bool _preventKeyDefault;
+    private Timer? _debounceTimer;
+    private CancellationTokenSource? _cts;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(Value);
+        _selectedIndex = -1;
+
+        _debounceTimer?.Dispose();
+        _cts?.Cancel();
+
+        if (string.IsNullOrWhiteSpace(Value) || Value.Length < 2)
+        {
+            _suggestions = null;
+            _showDropdown = false;
+            return;
+        }
+
+        _debounceTimer = new Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                _loading = true;
+                StateHasChanged();
+
+                _cts = new CancellationTokenSource();
+                try
+                {
+                    _suggestions = await SearchService.SuggestAsync(Value);
+                    _showDropdown = _suggestions?.Count > 0;
+                }
+                catch (OperationCanceledException) { }
+                catch { _showDropdown = false; }
+                finally
+                {
+                    _loading = false;
+                    StateHasChanged();
+                }
+            });
+        }, null, 300, Timeout.Infinite);
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        _preventKeyDefault = false;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                if (_suggestions?.Count > 0)
+                {
+                    _selectedIndex = Math.Min(_selectedIndex + 1, _suggestions.Count - 1);
+                    _showDropdown = true;
+                    _preventKeyDefault = true;
+                }
+                break;
+            case "ArrowUp":
+                if (_selectedIndex >= 0)
+                {
+                    _selectedIndex--;
+                    _preventKeyDefault = true;
+                }
+                break;
+            case "Enter":
+                if (_selectedIndex >= 0 && _suggestions != null && _selectedIndex < _suggestions.Count)
+                    NavigateToItem(_suggestions[_selectedIndex]);
+                else
+                    await OnSearch.InvokeAsync(Value);
+                break;
+            case "Escape":
+                _showDropdown = false;
+                _selectedIndex = -1;
+                break;
+        }
+    }
+
+    private void NavigateToItem(SuggestItemDto item)
+    {
+        _showDropdown = false;
+        Navigation.NavigateTo(GetItemUrl(item));
+    }
+
+    private void OnFocus()
+    {
+        if (_suggestions?.Count > 0)
+            _showDropdown = true;
+    }
+
+    private async Task OnFocusOut()
+    {
+        await Task.Delay(200);
+        _showDropdown = false;
+    }
+
+    private static string GetItemUrl(SuggestItemDto item) =>
+        item.Type == "dish" ? $"/dishes/{item.Slug}" : $"/restaurants/{item.Slug}";
+
+    private static string GetImage(SuggestItemDto item) => item.Type == "dish"
+        ? ImageHelper.GetDishImage(item.ImageUrl)
+        : ImageHelper.GetRestaurantImage(item.ImageUrl);
+
+    private static string GetTypeIcon(string type) => type == "dish"
+        ? "fa-solid fa-utensils"
+        : "fa-solid fa-store";
+
+    public void Dispose()
+    {
+        _debounceTimer?.Dispose();
+        _cts?.Dispose();
+    }
+}

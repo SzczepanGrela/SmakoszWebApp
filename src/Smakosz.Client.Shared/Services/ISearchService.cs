@@ -9,4 +9,5 @@ public interface ISearchService
         string sortBy = "rating", string sortDir = "desc", int page = 1, int pageSize = 20,
         double? lat = null, double? lng = null, double? radius = null, string? tags = null);
     Task<SearchFiltersDto?> GetFiltersAsync();
+    Task<List<SuggestItemDto>?> SuggestAsync(string query, int limit = 7);
 }

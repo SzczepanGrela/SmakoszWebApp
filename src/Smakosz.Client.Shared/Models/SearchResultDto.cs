@@ -30,3 +30,13 @@ public class FilterOption
     public string Value { get; set; } = default!;
     public string Label { get; set; } = default!;
 }
+
+public class SuggestItemDto
+{
+    public string Type { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string Slug { get; set; } = default!;
+    public string? Subtitle { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? ImageBlurhash { get; set; }
+}
