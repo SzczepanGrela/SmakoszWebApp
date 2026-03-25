@@ -10,8 +10,8 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="input-group">
-                <input class="form-control" type="search" @bind="_query" @onkeydown="HandleKey"
-                       placeholder="Szukaj dań lub restauracji..." />
+                <input class="form-control" type="search" @bind="_query" @bind:event="oninput"
+                       @onkeydown="HandleKey" placeholder="Szukaj dań lub restauracji..." />
                 <button class="btn btn-primary" @onclick="DoSearch">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
