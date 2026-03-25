@@ -396,6 +396,9 @@ docs/
 .vscode/settings.json
 tools/generator/data/dataset_stats.json
 
+# Vertex AI job config (contains real bucket name)
+tools/herbert/training_job.yaml
+
 # Diagnostic / build output files
 *_errors.txt
 *_results.txt
