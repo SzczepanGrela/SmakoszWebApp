@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
@@ -35,6 +37,33 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 
         if (!request.Approve)
             asset.RejectionReason = request.RejectionReason;
+
+        _db.ModerationLogs.Add(new ModerationLog
+        {
+            EntityType = ModerationEntityType.Photo,
+            EntityId = (int)asset.AssetId,
+            Actor = ModerationActor.Admin,
+            Verdict = request.Approve ? ModerationVerdict.Approved : ModerationVerdict.Rejected,
+            ReasonCodes = !string.IsNullOrEmpty(request.RejectionReason) ? [request.RejectionReason] : [],
+            ProcessedBy = _currentUser.UserId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        if (!request.Approve && asset.UploadedBy.HasValue)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserId = asset.UploadedBy.Value,
+                ActorId = _currentUser.UserId,
+                Type = NotificationType.System,
+                Severity = NotificationSeverity.Warning,
+                Title = "Zdjęcie odrzucone",
+                Message = !string.IsNullOrEmpty(request.RejectionReason)
+                    ? $"Twoje zdjęcie zostało odrzucone. Powód: {request.RejectionReason}"
+                    : "Twoje zdjęcie zostało odrzucone przez moderatora.",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

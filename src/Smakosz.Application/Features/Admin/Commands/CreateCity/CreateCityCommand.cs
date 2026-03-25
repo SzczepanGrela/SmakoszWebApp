@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.CreateCity;
 
@@ -52,6 +54,17 @@ public class CreateCityHandler : IRequestHandler<CreateCityCommand, ErrorOr<int>
         };
 
         _db.Cities.Add(city);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "Cities",
+            RecordId = city.CityId,
+            Operation = AuditOperation.Insert,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = _dateTime.UtcNow,
+            NewValues = JsonSerializer.Serialize(new { request.Name, request.Region })
+        });
         await _db.SaveChangesAsync(cancellationToken);
 
         return city.CityId;

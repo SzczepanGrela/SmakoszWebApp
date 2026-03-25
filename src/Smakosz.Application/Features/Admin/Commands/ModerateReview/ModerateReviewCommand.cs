@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ModerateReview;
@@ -35,6 +37,33 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
 
         if (!request.Approve)
             review.ContentRejectionReason = request.RejectionReason;
+
+        _db.ModerationLogs.Add(new ModerationLog
+        {
+            EntityType = ModerationEntityType.Review,
+            EntityId = review.ReviewId,
+            Actor = ModerationActor.Admin,
+            Verdict = request.Approve ? ModerationVerdict.Approved : ModerationVerdict.Rejected,
+            ReasonCodes = !string.IsNullOrEmpty(request.RejectionReason) ? [request.RejectionReason] : [],
+            ProcessedBy = _currentUser.UserId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        if (!request.Approve)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserId = review.UserId,
+                ActorId = _currentUser.UserId,
+                Type = NotificationType.System,
+                Severity = NotificationSeverity.Warning,
+                Title = "Recenzja odrzucona",
+                Message = !string.IsNullOrEmpty(request.RejectionReason)
+                    ? $"Twoja recenzja została odrzucona. Powód: {request.RejectionReason}"
+                    : "Twoja recenzja została odrzucona przez moderatora.",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

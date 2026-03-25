@@ -39,6 +39,14 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthResu
         if (usernameExists)
             return DomainErrors.Auth.UsernameAlreadyExists;
 
+        var usernameLower = request.Username.ToLowerInvariant();
+        var forbiddenUsername = await _db.ForbiddenWords
+            .Where(fw => fw.Category == ForbiddenWordCategory.Reserved || fw.Category == ForbiddenWordCategory.Offensive)
+            .AnyAsync(fw => !fw.IsRegex && usernameLower.Contains(fw.Word.ToLower()), cancellationToken);
+
+        if (forbiddenUsername)
+            return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
+
         var emailDomain = request.Email.ToLowerInvariant().Split('@')[1];
         var ipAddress = _currentUser.IpAddress;
         var now = DateTime.UtcNow;

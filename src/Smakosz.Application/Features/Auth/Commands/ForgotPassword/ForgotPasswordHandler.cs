@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Auth.Commands.ForgotPassword;
@@ -43,6 +44,17 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
         await _db.SaveChangesAsync(cancellationToken);
 
         await _emailService.SendPasswordResetAsync(user.Email, code, cancellationToken);
+
+        _db.EmailLogs.Add(new EmailLog
+        {
+            Type = "PasswordReset",
+            Recipient = user.Email,
+            Subject = "Reset hasła",
+            Status = "sent",
+            CreatedAt = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
     }

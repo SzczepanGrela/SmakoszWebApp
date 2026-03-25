@@ -165,3 +165,20 @@ public class AiModelDto
     public int UsageCount { get; set; }
     public DateTime? LastUsed { get; set; }
 }
+
+public class IngredientSuggestionDto
+{
+    public int SuggestionId { get; set; }
+    public string SuggestedName { get; set; } = string.Empty;
+    public bool IsAllergen { get; set; }
+    public bool IsVegetarian { get; set; }
+    public bool IsVegan { get; set; }
+    public bool IsGlutenFree { get; set; }
+    public bool IsLactoseFree { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string? AdminNote { get; set; }
+    public string? Username { get; set; }
+    public string? RestaurantName { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+}

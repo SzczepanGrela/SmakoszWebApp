@@ -14,6 +14,7 @@ public class LoginHandlerTests
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICurrentUserService _currentUser;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -21,12 +22,13 @@ public class LoginHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
+        _currentUser = Substitute.For<ICurrentUserService>();
 
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
         _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService);
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _currentUser);
     }
 
     [Fact]

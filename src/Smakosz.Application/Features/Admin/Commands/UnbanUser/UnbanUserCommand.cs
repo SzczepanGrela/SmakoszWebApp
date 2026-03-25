@@ -4,6 +4,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.UnbanUser;
@@ -48,6 +50,29 @@ public class UnbanUserHandler : IRequestHandler<UnbanUserCommand, ErrorOr<Succes
 
         if (bannedEmail is not null)
             _db.BannedIdentifiers.Remove(bannedEmail);
+
+        _db.ModerationLogs.Add(new ModerationLog
+        {
+            EntityType = ModerationEntityType.User,
+            EntityId = user.UserId,
+            Actor = ModerationActor.Admin,
+            Verdict = ModerationVerdict.Unbanned,
+            ProcessedBy = _currentUser.UserId,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        _db.Notifications.Add(new Notification
+        {
+            UserId = user.UserId,
+            ActorId = _currentUser.UserId,
+            Type = NotificationType.System,
+            Severity = NotificationSeverity.Success,
+            Title = "Konto odblokowane",
+            Message = "Twoje konto zostało odblokowane.",
+            SendEmail = true,
+            EmailStatus = EmailStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        });
 
         await _db.SaveChangesAsync(cancellationToken);
 

@@ -15,6 +15,7 @@ public class RegisterHandlerTests
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICurrentUserService _currentUser;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
@@ -22,12 +23,13 @@ public class RegisterHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
+        _currentUser = Substitute.For<ICurrentUserService>();
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
         _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _jwtTokenService);
+        _handler = new RegisterHandler(_db, _passwordHasher, _jwtTokenService, _currentUser);
     }
 
     [Fact]

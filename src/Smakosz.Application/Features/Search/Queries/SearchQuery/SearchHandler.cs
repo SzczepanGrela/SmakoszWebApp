@@ -6,6 +6,7 @@ using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Dishes.Dtos;
 using Smakosz.Application.Features.Restaurants.Dtos;
 using Smakosz.Application.Features.Search.Dtos;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Search.Queries.SearchQuery;
@@ -23,6 +24,17 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
     public async Task<ErrorOr<SearchResultDto>> Handle(SearchQuery request, CancellationToken cancellationToken)
     {
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            _db.SearchHistories.Add(new SearchHistory
+            {
+                UserId = _currentUser.UserId,
+                SearchQuery = request.Query,
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+
         var cuisineList = !string.IsNullOrWhiteSpace(request.Cuisines)
             ? request.Cuisines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
             : [];

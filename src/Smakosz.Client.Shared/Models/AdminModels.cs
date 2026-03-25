@@ -150,3 +150,20 @@ public class AdminLogEntryDto
     public string? Source { get; set; }
     public string? Exception { get; set; }
 }
+
+public class AdminIngredientSuggestionDto
+{
+    public int SuggestionId { get; set; }
+    public string SuggestedName { get; set; } = default!;
+    public bool IsAllergen { get; set; }
+    public bool IsVegetarian { get; set; }
+    public bool IsVegan { get; set; }
+    public bool IsGlutenFree { get; set; }
+    public bool IsLactoseFree { get; set; }
+    public string Status { get; set; } = default!;
+    public string? AdminNote { get; set; }
+    public string? Username { get; set; }
+    public string? RestaurantName { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+}

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Auth.Commands.Resend2fa;
@@ -45,6 +46,17 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
         await _db.SaveChangesAsync(cancellationToken);
 
         await _emailService.Send2faCodeAsync(user.Email, code, cancellationToken);
+
+        _db.EmailLogs.Add(new EmailLog
+        {
+            Type = "TwoFactorAuth",
+            Recipient = user.Email,
+            Subject = "Kod 2FA",
+            Status = "sent",
+            CreatedAt = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
     }

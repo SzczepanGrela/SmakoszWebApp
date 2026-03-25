@@ -1,8 +1,11 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
 
@@ -35,6 +38,8 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
         if (ingredient is null)
             return DomainErrors.Ingredient.NotFound;
 
+        var oldValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan });
+
         if (request.Name is not null)
             ingredient.IngredientName = request.Name;
 
@@ -46,6 +51,17 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
 
         if (request.IsVegan.HasValue)
             ingredient.IsVegan = request.IsVegan.Value;
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "Ingredients",
+            RecordId = ingredient.IngredientId,
+            Operation = AuditOperation.Update,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = DateTime.UtcNow,
+            OldValues = oldValues,
+            NewValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan })
+        });
 
         await _db.SaveChangesAsync(cancellationToken);
 

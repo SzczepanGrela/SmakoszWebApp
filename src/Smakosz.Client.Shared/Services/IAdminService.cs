@@ -33,4 +33,6 @@ public interface IAdminService
     Task<List<AdminAiModelDto>> GetAiModelsAsync();
     Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1);
     Task<bool> TriggerJobAsync(int id);
+    Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
+    Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null);
 }

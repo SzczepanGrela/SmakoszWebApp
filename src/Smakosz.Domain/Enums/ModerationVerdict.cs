@@ -4,5 +4,8 @@ public enum ModerationVerdict
 {
     Approved,
     Rejected,
-    NeedsReview
+    NeedsReview,
+    Banned,
+    Unbanned,
+    Resolved
 }

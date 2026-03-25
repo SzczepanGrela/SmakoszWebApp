@@ -1,9 +1,12 @@
+using System.Text.Json;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.DeleteCity;
 
@@ -45,6 +48,16 @@ public class DeleteCityHandler : IRequestHandler<DeleteCityCommand, ErrorOr<Succ
 
         if (hasRestaurants)
             return Error.Validation("CITY_HAS_RESTAURANTS", "Nie można usunąć miasta, które ma przypisane restauracje");
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TableName = "Cities",
+            RecordId = city.CityId,
+            Operation = AuditOperation.Delete,
+            ChangedBy = _currentUser.UserId?.ToString() ?? "system",
+            ChangedAt = DateTime.UtcNow,
+            OldValues = JsonSerializer.Serialize(new { city.CityName, city.Region })
+        });
 
         _db.Cities.Remove(city);
         await _db.SaveChangesAsync(cancellationToken);

@@ -6,5 +6,6 @@ public enum SecurityEventType
     BlockedIp,
     SuspiciousActivity,
     PasswordReset,
-    BannedRegistration
+    BannedRegistration,
+    PasswordChanged
 }
