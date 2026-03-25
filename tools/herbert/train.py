@@ -7,6 +7,7 @@ Usage:
     python tools/herbert/train.py \
         --train_data gs://<BUCKET>/datasets/train.csv \
         --val_data gs://<BUCKET>/datasets/val.csv \
+        --test_data gs://<BUCKET>/datasets/test.csv \
         --output_dir gs://<BUCKET>/models/v1
 """
 
@@ -76,6 +77,8 @@ def main():
                         help="Sciezka GCS do train.csv (gs://<BUCKET>/datasets/train.csv)")
     parser.add_argument("--val_data", type=str, required=True,
                         help="Sciezka GCS do val.csv (gs://<BUCKET>/datasets/val.csv)")
+    parser.add_argument("--test_data", type=str, default=None,
+                        help="Sciezka GCS do test.csv (gs://<BUCKET>/datasets/test.csv)")
     parser.add_argument("--output_dir", type=str, required=True,
                         help="Sciezka GCS do zapisu modelu (gs://<BUCKET>/models/v1)")
     parser.add_argument("--model_name", type=str, default="allegro/herbert-base-cased",
@@ -106,13 +109,18 @@ def main():
     os.makedirs("/tmp/data", exist_ok=True)
     download_from_gcs(args.train_data, "/tmp/data/train.csv")
     download_from_gcs(args.val_data, "/tmp/data/val.csv")
+    if args.test_data:
+        download_from_gcs(args.test_data, "/tmp/data/test.csv")
 
     # === 2. Zaladuj dane ===
     train_df = pd.read_csv("/tmp/data/train.csv")
     val_df = pd.read_csv("/tmp/data/val.csv")
+    test_df = pd.read_csv("/tmp/data/test.csv") if args.test_data else None
 
     print(f"Train size: {len(train_df)}")
     print(f"Val size: {len(val_df)}")
+    if test_df is not None:
+        print(f"Test size: {len(test_df)}")
 
     # === 3. Tokenizer ===
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -126,14 +134,22 @@ def main():
         )
 
     # === 4. Przygotuj datasety ===
+    torch_columns = ["input_ids", "attention_mask", "label"]
+
     train_dataset = Dataset.from_pandas(train_df)
     val_dataset = Dataset.from_pandas(val_df)
 
     train_dataset = train_dataset.map(tokenize_function, batched=True)
     val_dataset = val_dataset.map(tokenize_function, batched=True)
 
-    train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "label"])
-    val_dataset.set_format("torch", columns=["input_ids", "attention_mask", "label"])
+    train_dataset.set_format("torch", columns=torch_columns)
+    val_dataset.set_format("torch", columns=torch_columns)
+
+    test_dataset = None
+    if test_df is not None:
+        test_dataset = Dataset.from_pandas(test_df)
+        test_dataset = test_dataset.map(tokenize_function, batched=True)
+        test_dataset.set_format("torch", columns=torch_columns)
 
     # === 5. Model ===
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -179,9 +195,15 @@ def main():
     trainer.train()
 
     # === 9. Ewaluacja finalna ===
-    print("Final evaluation...")
-    eval_results = trainer.evaluate()
-    print(f"Eval results: {eval_results}")
+    print("Validation evaluation...")
+    val_results = trainer.evaluate(eval_dataset=val_dataset)
+    print(f"Val results: {val_results}")
+
+    test_results = {}
+    if test_dataset is not None:
+        print("Test evaluation (held-out)...")
+        test_results = trainer.evaluate(eval_dataset=test_dataset, metric_key_prefix="test")
+        print(f"Test results: {test_results}")
 
     # === 10. Zapisz model ===
     local_output = "/tmp/final_model"
@@ -189,8 +211,13 @@ def main():
     tokenizer.save_pretrained(local_output)
 
     with open(f"{local_output}/metrics.txt", "w") as f:
-        for key, value in eval_results.items():
+        f.write("=== Validation ===\n")
+        for key, value in val_results.items():
             f.write(f"{key}: {value}\n")
+        if test_results:
+            f.write("\n=== Test (held-out) ===\n")
+            for key, value in test_results.items():
+                f.write(f"{key}: {value}\n")
 
     # === 11. Upload do GCS ===
     print(f"Uploading model to {args.output_dir}...")

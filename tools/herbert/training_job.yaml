@@ -9,6 +9,7 @@ workerPoolSpecs:
       args:
         - --train_data=gs://<BUCKET>/datasets/train.csv
         - --val_data=gs://<BUCKET>/datasets/val.csv
+        - --test_data=gs://<BUCKET>/datasets/test.csv
         - --output_dir=gs://<BUCKET>/models/v1
         - --epochs=3
         - --batch_size=16
