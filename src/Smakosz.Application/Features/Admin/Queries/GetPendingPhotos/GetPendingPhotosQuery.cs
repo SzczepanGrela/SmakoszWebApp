@@ -41,6 +41,7 @@ public class GetPendingPhotosHandler : IRequestHandler<GetPendingPhotosQuery, Er
             .Select(a => new PhotoModerationDto
             {
                 AssetId = a.AssetId,
+                PublicId = a.PublicId,
                 Url = a.Url,
                 EntityType = a.EntityType.ToString(),
                 EntityId = a.EntityId,

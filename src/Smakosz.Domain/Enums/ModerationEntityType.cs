@@ -6,5 +6,6 @@ public enum ModerationEntityType
     Review,
     EditRequest,
     User,
-    Report
+    Report,
+    Ticket
 }

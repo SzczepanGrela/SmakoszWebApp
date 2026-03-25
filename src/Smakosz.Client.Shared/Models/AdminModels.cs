@@ -174,3 +174,64 @@ public class AdminIngredientSuggestionDto
     public DateTime? CreatedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
 }
+
+public class AdminTicketDetailDto
+{
+    public int TicketId { get; set; }
+    public string TicketType { get; set; } = default!;
+    public long ReferenceId { get; set; }
+    public string Status { get; set; } = default!;
+    public int Priority { get; set; }
+    public string? Description { get; set; }
+    public string? AssignedAdminUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
+
+    public ContactInfoDto? Contact { get; set; }
+    public AdminPhotoModerationDto? Photo { get; set; }
+    public AdminReviewModerationDto? Review { get; set; }
+    public AdminReportDto? Report { get; set; }
+    public AdminEditRequestModerationDto? EditRequest { get; set; }
+    public AdminIngredientSuggestionDto? Suggestion { get; set; }
+}
+
+public class ContactInfoDto
+{
+    public string Name { get; set; } = default!;
+    public string Email { get; set; } = default!;
+    public string Subject { get; set; } = default!;
+    public string Message { get; set; } = default!;
+}
+
+public class AdminPhotoModerationDto
+{
+    public long AssetId { get; set; }
+    public Guid PublicId { get; set; }
+    public string Url { get; set; } = default!;
+    public string EntityType { get; set; } = default!;
+    public int EntityId { get; set; }
+    public string? UploadedByUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class AdminReviewModerationDto
+{
+    public int ReviewId { get; set; }
+    public Guid PublicId { get; set; }
+    public string? Username { get; set; }
+    public string? DishName { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? Content { get; set; }
+    public int DishRating { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class AdminEditRequestModerationDto
+{
+    public int RequestId { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? Username { get; set; }
+    public string ChangeType { get; set; } = default!;
+    public string Status { get; set; } = default!;
+    public string Payload { get; set; } = default!;
+    public DateTime? CreatedAt { get; set; }
+}

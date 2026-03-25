@@ -87,6 +87,16 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
                     language = "pl"
                 })
             });
+
+            _db.SystemTickets.Add(new SystemTicket
+            {
+                TicketType = TicketType.ReviewContent,
+                ReferenceId = review.ReviewId,
+                Status = TicketStatus.Open,
+                Priority = 3,
+                Description = $"Nowa recenzja wymaga moderacji treści"
+            });
+
             await _db.SaveChangesAsync(cancellationToken);
         }
 

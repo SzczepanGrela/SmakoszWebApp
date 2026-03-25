@@ -65,6 +65,17 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
             });
         }
 
+        var relatedTicket = await _db.SystemTickets
+            .FirstOrDefaultAsync(t => t.TicketType == TicketType.ReviewContent
+                && t.ReferenceId == review.ReviewId
+                && t.Status != TicketStatus.Resolved
+                && t.Status != TicketStatus.Closed, cancellationToken);
+        if (relatedTicket != null)
+        {
+            relatedTicket.Status = TicketStatus.Resolved;
+            relatedTicket.AssignedAdminId = _currentUser.UserId;
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;

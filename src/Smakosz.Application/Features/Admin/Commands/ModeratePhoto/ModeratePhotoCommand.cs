@@ -65,6 +65,17 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
             });
         }
 
+        var relatedTicket = await _db.SystemTickets
+            .FirstOrDefaultAsync(t => t.TicketType == TicketType.Photo
+                && t.ReferenceId == asset.AssetId
+                && t.Status != TicketStatus.Resolved
+                && t.Status != TicketStatus.Closed, cancellationToken);
+        if (relatedTicket != null)
+        {
+            relatedTicket.Status = TicketStatus.Resolved;
+            relatedTicket.AssignedAdminId = _currentUser.UserId;
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
