@@ -151,6 +151,13 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Select(g => g.Key)
             .ToListAsync(cancellationToken);
 
+        var heroImage = await _db.MediaAssets
+            .AsNoTracking()
+            .Where(m => m.EntityType == MediaEntityType.Hero && m.Status == MediaAssetStatus.Approved)
+            .OrderBy(_ => EF.Functions.Random())
+            .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash })
+            .FirstOrDefaultAsync(cancellationToken);
+
         return new HomeDataDto
         {
             Stats = stats,
@@ -158,7 +165,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             TrendingDishes = trendingDishes,
             TopRatedDishes = topRatedDishes,
             RecentReviews = recentReviews,
-            PopularCategories = popularCategories
+            PopularCategories = popularCategories,
+            HeroImage = heroImage
         };
     }
 }

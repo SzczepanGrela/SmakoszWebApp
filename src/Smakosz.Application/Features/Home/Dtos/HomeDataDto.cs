@@ -12,6 +12,13 @@ public class HomeDataDto
     public required List<DishCardDto> TopRatedDishes { get; init; }
     public required List<ReviewCardDto> RecentReviews { get; init; }
     public required List<string> PopularCategories { get; init; }
+    public HeroImageDto? HeroImage { get; init; }
+}
+
+public class HeroImageDto
+{
+    public string Url { get; init; } = string.Empty;
+    public string? Blurhash { get; init; }
 }
 
 public class StatsDto

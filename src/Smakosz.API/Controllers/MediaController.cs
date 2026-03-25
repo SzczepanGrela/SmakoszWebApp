@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Smakosz.Application.Features.Media.Commands.DeleteMedia;
 using Smakosz.Application.Features.Media.Commands.UploadMedia;
 
 namespace Smakosz.API.Controllers;
@@ -25,5 +26,12 @@ public class MediaController : ApiController
         var result = await _mediator.Send(new UploadMediaCommand(
             stream, file.FileName, entityType, entityId));
         return ToCreatedResult(result);
+    }
+
+    [HttpDelete("{publicId:guid}")]
+    public async Task<IActionResult> Delete(Guid publicId)
+    {
+        var result = await _mediator.Send(new DeleteMediaCommand(publicId));
+        return ToNoContentResult(result);
     }
 }
