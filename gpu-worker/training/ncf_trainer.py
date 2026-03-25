@@ -7,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
@@ -60,9 +59,21 @@ class NcfTrainer:
         return list(reader)
 
     def _prepare_data(self, rows: list[dict]) -> tuple:
-        user_ids_raw = [int(r["user_id"]) for r in rows]
-        dish_ids_raw = [int(r["dish_id"]) for r in rows]
-        ratings = [float(r["rating"]) for r in rows]
+        if not rows:
+            raise ValueError("Training dataset is empty")
+
+        required = {"user_id", "dish_id", "rating"}
+        actual = set(rows[0].keys())
+        missing = required - actual
+        if missing:
+            raise ValueError(f"CSV missing required columns: {missing}. Found: {actual}")
+
+        try:
+            user_ids_raw = [int(r["user_id"]) for r in rows]
+            dish_ids_raw = [int(r["dish_id"]) for r in rows]
+            ratings = [float(r["rating"]) for r in rows]
+        except (ValueError, KeyError) as e:
+            raise ValueError(f"Invalid data in CSV: {e}") from e
 
         unique_users = sorted(set(user_ids_raw))
         unique_dishes = sorted(set(dish_ids_raw))
@@ -103,6 +114,8 @@ class NcfTrainer:
 
         # Train/validation split (90/10)
         n = len(ratings)
+        if n < 10:
+            raise ValueError(f"Dataset too small for training: {n} rows (minimum: 10)")
         indices = torch.randperm(n)
         split = int(n * 0.9)
         train_idx, val_idx = indices[:split], indices[split:]

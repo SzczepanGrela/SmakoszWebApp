@@ -1,4 +1,6 @@
+import json
 import logging
+import time
 from typing import Any
 
 import httpx
@@ -73,8 +75,6 @@ class WorkerApiClient:
             return False
 
     def complete_job(self, job_id: int, result: dict, processing_time_ms: int) -> None:
-        import json
-
         try:
             resp = self._client.put(
                 f"/api/worker/jobs/{job_id}/complete",
@@ -124,10 +124,8 @@ class WorkerApiClient:
             logger.warning("Heartbeat failed: API unreachable")
 
     def get_config(self) -> dict:
-        import time
-
         now = time.monotonic()
-        if self._config_cache is not None and (now - self._config_cached_at) < 300:
+        if self._config_cache is not None and (now - self._config_cached_at) < self._settings.config_cache_ttl:
             return self._config_cache
 
         try:

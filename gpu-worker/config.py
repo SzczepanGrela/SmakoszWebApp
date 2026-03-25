@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     poll_interval_idle: int = 5
     poll_interval_busy: int = 1
     heartbeat_interval: int = 60
+    config_cache_ttl: int = 300
 
     # Models - R2
     r2_endpoint: str = ""
