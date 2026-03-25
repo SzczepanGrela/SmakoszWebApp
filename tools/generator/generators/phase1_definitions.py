@@ -655,7 +655,7 @@ class HeroImagesPhase(BasePhase):
 
             images = hero_index.get("images", [])
             r2_base = PHOTO_CONFIG.get("r2_public_base_url", "").rstrip("/")  # type: ignore[attr-defined]
-            r2_mock_prefix = PHOTO_CONFIG.get("r2_mock_prefix", "smakosz/images/mock")
+            r2_mock_prefix = PHOTO_CONFIG.get("r2_mock_prefix", "seed")
 
             hero_data = []
             for idx, img in enumerate(images, start=1):

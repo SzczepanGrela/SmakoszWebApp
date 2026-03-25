@@ -32,7 +32,7 @@ class TestR2UploadWithMock:
         mock_boto_client.return_value = mock_s3_client
 
         # Simulate prefix-scoped upload
-        prefix = "smakosz/images/mock/"
+        prefix = "seed/"
         local_file = "data/images/dishes/pizza/photo.jpg"
         remote_key = f"{prefix}dishes/pizza/photo.jpg"
 
@@ -54,17 +54,17 @@ class TestR2DeleteWithMock:
         # Simulate list_objects returning files
         mock_s3_client.list_objects_v2.return_value = {
             "Contents": [
-                {"Key": "smakosz/images/mock/dishes/test.jpg"},
-                {"Key": "smakosz/images/mock/avatars/user.jpg"},
+                {"Key": "seed/dishes/test.jpg"},
+                {"Key": "seed/avatars/user.jpg"},
             ]
         }
 
         client = mock_boto_client("s3")
-        response = client.list_objects_v2(Bucket="bucket", Prefix="smakosz/images/mock/")
+        response = client.list_objects_v2(Bucket="bucket", Prefix="seed/")
 
-        # Verify only mock-prefixed files are listed
+        # Verify only seed-prefixed files are listed
         for obj in response.get("Contents", []):
-            assert obj["Key"].startswith("smakosz/images/mock/")
+            assert obj["Key"].startswith("seed/")
 
     @patch("boto3.client")
     def test_delete_is_safe(self, mock_boto_client, mock_s3_client):
@@ -72,7 +72,7 @@ class TestR2DeleteWithMock:
         mock_boto_client.return_value = mock_s3_client
 
         client = mock_boto_client("s3")
-        client.delete_object(Bucket="bucket", Key="smakosz/images/mock/test.jpg")
+        client.delete_object(Bucket="bucket", Key="seed/test.jpg")
 
         # Verify mock was called, not real S3
         mock_s3_client.delete_object.assert_called_once()

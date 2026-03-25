@@ -63,16 +63,12 @@ class PhotoPools:
     def _format_url(self, path: str) -> str:
         """Helper to format URL based on configuration (R2 vs Local).
 
-        R2 Path Architecture (v2):
-        - Mock data: smakosz/images/mock/{dishes,restaurants,avatars}/...
-        - Ingredients: smakosz/images/ingredients/...
+        R2 Path Architecture (v3):
+        - Seed data: seed/{dishes,restaurants,avatars,hero}/...
+        - Ingredients: seed/ingredients/...
         """
         if self.r2_domain:
-            # Check if this is an ingredient path
-            if path.startswith("ingredients/"):
-                return f"{self.r2_domain}/smakosz/images/{path}"
-            else:
-                return f"{self.r2_domain}/smakosz/images/mock/{path}"
+            return f"{self.r2_domain}/seed/{path}"
         return f"/images/mock/{path}"
 
     def _extract_photo_data(self, photo_entry: str | dict) -> tuple[str, str | None, int | None, int | None]:
