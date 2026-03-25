@@ -20,8 +20,10 @@ else
     <div class="container mt-4" style="max-width:800px;">
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body text-center py-4">
-                <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
-                     alt="@_profile.Username" class="profile-avatar rounded-circle mb-3" />
+                <BlurHashImage Src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
+                               Alt="@_profile.Username" BlurHash="@_profile.AvatarBlurhash"
+                               ContainerStyle="width:120px;height:120px;border-radius:50%;overflow:hidden;border:4px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.15);margin-bottom:1rem;"
+                               ImgStyle="object-fit:cover;width:100%;height:100%;" />
                 <h2 class="mb-1">@_profile.Username</h2>
                 @if (_profile.CreatedAt.HasValue)
                 {

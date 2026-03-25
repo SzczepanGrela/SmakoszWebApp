@@ -7,6 +7,7 @@ public class MyProfileDto
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string? AvatarUrl { get; set; }
+    public string? AvatarBlurhash { get; set; }
     public string Role { get; set; } = default!;
     public bool EmailVerified { get; set; }
     public bool Is2faEnabled { get; set; }
@@ -22,6 +23,7 @@ public class UserPublicProfileDto
     public string Slug { get; set; } = default!;
     public string Username { get; set; } = default!;
     public string? AvatarUrl { get; set; }
+    public string? AvatarBlurhash { get; set; }
     public int ReviewCount { get; set; }
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }

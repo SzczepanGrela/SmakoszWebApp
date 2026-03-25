@@ -38,6 +38,7 @@ public class GetUserProfileHandler : IRequestHandler<GetUserProfileQuery, ErrorO
             Slug = user.Slug ?? string.Empty,
             Username = user.Username,
             AvatarUrl = user.AvatarUrl,
+            AvatarBlurhash = user.AvatarBlurhash,
             ReviewCount = user.ReviewCount,
             FollowersCount = user.FollowersCount,
             FollowingCount = user.FollowingCount,

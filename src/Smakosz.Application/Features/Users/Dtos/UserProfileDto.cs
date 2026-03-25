@@ -6,6 +6,7 @@ public class PublicUserProfileDto
     public string Slug { get; init; } = default!;
     public string Username { get; init; } = default!;
     public string? AvatarUrl { get; init; }
+    public string? AvatarBlurhash { get; init; }
     public int ReviewCount { get; init; }
     public int FollowersCount { get; init; }
     public int FollowingCount { get; init; }
