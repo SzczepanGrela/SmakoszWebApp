@@ -407,3 +407,6 @@ tools/herbert/training_job.yaml
 # Diagnostic / build output files
 *_errors.txt
 *_results.txt
+
+# One-off maintenance scripts
+tools/r2_maintenance.py
