@@ -1,0 +1,111 @@
+@inject IMediaService MediaService
+@inject ToastService Toast
+
+<div class="image-upload">
+    @if (!string.IsNullOrEmpty(_previewUrl))
+    {
+        <div class="mb-2">
+            <img src="@_previewUrl" class="img-fluid rounded" style="max-height:200px;object-fit:cover;" alt="Podglad" />
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(CurrentImageUrl))
+    {
+        <div class="mb-2">
+            <img src="@CurrentImageUrl" class="img-fluid rounded" style="max-height:200px;object-fit:cover;" alt="Aktualne zdjecie" />
+        </div>
+    }
+
+    <InputFile OnChange="OnFileSelected" accept=".jpg,.jpeg,.png,.webp" class="form-control" disabled="@_uploading" />
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <small class="text-danger">@_error</small>
+    }
+    else if (_uploading)
+    {
+        <div class="d-flex align-items-center gap-2 mt-2">
+            <span class="spinner-border spinner-border-sm"></span>
+            <small class="text-muted">Przesylanie...</small>
+        </div>
+    }
+    else
+    {
+        <small class="text-muted">JPG, PNG lub WebP, max 5 MB</small>
+    }
+</div>
+
+@code {
+    [Parameter] public string EntityType { get; set; } = "dish";
+    [Parameter] public int? EntityId { get; set; }
+    [Parameter] public string? CurrentImageUrl { get; set; }
+    [Parameter] public EventCallback<string> OnImageUploaded { get; set; }
+
+    private const long MaxFileSize = 5 * 1024 * 1024;
+    private static readonly HashSet<string> AllowedTypes = new(StringComparer.OrdinalIgnoreCase)
+        { "image/jpeg", "image/png", "image/webp" };
+
+    private bool _uploading;
+    private string? _previewUrl;
+    private string? _error;
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _previewUrl = null;
+
+        var file = e.File;
+
+        if (file.Size > MaxFileSize)
+        {
+            _error = "Plik jest zbyt duzy (max 5 MB).";
+            return;
+        }
+
+        if (!AllowedTypes.Contains(file.ContentType))
+        {
+            _error = "Niedozwolony format pliku.";
+            return;
+        }
+
+        try
+        {
+            var previewFile = await file.RequestImageFileAsync(file.ContentType, 400, 400);
+            using var previewStream = previewFile.OpenReadStream(MaxFileSize);
+            using var ms = new MemoryStream();
+            await previewStream.CopyToAsync(ms);
+            _previewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(ms.ToArray())}";
+            StateHasChanged();
+        }
+        catch
+        {
+        }
+
+        _uploading = true;
+        StateHasChanged();
+
+        try
+        {
+            using var stream = file.OpenReadStream(MaxFileSize);
+            var result = await MediaService.UploadImageAsync(stream, file.Name, EntityType, EntityId);
+
+            if (result != null)
+            {
+                await OnImageUploaded.InvokeAsync(result.Url);
+                _previewUrl = result.Url;
+            }
+            else
+            {
+                _error = "Nie udalo sie przeslac pliku.";
+                Toast.ShowError("Błąd przesylania zdjecia.");
+            }
+        }
+        catch
+        {
+            _error = "Wystapil blad podczas przesylania.";
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+}
