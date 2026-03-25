@@ -36,15 +36,14 @@ public class AdminUserDto
 
 public class AdminTicketDto
 {
-    public int Id { get; set; }
-    public string Subject { get; set; } = default!;
-    public string Description { get; set; } = default!;
+    public int TicketId { get; set; }
+    public string TicketType { get; set; } = default!;
+    public long ReferenceId { get; set; }
     public string Status { get; set; } = default!;
-    public string Priority { get; set; } = default!;
-    public string? AssignedTo { get; set; }
-    public string CreatedBy { get; set; } = default!;
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ResolvedAt { get; set; }
+    public int Priority { get; set; }
+    public string? Description { get; set; }
+    public string? AssignedAdminUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
 }
 
 public class AdminPhotoDto
