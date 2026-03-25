@@ -15,6 +15,7 @@ public class RestaurantDetailDto
     public int ReviewCount { get; set; }
     public decimal? TrendingScore { get; set; }
     public string? ImageUrl { get; set; }
+    public string? HeroImageUrl { get; set; }
     public string? ImageBlurhash { get; set; }
     public string? Description { get; set; }
     public string? Address { get; set; }
