@@ -1,5 +1,6 @@
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Search.Queries.GetSearchFilters;
+using Smakosz.Application.Features.Search.Queries.SearchSuggest;
 using SearchQueryRequest = Smakosz.Application.Features.Search.Queries.SearchQuery.SearchQuery;
 
 namespace Smakosz.API.Controllers;
@@ -50,6 +51,13 @@ public class SearchController : ApiController
     public async Task<IActionResult> GetFilters()
     {
         var result = await _mediator.Send(new GetSearchFiltersQuery());
+        return ToActionResult(result);
+    }
+
+    [HttpGet("suggest")]
+    public async Task<IActionResult> Suggest([FromQuery(Name = "q")] string? query, [FromQuery] int limit = 7)
+    {
+        var result = await _mediator.Send(new SearchSuggestQuery(query ?? "", limit));
         return ToActionResult(result);
     }
 }
