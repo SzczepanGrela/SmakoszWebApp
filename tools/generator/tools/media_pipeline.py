@@ -29,7 +29,7 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

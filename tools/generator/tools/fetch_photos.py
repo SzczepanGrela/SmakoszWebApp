@@ -17,7 +17,7 @@ from typing import Any, cast
 from dotenv import load_dotenv
 from tqdm import tqdm  # type: ignore
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
 import requests  # type: ignore
 from requests.adapters import HTTPAdapter  # type: ignore
