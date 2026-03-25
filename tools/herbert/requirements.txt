@@ -1,0 +1,10 @@
+# Dataset preparation (local)
+pandas
+scikit-learn
+
+# Training (Vertex AI)
+torch
+transformers
+datasets
+google-cloud-storage
+accelerate
