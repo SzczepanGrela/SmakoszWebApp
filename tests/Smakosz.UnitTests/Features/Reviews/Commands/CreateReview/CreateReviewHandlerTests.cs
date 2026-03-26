@@ -150,4 +150,16 @@ public class CreateReviewHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.ContentStatus.Should().Be(ReviewContentStatus.None);
     }
+
+    [Fact]
+    public async Task Handle_NonUserRole_ReturnsUserRoleOnlyError()
+    {
+        var restaurantUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "restaurant");
+        var handler = new CreateReviewHandler(_db, restaurantUser);
+
+        var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("SOCIAL_USER_ROLE_ONLY");
+    }
 }
