@@ -60,7 +60,8 @@ else
                 </div>
 
                 <DietaryBadges IsVegan="@_dish.IsVegan" IsVegetarian="@_dish.IsVegetarian"
-                               IsGlutenFree="@_dish.IsGlutenFree" IsLactoseFree="@_dish.IsLactoseFree" />
+                               IsGlutenFree="@_dish.IsGlutenFree" IsLactoseFree="@_dish.IsLactoseFree"
+                               Tags="@_dish.Tags" />
 
                 @if (!string.IsNullOrWhiteSpace(_dish.Description))
                 {
@@ -81,9 +82,13 @@ else
                 <div class="mt-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
-                        <a href="/review/add?dish=@Slug" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-pen me-1"></i>Ocen to danie
-                        </a>
+                        <AuthorizeView Roles="user">
+                            <Authorized>
+                                <a href="/review/add?dish=@Slug" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-pen me-1"></i>Ocen to danie
+                                </a>
+                            </Authorized>
+                        </AuthorizeView>
                     </div>
 
                     @if (_reviews != null && _reviews.Data.Any())

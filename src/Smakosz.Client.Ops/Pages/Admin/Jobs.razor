@@ -6,7 +6,17 @@
 
 <PageTitle>Zadania - Admin Smakosz</PageTitle>
 
-<h2 class="fw-bold mb-4"><i class="fa-solid fa-clock-rotate-left me-2"></i>Zadania w tle</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Zadania w tle</h2>
+    <div>
+        <button class="btn btn-outline-success me-2" @onclick="ScheduleNcfTraining">
+            <i class="fa-solid fa-brain me-1"></i>NCF Training
+        </button>
+        <button class="btn btn-primary" @onclick="ShowCreateModal">
+            <i class="fa-solid fa-plus me-1"></i>Nowe zadanie
+        </button>
+    </div>
+</div>
 
 @if (_loading)
 {
@@ -42,9 +52,15 @@ else
                         <td class="text-muted small">@(job.CreatedAt?.ToString("dd.MM HH:mm") ?? "-")</td>
                         <td class="text-muted small">@(job.FinishedAt?.ToString("dd.MM HH:mm") ?? "-")</td>
                         <td>
-                            <button class="btn btn-outline-primary btn-sm" @onclick="() => TriggerJob(job.JobId)" title="Uruchom teraz">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => TriggerJob(job.JobId)" title="Uruchom ponownie">
                                 <i class="fa-solid fa-play"></i>
                             </button>
+                            @if (job.Status is "Pending" or "Processing")
+                            {
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => CancelJob(job.JobId)" title="Anuluj">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            }
                         </td>
                     </tr>
                 }
@@ -58,9 +74,55 @@ else
     }
 }
 
+@if (_showCreateModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nowe zadanie</h5>
+                    <button type="button" class="btn-close" @onclick="CloseCreateModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Typ</label>
+                        <select class="form-select" @bind="_createRequest.Type">
+                            <option value="text_moderation">text_moderation</option>
+                            <option value="image_moderation">image_moderation</option>
+                            <option value="ncf_training">ncf_training</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Priorytet</label>
+                        <input type="number" class="form-control" @bind="_createRequest.Priority" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Entity ID</label>
+                        <input type="text" class="form-control" @bind="_createRequest.EntityId" placeholder="Opcjonalne" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Entity Type</label>
+                        <input type="text" class="form-control" @bind="_createRequest.EntityType" placeholder="Opcjonalne" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payload (JSON)</label>
+                        <textarea class="form-control" rows="4" @bind="_createRequest.Payload" placeholder="Opcjonalne"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseCreateModal">Anuluj</button>
+                    <button class="btn btn-primary" @onclick="SubmitCreateJob">Utworz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private PagedResult<AdminJobDto>? _jobs;
     private bool _loading = true;
+    private bool _showCreateModal;
+    private CreateJobRequest _createRequest = new();
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
@@ -76,5 +138,39 @@ else
         var success = await AdminService.TriggerJobAsync(id);
         if (success) { Toast.ShowSuccess("Zadanie uruchomione."); await LoadPage(1); }
         else Toast.ShowError("Nie udalo sie uruchomic zadania.");
+    }
+
+    private async Task CancelJob(int id)
+    {
+        var success = await AdminService.CancelJobAsync(id);
+        if (success) { Toast.ShowSuccess("Zadanie anulowane."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie anulowac zadania.");
+    }
+
+    private async Task ScheduleNcfTraining()
+    {
+        var success = await AdminService.ScheduleNcfTrainingAsync();
+        if (success) { Toast.ShowSuccess("NCF Training zaplanowany."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie zaplanowac NCF Training.");
+    }
+
+    private void ShowCreateModal()
+    {
+        _createRequest = new CreateJobRequest { Type = "text_moderation" };
+        _showCreateModal = true;
+    }
+
+    private void CloseCreateModal() => _showCreateModal = false;
+
+    private async Task SubmitCreateJob()
+    {
+        var success = await AdminService.CreateJobAsync(_createRequest);
+        if (success)
+        {
+            Toast.ShowSuccess("Zadanie utworzone.");
+            _showCreateModal = false;
+            await LoadPage(1);
+        }
+        else Toast.ShowError("Nie udalo sie utworzyc zadania.");
     }
 }

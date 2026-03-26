@@ -25,9 +25,9 @@
                 <div class="d-flex align-items-center gap-2">
                     @if (ShowActions)
                     {
-                        <AuthorizeView>
+                        <AuthorizeView Roles="user">
                             <Authorized>
-                                <button class="btn btn-link btn-sm text-muted p-0" title="Zglos recenzje" @onclick="() => _showReportModal = true">
+                                <button class="btn btn-link btn-sm text-muted p-0" title="Zglos recenzje" @onclick="OpenReportModal">
                                     <i class="fa-solid fa-flag"></i>
                                 </button>
                             </Authorized>
@@ -51,8 +51,31 @@
 {
     <Modal IsOpen="true" Title="Zglos recenzje" OnClose="() => _showReportModal = false">
         <div class="mb-3">
-            <label class="form-label">Powód zgloszenia *</label>
-            <textarea class="form-control" rows="3" @bind="_reportReason" placeholder="Opisz powod zgloszenia..."></textarea>
+            <label class="form-label fw-bold">Powód zgloszenia *</label>
+            @if (_reportReasons == null)
+            {
+                <div class="text-center py-2">
+                    <span class="spinner-border spinner-border-sm"></span> Ladowanie...
+                </div>
+            }
+            else
+            {
+                @foreach (var reason in _reportReasons)
+                {
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="reason-@reason.ReasonCode"
+                               checked="@_selectedReasonCodes.Contains(reason.ReasonCode)"
+                               @onchange="e => ToggleReason(reason.ReasonCode, (bool)(e.Value ?? false))" />
+                        <label class="form-check-label" for="reason-@reason.ReasonCode">
+                            @reason.LabelPl
+                            @if (!string.IsNullOrEmpty(reason.Description))
+                            {
+                                <small class="text-muted d-block">@reason.Description</small>
+                            }
+                        </label>
+                    </div>
+                }
+            }
         </div>
         <div class="mb-3">
             <label class="form-label">Dodatkowy opis (opcjonalnie)</label>
@@ -60,7 +83,7 @@
         </div>
         <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showReportModal = false">Anuluj</button>
-            <button class="btn btn-danger btn-sm" @onclick="SubmitReport" disabled="@(string.IsNullOrWhiteSpace(_reportReason) || _reportSubmitting)">
+            <button class="btn btn-danger btn-sm" @onclick="SubmitReport" disabled="@(!_selectedReasonCodes.Any() || _reportSubmitting)">
                 @if (_reportSubmitting)
                 {
                     <span class="spinner-border spinner-border-sm me-1"></span>
@@ -78,23 +101,40 @@
     [Parameter] public bool ShowActions { get; set; }
 
     private bool _showReportModal;
-    private string _reportReason = "";
+    private List<Smakosz.Client.Models.ReportReasonDto>? _reportReasons;
+    private HashSet<string> _selectedReasonCodes = new();
     private string? _reportDescription;
     private bool _reportSubmitting;
 
+    private async Task OpenReportModal()
+    {
+        _showReportModal = true;
+        _selectedReasonCodes.Clear();
+        _reportDescription = null;
+        _reportReasons ??= await ReviewService.GetReportReasonsAsync();
+    }
+
+    private void ToggleReason(string code, bool isChecked)
+    {
+        if (isChecked)
+            _selectedReasonCodes.Add(code);
+        else
+            _selectedReasonCodes.Remove(code);
+    }
+
     private async Task SubmitReport()
     {
-        if (string.IsNullOrWhiteSpace(_reportReason)) return;
+        if (!_selectedReasonCodes.Any()) return;
 
         _reportSubmitting = true;
-        var success = await ReviewService.ReportReviewAsync(Review.PublicId, _reportReason, _reportDescription);
+        var success = await ReviewService.ReportReviewAsync(Review.PublicId, _selectedReasonCodes.ToList(), _reportDescription);
         _reportSubmitting = false;
 
         if (success)
         {
             Toast.ShowSuccess("Zgloszenie zostalo wyslane.");
             _showReportModal = false;
-            _reportReason = "";
+            _selectedReasonCodes.Clear();
             _reportDescription = null;
         }
         else

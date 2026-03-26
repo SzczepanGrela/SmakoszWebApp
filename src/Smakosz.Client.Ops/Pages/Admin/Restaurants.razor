@@ -23,13 +23,50 @@ else if (_restaurants == null || !_restaurants.Data.Any())
 }
 else
 {
-    <div class="row">
-        @foreach (var r in _restaurants.Data)
-        {
-            <div class="col-md-6 col-lg-4 mb-4">
-                <RestaurantCard Restaurant="@r" />
-            </div>
-        }
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Status</th>
+                    <th>Weryfikacja</th>
+                    <th>Wlasciciel</th>
+                    <th>Ocena</th>
+                    <th>Recenzje</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in _restaurants.Data)
+                {
+                    <tr>
+                        <td><a href="/restaurant/@r.Slug">@r.Name</a></td>
+                        <td><span class="badge bg-@GetStatusColor(r.Status)">@r.Status</span></td>
+                        <td>
+                            @if (r.IsVerified)
+                            {
+                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Zweryfikowana</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Niezweryfikowana</span>
+                            }
+                        </td>
+                        <td>@(r.OwnerUsername ?? "-")</td>
+                        <td>@r.AverageRating.ToString("F1")</td>
+                        <td>@r.ReviewCount</td>
+                        <td>
+                            @if (!r.IsVerified)
+                            {
+                                <button class="btn btn-sm btn-success" @onclick="() => VerifyRestaurant(r)">
+                                    <i class="fa-solid fa-check me-1"></i>Zweryfikuj
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 
     @if (_restaurants.Pagination.TotalPages > 1)
@@ -39,7 +76,7 @@ else
 }
 
 @code {
-    private PagedResult<RestaurantCardDto>? _restaurants;
+    private PagedResult<AdminRestaurantDto>? _restaurants;
     private string _search = "";
     private bool _loading = true;
 
@@ -52,6 +89,25 @@ else
         _loading = false;
     }
 
+    private async Task VerifyRestaurant(AdminRestaurantDto restaurant)
+    {
+        var success = await AdminService.VerifyRestaurantAsync(restaurant.PublicId);
+        if (success)
+        {
+            restaurant.IsVerified = true;
+            restaurant.Status = "Active";
+        }
+    }
+
     private async Task DoSearch() => await LoadPage(1);
     private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
+
+    private static string GetStatusColor(string status) => status switch
+    {
+        "Active" => "success",
+        "PendingVerification" => "warning",
+        "Suspended" => "danger",
+        "ClosedPermanently" => "secondary",
+        _ => "info"
+    };
 }

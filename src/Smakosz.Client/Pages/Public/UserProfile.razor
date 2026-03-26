@@ -35,7 +35,7 @@ else
                     <small class="text-muted">Obserwuje</small>
                 </a>
             </div>
-            <AuthorizeView>
+            <AuthorizeView Roles="user">
                 <Authorized>
                     <div class="mt-3">
                         <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowedByCurrentUser" OnToggle="ToggleFollow" />

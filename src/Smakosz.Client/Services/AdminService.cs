@@ -95,8 +95,14 @@ public class AdminService : IAdminService
     }
 
     // Restaurants
-    public Task<PagedResult<RestaurantCardDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
-        => _api.GetAsync<PagedResult<RestaurantCardDto>>($"/api/admin/restaurants?page={page}&search={search}");
+    public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
+        => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
+
+    public async Task<bool> VerifyRestaurantAsync(Guid publicId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/restaurants/{publicId}/verify", null);
+        return response.Success;
+    }
 
     // Ingredients
     public Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null)
@@ -162,6 +168,24 @@ public class AdminService : IAdminService
     public async Task<bool> TriggerJobAsync(int id)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/jobs/{id}/trigger", null);
+        return response.Success;
+    }
+
+    public async Task<bool> CreateJobAsync(CreateJobRequest request)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/jobs", request);
+        return response.Success;
+    }
+
+    public async Task<bool> CancelJobAsync(int id)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/jobs/{id}/cancel", null);
+        return response.Success;
+    }
+
+    public async Task<bool> ScheduleNcfTrainingAsync()
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/ncf-training/schedule", null);
         return response.Success;
     }
 

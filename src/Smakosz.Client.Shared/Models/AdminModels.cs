@@ -116,6 +116,15 @@ public class AdminJobDto
     public DateTime? FinishedAt { get; set; }
 }
 
+public class CreateJobRequest
+{
+    public string Type { get; set; } = default!;
+    public int Priority { get; set; }
+    public string? Payload { get; set; }
+    public string? EntityId { get; set; }
+    public string? EntityType { get; set; }
+}
+
 public class AdminSystemConfigDto
 {
     public string Key { get; set; } = default!;
@@ -134,11 +143,25 @@ public class AdminLogEntryDto
     public string? Exception { get; set; }
 }
 
+public class AdminRestaurantDto
+{
+    public int RestaurantId { get; set; }
+    public Guid PublicId { get; set; }
+    public string Name { get; set; } = default!;
+    public string Slug { get; set; } = default!;
+    public string Status { get; set; } = default!;
+    public bool IsVerified { get; set; }
+    public string? OwnerUsername { get; set; }
+    public decimal AverageRating { get; set; }
+    public int ReviewCount { get; set; }
+}
+
 public class AdminHeroImageDto
 {
     public Guid PublicId { get; set; }
     public string Url { get; set; } = default!;
     public string? Blurhash { get; set; }
+    public string? CreditText { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 

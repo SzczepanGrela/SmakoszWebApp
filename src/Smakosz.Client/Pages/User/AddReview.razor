@@ -1,5 +1,5 @@
 @page "/review/add"
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "user")]
 @inject IReviewService ReviewService
 @inject IDishService DishService
 @inject ISearchService SearchService

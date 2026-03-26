@@ -1,11 +1,19 @@
-<div class="hero-section text-center text-white d-flex align-items-center justify-content-center"
+<div class="hero-section text-center text-white d-flex align-items-center justify-content-center position-relative"
      style="@(BackgroundUrl != null ? $"background-image:url('{BackgroundUrl}');" : "")">
     <div class="container">
         @ChildContent
     </div>
+    @if (!string.IsNullOrEmpty(CreditText))
+    {
+        <span class="position-absolute bottom-0 end-0 m-2 px-2 py-1 small"
+              style="background:rgba(0,0,0,0.5);border-radius:4px;font-size:0.75rem;">
+            @CreditText
+        </span>
+    }
 </div>
 
 @code {
     [Parameter] public string? BackgroundUrl { get; set; }
+    [Parameter] public string? CreditText { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }

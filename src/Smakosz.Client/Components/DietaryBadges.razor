@@ -1,4 +1,4 @@
-@if (IsVegan || IsVegetarian || IsGlutenFree || IsLactoseFree)
+@if (IsVegan || IsVegetarian || IsGlutenFree || IsLactoseFree || (Tags != null && Tags.Any()))
 {
     <div class="dish-tags mt-1">
         @if (IsVegan)
@@ -17,6 +17,20 @@
         {
             <span class="badge bg-info me-1">Bez laktozy</span>
         }
+        @if (Tags != null)
+        {
+            @foreach (var tag in Tags)
+            {
+                @if (!string.IsNullOrEmpty(tag.DisplayColor))
+                {
+                    <span class="badge me-1" style="background-color:@tag.DisplayColor;color:#fff;">@tag.TagName</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary me-1">@tag.TagName</span>
+                }
+            }
+        }
     </div>
 }
 
@@ -25,4 +39,5 @@
     [Parameter] public bool IsVegetarian { get; set; }
     [Parameter] public bool IsGlutenFree { get; set; }
     [Parameter] public bool IsLactoseFree { get; set; }
+    [Parameter] public List<Smakosz.Client.Models.TagDto>? Tags { get; set; }
 }
