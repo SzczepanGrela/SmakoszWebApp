@@ -320,6 +320,7 @@ __pycache__/
 .env
 *.env
 !.env.example
+!.env.template
 
 # ASP.NET Core secrets (real keys in appsettings.json, template committed)
 appsettings.json

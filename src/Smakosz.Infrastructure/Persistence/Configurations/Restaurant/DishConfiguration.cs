@@ -59,9 +59,9 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .WithMany()
             .HasForeignKey(x => x.RestaurantId);
 
-        builder.HasOne(x => x.Variant)
+        builder.HasOne(x => x.SecretVariant)
             .WithMany()
-            .HasForeignKey(x => x.VariantId);
+            .HasForeignKey(x => x.SecretVariantId);
 
         // Indexes
         builder.HasIndex(x => x.PublicId)
@@ -73,6 +73,6 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
         builder.HasIndex(x => x.RestaurantId);
         builder.HasIndex(x => x.Price);
         builder.HasIndex(x => x.IsAvailable);
-        builder.HasIndex(x => x.VariantId);
+        builder.HasIndex(x => x.SecretVariantId);
     }
 }

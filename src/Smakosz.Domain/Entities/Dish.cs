@@ -7,7 +7,6 @@ public class Dish : IAuditableEntity, IHasPublicId
     public int DishId { get; set; }
     public Guid PublicId { get; set; }
     public int? RestaurantId { get; set; }
-    public int? VariantId { get; set; }
     public string DishName { get; set; } = string.Empty;
     public decimal? Price { get; set; }
     public string? Description { get; set; }
@@ -29,6 +28,7 @@ public class Dish : IAuditableEntity, IHasPublicId
     public int ReviewCount { get; set; }
 
     #region Generator-Only Fields
+    public int? SecretVariantId { get; set; }
     public decimal? SecretBasePrice { get; set; }
     public string SecretCharacteristicsVector { get; set; } = "{}";
     public string? SecretPenaltyVector { get; set; }
@@ -37,6 +37,7 @@ public class Dish : IAuditableEntity, IHasPublicId
     #endregion
 
     public Restaurant? Restaurant { get; set; }
-    public DishVariant? Variant { get; set; }
+    public DishVariant? SecretVariant { get; set; }
     public ICollection<DishIngredient> DishIngredients { get; set; } = new List<DishIngredient>();
+    public ICollection<DishTag> DishTags { get; set; } = new List<DishTag>();
 }

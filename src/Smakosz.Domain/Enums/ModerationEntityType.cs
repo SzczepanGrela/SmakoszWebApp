@@ -7,5 +7,6 @@ public enum ModerationEntityType
     EditRequest,
     User,
     Report,
-    Ticket
+    Ticket,
+    Restaurant
 }

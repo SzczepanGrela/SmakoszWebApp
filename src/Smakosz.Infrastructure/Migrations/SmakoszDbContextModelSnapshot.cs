@@ -19,7 +19,7 @@ namespace Smakosz.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.13")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
@@ -338,6 +338,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("secret_quality");
 
+                    b.Property<int?>("SecretVariantId")
+                        .HasColumnType("integer")
+                        .HasColumnName("secret_variant_id");
+
                     b.Property<string>("Slug")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -350,10 +354,6 @@ namespace Smakosz.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
-
-                    b.Property<int?>("VariantId")
-                        .HasColumnType("integer")
-                        .HasColumnName("variant_id");
 
                     b.HasKey("DishId")
                         .HasName("pk_dishes");
@@ -371,12 +371,12 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasIndex("RestaurantId")
                         .HasDatabaseName("ix_dishes_restaurant_id");
 
+                    b.HasIndex("SecretVariantId")
+                        .HasDatabaseName("ix_dishes_secret_variant_id");
+
                     b.HasIndex("Slug")
                         .IsUnique()
                         .HasDatabaseName("ix_dishes_slug");
-
-                    b.HasIndex("VariantId")
-                        .HasDatabaseName("ix_dishes_variant_id");
 
                     b.ToTable("dishes", (string)null);
                 });
@@ -420,8 +420,15 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ingredient_id");
 
+                    b.Property<int?>("DishId1")
+                        .HasColumnType("integer")
+                        .HasColumnName("dish_id1");
+
                     b.HasKey("DishId", "IngredientId")
                         .HasName("pk_dish_ingredients");
+
+                    b.HasIndex("DishId1")
+                        .HasDatabaseName("ix_dish_ingredients_dish_id1");
 
                     b.HasIndex("IngredientId")
                         .HasDatabaseName("ix_dish_ingredients_ingredient_id");
@@ -2895,10 +2902,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date")
-                        .HasColumnName("date_of_birth");
-
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
@@ -2931,10 +2934,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("full_name");
 
-                    b.Property<int?>("HomeCityId")
-                        .HasColumnType("integer")
-                        .HasColumnName("home_city_id");
-
                     b.Property<bool>("Is2faEnabled")
                         .HasColumnType("boolean")
                         .HasColumnName("is2fa_enabled");
@@ -2959,10 +2958,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("last_name");
-
-                    b.Property<bool>("NewsletterConsent")
-                        .HasColumnType("boolean")
-                        .HasColumnName("newsletter_consent");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -3024,6 +3019,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("secret_enjoyed_archetypes");
 
+                    b.Property<int?>("SecretHomeCityId")
+                        .HasColumnType("integer")
+                        .HasColumnName("secret_home_city_id");
+
                     b.Property<string>("SecretIngredientPreferences")
                         .HasColumnType("jsonb")
                         .HasColumnName("secret_ingredient_preferences");
@@ -3083,9 +3082,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDatabaseName("ix_users_active_login")
                         .HasFilter("is_active = true AND is_deleted = false");
 
-                    b.HasIndex("HomeCityId")
-                        .HasDatabaseName("ix_users_home_city_id");
-
                     b.HasIndex("PublicId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_public_id");
@@ -3096,6 +3092,9 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.HasIndex("Role")
                         .HasDatabaseName("ix_users_role");
+
+                    b.HasIndex("SecretHomeCityId")
+                        .HasDatabaseName("ix_users_secret_home_city_id");
 
                     b.HasIndex("SecretIsInfluencer")
                         .HasDatabaseName("ix_users_secret_is_influencer")
@@ -3311,14 +3310,14 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasForeignKey("RestaurantId")
                         .HasConstraintName("fk_dishes_restaurants_restaurant_id");
 
-                    b.HasOne("Smakosz.Domain.Entities.DishVariant", "Variant")
+                    b.HasOne("Smakosz.Domain.Entities.DishVariant", "SecretVariant")
                         .WithMany()
-                        .HasForeignKey("VariantId")
-                        .HasConstraintName("fk_dishes_dish_variants_variant_id");
+                        .HasForeignKey("SecretVariantId")
+                        .HasConstraintName("fk_dishes_dish_variants_secret_variant_id");
 
                     b.Navigation("Restaurant");
 
-                    b.Navigation("Variant");
+                    b.Navigation("SecretVariant");
                 });
 
             modelBuilder.Entity("Smakosz.Domain.Entities.DishIngredient", b =>
@@ -3329,6 +3328,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_dish_ingredients_dishes_dish_id");
+
+                    b.HasOne("Smakosz.Domain.Entities.Dish", null)
+                        .WithMany("DishIngredients")
+                        .HasForeignKey("DishId1")
+                        .HasConstraintName("fk_dish_ingredients_dishes_dish_id1");
 
                     b.HasOne("Smakosz.Domain.Entities.Ingredient", "Ingredient")
                         .WithMany()
@@ -3366,7 +3370,7 @@ namespace Smakosz.Infrastructure.Migrations
             modelBuilder.Entity("Smakosz.Domain.Entities.DishTag", b =>
                 {
                     b.HasOne("Smakosz.Domain.Entities.Dish", "Dish")
-                        .WithMany()
+                        .WithMany("DishTags")
                         .HasForeignKey("DishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -3809,17 +3813,17 @@ namespace Smakosz.Infrastructure.Migrations
 
             modelBuilder.Entity("Smakosz.Domain.Entities.User", b =>
                 {
-                    b.HasOne("Smakosz.Domain.Entities.City", "HomeCity")
-                        .WithMany()
-                        .HasForeignKey("HomeCityId")
-                        .HasConstraintName("fk_users_cities_home_city_id");
-
                     b.HasOne("Smakosz.Domain.Entities.Restaurant", null)
                         .WithMany()
                         .HasForeignKey("RestaurantId")
                         .HasConstraintName("fk_users_restaurants_restaurant_id");
 
-                    b.Navigation("HomeCity");
+                    b.HasOne("Smakosz.Domain.Entities.City", "SecretHomeCity")
+                        .WithMany()
+                        .HasForeignKey("SecretHomeCityId")
+                        .HasConstraintName("fk_users_cities_secret_home_city_id");
+
+                    b.Navigation("SecretHomeCity");
                 });
 
             modelBuilder.Entity("Smakosz.Domain.Entities.UserFollow", b =>
@@ -3877,6 +3881,13 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasConstraintName("fk_verification_codes_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Smakosz.Domain.Entities.Dish", b =>
+                {
+                    b.Navigation("DishIngredients");
+
+                    b.Navigation("DishTags");
                 });
 
             modelBuilder.Entity("Smakosz.Domain.Entities.Restaurant", b =>

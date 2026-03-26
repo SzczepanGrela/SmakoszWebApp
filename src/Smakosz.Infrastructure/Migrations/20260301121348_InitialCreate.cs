@@ -437,7 +437,8 @@ namespace Smakosz.Infrastructure.Migrations
                 columns: table => new
                 {
                     dish_id = table.Column<int>(type: "integer", nullable: false),
-                    ingredient_id = table.Column<int>(type: "integer", nullable: false)
+                    ingredient_id = table.Column<int>(type: "integer", nullable: false),
+                    dish_id1 = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -490,7 +491,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     public_id = table.Column<Guid>(type: "uuid", nullable: false),
                     restaurant_id = table.Column<int>(type: "integer", nullable: true),
-                    variant_id = table.Column<int>(type: "integer", nullable: true),
                     dish_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -510,6 +510,7 @@ namespace Smakosz.Infrastructure.Migrations
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_rating = table.Column<double>(type: "double precision", nullable: true),
                     review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    secret_variant_id = table.Column<int>(type: "integer", nullable: true),
                     secret_base_price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
                     secret_penalty_vector = table.Column<string>(type: "jsonb", nullable: true),
@@ -520,8 +521,8 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_dishes", x => x.dish_id);
                     table.ForeignKey(
-                        name: "fk_dishes_dish_variants_variant_id",
-                        column: x => x.variant_id,
+                        name: "fk_dishes_dish_variants_secret_variant_id",
+                        column: x => x.secret_variant_id,
                         principalTable: "dish_variants",
                         principalColumn: "variant_id");
                 });
@@ -891,11 +892,9 @@ namespace Smakosz.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     public_id = table.Column<Guid>(type: "uuid", nullable: false),
                     username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    home_city_id = table.Column<int>(type: "integer", nullable: true),
                     restaurant_id = table.Column<int>(type: "integer", nullable: true),
                     email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     email_verified = table.Column<bool>(type: "boolean", nullable: false),
-                    newsletter_consent = table.Column<bool>(type: "boolean", nullable: false),
                     password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     security_stamp = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     first_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -904,7 +903,6 @@ namespace Smakosz.Infrastructure.Migrations
                     phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     avatar_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     avatar_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    date_of_birth = table.Column<DateOnly>(type: "date", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -919,6 +917,7 @@ namespace Smakosz.Infrastructure.Migrations
                     is2fa_enabled = table.Column<bool>(type: "boolean", nullable: false),
                     review_count = table.Column<int>(type: "integer", nullable: false),
                     photo_count = table.Column<int>(type: "integer", nullable: false),
+                    secret_home_city_id = table.Column<int>(type: "integer", nullable: true),
                     secret_total_review_count = table.Column<int>(type: "integer", nullable: true),
                     secret_travel_propensity = table.Column<double>(type: "double precision", nullable: true),
                     secret_enjoyed_archetypes = table.Column<string>(type: "jsonb", nullable: true),
@@ -937,8 +936,8 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_users", x => x.user_id);
                     table.ForeignKey(
-                        name: "fk_users_cities_home_city_id",
-                        column: x => x.home_city_id,
+                        name: "fk_users_cities_secret_home_city_id",
+                        column: x => x.secret_home_city_id,
                         principalTable: "cities",
                         principalColumn: "city_id");
                     table.ForeignKey(
@@ -1313,6 +1312,11 @@ namespace Smakosz.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_dish_ingredients_dish_id1",
+                table: "dish_ingredients",
+                column: "dish_id1");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_dish_ingredients_ingredient_id",
                 table: "dish_ingredients",
                 column: "ingredient_id");
@@ -1365,15 +1369,15 @@ namespace Smakosz.Infrastructure.Migrations
                 column: "restaurant_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_dishes_secret_variant_id",
+                table: "dishes",
+                column: "secret_variant_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_dishes_slug",
                 table: "dishes",
                 column: "slug",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_dishes_variant_id",
-                table: "dishes",
-                column: "variant_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_email_logs_recipient_created_at",
@@ -1874,11 +1878,6 @@ namespace Smakosz.Infrastructure.Migrations
                 filter: "is_active = true AND is_deleted = false");
 
             migrationBuilder.CreateIndex(
-                name: "ix_users_home_city_id",
-                table: "users",
-                column: "home_city_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_users_public_id",
                 table: "users",
                 column: "public_id",
@@ -1894,6 +1893,11 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_users_role",
                 table: "users",
                 column: "role");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_secret_home_city_id",
+                table: "users",
+                column: "secret_home_city_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_users_secret_is_influencer",
@@ -1955,6 +1959,13 @@ namespace Smakosz.Infrastructure.Migrations
                 principalTable: "dishes",
                 principalColumn: "dish_id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "fk_dish_ingredients_dishes_dish_id1",
+                table: "dish_ingredients",
+                column: "dish_id1",
+                principalTable: "dishes",
+                principalColumn: "dish_id");
 
             migrationBuilder.AddForeignKey(
                 name: "fk_dish_section_assignments_dishes_dish_id",
