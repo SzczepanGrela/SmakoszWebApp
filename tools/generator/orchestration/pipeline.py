@@ -152,42 +152,55 @@ class DataGenerationPipeline:
 
         phase_results = []
 
-        # 4. Execute phases
-        for idx, phase_id in enumerate(sorted_phase_ids, 1):
-            logger.info(f"\n{'=' * 80}\nPhase {idx}/{len(sorted_phase_ids)}: {phase_id}\n{'=' * 80}")
+        # 4. Disable triggers for bulk insert performance
+        #    session_replication_role = 'replica' bypasses all user-defined triggers and FK checks.
+        #    Counters are synced in bulk after all phases (step 6).
+        if not self.config.dry_run:
+            logger.info("Disabling triggers for bulk insert (session_replication_role = 'replica')")
+            self.context.db.execute_query("SET session_replication_role = 'replica';")
 
-            result = self._execute_phase(phase_id)
-            phase_results.append(result)
+        try:
+            # 5. Execute phases
+            for idx, phase_id in enumerate(sorted_phase_ids, 1):
+                logger.info(f"\n{'=' * 80}\nPhase {idx}/{len(sorted_phase_ids)}: {phase_id}\n{'=' * 80}")
 
-            if result.status == PhaseStatus.FAILED:
-                if not self.config.continue_on_error:
-                    logger.error(f"Pipeline aborted due to failure in {phase_id}")
-                    break
-                else:
-                    logger.warning(f"Phase {phase_id} failed but continuing (continue_on_error=True)")
-            elif result.status == PhaseStatus.COMPLETED:
-                self.context.mark_completed(phase_id)
-                logger.info(f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s")
-            elif result.status == PhaseStatus.SKIPPED:
-                logger.info(f"⊘ Phase {phase_id} skipped")
+                result = self._execute_phase(phase_id)
+                phase_results.append(result)
 
-        # 5. Check success
+                if result.status == PhaseStatus.FAILED:
+                    if not self.config.continue_on_error:
+                        logger.error(f"Pipeline aborted due to failure in {phase_id}")
+                        break
+                    else:
+                        logger.warning(f"Phase {phase_id} failed but continuing (continue_on_error=True)")
+                elif result.status == PhaseStatus.COMPLETED:
+                    self.context.mark_completed(phase_id)
+                    logger.info(f"✓ Phase {phase_id} completed in {result.duration_seconds:.2f}s")
+                elif result.status == PhaseStatus.SKIPPED:
+                    logger.info(f"⊘ Phase {phase_id} skipped")
+        finally:
+            # ALWAYS restore triggers (even if a phase fails)
+            if not self.config.dry_run:
+                logger.info("Re-enabling triggers (session_replication_role = 'origin')")
+                self.context.db.execute_query("SET session_replication_role = 'origin';")
+
+        # 6. Check success
         success = all(r.status == PhaseStatus.COMPLETED for r in phase_results)
 
-        # 6. Synchronize denormalized counters
+        # 7. Synchronize denormalized counters
         if not self.config.dry_run and success:
             logger.info("\n" + "=" * 80)
             logger.info("SYNCHRONIZING DENORMALIZED COUNTERS")
             logger.info("=" * 80)
             CounterSync(self.context.db).sync_all()
 
-        # 7. Final statistics
+        # 8. Final statistics
         if not self.config.dry_run:
             logger.info("\n" + "=" * 80)
             self.db_manager.print_statistics()
             logger.info("=" * 80)
 
-        # 8. Summary
+        # 9. Summary
         duration = datetime.now() - start_time
 
         logger.info("\n" + "=" * 80)
