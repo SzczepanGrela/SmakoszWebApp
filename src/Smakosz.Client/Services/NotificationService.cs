@@ -14,7 +14,7 @@ public class NotificationService : INotificationService
     public async Task<int> GetUnreadCountAsync()
         => await _api.GetAsync<int>("/api/me/notifications/unread-count");
 
-    public async Task MarkAsReadAsync(Guid id)
+    public async Task MarkAsReadAsync(int id)
         => await _api.PutApiResponseAsync<object>($"/api/me/notifications/{id}/read", null);
 
     public async Task MarkAllAsReadAsync()

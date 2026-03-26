@@ -20,28 +20,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Nazwa restauracji *</label>
-                                <input type="text" class="form-control" @bind="_model.RestaurantName" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Typ kuchni</label>
-                                <select class="form-select" @bind="_model.CuisineType">
-                                    <option value="">Wybierz...</option>
-                                    <option>Polska</option>
-                                    <option>Włoska</option>
-                                    <option>Azjatycka</option>
-                                    <option>Amerykanska</option>
-                                    <option>Meksykanska</option>
-                                    <option>Francuska</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Poziom cenowy</label>
-                                <select class="form-select" @bind="_model.PriceLevel">
-                                    <option value="1">$ - Budzetowy</option>
-                                    <option value="2">$$ - Sredni</option>
-                                    <option value="3">$$$ - Wyzszy</option>
-                                    <option value="4">$$$$ - Premium</option>
-                                </select>
+                                <input type="text" class="form-control" @bind="_model.Name" />
                             </div>
                         </div>
                     </div>
@@ -94,9 +73,7 @@
                             <h6 class="fw-bold">Podsumowanie</h6>
                             <dl class="row mb-0">
                                 <dt class="col-sm-4">Nazwa</dt>
-                                <dd class="col-sm-8">@_model.RestaurantName</dd>
-                                <dt class="col-sm-4">Kuchnia</dt>
-                                <dd class="col-sm-8">@(_model.CuisineType ?? "Nie podano")</dd>
+                                <dd class="col-sm-8">@_model.Name</dd>
                                 <dt class="col-sm-4">Adres</dt>
                                 <dd class="col-sm-8">@(_model.Address ?? "Nie podano")</dd>
                                 <dt class="col-sm-4">Telefon</dt>
@@ -131,7 +108,7 @@
 
     private async Task HandleSubmit()
     {
-        if (string.IsNullOrWhiteSpace(_model.RestaurantName))
+        if (string.IsNullOrWhiteSpace(_model.Name))
         {
             _error = "Nazwa restauracji jest wymagana.";
             return;

@@ -19,7 +19,7 @@
                         <i class="fa-solid fa-circle-check fa-4x" style="color:var(--accent-color);"></i>
                     </div>
                     <h2 class="fw-bold">Rejestracja zatwierdzona!</h2>
-                    <p class="text-muted mb-4">Mozesz teraz zarzadzac swoja restauracja.</p>
+                    <p class="text-muted mb-4">Mozesz teraz zarzadzac swoja restauracja@(!string.IsNullOrEmpty(_status.RestaurantName) ? $" \"{_status.RestaurantName}\"" : "").</p>
                     <a href="/restaurant/dashboard" class="btn btn-primary btn-lg">
                         <i class="fa-solid fa-chart-line me-2"></i>Przejdź do panelu
                     </a>
@@ -30,11 +30,7 @@
                         <i class="fa-solid fa-clock fa-4x text-warning"></i>
                     </div>
                     <h2 class="fw-bold">Wniosek w trakcie weryfikacji</h2>
-                    <p class="text-muted mb-4">Twoj wniosek zostal zlozony @_status.SubmittedAt.ToString("dd.MM.yyyy") i jest weryfikowany przez nasz zespol. Powiadomimy Cie o decyzji.</p>
-                    @if (!string.IsNullOrEmpty(_status.Message))
-                    {
-                        <div class="alert alert-info">@_status.Message</div>
-                    }
+                    <p class="text-muted mb-4">Twoj wniosek jest weryfikowany przez nasz zespol. Powiadomimy Cie o decyzji.</p>
                 }
                 else
                 {
@@ -42,7 +38,7 @@
                         <i class="fa-solid fa-circle-xmark fa-4x text-danger"></i>
                     </div>
                     <h2 class="fw-bold">Wniosek odrzucony</h2>
-                    <p class="text-muted mb-4">@(_status.Message ?? "Skontaktuj sie z nami, aby uzyskac wiecej informacji.")</p>
+                    <p class="text-muted mb-4">Skontaktuj sie z nami, aby uzyskac wiecej informacji.</p>
                     <a href="/business/register" class="btn btn-primary">Zloz ponownie</a>
                 }
             }

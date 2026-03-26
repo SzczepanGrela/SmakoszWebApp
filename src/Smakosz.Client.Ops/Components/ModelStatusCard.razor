@@ -3,27 +3,20 @@
 
 <div class="card shadow-sm h-100">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h6 class="fw-bold mb-1"><i class="fa-solid fa-robot me-2"></i>@Model.ModelName</h6>
-                @if (!string.IsNullOrEmpty(Model.Version))
-                {
-                    <small class="text-muted">v@Model.Version</small>
-                }
-            </div>
-            <span class="badge @StatusBadgeClass">@Model.Status</span>
+        <div class="mb-3">
+            <h6 class="fw-bold mb-1"><i class="fa-solid fa-robot me-2"></i>@Model.ModelType</h6>
+            @if (!string.IsNullOrEmpty(Model.ModelVersion))
+            {
+                <small class="text-muted">v@Model.ModelVersion</small>
+            }
         </div>
         <div class="row text-center small">
-            <div class="col-4">
-                <div class="fw-bold">@Model.ProcessedCount</div>
+            <div class="col-6">
+                <div class="fw-bold">@Model.UsageCount</div>
                 <span class="text-muted">Przetworzone</span>
             </div>
-            <div class="col-4">
-                <div class="fw-bold">@(Model.Accuracy.HasValue ? Model.Accuracy.Value.ToString("P0") : "-")</div>
-                <span class="text-muted">Dokladnosc</span>
-            </div>
-            <div class="col-4">
-                <div class="fw-bold">@(Model.LastRun?.ToString("dd.MM HH:mm") ?? "-")</div>
+            <div class="col-6">
+                <div class="fw-bold">@(Model.LastUsed?.ToString("dd.MM HH:mm") ?? "-")</div>
                 <span class="text-muted">Ostatnie</span>
             </div>
         </div>
@@ -32,13 +25,4 @@
 
 @code {
     [Parameter, EditorRequired] public AdminAiModelDto Model { get; set; } = default!;
-
-    private string StatusBadgeClass => Model.Status?.ToLower() switch
-    {
-        "active" or "running" => "bg-success",
-        "idle" or "standby" => "bg-secondary",
-        "error" or "failed" => "bg-danger",
-        "training" => "bg-warning text-dark",
-        _ => "bg-info"
-    };
 }

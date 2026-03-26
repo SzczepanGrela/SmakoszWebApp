@@ -21,21 +21,13 @@ else
             <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_profile.AvatarUrl, _profile.Username)"
                  alt="@_profile.Username" class="profile-avatar rounded-circle mb-3" />
             <h2>@_profile.Username</h2>
-            @if (!string.IsNullOrEmpty(_profile.Bio))
-            {
-                <p class="text-muted">@_profile.Bio</p>
-            }
-            @if (!string.IsNullOrEmpty(_profile.City))
-            {
-                <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i>@_profile.City</small>
-            }
             <div class="d-flex justify-content-center gap-4 mt-3">
                 <div class="text-center">
                     <div class="fw-bold">@_profile.ReviewCount</div>
                     <small class="text-muted">Recenzji</small>
                 </div>
                 <a href="/users/@Slug/followers" class="text-center text-decoration-none" style="color:var(--text-color);">
-                    <div class="fw-bold">@_profile.FollowerCount</div>
+                    <div class="fw-bold">@_profile.FollowersCount</div>
                     <small class="text-muted">Obserwujacych</small>
                 </a>
                 <a href="/users/@Slug/following" class="text-center text-decoration-none" style="color:var(--text-color);">
@@ -46,7 +38,7 @@ else
             <AuthorizeView>
                 <Authorized>
                     <div class="mt-3">
-                        <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowing" OnToggle="ToggleFollow" />
+                        <Smakosz.Client.Components.FollowButton IsFollowing="@_profile.IsFollowedByCurrentUser" OnToggle="ToggleFollow" />
                     </div>
                 </Authorized>
             </AuthorizeView>
@@ -90,15 +82,15 @@ else
     {
         if (_profile == null) return;
         bool success;
-        if (_profile.IsFollowing)
+        if (_profile.IsFollowedByCurrentUser)
             success = await UserProfileService.UnfollowUserAsync(Slug);
         else
             success = await UserProfileService.FollowUserAsync(Slug);
 
         if (success)
         {
-            _profile.IsFollowing = !_profile.IsFollowing;
-            _profile.FollowerCount += _profile.IsFollowing ? 1 : -1;
+            _profile.IsFollowedByCurrentUser = !_profile.IsFollowedByCurrentUser;
+            _profile.FollowersCount += _profile.IsFollowedByCurrentUser ? 1 : -1;
         }
     }
 }

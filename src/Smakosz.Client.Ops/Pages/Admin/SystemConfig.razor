@@ -18,34 +18,34 @@ else if (!_configs.Any())
 }
 else
 {
-    @foreach (var group in _configs.GroupBy(c => c.Category ?? "Ogolne"))
-    {
-        <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0">@group.Key</h5></div>
-            <div class="card-body">
-                @foreach (var config in group)
-                {
-                    <div class="row mb-3 align-items-center">
-                        <div class="col-md-4">
-                            <label class="form-label fw-medium mb-0">@config.Key</label>
-                            @if (!string.IsNullOrEmpty(config.Description))
-                            {
-                                <small class="text-muted d-block">@config.Description</small>
-                            }
-                        </div>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control form-control-sm" @bind="config.Value" />
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-outline-primary btn-sm" @onclick="() => SaveConfig(config)">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                            </button>
-                        </div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @foreach (var config in _configs)
+            {
+                <div class="row mb-3 align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label fw-medium mb-0">
+                            @config.Key
+                            @if (config.IsSecret) { <span class="badge bg-warning text-dark ms-1">Secret</span> }
+                            @if (config.IsPublic) { <span class="badge bg-info ms-1">Public</span> }
+                        </label>
+                        @if (!string.IsNullOrEmpty(config.Description))
+                        {
+                            <small class="text-muted d-block">@config.Description</small>
+                        }
                     </div>
-                }
-            </div>
+                    <div class="col-md-6">
+                        <input type="@(config.IsSecret ? "password" : "text")" class="form-control form-control-sm" @bind="config.Value" />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary btn-sm" @onclick="() => SaveConfig(config)">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                        </button>
+                    </div>
+                </div>
+            }
         </div>
-    }
+    </div>
 }
 
 @code {

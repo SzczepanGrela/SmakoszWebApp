@@ -61,18 +61,6 @@
 
                         <EditForm Model="_profile" OnValidSubmit="HandleSave">
                             <div class="mb-3">
-                                <label class="form-label fw-medium">Bio</label>
-                                <textarea class="form-control" rows="4" @bind="_profile.Bio"
-                                          placeholder="Napisz cos o sobie... Co lubisz jesc? Jakie sa Twoje ulubione kuchnie?"></textarea>
-                                <small class="text-muted">Twoje bio jest widoczne dla innych uzytkownikow.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Miasto</label>
-                                <input type="text" class="form-control" @bind="_profile.City"
-                                       placeholder="np. Warszawa, Krakow, Wroclaw..." />
-                                <small class="text-muted">Ulatwia nam dopasowanie rekomendacji do Twojej lokalizacji.</small>
-                            </div>
-                            <div class="mb-3">
                                 <label class="form-label fw-medium">Zdjęcie profilowe</label>
                                 <ImageUpload EntityType="user" CurrentImageUrl="@_profile.AvatarUrl"
                                              OnImageUploaded="url => _profile.AvatarUrl = url" />

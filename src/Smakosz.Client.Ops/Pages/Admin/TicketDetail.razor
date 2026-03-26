@@ -271,7 +271,7 @@ else
                         <dt class="col-sm-3">Powód</dt>
                         <dd class="col-sm-9">@rp.Reason</dd>
                         <dt class="col-sm-3">Zgłaszający</dt>
-                        <dd class="col-sm-9">@(rp.ReportedBy ?? "-")</dd>
+                        <dd class="col-sm-9">@(rp.ReporterUsername ?? "-")</dd>
                         <dt class="col-sm-3">Status</dt>
                         <dd class="col-sm-9"><StatusBadge Status="@rp.Status" /></dd>
                     </dl>
@@ -299,7 +299,7 @@ else
     private async Task ResolveReport()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ResolveReportAsync(_detail!.Report!.Id, "Resolved");
+        var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Resolved");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Zgloszenie rozwiazane."); Nav.NavigateTo("/admin/tickets"); }
@@ -309,7 +309,7 @@ else
     private async Task RejectReport()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ResolveReportAsync(_detail!.Report!.Id, "Rejected");
+        var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Rejected");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Rejected");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Zgloszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }

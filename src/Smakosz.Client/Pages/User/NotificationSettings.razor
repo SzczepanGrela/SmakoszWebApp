@@ -59,52 +59,22 @@
                         }
 
                         <div class="list-group list-group-flush">
-                            <!-- Email notifications -->
+                            <!-- Push Like -->
                             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                                 <div>
                                     <div class="fw-medium">
-                                        <i class="fa-solid fa-envelope me-2 text-muted"></i>Powiadomienia email
+                                        <i class="fa-solid fa-thumbs-up me-2 text-muted"></i>Polubienia
                                     </div>
-                                    <small class="text-muted">Otrzymuj wazne powiadomienia na swoj adres email.</small>
+                                    <small class="text-muted">Powiadamiaj mnie, gdy ktos polubi moja recenzje.</small>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
-                                           checked="@_settings.EmailNotifications"
-                                           @onchange="e => { _settings.EmailNotifications = (bool)e.Value!; }" />
+                                           checked="@_settings.PushLike"
+                                           @onchange="e => { _settings.PushLike = (bool)e.Value!; }" />
                                 </div>
                             </div>
 
-                            <!-- Push notifications -->
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <div class="fw-medium">
-                                        <i class="fa-solid fa-mobile-screen me-2 text-muted"></i>Powiadomienia push
-                                    </div>
-                                    <small class="text-muted">Otrzymuj powiadomienia push w przegladarce.</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                           checked="@_settings.PushNotifications"
-                                           @onchange="e => { _settings.PushNotifications = (bool)e.Value!; }" />
-                                </div>
-                            </div>
-
-                            <!-- Review replies -->
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <div class="fw-medium">
-                                        <i class="fa-solid fa-reply me-2 text-muted"></i>Odpowiedzi na recenzje
-                                    </div>
-                                    <small class="text-muted">Powiadamiaj mnie, gdy ktos odpowie na moja recenzje.</small>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                           checked="@_settings.ReviewReplies"
-                                           @onchange="e => { _settings.ReviewReplies = (bool)e.Value!; }" />
-                                </div>
-                            </div>
-
-                            <!-- New followers -->
+                            <!-- Push Follow -->
                             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                                 <div>
                                     <div class="fw-medium">
@@ -114,23 +84,23 @@
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
-                                           checked="@_settings.NewFollowers"
-                                           @onchange="e => { _settings.NewFollowers = (bool)e.Value!; }" />
+                                           checked="@_settings.PushFollow"
+                                           @onchange="e => { _settings.PushFollow = (bool)e.Value!; }" />
                                 </div>
                             </div>
 
-                            <!-- Recommendations -->
+                            <!-- Push System -->
                             <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                                 <div>
                                     <div class="fw-medium">
-                                        <i class="fa-solid fa-wand-magic-sparkles me-2 text-muted"></i>Rekomendacje
+                                        <i class="fa-solid fa-circle-info me-2 text-muted"></i>Systemowe
                                     </div>
-                                    <small class="text-muted">Otrzymuj spersonalizowane rekomendacje dan.</small>
+                                    <small class="text-muted">Otrzymuj powiadomienia systemowe i wazne informacje.</small>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch"
-                                           checked="@_settings.Recommendations"
-                                           @onchange="e => { _settings.Recommendations = (bool)e.Value!; }" />
+                                           checked="@_settings.PushSystem"
+                                           @onchange="e => { _settings.PushSystem = (bool)e.Value!; }" />
                                 </div>
                             </div>
                         </div>

@@ -32,7 +32,7 @@ else
                         @foreach (var req in _requests.OrderByDescending(r => r.CreatedAt))
                         {
                             <tr>
-                                <td class="fw-medium">@req.FieldChanged</td>
+                                <td class="fw-medium">@req.ChangeType</td>
                                 <td><StatusBadge Status="@req.Status" /></td>
                                 <td class="text-muted">@req.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
                             </tr>

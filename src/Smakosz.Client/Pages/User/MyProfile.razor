@@ -38,7 +38,7 @@
                             </div>
                             <div class="text-center">
                                 <a href="/followers" class="text-decoration-none" style="color:var(--text-color);">
-                                    <div class="fw-bold">@_profile.FollowerCount</div>
+                                    <div class="fw-bold">@_profile.FollowersCount</div>
                                     <small class="text-muted">Obserwujacy</small>
                                 </a>
                             </div>
@@ -51,7 +51,7 @@
                         </div>
 
                         <small class="text-muted">
-                            <i class="fa-solid fa-calendar me-1"></i>Dolaczyl/a @_profile.CreatedAt.ToString("MMMM yyyy")
+                            <i class="fa-solid fa-calendar me-1"></i>Dolaczyl/a @_profile.CreatedAt?.ToString("MMMM yyyy")
                         </small>
                     </div>
                 </div>
@@ -60,7 +60,6 @@
                 <div class="list-group mt-3 shadow-sm">
                     <a href="/saved" class="list-group-item list-group-item-action">
                         <i class="fa-solid fa-bookmark me-2"></i>Zapisane dania
-                        <span class="badge bg-secondary float-end">@_profile.SavedDishCount</span>
                     </a>
                     <a href="/profile/settings" class="list-group-item list-group-item-action">
                         <i class="fa-solid fa-gear me-2"></i>Ustawienia
@@ -108,16 +107,6 @@
                                     <small class="text-muted">Aby zmienic email, skontaktuj sie z nami.</small>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-medium">Bio</label>
-                                    <textarea class="form-control" rows="3" @bind="_profile.Bio"
-                                              placeholder="Napisz cos o sobie..."></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-medium">Miasto</label>
-                                    <input type="text" class="form-control" @bind="_profile.City"
-                                           placeholder="Twoje miasto" />
-                                </div>
-                                <div class="mb-3">
                                     <label class="form-label fw-medium">Zdjęcie profilowe</label>
                                     <ImageUpload EntityType="user" CurrentImageUrl="@_profile.AvatarUrl"
                                                  OnImageUploaded="url => _profile.AvatarUrl = url" />
@@ -144,15 +133,6 @@
 
                                 <dt class="col-sm-4">Email</dt>
                                 <dd class="col-sm-8">@_profile.Email</dd>
-
-                                <dt class="col-sm-4">Bio</dt>
-                                <dd class="col-sm-8">@(string.IsNullOrEmpty(_profile.Bio) ? "Brak" : _profile.Bio)</dd>
-
-                                <dt class="col-sm-4">Miasto</dt>
-                                <dd class="col-sm-8">@(string.IsNullOrEmpty(_profile.City) ? "Nie podano" : _profile.City)</dd>
-
-                                <dt class="col-sm-4">Zapisane dania</dt>
-                                <dd class="col-sm-8">@_profile.SavedDishCount</dd>
                             </dl>
                         }
                     </div>
@@ -217,12 +197,12 @@
             Username = _profile.Username,
             Email = _profile.Email,
             AvatarUrl = _profile.AvatarUrl,
-            Bio = _profile.Bio,
-            City = _profile.City,
+            Role = _profile.Role,
+            EmailVerified = _profile.EmailVerified,
+            Is2faEnabled = _profile.Is2faEnabled,
             ReviewCount = _profile.ReviewCount,
-            FollowerCount = _profile.FollowerCount,
+            FollowersCount = _profile.FollowersCount,
             FollowingCount = _profile.FollowingCount,
-            SavedDishCount = _profile.SavedDishCount,
             CreatedAt = _profile.CreatedAt
         };
         _editMode = true;
