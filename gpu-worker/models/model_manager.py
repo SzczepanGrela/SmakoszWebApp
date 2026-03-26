@@ -54,6 +54,10 @@ class ModelManager:
 
         return self._download_from_huggingface(model_name)
 
+    @property
+    def s3_client(self):
+        return self._s3
+
     def _download_from_r2(self, model_name: str, version: str) -> Path | None:
         if self._s3 is None:
             return None
