@@ -39,6 +39,7 @@ public class R2FileStorageService : IFileStorageService
         var baseKey = $"{folder}/{baseName}";
 
         string? thumbUrl = null, tinyUrl = null, heroUrl = null, blurhash = null;
+        int? mainWidth = null, mainHeight = null;
 
         // Generate blurhash from original
         try
@@ -55,7 +56,11 @@ public class R2FileStorageService : IFileStorageService
         foreach (var variant in variants)
         {
             file.Position = 0;
-            var (resized, _, _) = await _imageProcessor.ResizeToWebpAsync(file, variant.MaxWidth);
+            var (resized, width, height) = await _imageProcessor.ResizeToWebpAsync(file, variant.MaxWidth);
+
+            // Capture dimensions from the first variant as the main dimensions
+            mainWidth ??= width;
+            mainHeight ??= height;
 
             var key = $"{baseKey}{variant.Suffix}.webp";
             await UploadToR2Async(resized, key, "image/webp", ct);
@@ -70,7 +75,7 @@ public class R2FileStorageService : IFileStorageService
         }
 
         var fullKey = $"{baseKey}.webp";
-        return new FileUploadResult(fullKey, GetPublicUrl(fullKey), thumbUrl, tinyUrl, heroUrl, blurhash);
+        return new FileUploadResult(fullKey, GetPublicUrl(fullKey), thumbUrl, tinyUrl, heroUrl, blurhash, mainWidth, mainHeight);
     }
 
     public async Task DeleteAsync(string key, CancellationToken ct = default)

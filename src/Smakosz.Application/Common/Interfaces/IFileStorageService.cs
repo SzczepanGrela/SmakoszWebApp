@@ -17,5 +17,7 @@ public record FileUploadResult(
     string? ThumbUrl,
     string? TinyUrl,
     string? HeroUrl,
-    string? Blurhash
+    string? Blurhash,
+    int? Width = null,
+    int? Height = null
 );

@@ -3,6 +3,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
@@ -14,7 +15,9 @@ public record UpdateIngredientCommand(
     string? Name,
     bool? IsAllergen,
     bool? IsVegetarian,
-    bool? IsVegan) : IRequest<ErrorOr<Success>>;
+    bool? IsVegan,
+    bool? IsGlutenFree,
+    bool? IsLactoseFree) : IRequest<ErrorOr<Success>>;
 
 public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, ErrorOr<Success>>
 {
@@ -38,7 +41,7 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
         if (ingredient is null)
             return DomainErrors.Ingredient.NotFound;
 
-        var oldValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan });
+        var oldValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan, ingredient.IsGlutenFree, ingredient.IsLactoseFree });
 
         if (request.Name is not null)
             ingredient.IngredientName = request.Name;
@@ -52,6 +55,12 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
         if (request.IsVegan.HasValue)
             ingredient.IsVegan = request.IsVegan.Value;
 
+        if (request.IsGlutenFree.HasValue)
+            ingredient.IsGlutenFree = request.IsGlutenFree.Value;
+
+        if (request.IsLactoseFree.HasValue)
+            ingredient.IsLactoseFree = request.IsLactoseFree.Value;
+
         _db.AuditLogs.Add(new AuditLog
         {
             TableName = "Ingredients",
@@ -60,8 +69,27 @@ public class UpdateIngredientHandler : IRequestHandler<UpdateIngredientCommand, 
             ChangedBy = _currentUser.UserId?.ToString() ?? "system",
             ChangedAt = DateTime.UtcNow,
             OldValues = oldValues,
-            NewValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan })
+            NewValues = JsonSerializer.Serialize(new { ingredient.IngredientName, ingredient.IsAllergen, ingredient.IsVegetarian, ingredient.IsVegan, ingredient.IsGlutenFree, ingredient.IsLactoseFree })
         });
+
+        // Recalculate dietary flags for all dishes that use this ingredient
+        var affectedDishes = await _db.DishIngredients
+            .Include(di => di.Dish)
+            .Where(di => di.IngredientId == ingredient.IngredientId)
+            .Select(di => di.Dish)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        foreach (var dish in affectedDishes)
+        {
+            var dishIngredients = await _db.DishIngredients
+                .Where(di => di.DishId == dish.DishId)
+                .Select(di => di.Ingredient)
+                .ToListAsync(cancellationToken);
+
+            DishDietaryExtensions.RecalculateDietaryFlags(dish, dishIngredients);
+            dish.IngredientsJson = DishDietaryExtensions.SerializeIngredientNames(dishIngredients);
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

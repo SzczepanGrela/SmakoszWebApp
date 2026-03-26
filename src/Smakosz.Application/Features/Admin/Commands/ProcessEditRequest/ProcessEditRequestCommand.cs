@@ -36,6 +36,8 @@ public class ProcessEditRequestHandler : IRequestHandler<ProcessEditRequestComma
         editRequest.Status = request.Approve ? EditRequestStatus.Approved : EditRequestStatus.Rejected;
         editRequest.ResolvedAt = _dateTime.UtcNow;
         editRequest.ResolvedByAdminId = _currentUser.UserId;
+        editRequest.ReviewedBy = _currentUser.UserId;
+        editRequest.ReviewedAt = _dateTime.UtcNow;
 
         if (!request.Approve)
             editRequest.RejectionReason = request.RejectionReason;

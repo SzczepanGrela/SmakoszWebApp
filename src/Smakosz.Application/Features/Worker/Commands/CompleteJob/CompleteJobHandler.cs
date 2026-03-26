@@ -70,6 +70,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         var root = doc.RootElement;
 
         var toxicityScore = root.GetProperty("toxicity_score").GetDecimal();
+        var spamScore = root.TryGetProperty("spam_score", out var ss) ? ss.GetDecimal() : (decimal?)null;
         var verdict = root.GetProperty("verdict").GetString() ?? "needs_review";
         var modelVersion = root.TryGetProperty("model_version", out var mv) ? mv.GetString() : null;
 
@@ -81,6 +82,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             if (review is not null)
             {
                 review.AiToxicityScore = toxicityScore;
+                review.AiSpamScore = spamScore;
                 review.AiVerdict = verdict;
                 review.AiModelVersion = modelVersion;
                 review.AiProcessedAt = now;
