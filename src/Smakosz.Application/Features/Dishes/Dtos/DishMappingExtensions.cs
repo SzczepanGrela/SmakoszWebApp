@@ -51,7 +51,13 @@ public static class DishMappingExtensions
             RestaurantSlug = d.Restaurant?.Slug,
             CuisineType = d.Restaurant?.CuisineType,
             CityName = d.Restaurant?.City?.CityName,
-            IsSaved = isSaved
+            IsSaved = isSaved,
+            Tags = d.DishTags.Select(dt => new TagDto
+            {
+                TagName = dt.Tag.TagName,
+                Category = dt.Tag.Category,
+                DisplayColor = dt.Tag.DisplayColor
+            }).ToList()
         };
     }
 }

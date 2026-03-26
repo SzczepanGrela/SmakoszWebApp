@@ -2,6 +2,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Persistence;
+using Smakosz.Application.Common.Interfaces;
 using Smakosz.Orchestrator.Configuration;
 using Smakosz.Orchestrator.Jobs;
 
@@ -52,8 +53,8 @@ builder.Services.AddScoped<TrendingService>();
 builder.Services.AddScoped<R2CleanupService>();
 builder.Services.AddScoped<HeartbeatMonitorService>();
 builder.Services.AddScoped<NcfTrainingService>();
+builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
-builder.Services.AddSingleton<ConfigPollingService>();
 
 var app = builder.Build();
 
@@ -91,8 +92,5 @@ RecurringJob.AddOrUpdate<NcfTrainingService>(
 
 RecurringJob.AddOrUpdate<NotificationDigestService>(
     "notification-digest", x => x.SendAsync(CancellationToken.None), Cron.Daily(8), utc);
-
-RecurringJob.AddOrUpdate<ConfigPollingService>(
-    "config-polling", x => x.PollAsync(CancellationToken.None), Cron.Minutely, utc);
 
 await app.RunAsync();

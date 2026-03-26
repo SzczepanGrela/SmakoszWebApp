@@ -11,7 +11,7 @@ namespace Smakosz.Application.Features.Reports.Commands.CreateReport;
 
 public record CreateReportCommand(
     Guid ReviewPublicId,
-    string Reason,
+    List<string> ReasonCodes,
     string? Description) : IRequest<ErrorOr<Success>>;
 
 public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<Success>>
@@ -30,6 +30,9 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
+        if (request.ReasonCodes is not { Count: > 0 })
+            return DomainErrors.Report.InvalidReasonCode;
+
         var review = await _db.Reviews
             .FirstOrDefaultAsync(r => r.PublicId == request.ReviewPublicId && !r.IsDeleted, cancellationToken);
 
@@ -44,14 +47,25 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
         if (alreadyReported)
             return Error.Conflict("REPORT_ALREADY_EXISTS", "Już zgłosiłeś te recenzje");
 
+        // Validate reason codes and get severity scores
+        var validReasons = await _db.ReportReasonDefinitions
+            .Where(r => r.IsActive && request.ReasonCodes.Contains(r.ReasonCode))
+            .ToListAsync(cancellationToken);
+
+        if (validReasons.Count != request.ReasonCodes.Count)
+            return DomainErrors.Report.InvalidReasonCode;
+
+        var maxSeverity = validReasons.Max(r => r.SeverityScore);
+        var reasonLabels = string.Join(", ", validReasons.Select(r => r.LabelPl));
+
         var report = new Report
         {
             ReporterId = _currentUser.UserId.Value,
             EntityType = ReportEntityType.Review,
             EntityId = review.ReviewId,
             Description = string.IsNullOrWhiteSpace(request.Description)
-                ? request.Reason
-                : $"{request.Reason}: {request.Description}",
+                ? reasonLabels
+                : $"{reasonLabels}: {request.Description}",
             Status = ReportStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -59,13 +73,31 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
         _db.Reports.Add(report);
         await _db.SaveChangesAsync(cancellationToken);
 
+        // Create reason assignments
+        foreach (var code in request.ReasonCodes)
+        {
+            _db.ReportReasonAssignments.Add(new ReportReasonAssignment
+            {
+                ReportId = report.ReportId,
+                ReasonCode = code
+            });
+        }
+
+        // Priority: severity 1-2 -> priority 3, severity 3 -> priority 2, severity 4-5 -> priority 1
+        var ticketPriority = maxSeverity switch
+        {
+            >= 4 => 1,
+            3 => 2,
+            _ => 3
+        };
+
         _db.SystemTickets.Add(new SystemTicket
         {
             TicketType = TicketType.Report,
             ReferenceId = report.ReportId,
             Status = TicketStatus.Open,
-            Priority = 2,
-            Description = $"Zgloszenie recenzji #{review.ReviewId}: {request.Reason}"
+            Priority = ticketPriority,
+            Description = $"Zgloszenie recenzji #{review.ReviewId}: {reasonLabels}"
         });
 
         await _db.SaveChangesAsync(cancellationToken);

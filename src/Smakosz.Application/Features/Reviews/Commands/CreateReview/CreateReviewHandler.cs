@@ -27,6 +27,9 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
+        if (_currentUser.Role is not "User" and not "user")
+            return DomainErrors.Social.UserRoleOnly;
+
         var dish = await _db.Dishes
             .Include(d => d.Restaurant)
             .FirstOrDefaultAsync(d => d.PublicId == request.DishPublicId, cancellationToken);
@@ -102,16 +105,33 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
 
         if (dish.Restaurant?.OwnerId is { } ownerId && ownerId != _currentUser.UserId.Value)
         {
-            _db.Notifications.Add(new Notification
+            var groupKey = $"review:restaurant:{dish.RestaurantId}";
+            var existingNotification = await _db.Notifications
+                .FirstOrDefaultAsync(n => n.UserId == ownerId
+                    && n.GroupKey == groupKey
+                    && !n.IsRead, cancellationToken);
+
+            if (existingNotification != null)
             {
-                UserId = ownerId,
-                ActorId = _currentUser.UserId.Value,
-                Type = NotificationType.System,
-                Title = "Nowa recenzja",
-                Message = $"Ktoś dodał recenzję dania \"{dish.DishName}\".",
-                GroupKey = $"review:restaurant:{dish.RestaurantId}",
-                CreatedAt = DateTime.UtcNow
-            });
+                existingNotification.Counter++;
+                existingNotification.ActorId = _currentUser.UserId.Value;
+                existingNotification.CreatedAt = DateTime.UtcNow;
+                existingNotification.Message = $"Ktoś i {existingNotification.Counter - 1} innych dodało recenzje Twojej restauracji.";
+            }
+            else
+            {
+                _db.Notifications.Add(new Notification
+                {
+                    UserId = ownerId,
+                    ActorId = _currentUser.UserId.Value,
+                    Type = NotificationType.System,
+                    Title = "Nowa recenzja",
+                    Message = $"Ktoś dodał recenzję dania \"{dish.DishName}\".",
+                    GroupKey = groupKey,
+                    Counter = 1,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
             await _db.SaveChangesAsync(cancellationToken);
         }
 

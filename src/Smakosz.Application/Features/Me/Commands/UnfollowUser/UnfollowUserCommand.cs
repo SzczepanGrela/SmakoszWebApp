@@ -24,6 +24,9 @@ public class UnfollowUserHandler : IRequestHandler<UnfollowUserCommand, ErrorOr<
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
+        if (_currentUser.Role is not "User" and not "user")
+            return DomainErrors.Social.UserRoleOnly;
+
         var targetUser = await _db.Users
             .FirstOrDefaultAsync(u => u.Slug == request.Slug && !u.IsDeleted, cancellationToken);
 

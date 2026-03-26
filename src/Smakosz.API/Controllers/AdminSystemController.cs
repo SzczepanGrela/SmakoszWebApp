@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Smakosz.Application.Common.Models;
+using Smakosz.Application.Features.Admin.Commands.CancelJob;
+using Smakosz.Application.Features.Admin.Commands.CreateJob;
+using Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
 using Smakosz.Application.Features.Admin.Commands.TriggerJob;
 using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAiModels;
@@ -54,10 +57,32 @@ public class AdminSystemController : ApiController
         return ToActionResult(result);
     }
 
+    [HttpPost("jobs")]
+    public async Task<IActionResult> CreateJob([FromBody] CreateJobRequest request)
+    {
+        var result = await _mediator.Send(new CreateJobCommand(
+            request.Type, request.Priority, request.Payload, request.EntityId, request.EntityType));
+        return ToCreatedResult(result);
+    }
+
     [HttpPost("jobs/{jobId:int}/trigger")]
     public async Task<IActionResult> TriggerJob(int jobId)
     {
         var result = await _mediator.Send(new TriggerJobCommand(jobId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPut("jobs/{jobId:int}/cancel")]
+    public async Task<IActionResult> CancelJob(int jobId)
+    {
+        var result = await _mediator.Send(new CancelJobCommand(jobId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("ncf-training/schedule")]
+    public async Task<IActionResult> ScheduleNcfTraining()
+    {
+        var result = await _mediator.Send(new ScheduleNcfTrainingCommand());
         return ToNoContentResult(result);
     }
 
@@ -77,3 +102,4 @@ public class AdminSystemController : ApiController
 }
 
 public record UpdateSystemConfigRequest(string Key, string Value);
+public record CreateJobRequest(string Type, int Priority, string? Payload, string? EntityId, string? EntityType);

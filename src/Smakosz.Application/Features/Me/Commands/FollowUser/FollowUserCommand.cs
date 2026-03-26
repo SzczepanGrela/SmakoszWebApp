@@ -26,6 +26,9 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
+        if (_currentUser.Role is not "User" and not "user")
+            return DomainErrors.Social.UserRoleOnly;
+
         var targetUser = await _db.Users
             .FirstOrDefaultAsync(u => u.Slug == request.Slug && !u.IsDeleted, cancellationToken);
 
@@ -49,16 +52,33 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
             CreatedAt = DateTime.UtcNow
         });
 
-        _db.Notifications.Add(new Notification
+        var groupKey = $"follow:{targetUser.UserId}";
+        var existingNotification = await _db.Notifications
+            .FirstOrDefaultAsync(n => n.UserId == targetUser.UserId
+                && n.GroupKey == groupKey
+                && !n.IsRead, cancellationToken);
+
+        if (existingNotification != null)
         {
-            UserId = targetUser.UserId,
-            ActorId = _currentUser.UserId.Value,
-            Type = NotificationType.Follow,
-            Title = "Nowy obserwujący",
-            Message = "Ktoś zaczął Cię obserwować.",
-            GroupKey = $"follow:{targetUser.UserId}",
-            CreatedAt = DateTime.UtcNow
-        });
+            existingNotification.Counter++;
+            existingNotification.ActorId = _currentUser.UserId.Value;
+            existingNotification.CreatedAt = DateTime.UtcNow;
+            existingNotification.Message = $"Ktoś i {existingNotification.Counter - 1} innych zaczęło Cię obserwować.";
+        }
+        else
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserId = targetUser.UserId,
+                ActorId = _currentUser.UserId.Value,
+                Type = NotificationType.Follow,
+                Title = "Nowy obserwujący",
+                Message = "Ktoś zaczął Cię obserwować.",
+                GroupKey = groupKey,
+                Counter = 1,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
         return Result.Success;

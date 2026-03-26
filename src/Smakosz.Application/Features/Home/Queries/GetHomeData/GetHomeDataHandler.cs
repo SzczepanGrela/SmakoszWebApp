@@ -155,7 +155,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .AsNoTracking()
             .Where(m => m.EntityType == MediaEntityType.Hero && m.Status == MediaAssetStatus.Approved)
             .OrderBy(_ => EF.Functions.Random())
-            .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash })
+            .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(cancellationToken);
 
         return new HomeDataDto

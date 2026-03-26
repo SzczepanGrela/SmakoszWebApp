@@ -13,6 +13,7 @@ public class HeroImageItemDto
     public Guid PublicId { get; init; }
     public string Url { get; init; } = string.Empty;
     public string? Blurhash { get; init; }
+    public string? CreditText { get; init; }
     public DateTime? CreatedAt { get; init; }
 }
 
@@ -33,6 +34,7 @@ public class GetHeroImagesHandler : IRequestHandler<GetHeroImagesQuery, ErrorOr<
                 PublicId = m.PublicId,
                 Url = m.Url,
                 Blurhash = m.Blurhash,
+                CreditText = m.CreditText,
                 CreatedAt = m.CreatedAt
             })
             .ToListAsync(cancellationToken);

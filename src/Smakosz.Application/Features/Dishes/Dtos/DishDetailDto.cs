@@ -25,4 +25,12 @@ public class DishDetailDto
     public string? CuisineType { get; init; }
     public string? CityName { get; init; }
     public bool IsSaved { get; init; }
+    public List<TagDto> Tags { get; init; } = [];
+}
+
+public class TagDto
+{
+    public string TagName { get; init; } = default!;
+    public string Category { get; init; } = default!;
+    public string? DisplayColor { get; init; }
 }
