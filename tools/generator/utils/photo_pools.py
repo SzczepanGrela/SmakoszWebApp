@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from config import PHOTO_CONFIG
+from tools.utils import slugify
 
 logger = logging.getLogger(__name__)
 INDEX_FILE = Path(str(PHOTO_CONFIG["local_photo_index"]))
@@ -137,7 +138,7 @@ class PhotoPools:
 
     def get_ingredient_photo(self, ingredient_name: str) -> dict[str, str | int | None]:
         ing_index = self.index.get("ingredients", {})
-        photo_entry = ing_index.get(ingredient_name)
+        photo_entry = ing_index.get(ingredient_name) or ing_index.get(slugify(ingredient_name))
 
         if photo_entry:
             path, blurhash_val, width, height = self._extract_photo_data(photo_entry)
