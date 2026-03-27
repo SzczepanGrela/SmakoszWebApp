@@ -14,8 +14,8 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260322062732_AddResponseDeadlineToDataCorrection")]
-    partial class AddResponseDeadlineToDataCorrection
+    [Migration("20260327230701_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -3077,6 +3077,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("email_verified");
 
+                    b.Property<int>("FailedLoginCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_login_count");
+
                     b.Property<string>("FirstName")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -3119,6 +3123,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("last_name");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until_utc");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
