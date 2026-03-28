@@ -12,13 +12,13 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
 
-    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, IPasswordHasher passwordHasher)
+    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
     {
         _db = db;
         _emailService = emailService;
-        _passwordHasher = passwordHasher;
+        _codeHasher = codeHasher;
     }
 
     public async Task<ErrorOr<Success>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
         var verificationCode = new VerificationCode
         {
             UserId = user.UserId,
-            CodeHash = _passwordHasher.Hash(code),
+            CodeHash = _codeHasher.Hash(code),
             Type = VerificationCodeType.ResetPassword,
             ExpiresAt = DateTime.UtcNow.AddMinutes(15)
         };

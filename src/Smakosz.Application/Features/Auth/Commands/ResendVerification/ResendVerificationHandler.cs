@@ -12,13 +12,13 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
 
-    public ResendVerificationHandler(ISmakoszDbContext db, IEmailService emailService, IPasswordHasher passwordHasher)
+    public ResendVerificationHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
     {
         _db = db;
         _emailService = emailService;
-        _passwordHasher = passwordHasher;
+        _codeHasher = codeHasher;
     }
 
     public async Task<ErrorOr<Success>> Handle(ResendVerificationCommand request, CancellationToken cancellationToken)
@@ -30,12 +30,17 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
         if (user is null || user.EmailVerified)
             return Result.Success;
 
+        var oldCodes = await _db.VerificationCodes
+            .Where(vc => vc.UserId == user.UserId && vc.Type == VerificationCodeType.Register)
+            .ToListAsync(cancellationToken);
+        _db.VerificationCodes.RemoveRange(oldCodes);
+
         var code = GenerateCode();
 
         var verificationCode = new VerificationCode
         {
             UserId = user.UserId,
-            CodeHash = _passwordHasher.Hash(code),
+            CodeHash = _codeHasher.Hash(code),
             Type = VerificationCodeType.Register,
             ExpiresAt = DateTime.UtcNow.AddMinutes(15)
         };

@@ -11,11 +11,13 @@ public class ResetPasswordHandler : IRequestHandler<ResetPasswordCommand, ErrorO
 {
     private readonly ISmakoszDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
 
-    public ResetPasswordHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher)
+    public ResetPasswordHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher)
     {
         _db = db;
         _passwordHasher = passwordHasher;
+        _codeHasher = codeHasher;
     }
 
     public async Task<ErrorOr<Success>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ public class ResetPasswordHandler : IRequestHandler<ResetPasswordCommand, ErrorO
                     && vc.ExpiresAt > DateTime.UtcNow,
                 cancellationToken);
 
-        if (verificationCode is null || !_passwordHasher.Verify(request.Code, verificationCode.CodeHash))
+        if (verificationCode is null || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
             return DomainErrors.Auth.InvalidVerificationCode;
 
         // Remove used code

@@ -1,3 +1,3 @@
 namespace Smakosz.Application.Common.Interfaces;
 
-public interface IPasswordHasher : IHasher { }
+public interface ICodeHasher : IHasher { }

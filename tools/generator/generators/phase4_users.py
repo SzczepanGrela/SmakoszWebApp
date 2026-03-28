@@ -1,13 +1,11 @@
-import base64
-import hashlib
 import json
 import logging
-import os
 import random
 import time
 import uuid
 from datetime import datetime, timedelta
 
+from argon2 import PasswordHasher as Argon2Hasher
 from scipy.stats import beta as beta_dist
 from tqdm import tqdm
 
@@ -31,64 +29,14 @@ from utils.user_helpers import (
 
 logger = logging.getLogger(__name__)
 
-def generate_aspnet_identity_v3_hash(password: str) -> str:
-    """
-    Generate an ASP.NET Core Identity v3 compatible password hash.
+_argon2_hasher = Argon2Hasher(time_cost=2, memory_cost=19456, parallelism=1, hash_len=32, salt_len=16)
 
-    Uses PBKDF2-HMAC-SHA256 with 100,000 iterations, matching the format
-    expected by ASP.NET Core Identity PasswordHasher<TUser>.
+ARGON2_HASH_PASSWORD123 = _argon2_hasher.hash("Password123!")
 
-    Binary Structure:
-        - Byte 0: 0x01 (Format marker - Version 3)
-        - Byte 1: 0x01 (PRF algorithm: HMAC-SHA256)
-        - Bytes 2-5: 100000 (Iteration count, Big Endian, 4 bytes)
-        - Bytes 6-9: 16 (Salt length in bytes, Big Endian, 4 bytes)
-        - Bytes 10-25: salt (16 bytes)
-        - Bytes 26-57: subkey (32 bytes from PBKDF2)
-
-    Total: 58 bytes -> Base64 encoded to ~77 characters
-
-    Args:
-        password: The plaintext password to hash
-
-    Returns:
-        Base64-encoded hash string compatible with ASP.NET Core Identity
-
-    Example:
-        >>> hash_str = generate_aspnet_identity_v3_hash("Password123!")
-        >>> len(hash_str)  # Approximately 77 characters
-        77
-    """
-    # Step 1: Generate random 16-byte salt
-    salt = os.urandom(16)
-
-    # Step 2: Derive 32-byte key using PBKDF2-HMAC-SHA256 with 100,000 iterations
-    subkey = hashlib.pbkdf2_hmac(
-        hash_name="sha256",
-        password=password.encode("utf-8"),
-        salt=salt,
-        iterations=100000,
-        dklen=32,  # Derive 32-byte key
-    )
-
-    # Step 3: Construct binary format matching ASP.NET Core Identity v3
-    # Format version (1 byte): 0x01
-    version = b"\x01"
-
-    # PRF algorithm (1 byte): 0x01 = HMAC-SHA256
-    prf_algorithm = b"\x01"
-
-    # Iteration count (4 bytes, Big Endian): 100,000
-    iteration_count = (100000).to_bytes(4, byteorder="big")
-
-    # Salt length (4 bytes, Big Endian): 16
-    salt_length = (16).to_bytes(4, byteorder="big")
-
-    # Combine all parts: header (10 bytes) + salt (16 bytes) + subkey (32 bytes) = 58 bytes total
-    hash_bytes = version + prf_algorithm + iteration_count + salt_length + salt + subkey
-
-    # Step 4: Return base64 encoded string (58 bytes -> ~77 base64 chars)
-    return base64.b64encode(hash_bytes).decode("ascii")
+def generate_argon2_hash(password: str) -> str:
+    if password == "Password123!":
+        return ARGON2_HASH_PASSWORD123
+    return _argon2_hasher.hash(password)
 
 def allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints"):
     blueprint_loader = BlueprintLoader(blueprints_dir)
@@ -146,7 +94,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     if not cities:
         raise ValueError("Cannot generate users without cities")
 
-    # Fetch restaurants for restaurant accounts
     restaurants = db.fetch_all("SELECT restaurant_id, restaurant_name, city_id FROM restaurants")
     logger.info(f"Found {len(restaurants)} restaurants. Deciding ownership (70% target)...")
 
@@ -160,11 +107,9 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     date_gen = DateGenerator()
     photo_pools = PhotoPools()
 
-    # Generate common ASP.NET Core Identity v3 password hash for all users
     # Password: "Password123!" - reused for all 50k users (acceptable for mock data)
-    common_hash = generate_aspnet_identity_v3_hash("Password123!")
-    logger.info(f"Generated common password hash for 'Password123!': {common_hash[:20]}...")
-    logger.info(f"Hash length: {len(common_hash)} characters (expected ~77)")
+    common_hash = generate_argon2_hash("Password123!")
+    logger.info(f"Generated common Argon2id hash for 'Password123!': {common_hash[:40]}...")
 
     total_admins = 1
     total_moderators = 3
@@ -174,12 +119,11 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
     user_data = []
 
-    # Randomly select ~70% of restaurants to be claimed
     claimed_restaurants = [r for r in restaurants if random.random() < 0.70]
 
     for r_id, r_name, r_city_id in tqdm(claimed_restaurants, desc="Generating restaurant accounts", unit=" user"):
         sanitized_name = "".join(c for c in r_name if c.isalnum()).lower()[:15]
-        username = f"rest_{sanitized_name}_{r_id}"[:30]  # Ensure 3-30 chars
+        username = f"rest_{sanitized_name}_{r_id}"[:30]
         if len(username) < 3:
             username = f"rest{r_id}"
         email = f"contact_{r_id}@{sanitized_name}.com"
@@ -206,7 +150,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "followers_count": 0,
                 "following_count": 0,
                 "password_hash": common_hash,
-                "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
+                "security_stamp": str(uuid.uuid4()),
                 "role": "restaurant",
                 "secret_home_city_id": r_city_id,
                 "restaurant_id": r_id,
@@ -238,7 +182,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             }
         )
 
-    # 2. Generate Standard Users (Admins, Moderators, Users)
     for i in tqdm(
         range(num_standard_users),
         desc="Generating standard users",
@@ -258,7 +201,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         else:
             role = "user"
             base_username = fake.user_name()
-            # Ensure username is 3-30 chars (CHECK constraint)
             username = f"{base_username}{i}"[:30]
             if len(username) < 3:
                 username = f"user{i}"
@@ -266,10 +208,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
         city_id, city_name = user_city_assignments[i]
         join_date = date_gen.generate_user_join_date()
-
-        # Skip expensive preference generation for non-user roles
-        # Business Rule: Only role='user' can submit reviews (enforced by DB trigger)
-        # Therefore, admin/moderator/restaurant don't need preference vectors
 
         if role == "user":
             is_power_user = random.random() < 0.15
@@ -281,7 +219,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 mobility_factor = min(1.0, mobility_factor + 0.1)
                 is_influencer = random.random() < 0.20
             elif random.random() < 0.05:
-                # 5% cold-start users - NCF must learn fallback to popular items
                 secret_total_review_count = random.randint(1, 3)
                 is_influencer = False
             else:
@@ -320,8 +257,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         else:
             is_power_user = False
             mobility_factor = 0.0
-            secret_total_review_count = 0  # Cannot review
-            is_influencer = random.random() < 0.50  # Can still be influential in community
+            secret_total_review_count = 0
+            is_influencer = random.random() < 0.50
             secret_mood_propensity = 0.0
             secret_cross_impact_factor = 0.0
 
@@ -340,10 +277,9 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             avatar_url = avatar_metadata["url"]
             avatar_blurhash = avatar_metadata.get("blurhash")
         else:
-            avatar_url = None  # Frontend will generate UI Avatars from initials
+            avatar_url = None
             avatar_blurhash = None
 
-        # Phase 5 will update last_login_at if user posted a review after this date
         days_since_join = (datetime.now() - join_date).days
         if days_since_join > 0:
             last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
@@ -366,11 +302,11 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             deleted_at = DateGenerator.to_sql_datetime(deletion_date)
 
         personality_roll = random.random()
-        if personality_roll < 0.15:  # Critic
+        if personality_roll < 0.15:
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(4.0, 0.5)))
-        elif personality_roll < 0.75:  # Realist
+        elif personality_roll < 0.75:
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.5, 0.5)))
-        else:  # Fan
+        else:
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.0, 0.5)))
         secret_rating_baseline = round(secret_rating_baseline, 2)
 
@@ -387,7 +323,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "followers_count": 0,
                 "following_count": 0,
                 "password_hash": common_hash,
-                "security_stamp": str(uuid.uuid4()),  # ASP.NET Core Identity requirement
+                "security_stamp": str(uuid.uuid4()),
                 "role": role,
                 "secret_home_city_id": city_id,
                 "restaurant_id": None,
@@ -412,7 +348,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "secret_mood_propensity": round(secret_mood_propensity, 3),
                 "secret_is_influencer": is_influencer,
                 "secret_rating_baseline": secret_rating_baseline,
-                # OPTIMIZATION: Only generate 14D vector for users who can review
                 "secret_characteristics_vector": (
                     json.dumps(generate_user_characteristics_vector()) if role == "user" else json.dumps({})
                 ),
@@ -442,10 +377,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     logger.info(f"Generated {len(user_data)} users in {duration:.2f}s")
 
 def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: PhotoPools):
-    """
-    Insert user avatars into media_assets table.
-    Only inserts for users who have custom avatars (avatar_url IS NOT NULL).
-    """
     logger.info("Inserting user avatars into media_assets...")
 
     users_with_avatars = db.fetch_all("SELECT user_id, avatar_url FROM users WHERE avatar_url IS NOT NULL")
@@ -459,16 +390,13 @@ def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: Ph
     for user_id, avatar_url in tqdm(
         users_with_avatars, desc="Processing avatars", unit=" avatar", mininterval=1.0, disable=LoggingConfig.is_quiet()
     ):
-        # Note: Avatar metadata (blurhash, width, height) was generated during user creation
-        # but not cached. Since we only have the URL, we'll set metadata fields to NULL.
-        # In a production system, this metadata should be cached during generation.
         avatar_data.append(
             {
                 "public_id": str(uuid.uuid4()),
                 "entity_type": "user",
                 "entity_id": user_id,
                 "url": avatar_url,
-                "blurhash": None,  # Metadata not cached during generation
+                "blurhash": None,
                 "width": None,
                 "height": None,
                 "is_primary": True,
@@ -544,17 +472,6 @@ def _generate_user_notification_settings(db: DatabaseConnection):
         logger.info(f"Generated {len(settings_data):,} notification settings")
 
 class UsersPhase(BasePhase):
-    """
-    Phase 4: Users Generation
-
-    Generates users with preferences, avatars, addresses, and notification settings.
-
-    Dependencies:
-    - phase1_cities (requires cities table for user addresses)
-
-    Required Tables: users, user_notification_settings
-    Estimated Duration: ~40 seconds (avatar photo lookups + preference generation)
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
         self.blueprints_dir = blueprints_dir
@@ -577,7 +494,6 @@ class UsersPhase(BasePhase):
         try:
             num_users = context.config.get("num_users", GENERATION_CONFIG["num_users"])
 
-            # Note: cleanup=False because DatabaseManager handles cleanup
             generate_users(context.db, num_users=num_users, cleanup=False)
 
             users_count = context.db.fetch_val("SELECT COUNT(*) FROM users")
@@ -585,7 +501,7 @@ class UsersPhase(BasePhase):
 
             duration = time.time() - start_time
             logger.info(
-                f"✓ Generated {users_count} users with {settings_count} notification settings in {duration:.2f}s"
+                f"[OK] Generated {users_count} users with {settings_count} notification settings in {duration:.2f}s"
             )
 
             return PhaseResult(

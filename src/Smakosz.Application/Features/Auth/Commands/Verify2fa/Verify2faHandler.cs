@@ -12,13 +12,13 @@ namespace Smakosz.Application.Features.Auth.Commands.Verify2fa;
 public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthResultDto>>
 {
     private readonly ISmakoszDbContext _db;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
     private readonly IJwtTokenService _jwtTokenService;
 
-    public Verify2faHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService)
+    public Verify2faHandler(ISmakoszDbContext db, ICodeHasher codeHasher, IJwtTokenService jwtTokenService)
     {
         _db = db;
-        _passwordHasher = passwordHasher;
+        _codeHasher = codeHasher;
         _jwtTokenService = jwtTokenService;
     }
 
@@ -37,7 +37,7 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
                     && vc.ExpiresAt > DateTime.UtcNow,
                 cancellationToken);
 
-        if (verificationCode is null || !_passwordHasher.Verify(request.Code, verificationCode.CodeHash))
+        if (verificationCode is null || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
             return DomainErrors.Auth.InvalidVerificationCode;
 
         // Remove used code

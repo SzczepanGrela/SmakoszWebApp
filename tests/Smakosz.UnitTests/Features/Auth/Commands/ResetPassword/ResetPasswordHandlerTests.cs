@@ -14,14 +14,16 @@ public class ResetPasswordHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
     private readonly ResetPasswordHandler _handler;
 
     public ResetPasswordHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
+        _codeHasher = Substitute.For<ICodeHasher>();
         _passwordHasher.Hash(Arg.Any<string>()).Returns("new_hashed_password");
-        _handler = new ResetPasswordHandler(_db, _passwordHasher);
+        _handler = new ResetPasswordHandler(_db, _passwordHasher, _codeHasher);
     }
 
     [Fact]
@@ -36,7 +38,7 @@ public class ResetPasswordHandlerTests
         _sets.Users.Add(user);
         _sets.VerificationCodes.Add(code);
         DbContextMockFactory.Refresh(_db, _sets);
-        _passwordHasher.Verify("123456", "hashed_reset_code").Returns(true);
+        _codeHasher.Verify("123456", "hashed_reset_code").Returns(true);
         var command = new ResetPasswordCommand("test@example.com", "123456", "NewPassword123!");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -57,7 +59,7 @@ public class ResetPasswordHandlerTests
         _sets.Users.Add(user);
         _sets.VerificationCodes.Add(code);
         DbContextMockFactory.Refresh(_db, _sets);
-        _passwordHasher.Verify("wrong_code", "hashed_reset_code").Returns(false);
+        _codeHasher.Verify("wrong_code", "hashed_reset_code").Returns(false);
         var command = new ResetPasswordCommand("test@example.com", "wrong_code", "NewPassword123!");
 
         var result = await _handler.Handle(command, CancellationToken.None);

@@ -13,18 +13,18 @@ public class Verify2faHandlerTests
 {
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly ICodeHasher _codeHasher;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly Verify2faHandler _handler;
 
     public Verify2faHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
-        _passwordHasher = Substitute.For<IPasswordHasher>();
+        _codeHasher = Substitute.For<ICodeHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
         _jwtTokenService.GenerateAccessToken(Arg.Any<Domain.Entities.User>()).Returns("access_token");
         _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
-        _handler = new Verify2faHandler(_db, _passwordHasher, _jwtTokenService);
+        _handler = new Verify2faHandler(_db, _codeHasher, _jwtTokenService);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class Verify2faHandlerTests
         _sets.Users.Add(user);
         _sets.VerificationCodes.Add(code);
         DbContextMockFactory.Refresh(_db, _sets);
-        _passwordHasher.Verify("123456", "hashed_2fa").Returns(true);
+        _codeHasher.Verify("123456", "hashed_2fa").Returns(true);
         var command = new Verify2faCommand("test@example.com", "123456");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -61,7 +61,7 @@ public class Verify2faHandlerTests
         _sets.Users.Add(user);
         _sets.VerificationCodes.Add(code);
         DbContextMockFactory.Refresh(_db, _sets);
-        _passwordHasher.Verify("wrong_code", "hashed_2fa").Returns(false);
+        _codeHasher.Verify("wrong_code", "hashed_2fa").Returns(false);
         var command = new Verify2faCommand("test@example.com", "wrong_code");
 
         var result = await _handler.Handle(command, CancellationToken.None);

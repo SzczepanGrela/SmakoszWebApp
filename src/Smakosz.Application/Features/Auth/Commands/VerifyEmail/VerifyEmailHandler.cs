@@ -10,37 +10,39 @@ namespace Smakosz.Application.Features.Auth.Commands.VerifyEmail;
 public class VerifyEmailHandler : IRequestHandler<VerifyEmailCommand, ErrorOr<Success>>
 {
     private readonly ISmakoszDbContext _db;
-    private readonly ICurrentUserService _currentUser;
+    private readonly ICodeHasher _codeHasher;
 
-    public VerifyEmailHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public VerifyEmailHandler(ISmakoszDbContext db, ICodeHasher codeHasher)
     {
         _db = db;
-        _currentUser = currentUser;
+        _codeHasher = codeHasher;
     }
 
     public async Task<ErrorOr<Success>> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.UserId.HasValue)
-            return DomainErrors.Auth.InvalidCredentials;
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant() && !u.IsDeleted, cancellationToken);
 
-        var verificationCode = await _db.VerificationCodes
-            .FirstOrDefaultAsync(
-                vc => vc.UserId == _currentUser.UserId.Value
-                    && vc.CodeHash == request.Code
-                    && vc.Type == VerificationCodeType.Register
-                    && vc.ExpiresAt > DateTime.UtcNow,
-                cancellationToken);
+        if (user is null)
+            return DomainErrors.Auth.InvalidVerificationCode;
+
+        if (user.EmailVerified)
+            return Result.Success;
+
+        var verificationCodes = await _db.VerificationCodes
+            .Where(vc => vc.UserId == user.UserId
+                && vc.Type == VerificationCodeType.Register
+                && vc.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+
+        var verificationCode = verificationCodes
+            .FirstOrDefault(vc => _codeHasher.Verify(request.Code, vc.CodeHash));
 
         if (verificationCode is null)
             return DomainErrors.Auth.InvalidVerificationCode;
 
-        var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.UserId == _currentUser.UserId.Value, cancellationToken);
-
-        if (user is null)
-            return DomainErrors.User.NotFound;
-
         user.EmailVerified = true;
+        _db.VerificationCodes.Remove(verificationCode);
         await _db.SaveChangesAsync(cancellationToken);
 
         return Result.Success;
