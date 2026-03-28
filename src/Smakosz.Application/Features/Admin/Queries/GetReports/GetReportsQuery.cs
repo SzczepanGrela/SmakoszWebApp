@@ -23,7 +23,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, ErrorOr<PagedR
 
     public async Task<ErrorOr<PagedResult<AdminReportDto>>> Handle(GetReportsQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.Reports.AsNoTracking().AsQueryable();
@@ -46,7 +46,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, ErrorOr<PagedR
                 EntityType = r.EntityType.ToString(),
                 EntityId = r.EntityId,
                 Reason = r.Description ?? string.Empty,
-                Status = r.Status.ToString(),
+                Status = r.Status.ToString().ToLowerInvariant(),
                 ReporterUsername = r.Reporter.Username,
                 CreatedAt = r.CreatedAt ?? DateTime.MinValue
             })

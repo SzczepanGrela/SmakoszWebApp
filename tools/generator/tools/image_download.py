@@ -1,18 +1,3 @@
-"""
-Image Download Service
-
-Handles HTTP download, multi-size image generation, batch downloads,
-and URL deduplication logic.
-
-Separated from PixabayDownloader so that:
-- Image processing can be tested independently (no API key needed).
-- Other tools (media_pipeline, refetch_photos) can reuse the same
-  download machinery without coupling to Pixabay-specific search logic.
-
-Responsibility: *Given a URL and a target path, download and process it.*
-Not responsible for: search queries, index management, directory cleanup.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -33,7 +18,6 @@ from utils.image_processor import resize_and_crop
 
 logger = logging.getLogger(__name__)
 
-# Optional blurhash/numpy - graceful degradation when not installed.
 try:
     import blurhash  # type: ignore
     import numpy as np  # type: ignore
@@ -43,7 +27,6 @@ except ImportError:
     BLURHASH_AVAILABLE = False
     logger.debug("blurhash library not available. BlurHash generation skipped.")
 
-# Size and format constants derived from project config.
 TARGET_SIZE: tuple[int, int] = (int(PHOTO_CONFIG["target_width"]), int(PHOTO_CONFIG["target_height"]))
 SIZE_FULL: tuple[int, int] = tuple(PHOTO_CONFIG.get("size_full", (1280, 960)))  # type: ignore[assignment]
 SIZE_AVATAR: tuple[int, int] = tuple(PHOTO_CONFIG.get("size_avatar", (300, 300)))  # type: ignore[assignment]
@@ -56,16 +39,6 @@ IMAGE_QUALITY: int = int(PHOTO_CONFIG.get("image_quality", 80))  # type: ignore[
 WORKERS: int = int(PHOTO_CONFIG.get("workers", 10))  # type: ignore[arg-type]
 
 class ImageDownloadService:
-    """
-    Downloads and processes images into one or more output sizes.
-
-    Args:
-        session:    Pre-configured requests.Session (with retry logic).
-        seen_urls:  Mutable dict shared with caller - maps URL -> relative path.
-                    Used for deduplication across runs.
-        output_dir: Root directory for all saved images. Relative paths in
-                    returned dicts are computed relative to this directory.
-    """
 
     def __init__(
         self,
@@ -77,22 +50,12 @@ class ImageDownloadService:
         self.seen_urls = seen_urls
         self.output_dir = output_dir
 
-    # ------------------------------------------------------------------
-    # Single-image processing
-    # ------------------------------------------------------------------
-
     def process_image(
         self,
         url: str,
         save_path: Path,
         target_size: tuple[int, int] | None = None,
     ) -> tuple[bool, dict[str, Any] | None]:
-        """
-        Download, resize/crop, generate BlurHash, and save one image.
-
-        Returns:
-            (success, metadata) where metadata contains blurhash/width/height.
-        """
         if save_path.exists():
             try:
                 existing_img = Image.open(save_path)
@@ -172,12 +135,6 @@ class ImageDownloadService:
         include_tiny: bool = False,
         avatar_mode: bool = False,
     ) -> tuple[bool, dict[str, Any] | None]:
-        """
-        Download one image and save it at full, thumb, and optionally tiny size.
-
-        Returns:
-            (success, metadata) where metadata includes path_thumb/path_tiny.
-        """
         full_size = SIZE_AVATAR if avatar_mode else SIZE_FULL
         stem = save_path_full.stem
         suffix = save_path_full.suffix
@@ -224,7 +181,6 @@ class ImageDownloadService:
             except Exception:
                 return (True, None)
 
-        # Full file exists but some derived sizes are missing - regenerate from disk.
         if save_path_full.exists():
             try:
                 existing_img = Image.open(save_path_full)
@@ -260,7 +216,6 @@ class ImageDownloadService:
                 logger.debug(f"Error generating derived sizes from existing {save_path_full}: {e}")
                 return (True, None)
 
-        # Full file does NOT exist - download fresh.
         try:
             resp = self.session.get(url, timeout=15)
             if resp.status_code != 200:
@@ -309,18 +264,7 @@ class ImageDownloadService:
             logger.debug(f"Error processing multi-size {url}: {e}")
             return (False, None)
 
-    # ------------------------------------------------------------------
-    # Batch orchestration
-    # ------------------------------------------------------------------
-
     def download_batch(self, tasks: list[tuple]) -> list[dict[str, Any]]:
-        """
-        Execute a batch of download tasks using ThreadPoolExecutor.
-
-        Each task is either:
-        - ``(url, save_path, rel_path)``          - uses default TARGET_SIZE
-        - ``(url, save_path, rel_path, size)``    - uses custom size tuple
-        """
         saved_files: list[dict[str, Any]] = []
         futures = []
         task_indices = []
@@ -370,11 +314,6 @@ class ImageDownloadService:
         include_tiny: bool = False,
         avatar_mode: bool = False,
     ) -> list[dict[str, Any]]:
-        """
-        Execute batch download with multi-size image generation.
-
-        Each task is ``(url, save_path_full, rel_path_full)``.
-        """
         saved_files: list[dict[str, Any]] = []
         futures = []
         task_map: list[tuple[int, str, str]] = []

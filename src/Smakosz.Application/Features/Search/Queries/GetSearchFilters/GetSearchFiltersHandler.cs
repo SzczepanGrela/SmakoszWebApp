@@ -15,21 +15,27 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
     {
         var cuisines = await _db.CuisineTypes
             .AsNoTracking()
-            .Select(c => c.Name)
-            .OrderBy(c => c)
+            .OrderBy(c => c.DisplayName)
+            .Select(c => new FilterOption { Value = c.Name, Label = c.DisplayName })
             .ToListAsync(cancellationToken);
 
         var cities = await _db.Cities
             .AsNoTracking()
-            .Select(c => new CityFilterDto { Id = c.CityId, Name = c.CityName })
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.CityName)
+            .Select(c => c.CityName)
             .ToListAsync(cancellationToken);
 
         return new SearchFiltersDto
         {
             Cuisines = cuisines,
             Cities = cities,
-            DietaryOptions = new List<string> { "vegetarian", "vegan", "gluten_free", "lactose_free" },
+            DietaryOptions = new List<FilterOption>
+            {
+                new() { Value = "vegetarian", Label = "Wegetariańskie" },
+                new() { Value = "vegan", Label = "Wegańskie" },
+                new() { Value = "gluten_free", Label = "Bezglutenowe" },
+                new() { Value = "lactose_free", Label = "Bezlaktozowe" }
+            },
             MinPrice = 1,
             MaxPrice = 4
         };

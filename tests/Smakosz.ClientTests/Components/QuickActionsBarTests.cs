@@ -23,7 +23,7 @@ public class QuickActionsBarTests : BunitTestBase
     [Fact]
     public void Authenticated_ShowsRecommendationsLink()
     {
-        SetAuthenticatedUser("testuser", "user");
+        SetAuthenticatedUser("testuser", "User");
         var cut = RenderComponent<QuickActionsBar>();
 
         cut.Find("a[href='/recommendations']").Should().NotBeNull();
@@ -52,6 +52,6 @@ public class QuickActionsBarTests : BunitTestBase
         nearbyBtn.Click();
 
         var nav = Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
-        nav.Uri.Should().Contain("/search?location=w+poblizu");
+        nav.Uri.Should().Contain("/search?type=restaurants");
     }
 }

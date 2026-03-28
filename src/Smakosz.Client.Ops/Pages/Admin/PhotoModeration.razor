@@ -1,12 +1,12 @@
 @page "/admin/photos"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
-<PageTitle>Moderacja zdjec - Admin Smakosz</PageTitle>
+<PageTitle>Moderacja zdjęć - Admin Smakosz</PageTitle>
 
-<h2 class="fw-bold mb-4"><i class="fa-solid fa-images me-2"></i>Moderacja zdjec</h2>
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-images me-2"></i>Moderacja zdjęć</h2>
 
 @if (_loading)
 {
@@ -14,7 +14,7 @@
 }
 else if (_photos == null || !_photos.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjec do moderacji" Description="Wszystkie zdjecia zostaly sprawdzone." />
+    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjęć do moderacji" Description="Wszystkie zdjęcia zostały sprawdzone." />
 }
 else
 {

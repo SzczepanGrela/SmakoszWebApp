@@ -27,7 +27,7 @@ using Smakosz.Application.Features.Business.Queries.GetRegistrationStatus;
 
 namespace Smakosz.API.Controllers;
 
-[Authorize(Roles = "Business,Admin")]
+[Authorize(Roles = "Restaurant,Admin")]
 [Route("api/business")]
 public class BusinessController : ApiController
 {
@@ -139,9 +139,15 @@ public class BusinessController : ApiController
     }
 
     [HttpPost("dishes")]
-    public async Task<IActionResult> CreateDish([FromBody] CreateDishCommand command)
+    public async Task<IActionResult> CreateDish([FromBody] CreateDishRequest request)
     {
-        var result = await _mediator.Send(command);
+        var result = await _mediator.Send(new CreateDishCommand(
+            request.DishName ?? "",
+            request.Price,
+            request.Description,
+            request.Calories,
+            request.IsAvailable,
+            request.SectionIds));
         return ToCreatedResult(result, $"/api/business/dishes/{(result.IsError ? 0 : result.Value)}");
     }
 
@@ -150,7 +156,7 @@ public class BusinessController : ApiController
     {
         var result = await _mediator.Send(new UpdateDishCommand(
             publicId,
-            request.Name,
+            request.DishName,
             request.Price,
             request.Description,
             request.Calories,
@@ -215,5 +221,6 @@ public record CreateEditRequestRequest(
     string? NewAddress, string? NewPhone, string? NewWebsite);
 public record UpdateDishAvailabilityRequest(bool IsAvailable);
 public record UpdateMenuSectionRequest(string Name);
-public record UpdateDishRequest(string? Name, decimal? Price, string? Description, int? Calories, bool? IsAvailable);
+public record CreateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool IsAvailable = true, List<int>? SectionIds = null);
+public record UpdateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool? IsAvailable);
 public record SetDishIngredientsRequest(List<int> IngredientIds);

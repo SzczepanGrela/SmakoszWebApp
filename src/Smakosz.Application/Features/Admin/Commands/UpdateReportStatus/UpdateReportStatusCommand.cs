@@ -26,7 +26,7 @@ public class UpdateReportStatusHandler : IRequestHandler<UpdateReportStatusComma
 
     public async Task<ErrorOr<Success>> Handle(UpdateReportStatusCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var report = await _db.Reports

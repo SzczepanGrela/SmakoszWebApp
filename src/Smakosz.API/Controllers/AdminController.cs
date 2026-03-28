@@ -10,13 +10,11 @@ using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
-using Smakosz.Application.Features.Admin.Commands.UpdateReportStatus;
 using Smakosz.Application.Features.Admin.Queries.GetAdminDashboard;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
 using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
-using Smakosz.Application.Features.Admin.Queries.GetReports;
 using Smakosz.Application.Features.Admin.Queries.GetUserDetail;
 using Smakosz.Application.Features.Admin.Queries.GetUsers;
 
@@ -33,6 +31,7 @@ public class AdminController : ApiController
         _mediator = mediator;
     }
 
+    [Authorize(Roles = "Admin,Moderator")]
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard()
     {
@@ -85,23 +84,6 @@ public class AdminController : ApiController
     public async Task<IActionResult> VerifyRestaurant(Guid publicId)
     {
         var result = await _mediator.Send(new VerifyRestaurantCommand(publicId));
-        return ToNoContentResult(result);
-    }
-
-    [HttpGet("reports")]
-    public async Task<IActionResult> GetReports(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        [FromQuery] string? status = null)
-    {
-        var result = await _mediator.Send(new GetReportsQuery(new PaginationParams(page, pageSize), status));
-        return ToActionResult(result);
-    }
-
-    [HttpPut("reports/{reportId:int}/status")]
-    public async Task<IActionResult> UpdateReportStatus(int reportId, [FromBody] UpdateReportStatusRequest request)
-    {
-        var result = await _mediator.Send(new UpdateReportStatusCommand(reportId, request.Status));
         return ToNoContentResult(result);
     }
 
@@ -191,7 +173,6 @@ public class AdminController : ApiController
     }
 }
 
-public record UpdateReportStatusRequest(string Status);
 public record CreateIngredientRequest(
     string Name,
     bool IsAllergen,

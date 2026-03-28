@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Smakosz.Infrastructure.Persistence;
 
@@ -22,7 +23,22 @@ public static class SqlObjectsRunner
                 using var stream = assembly.GetManifestResourceStream(name)!;
                 using var reader = new StreamReader(stream);
                 var sql = await reader.ReadToEndAsync(cancellationToken);
-                await context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+                
+                var connection = context.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken);
+                }
+
+                using var command = connection.CreateCommand();
+                command.CommandText = sql;
+
+                if (context.Database.CurrentTransaction != null)
+                {
+                    command.Transaction = context.Database.CurrentTransaction.GetDbTransaction();
+                }
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
             }
         }
     }

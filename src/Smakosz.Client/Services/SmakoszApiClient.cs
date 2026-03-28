@@ -76,6 +76,9 @@ public class SmakoszApiClient
 
     private static async Task<ApiResponse<T>> ParseApiResponse<T>(HttpResponseMessage response)
     {
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            return new ApiResponse<T> { Success = true };
+
         try
         {
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<T>>(JsonOptions);

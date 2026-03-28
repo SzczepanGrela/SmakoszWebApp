@@ -14,7 +14,7 @@ public class UserDropdownTests : BunitTestBase
     [Fact]
     public void Authenticated_RendersDropdown()
     {
-        SetAuthenticatedUser("JanKowalski", "user");
+        SetAuthenticatedUser("JanKowalski", "User");
         var cut = RenderComponent<UserDropdown>();
 
         cut.Markup.Should().Contain("JanKowalski");
@@ -26,7 +26,7 @@ public class UserDropdownTests : BunitTestBase
     [Fact]
     public void UserRole_NoAdminLink()
     {
-        SetAuthenticatedUser("JanKowalski", "user");
+        SetAuthenticatedUser("JanKowalski", "User");
         var cut = RenderComponent<UserDropdown>();
 
         cut.FindAll("a[href='/admin']").Should().BeEmpty();
@@ -35,7 +35,7 @@ public class UserDropdownTests : BunitTestBase
     [Fact]
     public void AdminRole_ShowsAdminLink()
     {
-        SetAuthenticatedUser("Admin", "admin");
+        SetAuthenticatedUser("Admin", "Admin");
         var cut = RenderComponent<UserDropdown>();
 
         cut.Find("a[href='/admin']").Should().NotBeNull();
@@ -44,7 +44,7 @@ public class UserDropdownTests : BunitTestBase
     [Fact]
     public void RestaurantRole_ShowsRestaurantLink()
     {
-        SetAuthenticatedUser("Restaurator", "restaurant");
+        SetAuthenticatedUser("Restaurator", "Restaurant");
         var cut = RenderComponent<UserDropdown>();
 
         cut.Find("a[href='/restaurant/dashboard']").Should().NotBeNull();
@@ -53,7 +53,7 @@ public class UserDropdownTests : BunitTestBase
     [Fact]
     public async Task LogoutButton_CallsAuthService()
     {
-        SetAuthenticatedUser("JanKowalski", "user");
+        SetAuthenticatedUser("JanKowalski", "User");
         var authService = Services.GetRequiredService<IAuthService>();
 
         var cut = RenderComponent<UserDropdown>();

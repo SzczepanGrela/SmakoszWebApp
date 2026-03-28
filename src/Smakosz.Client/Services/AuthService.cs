@@ -29,17 +29,8 @@ public class AuthService : IAuthService
         return result;
     }
 
-    public async Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request)
-    {
-        var result = await _api.PostApiResponseAsync<RegisterResponse>("/api/auth/register", request);
-        if (result is { Success: true, Data: not null })
-        {
-            await _localStorage.SetItemAsStringAsync("auth_token", result.Data.AccessToken);
-            await _localStorage.SetItemAsStringAsync("refresh_token", result.Data.RefreshToken);
-            _authStateProvider.NotifyUserAuthentication(result.Data.AccessToken);
-        }
-        return result;
-    }
+    public Task<ApiResponse<object>> RegisterAsync(RegisterRequest request)
+        => _api.PostApiResponseAsync<object>("/api/auth/register", request);
 
     public Task<ApiResponse<object>> VerifyEmailAsync(VerifyEmailRequest request)
         => _api.PostApiResponseAsync<object>("/api/auth/verify-email", request);

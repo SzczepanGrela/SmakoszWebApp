@@ -10,6 +10,7 @@ using Smakosz.Application;
 using Smakosz.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Infrastructure;
+using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,9 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("DefaultConnection")!,
     builder.Configuration);
+
+// Database logging
+builder.Logging.AddDatabaseLogger();
 
 // HttpContext accessor + CurrentUserService
 builder.Services.AddHttpContextAccessor();
@@ -49,8 +53,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Authorization policies
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", p => p.RequireRole("admin", "moderator"));
-    options.AddPolicy("RestaurantOwner", p => p.RequireRole("restaurant"));
+    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin", "Moderator"));
+    options.AddPolicy("RestaurantOwner", p => p.RequireRole("Restaurant"));
     options.AddPolicy("Worker", p => p.RequireRole("Worker"));
 });
 
@@ -133,3 +137,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program { }

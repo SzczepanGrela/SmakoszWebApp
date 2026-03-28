@@ -1,11 +1,3 @@
-"""
-CounterSync - bulk synchronization of denormalized counters.
-
-The generator bypasses per-row SQL triggers for performance (millions of rows).
-After all phases complete, this module recalculates all denormalized counters
-using bulk UPDATE queries (equivalent to what triggers would do, but in one pass).
-"""
-
 import logging
 
 from utils.db_connection import DatabaseConnection
@@ -17,7 +9,6 @@ class CounterSync:
         self.db = db
 
     def sync_all(self):
-        """Synchronize all denormalized counters in correct order."""
         self._sync_user_review_count()
         self._sync_user_follow_counts()
         self._sync_user_photo_count()
@@ -27,6 +18,7 @@ class CounterSync:
         self._sync_dish_avg_rating()
         self._sync_dish_trending_scores()
         self._sync_restaurant_trending_scores()
+        self._sync_site_stats()
         self.db.commit()
         logger.info("All denormalized counters synchronized.")
 
@@ -110,11 +102,6 @@ class CounterSync:
         """)
 
     def _sync_dish_trending_scores(self):
-        """Bayesian Average trending score for dishes (docs/07_AI_SYSTEMS.md §5.4).
-
-        Uses 30-day window relative to newest review (instead of NOW()) so that
-        mock data always produces results regardless of generation date.
-        """
         logger.info("Syncing dishes.trending_score (Bayesian Average)...")
         self.db.execute_query("""
             WITH time_ref AS (
@@ -142,10 +129,6 @@ class CounterSync:
         """)
 
     def _sync_restaurant_trending_scores(self):
-        """Bayesian Average trending score for restaurants.
-
-        Same formula as dishes but aggregated per restaurant.
-        """
         logger.info("Syncing restaurants.trending_score (Bayesian Average)...")
         self.db.execute_query("""
             WITH time_ref AS (
@@ -170,4 +153,48 @@ class CounterSync:
                 GROUP BY r.restaurant_id, g.avg_r
             ) sub
             WHERE res.restaurant_id = sub.restaurant_id
+        """)
+
+    def _sync_site_stats(self):
+        logger.info("Syncing system.site_stats...")
+        self.db.execute_query("""
+            INSERT INTO system.site_stats (id, total_dishes, total_restaurants, total_reviews,
+                total_users, total_photos, reviews_this_week, new_users_this_month,
+                avg_dish_rating, avg_restaurant_food_score,
+                most_popular_cuisine, most_active_city, updated_at)
+            VALUES (1,
+                (SELECT COUNT(*) FROM dishes),
+                (SELECT COUNT(*) FROM restaurants WHERE status = 0),
+                (SELECT COUNT(*) FROM reviews WHERE is_deleted = false),
+                (SELECT COUNT(*) FROM users WHERE is_active AND NOT is_deleted),
+                (SELECT COUNT(*) FROM media_assets WHERE status = 'approved'),
+                (SELECT COUNT(*) FROM reviews WHERE NOT is_deleted
+                    AND created_at >= NOW() - INTERVAL '7 days'),
+                (SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '30 days'),
+                COALESCE((SELECT AVG(avg_rating) FROM dishes WHERE avg_rating IS NOT NULL), 0),
+                COALESCE((SELECT AVG(avg_food_score) FROM restaurants
+                    WHERE avg_food_score IS NOT NULL), 0),
+                (SELECT cuisine_type FROM restaurants
+                    WHERE status = 0 AND cuisine_type IS NOT NULL
+                    GROUP BY cuisine_type ORDER BY COUNT(*) DESC LIMIT 1),
+                (SELECT c.city_name FROM reviews r
+                    JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+                    JOIN cities c ON rest.city_id = c.city_id
+                    WHERE NOT r.is_deleted
+                    GROUP BY c.city_name ORDER BY COUNT(*) DESC LIMIT 1),
+                NOW()
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                total_dishes = EXCLUDED.total_dishes,
+                total_restaurants = EXCLUDED.total_restaurants,
+                total_reviews = EXCLUDED.total_reviews,
+                total_users = EXCLUDED.total_users,
+                total_photos = EXCLUDED.total_photos,
+                reviews_this_week = EXCLUDED.reviews_this_week,
+                new_users_this_month = EXCLUDED.new_users_this_month,
+                avg_dish_rating = EXCLUDED.avg_dish_rating,
+                avg_restaurant_food_score = EXCLUDED.avg_restaurant_food_score,
+                most_popular_cuisine = EXCLUDED.most_popular_cuisine,
+                most_active_city = EXCLUDED.most_active_city,
+                updated_at = EXCLUDED.updated_at
         """)

@@ -48,6 +48,7 @@ public class GetSystemLogsHandler : IRequestHandler<GetSystemLogsQuery, ErrorOr<
                 Source = l.Source,
                 Level = l.Level.ToString(),
                 Message = l.Message,
+                Context = l.Context,
                 CreatedAt = l.CreatedAt
             })
             .ToListAsync(cancellationToken);

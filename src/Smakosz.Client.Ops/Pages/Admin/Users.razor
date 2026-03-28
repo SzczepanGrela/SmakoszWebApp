@@ -1,15 +1,15 @@
 @page "/admin/users"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
-<PageTitle>Uzytkownicy - Admin Smakosz</PageTitle>
+<PageTitle>Użytkownicy - Admin Smakosz</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0"><i class="fa-solid fa-users me-2"></i>Uzytkownicy</h2>
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-users me-2"></i>Użytkownicy</h2>
     <div class="input-group" style="max-width:300px;">
-        <input type="text" class="form-control form-control-sm" @bind="_search" @onkeydown="HandleSearchKey" placeholder="Szukaj uzytkownika..." />
+        <input type="text" class="form-control form-control-sm" @bind="_search" @onkeydown="HandleSearchKey" placeholder="Szukaj użytkownika..." />
         <button class="btn btn-outline-primary btn-sm" @onclick="DoSearch"><i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
 </div>
@@ -20,7 +20,7 @@
 }
 else if (_users == null || !_users.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-users" Title="Brak uzytkownikow" />
+    <EmptyState Icon="fa-solid fa-users" Title="Brak użytkowników" />
 }
 else
 {
@@ -28,11 +28,11 @@ else
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>Uzytkownik</th>
+                    <th>Użytkownik</th>
                     <th>Email</th>
                     <th>Rola</th>
                     <th>Status</th>
-                    <th>Dolaczyl</th>
+                    <th>Dołączył</th>
                     <th></th>
                 </tr>
             </thead>
@@ -64,13 +64,13 @@ else
                             <div class="btn-group btn-group-sm">
                                 @if (user.Status == "Banned")
                                 {
-                                    <button class="btn btn-outline-success" @onclick='() => UserAction(user.UserId, "unban")' title="Odbanuj">
+                                    <button class="btn btn-outline-success" @onclick='() => UserAction(user.PublicId, "unban")' title="Odbanuj">
                                         <i class="fa-solid fa-unlock"></i>
                                     </button>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-outline-danger" @onclick='() => UserAction(user.UserId, "ban")' title="Zbanuj">
+                                    <button class="btn btn-outline-danger" @onclick='() => UserAction(user.PublicId, "ban")' title="Zbanuj">
                                         <i class="fa-solid fa-ban"></i>
                                     </button>
                                 }
@@ -105,10 +105,10 @@ else
     private async Task DoSearch() => await LoadPage(1);
     private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
 
-    private async Task UserAction(int id, string action)
+    private async Task UserAction(Guid id, string action)
     {
         var success = await AdminService.UpdateUserAsync(id, action);
-        if (success) { Toast.ShowSuccess("Uzytkownik zaktualizowany."); await LoadPage(1); }
+        if (success) { Toast.ShowSuccess("Użytkownik zaktualizowany."); await LoadPage(1); }
         else Toast.ShowError("Operacja nieudana.");
     }
 }

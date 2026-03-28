@@ -35,7 +35,7 @@ public class ExceptionHandlingMiddleware
                 Error = new ApiError
                 {
                     Code = "VALIDATION_ERROR",
-                    Message = "Walidacja nie powiodla sie",
+                    Message = "Walidacja nie powiodła się",
                     Details = errors
                 }
             });
@@ -66,7 +66,7 @@ public class ExceptionHandlingMiddleware
                 Error = new ApiError
                 {
                     Code = "INTERNAL_ERROR",
-                    Message = "Wystapil nieoczekiwany blad serwera"
+                    Message = "Wystąpił nieoczekiwany błąd serwera"
                 }
             });
         }

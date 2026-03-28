@@ -3,7 +3,6 @@ import re
 import unicodedata
 
 def slugify(text: str) -> str:
-    """Convert text to URL-friendly slug (handles Polish characters)."""
     polish_chars = {
         "ą": "a",
         "Ą": "A",
@@ -146,12 +145,20 @@ class ReviewTextGenerator:
         return comment
 
     def _select_template(self, rating: float) -> str:
-        if rating >= 8.0:
+        if rating >= 7.0:
             return random.choice(self.HIGH_RATING_TEMPLATES)
         elif rating >= 5.0:
             return random.choice(self.MEDIUM_RATING_TEMPLATES)
         else:
             return random.choice(self.LOW_RATING_TEMPLATES)
+
+    def _get_sentiment_tier(self, rating: float) -> str:
+        if rating >= 7.0:
+            return "high"
+        elif rating >= 5.0:
+            return "medium"
+        else:
+            return "low"
 
     def _generate_variables(
         self,
@@ -167,40 +174,17 @@ class ReviewTextGenerator:
     ) -> dict[str, str]:
         variables = {"dish_name": dish_name, "restaurant_name": restaurant_name, "city": city}
 
-        if rating >= 8.0:
-            variables["taste_aspect"] = random.choice(self.TASTE_ASPECTS["positive"])
-        elif rating >= 5.0:
-            variables["taste_aspect"] = random.choice(self.TASTE_ASPECTS["neutral"])
-        else:
-            variables["taste_aspect"] = random.choice(self.TASTE_ASPECTS["negative"])
+        tier = self._get_sentiment_tier(rating)
 
-        if quality_score >= 0.7:
-            variables["quality_comment"] = random.choice(self.QUALITY_COMMENTS["high"])
-        elif quality_score >= 0.4:
-            variables["quality_comment"] = random.choice(self.QUALITY_COMMENTS["medium"])
-        else:
-            variables["quality_comment"] = random.choice(self.QUALITY_COMMENTS["low"])
+        taste_map = {"high": "positive", "medium": "neutral", "low": "negative"}
+        texture_map = {"high": "positive", "medium": "medium", "low": "negative"}
 
-        if rating >= 8.0:
-            variables["texture_comment"] = random.choice(self.TEXTURE_COMMENTS["positive"])
-        elif rating >= 5.0:
-            variables["texture_comment"] = random.choice(self.TEXTURE_COMMENTS["medium"])
-        else:
-            variables["texture_comment"] = random.choice(self.TEXTURE_COMMENTS["negative"])
-
-        if service_score >= 0.7:
-            variables["service_quality"] = random.choice(self.SERVICE_QUALITY["high"])
-        elif service_score >= 0.4:
-            variables["service_quality"] = random.choice(self.SERVICE_QUALITY["medium"])
-        else:
-            variables["service_quality"] = random.choice(self.SERVICE_QUALITY["low"])
-
-        if ambiance_score >= 7.0:
-            variables["ambiance_quality"] = random.choice(self.AMBIANCE_QUALITY["high"])
-        elif ambiance_score >= 5.0:
-            variables["ambiance_quality"] = random.choice(self.AMBIANCE_QUALITY["medium"])
-        else:
-            variables["ambiance_quality"] = random.choice(self.AMBIANCE_QUALITY["low"])
+        variables["taste_aspect"] = random.choice(self.TASTE_ASPECTS[taste_map[tier]])
+        variables["quality_comment"] = random.choice(self.QUALITY_COMMENTS[tier])
+        variables["texture_comment"] = random.choice(self.TEXTURE_COMMENTS[texture_map[tier]])
+        variables["service_quality"] = random.choice(self.SERVICE_QUALITY[tier])
+        variables["ambiance_quality"] = random.choice(self.AMBIANCE_QUALITY[tier])
+        variables["cleanliness_comment"] = random.choice(self.CLEANLINESS_COMMENTS[tier])
 
         if price_ratio < 0.8:
             variables["price_comment"] = random.choice(self.PRICE_COMMENTS["cheap"])
@@ -208,13 +192,6 @@ class ReviewTextGenerator:
             variables["price_comment"] = random.choice(self.PRICE_COMMENTS["fair"])
         else:
             variables["price_comment"] = random.choice(self.PRICE_COMMENTS["expensive"])
-
-        if cleanliness_score >= 8.0:
-            variables["cleanliness_comment"] = random.choice(self.CLEANLINESS_COMMENTS["high"])
-        elif cleanliness_score >= 6.0:
-            variables["cleanliness_comment"] = random.choice(self.CLEANLINESS_COMMENTS["medium"])
-        else:
-            variables["cleanliness_comment"] = random.choice(self.CLEANLINESS_COMMENTS["low"])
 
         return variables
 

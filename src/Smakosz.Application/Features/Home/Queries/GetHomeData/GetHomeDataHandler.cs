@@ -21,15 +21,12 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
 
     public async Task<ErrorOr<HomeDataDto>> Handle(GetHomeDataQuery request, CancellationToken cancellationToken)
     {
+        var siteStats = await _db.SiteStats.AsNoTracking().FirstAsync(cancellationToken);
         var stats = new StatsDto
         {
-            TotalDishes = await _db.Dishes.CountAsync(cancellationToken),
-            TotalRestaurants = await _db.Restaurants
-                .Where(r => r.Status == RestaurantStatus.Active)
-                .CountAsync(cancellationToken),
-            TotalReviews = await _db.Reviews
-                .Where(r => !r.IsDeleted)
-                .CountAsync(cancellationToken)
+            TotalDishes = siteStats.TotalDishes,
+            TotalRestaurants = siteStats.TotalRestaurants,
+            TotalReviews = siteStats.TotalReviews
         };
 
         var trendingRestaurants = await _db.Restaurants
@@ -59,7 +56,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .OrderByDescending(d => d.TrendingScore)
-            .Take(8)
+            .Take(12)
             .Select(d => new DishCardDto
             {
                 PublicId = d.PublicId,
@@ -84,7 +81,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .OrderByDescending(d => d.AvgRating)
-            .Take(8)
+            .Take(12)
             .Select(d => new DishCardDto
             {
                 PublicId = d.PublicId,

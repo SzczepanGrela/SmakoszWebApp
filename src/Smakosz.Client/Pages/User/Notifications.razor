@@ -27,12 +27,12 @@
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie powiadomien..." />
+        <LoadingSpinner Text="Ładowanie powiadomień..." />
     }
     else if (_result == null || !_result.Data.Any())
     {
-        <EmptyState Icon="fa-solid fa-bell-slash" Title="Brak powiadomien"
-                    Description="Nie masz jeszcze zadnych powiadomien. Wrocisz tu, gdy pojawia sie nowe." />
+        <EmptyState Icon="fa-solid fa-bell-slash" Title="Brak powiadomień"
+                    Description="Nie masz jeszcze żadnych powiadomień. Wrócisz tu, gdy pojawią się nowe." />
     }
     else
     {

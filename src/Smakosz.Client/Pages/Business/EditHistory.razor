@@ -1,6 +1,6 @@
 @page "/restaurant/requests"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 
 <PageTitle>Historia zmian - Panel restauracji</PageTitle>
@@ -13,7 +13,7 @@
 }
 else if (!_requests.Any())
 {
-    <EmptyState Icon="fa-solid fa-history" Title="Brak historii" Description="Historia zatwierdzonych i oczekujacych zmian pojawi sie tutaj." />
+    <EmptyState Icon="fa-solid fa-history" Title="Brak historii" Description="Historia zatwierdzonych i oczekujących zmian pojawi się tutaj." />
 }
 else
 {

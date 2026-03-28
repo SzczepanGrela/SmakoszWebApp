@@ -12,6 +12,7 @@ public static class MockExtensions
         service.SessionId.Returns(sessionId > 0 ? sessionId : (long?)null);
         service.Role.Returns(role);
         service.IsAdmin.Returns(role == "Admin");
+        service.IsAdminOrModerator.Returns(role is "Admin" or "Moderator");
         service.IsAuthenticated.Returns(true);
         return service;
     }
@@ -23,6 +24,7 @@ public static class MockExtensions
         service.SessionId.Returns(sessionId > 0 ? sessionId : (long?)null);
         service.Role.Returns("Admin");
         service.IsAdmin.Returns(true);
+        service.IsAdminOrModerator.Returns(true);
         service.IsAuthenticated.Returns(true);
         return service;
     }
@@ -33,6 +35,7 @@ public static class MockExtensions
         service.UserId.Returns((int?)null);
         service.Role.Returns((string?)null);
         service.IsAdmin.Returns(false);
+        service.IsAdminOrModerator.Returns(false);
         service.IsAuthenticated.Returns(false);
         return service;
     }

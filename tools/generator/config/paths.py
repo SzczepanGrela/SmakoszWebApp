@@ -1,39 +1,26 @@
-"""
-Paths and Locale Configuration
-
-This module contains file paths, locale settings, and photo service configuration.
-"""
-
 import os
 
-# Locale Configuration
 LOCALE = "pl_PL"
 
-# Blueprint Directory Path
 BLUEPRINTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "blueprints")
 
-# Pixabay API Configuration
 PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "")
 PIXABAY_ENABLED = bool(PIXABAY_API_KEY)
 
-# Photo Service Configuration
 PHOTO_CONFIG = {
     "pixabay_api_key": PIXABAY_API_KEY,
     "pixabay_enabled": PIXABAY_ENABLED,
     "output_dir": os.getenv("IMAGE_OUTPUT_DIR", "E:/smakosz/images"),
     "cache_file": "data/photo_cache.json",
-    # Image sizes (width, height)
-    "size_hero": (1600, 900),  # Hero backgrounds (16:9)
-    "size_full": (1280, 960),  # Detail view, modal (4:3)
-    "size_thumb": (200, 150),  # Cards, lists (4:3)
-    "size_avatar": (300, 300),  # Avatar full size (1:1)
-    "size_ingredient": (200, 200),  # Ingredient icons (1:1)
-    "size_tiny": (50, 50),  # Placeholders only
-    # Suffixes for derived sizes (naming convention)
+    "size_hero": (1600, 900),
+    "size_full": (1280, 960),
+    "size_thumb": (200, 150),
+    "size_avatar": (300, 300),
+    "size_ingredient": (200, 200),
+    "size_tiny": (50, 50),
     "suffix_hero": "_hero",
     "suffix_thumb": "_thumb",
     "suffix_tiny": "_tiny",
-    # Legacy (kept for backward compatibility)
     "target_width": 1280,
     "target_height": 960,
     "image_quality": 80,

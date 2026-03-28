@@ -28,7 +28,7 @@ _WORKER_RESTAURANTS: list[dict] = []
 _WORKER_CITIES: list[dict] = []
 _WORKER_ADJACENCY: dict[int, list[int]] = {}
 _WORKER_VECTORS_DATA: dict[str, dict] = {}
-_WORKER_SIMULATION_TODAY: object = None  # datetime object
+_WORKER_SIMULATION_TODAY: object = None
 
 def worker_init(db_params, restaurants, cities, adjacency_map, vectors_data, simulation_today):
     global \
@@ -39,7 +39,6 @@ def worker_init(db_params, restaurants, cities, adjacency_map, vectors_data, sim
         _WORKER_VECTORS_DATA, \
         _WORKER_SIMULATION_TODAY
 
-    # VALIDATION: Ensure critical data is non-empty (fail-fast)
     if not db_params:
         raise ValueError("worker_init: db_params is empty!")
     if not restaurants:
@@ -59,12 +58,6 @@ def worker_init(db_params, restaurants, cities, adjacency_map, vectors_data, sim
     random.seed(os.getpid() + time.time())
 
 def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int):
-    """
-    Fetch and enrich dishes for a restaurant.
-
-    Note: Database has its own query cache, so no need for application-level caching.
-    Each worker process has its own copy of this function.
-    """
     dishes = db.fetch_all(
         """
         SELECT d.dish_id, d.dish_name, da.archetype_name, d.price,
@@ -130,7 +123,6 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
 
     simulation_today = _WORKER_SIMULATION_TODAY
 
-    # Retry connection up to 3 times with exponential backoff
     db = None
     max_retries = 3
     for attempt in range(max_retries):
@@ -142,7 +134,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             if attempt == max_retries - 1:
                 logger.error(f"Failed to connect to database after {max_retries} attempts: {e}")
                 raise
-            time.sleep(2**attempt)  # Exponential backoff: 1s, 2s, 4s
+            time.sleep(2**attempt)
 
     city_ids = [c["city_id"] for c in _WORKER_CITIES]
 
@@ -159,8 +151,6 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             pending_commits = 0
             BATCH_SIZE = 50
 
-            # Use Beta distribution to skew reviews towards "now" (end of simulation)
-            # This ensures we have recent content for moderation queues
             review_dates = date_gen.generate_dates_skewed_to_end(
                 count=num_reviews,
                 start_date=user["join_date"],
@@ -168,7 +158,6 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
             )
 
             for review_date in review_dates:
-                # Ensure review_date is naive
                 review_date = DateGenerator.ensure_naive(review_date)
 
                 eff_random = 0.05 + (travel_prop * 0.15)
@@ -245,7 +234,6 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                 days_before_review = random.randint(0, 14)
                 visit_date = review_date - timedelta(days=days_before_review)
 
-                # Check restaurant created_at to ensure visit isn't before opening
                 if restaurant["created_at"]:
                     res_created = restaurant["created_at"]
                     if hasattr(res_created, "date"):
@@ -256,7 +244,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                         visit_date_val = visit_date
 
                     if visit_date_val < res_created:
-                        visit_date = review_date  # Fallback: visit same day as review if calc fails
+                        visit_date = review_date
 
                 review_result = review_service.generate_single_review(
                     user=user,
@@ -286,16 +274,14 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                             "is_primary": False,
                             "created_at": DateGenerator.to_sql_datetime(review_date),
                             "uploaded_by": user["user_id"],
-                            "version": 1,  # Optimistic Locking
+                            "version": 1,
                         },
                     )
 
-                # Batch commit every N reviews for atomicity + performance
                 if pending_commits >= BATCH_SIZE:
                     db.commit()  # type: ignore[union-attr]
                     pending_commits = 0
 
-            # Commit any remaining reviews not caught by batch
             if pending_commits > 0:
                 db.commit()  # type: ignore[union-attr]
                 pending_commits = 0
@@ -315,7 +301,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
         if db:
             db.rollback()
             db.close()
-        raise  # Propagate exception to parent process
+        raise
     finally:
         if db and hasattr(db, "is_connected") and db.is_connected():
             db.close()
@@ -328,14 +314,10 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     if cleanup:
         logger.info("Cleaning up Phase 5 data...")
         try:
-            # Order matters: notifications reference reviews, so delete them first
             db.execute_query("DELETE FROM notifications WHERE type IN ('like', 'comment')")
             db.execute_query("TRUNCATE TABLE review_likes RESTART IDENTITY CASCADE")
-            # Review photos in media_assets (must be deleted before reviews due to FK)
             db.execute_query("DELETE FROM media_assets WHERE entity_type = 'review'")
-            # Now safe to truncate reviews
             db.execute_query("TRUNCATE TABLE reviews RESTART IDENTITY CASCADE")
-            # Clear moderation logs before generating (to avoid stale IDs)
             db.execute_query("TRUNCATE TABLE system.moderation_logs RESTART IDENTITY CASCADE")
             db.commit()
             logger.info("Cleanup complete.")
@@ -344,7 +326,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
             db.rollback()
             logger.warning("Attempting FORCE cleanup with CASCADE...")
             try:
-                # Force cleanup if normal order fails
                 db.execute_query("TRUNCATE TABLE reviews, review_likes, media_assets RESTART IDENTITY CASCADE")
                 db.execute_query("TRUNCATE TABLE system.moderation_logs RESTART IDENTITY CASCADE")
                 db.commit()
@@ -360,7 +341,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     restaurants_data = []
     for row in restaurants_raw:
-        # Ensure created_at is naive datetime
         created_at = row[3]
         if created_at and hasattr(created_at, "replace"):
             created_at = created_at.replace(tzinfo=None)
@@ -380,7 +360,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
             }
         )
 
-    # VALIDATION: Ensure we have data from Phase 2 (Restaurants)
     if not restaurants_raw:
         logger.error("CRITICAL: No restaurants found! Phase 2 may have failed. Cannot generate reviews.")
         return
@@ -407,7 +386,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     users_raw = UserDAO.get_all_users_for_reviews(db)
 
-    # VALIDATION: Enhanced user filtering check
     total_users_in_db = db.fetch_val("SELECT COUNT(*) FROM users")
     users_with_role_user = len(users_raw) if users_raw else 0
     logger.info(
@@ -475,7 +453,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     db_params = get_connection_params()
 
-    # Calculate simulation_today for time-based pending logic (last 7 days = pending)
     from datetime import datetime
 
     simulation_today = datetime.now().replace(tzinfo=None)
@@ -505,30 +482,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     logger.info("Phase 5 completed.")
 
 class ReviewsPhase(BasePhase):
-    """
-    Phase 5: Reviews Generation
-
-    Generates user reviews for dishes at restaurants using multiprocessing.
-    This phase has TRIPLE DEPENDENCIES - requires users, dishes, and restaurants.
-
-    Key features:
-    - Multiprocessing with worker pools for parallel review generation
-    - Temporal constraints (reviews only for restaurants open at time of review)
-    - Travel propensity modeling (home city, nearby cities, random exploration)
-    - Moderation state machine (recent reviews go to pending queue)
-    - Review photos via media_assets
-    - Batch commits for performance
-
-    Dependencies:
-        - phase4_users: Need users to generate reviews
-        - phase3_dishes: Need dishes to review
-        - phase2_restaurants: Need restaurants to visit
-
-    Generates:
-        - reviews: Main review records with ratings and text
-        - media_assets: User-uploaded review photos
-        - Updates users.last_login_at based on review activity
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
         self.blueprints_dir = blueprints_dir
@@ -545,33 +498,16 @@ class ReviewsPhase(BasePhase):
             ],
             required_tables=["reviews", "media_assets"],
             cleanup_tables=["reviews", "review_likes", "media_assets", "system.moderation_logs"],
-            estimated_duration=300,  # 5 minutes (multiprocessing-intensive)
+            estimated_duration=300,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """
-        Execute Phase 5: Reviews Generation.
-
-        Process:
-        1. Validate dependencies (users, restaurants, dishes exist)
-        2. Load all necessary data into memory for workers
-        3. Spawn multiprocessing pool
-        4. Generate reviews with temporal/travel logic
-        5. Update user last_login timestamps
-
-        Args:
-            context: Execution context with database connection
-
-        Returns:
-            PhaseResult with review generation statistics
-        """
         start_time = time.time()
         logger.info("=" * 60)
         logger.info("PHASE 5: Reviews Generation (Multiprocessing)")
         logger.info("=" * 60)
 
         try:
-            # Note: cleanup parameter always False - orchestrator handles cleanup
             generate_reviews(context.db, cleanup=False)
 
             reviews_count = context.db.fetch_val("SELECT COUNT(*) FROM reviews") or 0

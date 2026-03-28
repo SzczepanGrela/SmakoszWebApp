@@ -6,6 +6,7 @@ public interface ICurrentUserService
     long? SessionId { get; }
     string? Role { get; }
     bool IsAdmin { get; }
+    bool IsAdminOrModerator { get; }
     bool IsAuthenticated { get; }
     string? IpAddress { get; }
     string? UserAgent { get; }

@@ -1,10 +1,10 @@
 @page "/admin/users/{Id:int}"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
-<PageTitle>Uzytkownik - Admin Smakosz</PageTitle>
+<PageTitle>Użytkownik - Admin Smakosz</PageTitle>
 
 @if (_loading)
 {
@@ -12,7 +12,7 @@
 }
 else if (_user == null)
 {
-    <EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono uzytkownika" ActionText="Powrot do listy" ActionUrl="/admin/users" />
+    <EmptyState Icon="fa-solid fa-user" Title="Nie znaleziono użytkownika" ActionText="Powrót do listy" ActionUrl="/admin/users" />
 }
 else
 {
@@ -81,10 +81,10 @@ else
 
     private async Task UserAction(string action)
     {
-        var success = await AdminService.UpdateUserAsync(Id, action);
+        var success = await AdminService.UpdateUserAsync(_user!.PublicId, action);
         if (success)
         {
-            Toast.ShowSuccess("Uzytkownik zaktualizowany.");
+            Toast.ShowSuccess("Użytkownik zaktualizowany.");
             _user = await AdminService.GetUserAsync(Id);
         }
         else Toast.ShowError("Operacja nieudana.");

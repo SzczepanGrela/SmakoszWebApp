@@ -1,11 +1,3 @@
-"""
-Image processing utilities - single source of truth for all tools.
-
-Extracted from: tools/fetch_photos.py, tools/media_pipeline.py,
-                tools/generate_thumbs.py, tools/refetch_photos.py,
-                tools/refresh_photo_index.py
-"""
-
 from __future__ import annotations
 
 import logging
@@ -29,19 +21,6 @@ except ImportError:
     logger.debug("blurhash library not available. Install with: pip install blurhash-python")
 
 def resize_and_crop(img: Image.Image, target: tuple[int, int]) -> Image.Image:
-    """
-    Resize an image maintaining aspect ratio, then center-crop to exact target dimensions.
-
-    Uses a scale-cover approach: the image is scaled up until it covers the entire
-    target rectangle, then cropped to center.
-
-    Args:
-        img: PIL Image to resize.
-        target: (width, height) tuple for the desired output size.
-
-    Returns:
-        New PIL Image at exactly (width, height).
-    """
     target_w, target_h = target
     orig_w, orig_h = img.size
 
@@ -56,16 +35,6 @@ def resize_and_crop(img: Image.Image, target: tuple[int, int]) -> Image.Image:
     return img.crop((left, top, left + target_w, top + target_h))
 
 def generate_blurhash(image_path: Path) -> tuple[str | None, int | None, int | None]:
-    """
-    Generate a BlurHash placeholder and read image dimensions from a file.
-
-    Args:
-        image_path: Path to an image file on disk.
-
-    Returns:
-        (hash_str, width, height) - any value may be None on failure or if
-        the blurhash library is not installed.
-    """
     if not _BLURHASH_AVAILABLE:
         return None, None, None
 
@@ -75,7 +44,6 @@ def generate_blurhash(image_path: Path) -> tuple[str | None, int | None, int | N
                 img = img.convert("RGB")
             width, height = img.size
 
-            # Resize to thumbnail for faster computation (does not change aspect ratio)
             thumb = img.copy()
             thumb.thumbnail((100, 100))
 

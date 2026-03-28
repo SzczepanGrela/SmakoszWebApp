@@ -1,6 +1,6 @@
 @page "/restaurant/info"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 @inject ToastService Toast
 @inject SmakoszApiClient Api
@@ -103,9 +103,9 @@ else
         _error = null;
         var success = await BusinessService.UpdateRestaurantInfoAsync(_restaurant!);
         if (success)
-            Toast.ShowSuccess("Informacje zostaly zaktualizowane.");
+            Toast.ShowSuccess("Informacje zostały zaktualizowane.");
         else
-            _error = "Nie udalo sie zapisac zmian.";
+            _error = "Nie udało się zapisać zmian.";
         _saving = false;
     }
 }

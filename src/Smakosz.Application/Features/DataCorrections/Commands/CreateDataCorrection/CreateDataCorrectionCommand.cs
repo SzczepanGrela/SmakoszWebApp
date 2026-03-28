@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +47,7 @@ public class CreateDataCorrectionHandler : IRequestHandler<CreateDataCorrectionC
             UserId = _currentUser.UserId.Value,
             IssueType = issueType,
             Description = request.Description,
-            ProposedValue = request.ProposedValue,
+            ProposedValue = request.ProposedValue != null ? JsonSerializer.Serialize(request.ProposedValue) : null,
             Status = "pending",
             CreatedAt = DateTime.UtcNow
         };

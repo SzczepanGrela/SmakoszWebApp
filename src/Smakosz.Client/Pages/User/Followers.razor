@@ -2,24 +2,24 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IUserProfileService UserProfileService
 
-<PageTitle>Obserwujacy - Smakosz</PageTitle>
+<PageTitle>Obserwujący - Smakosz</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0"><i class="fa-solid fa-users me-2"></i>Obserwujacy</h1>
+        <h1 class="mb-0"><i class="fa-solid fa-users me-2"></i>Obserwujący</h1>
         <a href="/profile" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i>Powrot do profilu
+            <i class="fa-solid fa-arrow-left me-1"></i>Powrót do profilu
         </a>
     </div>
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie obserwujacych..." />
+        <LoadingSpinner Text="Ładowanie obserwujących..." />
     }
     else if (_result == null || !_result.Data.Any())
     {
-        <EmptyState Icon="fa-solid fa-users" Title="Nie masz jeszcze obserwujacych"
-                    Description="Pisz recenzje i badz aktywny, aby przyciagnac obserwujacych." />
+        <EmptyState Icon="fa-solid fa-users" Title="Nie masz jeszcze obserwujących"
+                    Description="Pisz recenzje i bądź aktywny, aby przyciągnąć obserwujących." />
     }
     else
     {

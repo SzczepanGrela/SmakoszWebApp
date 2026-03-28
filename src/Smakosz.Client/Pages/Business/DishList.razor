@@ -1,6 +1,6 @@
 @page "/restaurant/dishes"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 @inject ToastService Toast
 
@@ -32,7 +32,7 @@ else
                     <th>Cena</th>
                     <th>Ocena</th>
                     <th>Recenzje</th>
-                    <th>Dostepnosc</th>
+                    <th>Dostępność</th>
                     <th></th>
                 </tr>
             </thead>
@@ -45,7 +45,7 @@ else
                                  style="width:48px;height:48px;object-fit:cover;" alt="@dish.DishName" />
                         </td>
                         <td class="fw-medium align-middle">@dish.DishName</td>
-                        <td class="align-middle">@(dish.Price?.ToString("F2") ?? "-") zl</td>
+                        <td class="align-middle">@(dish.Price?.ToString("F2") ?? "-") zł</td>
                         <td class="align-middle">
                             @if (dish.AvgRating.HasValue)
                             {
@@ -81,7 +81,7 @@ else
 
     @if (_dishToDelete != null)
     {
-        <ConfirmModal Message="@($"Czy na pewno chcesz usunac danie \"{_dishToDelete.DishName}\"?")" OnConfirm="HandleDelete" />
+        <ConfirmModal IsOpen="true" Message="@($"Czy na pewno chcesz usunąć danie \"{_dishToDelete.DishName}\"?")" OnConfirm="HandleDelete" OnCancel="() => _dishToDelete = null" />
     }
 }
 
@@ -110,12 +110,12 @@ else
         var success = await BusinessService.DeleteDishAsync(_dishToDelete.PublicId);
         if (success)
         {
-            Toast.ShowSuccess("Danie zostalo usuniete.");
+            Toast.ShowSuccess("Danie zostało usunięte.");
             await LoadPage(1);
         }
         else
         {
-            Toast.ShowError("Nie udalo sie usunac dania.");
+            Toast.ShowError("Nie udało się usunąć dania.");
         }
         _dishToDelete = null;
     }
@@ -126,11 +126,11 @@ else
         if (success)
         {
             dish.IsAvailable = isAvailable;
-            Toast.ShowSuccess(isAvailable ? "Danie jest teraz dostepne." : "Danie zostalo ukryte.");
+            Toast.ShowSuccess(isAvailable ? "Danie jest teraz dostępne." : "Danie zostało ukryte.");
         }
         else
         {
-            Toast.ShowError("Nie udalo sie zmienic dostepnosci.");
+            Toast.ShowError("Nie udało się zmienić dostępności.");
         }
     }
 }

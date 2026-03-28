@@ -22,7 +22,6 @@ from utils.text_generator import slugify
 logger = logging.getLogger(__name__)
 
 def _unique_slug(dish_name: str, used_slugs: set[str]) -> str:
-    """Generate a unique slug, appending -2, -3, etc. for duplicates."""
     base = slugify(dish_name)
     slug = base
     counter = 2
@@ -265,7 +264,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 tag_by_category=tag_by_category,
             )
 
-            is_spicy = secret_spiciness_val > 2.0
+            is_spicy = secret_spiciness_val > 6.0
             is_vegan = False
             if "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids:
                 is_vegan = True
@@ -294,7 +293,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 "is_gluten_free": is_gluten_free,
                 "is_lactose_free": is_lactose_free,
                 "is_spicy": is_spicy,
-                "ingredients_json": json.dumps(ingredients),
+                "ingredients_json": json.dumps([i.replace("_", " ") for i in ingredients]),
                 "is_available": is_available,
                 "secret_base_price": round(secret_base_price, 2),
                 "secret_quality": round(secret_quality, 3),
@@ -424,17 +423,16 @@ def _get_tags_for_dish(
     if cuisine_tag and cuisine_tag in tag_map:
         tag_ids.add(tag_map[cuisine_tag])
 
-    if spiciness <= 1:
-        spice_tag = "Łagodne"
-    elif spiciness <= 3:
-        spice_tag = "Średnio ostre"
-    elif spiciness <= 6:
-        spice_tag = "Ostre"
-    else:
-        spice_tag = "Bardzo ostre"
+    if spiciness >= 4:
+        if spiciness <= 6:
+            spice_tag = "Średnio ostre"
+        elif spiciness <= 8:
+            spice_tag = "Ostre"
+        else:
+            spice_tag = "Bardzo ostre"
 
-    if spice_tag in tag_map:
-        tag_ids.add(tag_map[spice_tag])
+        if spice_tag in tag_map:
+            tag_ids.add(tag_map[spice_tag])
 
     ingredients_lower = [i.lower() for i in ingredients]
 
@@ -460,6 +458,42 @@ def _get_tags_for_dish(
         "tuna",
         "krewetki",
         "shrimp",
+        "steak",
+        "befsztyk",
+        "polędwica",
+        "antrykot",
+        "rostbef",
+        "kaczka",
+        "duck",
+        "indyk",
+        "turkey",
+        "jagnięcina",
+        "lamb",
+        "cielęcina",
+        "veal",
+        "dziczyzna",
+        "królik",
+        "rabbit",
+        "wątroba",
+        "liver",
+        "smalec",
+        "lard",
+        "słonina",
+        "pepperoni",
+        "salami",
+        "mortadela",
+        "parówka",
+        "flaki",
+        "żeberka",
+        "ribs",
+        "skrzydełka",
+        "wings",
+        "nuggets",
+        "kotlet",
+        "schab",
+        "karkówka",
+        "łopatka",
+        "bekon",
     ]
     dairy_keywords = ["ser", "cheese", "mleko", "milk", "śmietana", "cream", "masło", "butter"]
     egg_keywords = ["jajko", "egg", "jaja"]
@@ -474,7 +508,11 @@ def _get_tags_for_dish(
     elif not any(any(kw in ing for kw in meat_keywords) for ing in ingredients_lower) and "Wegetariańskie" in tag_map:
         tag_ids.add(tag_map["Wegetariańskie"])
 
-    gluten_keywords = ["mąka", "flour", "chleb", "bread", "makaron", "pasta", "pszenica", "wheat"]
+    gluten_keywords = [
+        "mąka", "flour", "chleb", "bread", "makaron", "pasta", "pszenica", "wheat",
+        "ciasto", "bułka", "tortilla", "pita", "naleśnik", "pierogi", "kluski",
+        "focaccia", "ravioli", "wonton", "noodle",
+    ]
     has_gluten = any(any(kw in ing for kw in gluten_keywords) for ing in ingredients_lower)
     if not has_gluten and "Bezglutenowe" in tag_map:
         tag_ids.add(tag_map["Bezglutenowe"])
@@ -505,10 +543,9 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_fa
             price_multiplier = price_mult_info.get("mean", 1.0)
             final_price = round(base_price * price_multiplier, 2)
 
-            # Derive spiciness from characteristics vector (0-1 scale -> 0-10)
             characteristics = variant_data.get("characteristics", {})
             flavor_spiciness = characteristics.get("flavor_spiciness", 0.0)
-            spiciness = flavor_spiciness * 10.0  # Convert to 0-10 scale
+            spiciness = flavor_spiciness * 10.0
 
             all_variants.append(
                 {
@@ -516,7 +553,7 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_fa
                     "archetype": category_name,
                     "price": final_price,
                     "ingredients": variant_data.get("ingredients", []),
-                    "tags": ["spicy"] if spiciness > 2 else [],
+                    "tags": ["spicy"] if spiciness > 6 else [],
                     "spiciness": spiciness,
                 }
             )
@@ -545,18 +582,6 @@ def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_fa
         return matching_dishes
 
 class DishesPhase(BasePhase):
-    """
-    Phase 3: Dishes Generation
-
-    Generates dishes with variants, ingredients, photos, and characteristics.
-
-    Dependencies:
-    - phase1_ingredients (requires ingredients table)
-    - phase2_restaurants (requires restaurants table with menu sections)
-
-    Required Tables: dishes, dish_variants, dish_ingredients
-    Estimated Duration: ~60 seconds (complex generation + photo lookups)
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
         self.blueprints_dir = blueprints_dir
@@ -577,7 +602,6 @@ class DishesPhase(BasePhase):
         logger.info("Phase 3: Generating dishes...")
 
         try:
-            # Note: cleanup=False because DatabaseManager handles cleanup
             generate_dishes(context.db, blueprints_dir=self.blueprints_dir, cleanup=False)
 
             dishes_count = context.db.fetch_val("SELECT COUNT(*) FROM dishes")
@@ -586,7 +610,7 @@ class DishesPhase(BasePhase):
 
             duration = time.time() - start_time
             logger.info(
-                f"✓ Generated {dishes_count} dishes with "
+                f"[OK] Generated {dishes_count} dishes with "
                 f"{variants_count} variants and "
                 f"{ingredients_count} ingredient mappings in {duration:.2f}s"
             )

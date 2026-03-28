@@ -1,6 +1,6 @@
 @page "/admin/system-config"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -62,6 +62,6 @@ else
     {
         var success = await AdminService.UpdateSystemConfigAsync(config.Key, config.Value);
         if (success) Toast.ShowSuccess($"Klucz \"{config.Key}\" zaktualizowany.");
-        else Toast.ShowError("Nie udalo sie zapisac.");
+        else Toast.ShowError("Nie udało się zapisać.");
     }
 }

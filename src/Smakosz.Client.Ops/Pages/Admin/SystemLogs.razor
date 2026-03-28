@@ -1,6 +1,6 @@
 @page "/admin/logs"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 
 <PageTitle>Logi systemowe - Admin Smakosz</PageTitle>
@@ -11,7 +11,7 @@
         <button class="btn @(_levelFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByLevel(null)">Wszystkie</button>
         <button class="btn @(_levelFilter == "Error" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByLevel("Error")'>Error</button>
         <button class="btn @(_levelFilter == "Warning" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByLevel("Warning")'>Warning</button>
-        <button class="btn @(_levelFilter == "Information" ? "btn-info" : "btn-outline-info")" @onclick='() => FilterByLevel("Information")'>Info</button>
+        <button class="btn @(_levelFilter == "Info" ? "btn-info" : "btn-outline-info")" @onclick='() => FilterByLevel("Info")'>Info</button>
     </div>
 </div>
 
@@ -21,28 +21,28 @@
 }
 else if (_logs == null || !_logs.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-file-lines" Title="Brak logow" />
+    <EmptyState Icon="fa-solid fa-file-lines" Title="Brak logów" />
 }
 else
 {
     <div class="table-responsive">
         <table class="table table-sm table-hover" style="font-size:0.85rem;">
             <thead>
-                <tr><th style="width:160px;">Czas</th><th style="width:80px;">Poziom</th><th>Wiadomosc</th><th>Źródło</th></tr>
+                <tr><th style="width:160px;">Czas</th><th style="width:80px;">Poziom</th><th>Wiadomość</th><th>Źródło</th></tr>
             </thead>
             <tbody>
                 @foreach (var log in _logs.Data)
                 {
                     <tr class="@LogRowClass(log.Level)">
-                        <td class="text-muted">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
                         <td><span class="badge @LevelBadge(log.Level)">@log.Level</span></td>
                         <td>
                             @log.Message
-                            @if (!string.IsNullOrEmpty(log.Exception))
+                            @if (!string.IsNullOrEmpty(log.Context))
                             {
                                 <details class="mt-1">
-                                    <summary class="small text-danger">Exception</summary>
-                                    <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.Exception</pre>
+                                    <summary class="small text-danger">Szczegóły</summary>
+                                    <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.Context</pre>
                                 </details>
                             }
                         </td>
@@ -77,10 +77,10 @@ else
 
     private static string LevelBadge(string level) => level switch
     {
+        "Critical" => "bg-danger",
         "Error" => "bg-danger",
         "Warning" => "bg-warning text-dark",
-        "Information" => "bg-info",
-        "Debug" => "bg-secondary",
+        "Info" => "bg-info",
         _ => "bg-secondary"
     };
 

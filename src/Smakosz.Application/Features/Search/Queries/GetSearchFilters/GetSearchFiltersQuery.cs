@@ -7,15 +7,15 @@ public record GetSearchFiltersQuery() : IRequest<ErrorOr<SearchFiltersDto>>;
 
 public class SearchFiltersDto
 {
-    public List<string> Cuisines { get; init; } = new();
-    public List<CityFilterDto> Cities { get; init; } = new();
-    public List<string> DietaryOptions { get; init; } = new();
+    public List<FilterOption> Cuisines { get; init; } = new();
+    public List<string> Cities { get; init; } = new();
+    public List<FilterOption> DietaryOptions { get; init; } = new();
     public int MinPrice { get; init; }
     public int MaxPrice { get; init; }
 }
 
-public class CityFilterDto
+public class FilterOption
 {
-    public int Id { get; init; }
-    public string Name { get; init; } = default!;
+    public string Value { get; init; } = default!;
+    public string Label { get; init; } = default!;
 }

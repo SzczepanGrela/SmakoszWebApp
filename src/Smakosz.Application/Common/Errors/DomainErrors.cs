@@ -22,7 +22,7 @@ public static class DomainErrors
             Error.Forbidden("AUTH_ACCOUNT_BANNED", "Konto zostało zablokowane");
 
         public static readonly Error IdentifierBanned =
-            Error.Forbidden("AUTH_IDENTIFIER_BANNED", "Rejestracja z tego adresu nie jest mozliwa");
+            Error.Forbidden("AUTH_IDENTIFIER_BANNED", "Rejestracja z tego adresu nie jest możliwa");
 
         public static readonly Error AccountInactive =
             Error.Forbidden("AUTH_ACCOUNT_INACTIVE", "Konto jest nieaktywne");

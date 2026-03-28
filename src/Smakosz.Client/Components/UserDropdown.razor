@@ -10,19 +10,25 @@
                 <span>@context.User.Identity?.Name</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="/profile"><i class="fa-solid fa-user me-2"></i>Moj profil</a></li>
+                <li><a class="dropdown-item" href="/profile"><i class="fa-solid fa-user me-2"></i>Mój profil</a></li>
                 <li><a class="dropdown-item" href="/saved"><i class="fa-solid fa-heart me-2"></i>Zapisane</a></li>
                 <li><a class="dropdown-item" href="/profile/settings"><i class="fa-solid fa-gear me-2"></i>Ustawienia</a></li>
-                <AuthorizeView Roles="restaurant">
+                <AuthorizeView Roles="Restaurant">
                     <Authorized Context="bizCtx">
                         <li><hr class="dropdown-divider" /></li>
                         <li><a class="dropdown-item" href="/restaurant/dashboard"><i class="fa-solid fa-store me-2"></i>Moja restauracja</a></li>
                     </Authorized>
                 </AuthorizeView>
-                <AuthorizeView Roles="admin,moderator">
+                <AuthorizeView Roles="Admin">
                     <Authorized Context="adminCtx">
                         <li><hr class="dropdown-divider" /></li>
                         <li><a class="dropdown-item" href="/admin"><i class="fa-solid fa-shield-halved me-2"></i>Panel admin</a></li>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="Moderator">
+                    <Authorized Context="modCtx">
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="/admin"><i class="fa-solid fa-shield-halved me-2"></i>Panel moderacji</a></li>
                     </Authorized>
                 </AuthorizeView>
                 <li><hr class="dropdown-divider" /></li>

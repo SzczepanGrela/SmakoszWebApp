@@ -15,11 +15,20 @@
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">Strona glowna</a>
+                    <a class="nav-link" href="/">Strona główna</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/search">Szukaj</a>
                 </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/recommendations">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Rekomendacje
+                            </a>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
             </ul>
             <AuthorizeView>
                 <Authorized>
@@ -40,7 +49,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary btn-sm ms-2" href="/register">Rejestracja</a>
+                            <a class="nav-link btn btn-primary btn-sm ms-2 d-flex align-items-center" href="/register">Rejestracja</a>
                         </li>
                     </ul>
                 </NotAuthorized>
@@ -60,7 +69,7 @@
         <div class="row">
             <div class="col-md-4 mb-3">
                 <h5><i class="fa-solid fa-utensils me-2"></i>Smakosz</h5>
-                <p class="text-muted small">Znajdz najlepszy smak w miescie. System recenzji restauracji i dan.</p>
+                <p class="text-muted small">Znajdź najlepszy smak w mieście. System recenzji restauracji i dań.</p>
             </div>
             <div class="col-md-4 mb-3">
                 <h6>Linki</h6>
@@ -71,7 +80,7 @@
                 </ul>
             </div>
             <div class="col-md-4 mb-3 text-md-end">
-                <p class="small text-muted mb-0">&copy; @DateTime.Now.Year Smakosz. Wszelkie prawa zastrzezone.</p>
+                <p class="small text-muted mb-0">&copy; @DateTime.Now.Year Smakosz. Wszelkie prawa zastrzeżone.</p>
             </div>
         </div>
     </div>

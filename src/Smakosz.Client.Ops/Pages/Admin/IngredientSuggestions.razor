@@ -1,6 +1,6 @@
 @page "/admin/ingredient-suggestions"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -8,7 +8,7 @@
 
 <h2 class="fw-bold mb-4"><i class="fa-solid fa-lightbulb me-2"></i>Sugestie składników</h2>
 
-<p class="text-muted mb-4">Składniki sugerowane przez uzytkownikow lub AI, oczekujace na dodanie do bazy.</p>
+<p class="text-muted mb-4">Składniki sugerowane przez użytkowników lub AI, oczekujące na dodanie do bazy.</p>
 
 @if (_loading)
 {
@@ -16,7 +16,7 @@
 }
 else if (_suggestions == null || !_suggestions.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-lightbulb" Title="Brak sugestii" Description="Nie ma oczekujacych sugestii skladnikow." />
+    <EmptyState Icon="fa-solid fa-lightbulb" Title="Brak sugestii" Description="Nie ma oczekujących sugestii składników." />
 }
 else
 {
@@ -71,12 +71,12 @@ else
         var success = await AdminService.ReviewIngredientSuggestionAsync(s.SuggestionId, true);
         if (success)
         {
-            Toast.ShowSuccess($"Skladnik \"{s.SuggestedName}\" dodany do bazy.");
+            Toast.ShowSuccess($"Składnik \"{s.SuggestedName}\" dodany do bazy.");
             await LoadPage(1);
         }
         else
         {
-            Toast.ShowError("Nie udalo sie zaakceptowac sugestii.");
+            Toast.ShowError("Nie udało się zaakceptować sugestii.");
         }
     }
 
@@ -90,7 +90,7 @@ else
         }
         else
         {
-            Toast.ShowError("Nie udalo sie odrzucic sugestii.");
+            Toast.ShowError("Nie udało się odrzucić sugestii.");
         }
     }
 }

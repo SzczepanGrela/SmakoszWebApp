@@ -19,7 +19,7 @@
                         <i class="fa-solid fa-circle-check fa-4x" style="color:var(--accent-color);"></i>
                     </div>
                     <h2 class="fw-bold">Rejestracja zatwierdzona!</h2>
-                    <p class="text-muted mb-4">Mozesz teraz zarzadzac swoja restauracja@(!string.IsNullOrEmpty(_status.RestaurantName) ? $" \"{_status.RestaurantName}\"" : "").</p>
+                    <p class="text-muted mb-4">Możesz teraz zarządzać swoją restauracją@(!string.IsNullOrEmpty(_status.RestaurantName) ? $" \"{_status.RestaurantName}\"" : "").</p>
                     <a href="/restaurant/dashboard" class="btn btn-primary btn-lg">
                         <i class="fa-solid fa-chart-line me-2"></i>Przejdź do panelu
                     </a>
@@ -30,7 +30,7 @@
                         <i class="fa-solid fa-clock fa-4x text-warning"></i>
                     </div>
                     <h2 class="fw-bold">Wniosek w trakcie weryfikacji</h2>
-                    <p class="text-muted mb-4">Twoj wniosek jest weryfikowany przez nasz zespol. Powiadomimy Cie o decyzji.</p>
+                    <p class="text-muted mb-4">Twój wniosek jest weryfikowany przez nasz zespół. Powiadomimy Cię o decyzji.</p>
                 }
                 else
                 {
@@ -38,13 +38,13 @@
                         <i class="fa-solid fa-circle-xmark fa-4x text-danger"></i>
                     </div>
                     <h2 class="fw-bold">Wniosek odrzucony</h2>
-                    <p class="text-muted mb-4">Skontaktuj sie z nami, aby uzyskac wiecej informacji.</p>
-                    <a href="/business/register" class="btn btn-primary">Zloz ponownie</a>
+                    <p class="text-muted mb-4">Skontaktuj się z nami, aby uzyskać więcej informacji.</p>
+                    <a href="/business/register" class="btn btn-primary">Złóż ponownie</a>
                 }
             }
             else
             {
-                <EmptyState Icon="fa-solid fa-store" Title="Brak wniosku" Description="Nie znaleziono wniosku o rejestracje." ActionText="Zarejestruj restauracje" ActionUrl="/business/register" />
+                <EmptyState Icon="fa-solid fa-store" Title="Brak wniosku" Description="Nie znaleziono wniosku o rejestrację." ActionText="Zarejestruj restaurację" ActionUrl="/business/register" />
             }
         </div>
     </div>

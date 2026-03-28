@@ -10,12 +10,12 @@
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie ustawien..." />
+        <LoadingSpinner Text="Ładowanie ustawień..." />
     }
     else if (_profile == null)
     {
-        <EmptyState Icon="fa-solid fa-gear" Title="Nie udalo sie zaladowac ustawien"
-                    Description="Sprobuj odswiezyc strone." />
+        <EmptyState Icon="fa-solid fa-gear" Title="Nie udało się załadować ustawień"
+                    Description="Spróbuj odświeżyć stronę." />
     }
     else
     {
@@ -30,7 +30,7 @@
                         <i class="fa-solid fa-gear me-2"></i>Ustawienia
                     </a>
                     <a href="/profile/security" class="list-group-item list-group-item-action">
-                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo
                     </a>
                     <a href="/profile/notifications" class="list-group-item list-group-item-action">
                         <i class="fa-solid fa-bell me-2"></i>Powiadomienia
@@ -55,7 +55,7 @@
                         @if (_saved)
                         {
                             <div class="alert alert-success">
-                                <i class="fa-solid fa-check me-2"></i>Zmiany zostaly zapisane.
+                                <i class="fa-solid fa-check me-2"></i>Zmiany zostały zapisane.
                             </div>
                         }
 
@@ -82,22 +82,22 @@
                         <h5 class="mb-0"><i class="fa-solid fa-bell me-2"></i>Powiadomienia</h5>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">Zarzadzaj swoimi preferencjami dotyczacymi powiadomien.</p>
+                        <p class="text-muted mb-3">Zarządzaj swoimi preferencjami dotyczącymi powiadomień.</p>
                         <a href="/profile/notifications" class="btn btn-outline-primary">
-                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdź do ustawien powiadomien
+                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdź do ustawień powiadomień
                         </a>
                     </div>
                 </div>
 
-                <!-- Bezpieczenstwo link -->
+                <!-- Bezpieczeństwo link -->
                 <div class="card shadow-sm">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo</h5>
+                        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo</h5>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">Zmien haslo i zarzadzaj aktywnymi sesjami.</p>
+                        <p class="text-muted mb-3">Zmień hasło i zarządzaj aktywnymi sesjami.</p>
                         <a href="/profile/security" class="btn btn-outline-primary">
-                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdź do ustawien bezpieczenstwa
+                            <i class="fa-solid fa-arrow-right me-1"></i>Przejdź do ustawień bezpieczeństwa
                         </a>
                     </div>
                 </div>
@@ -128,11 +128,11 @@
         if (success)
         {
             _saved = true;
-            Toast.ShowSuccess("Ustawienia zostaly zapisane.");
+            Toast.ShowSuccess("Ustawienia zostały zapisane.");
         }
         else
         {
-            _error = "Nie udalo sie zapisac zmian. Sprobuj ponownie.";
+            _error = "Nie udało się zapisać zmian. Spróbuj ponownie.";
         }
         _saving = false;
     }

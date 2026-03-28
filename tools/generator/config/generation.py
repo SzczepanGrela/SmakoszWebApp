@@ -1,14 +1,3 @@
-"""
-Generation Configuration
-
-This module contains all parameters related to data generation:
-- Entity counts (users, restaurants, dishes)
-- Performance settings (workers, connections)
-- Algorithmic parameters (Zipf alpha, anchor rates)
-- DERIVED preferences configuration
-- Expected metrics for validation
-"""
-
 GENERATION_CONFIG = {
     "num_users": 50000,
     "num_restaurants": 2000,
@@ -30,7 +19,7 @@ GENERATION_CONFIG = {
     "moderation_comment_rate": 0.03,
     "moderation_report_rate": 0.01,
     "user_photo_rate": 0.40,
-    "custom_avatar_percentage": 0.4,  # Percentage of users with custom avatars (vs UI Avatars fallback)
+    "custom_avatar_percentage": 0.4,
     "restaurant_photos_per": (2, 3),
     "dish_photos_per": 1,
     "dishes_per_restaurant": {"mean": 15, "std": 5, "min": 5},

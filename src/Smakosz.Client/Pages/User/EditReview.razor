@@ -5,22 +5,22 @@
 @inject NavigationManager Navigation
 @inject ToastService Toast
 
-<PageTitle>Edytuj recenzje - Smakosz</PageTitle>
+<PageTitle>Edytuj recenzję - Smakosz</PageTitle>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-4"><i class="fa-solid fa-pen me-2"></i>Edytuj recenzje</h1>
+            <h1 class="mb-4"><i class="fa-solid fa-pen me-2"></i>Edytuj recenzję</h1>
 
             @if (_loading)
             {
-                <LoadingSpinner Text="Ladowanie recenzji..." />
+                <LoadingSpinner Text="Ładowanie recenzji..." />
             }
             else if (_review == null)
             {
                 <EmptyState Icon="fa-solid fa-file-circle-question" Title="Nie znaleziono recenzji"
-                            Description="Recenzja o podanym ID nie istnieje lub nie masz do niej dostepu."
-                            ActionText="Powrot do profilu" ActionUrl="/profile" />
+                            Description="Recenzja o podanym ID nie istnieje lub nie masz do niej dostępu."
+                            ActionText="Powrót do profilu" ActionUrl="/profile" />
             }
             else
             {
@@ -56,9 +56,9 @@
                     <div class="card-body">
                         <RatingInput Label="Ocena dania" Value="@_model.DishRating"
                                      ValueChanged="v => _model.DishRating = v" />
-                        <RatingInput Label="Obsluga" Value="@_model.ServiceRating"
+                        <RatingInput Label="Obsługa" Value="@_model.ServiceRating"
                                      ValueChanged="v => _model.ServiceRating = v" />
-                        <RatingInput Label="Czystosc" Value="@_model.CleanlinessRating"
+                        <RatingInput Label="Czystość" Value="@_model.CleanlinessRating"
                                      ValueChanged="v => _model.CleanlinessRating = v" />
                         <RatingInput Label="Atmosfera" Value="@_model.AmbianceRating"
                                      ValueChanged="v => _model.AmbianceRating = v" />
@@ -74,7 +74,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-medium">Treść recenzji</label>
                             <textarea class="form-control" rows="5" @bind="_model.Content"
-                                      placeholder="Opisz swoje doswiadczenie..."></textarea>
+                                      placeholder="Opisz swoje doświadczenie..."></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Data wizyty</label>
@@ -165,12 +165,12 @@
         }
         if (_model.ServiceRating < 1)
         {
-            _error = "Ocena obslugi jest wymagana (minimum 1).";
+            _error = "Ocena obsługi jest wymagana (minimum 1).";
             return;
         }
         if (_model.CleanlinessRating < 1)
         {
-            _error = "Ocena czystosci jest wymagana (minimum 1).";
+            _error = "Ocena czystości jest wymagana (minimum 1).";
             return;
         }
         if (_model.AmbianceRating < 1)
@@ -185,12 +185,12 @@
         var result = await ReviewService.UpdateAsync(Id, _model);
         if (result.Success)
         {
-            Toast.ShowSuccess("Recenzja zostala zaktualizowana!");
+            Toast.ShowSuccess("Recenzja została zaktualizowana!");
             Navigation.NavigateTo($"/dish/{_review!.DishSlug}");
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udalo sie zaktualizowac recenzji. Sprobuj ponownie.";
+            _error = result.Error?.Message ?? "Nie udało się zaktualizować recenzji. Spróbuj ponownie.";
         }
         _submitting = false;
     }

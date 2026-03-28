@@ -177,7 +177,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 UserId = editRequest.UserId,
                 Type = NotificationType.System,
                 Title = "Edycja zatwierdzona",
-                Message = $"Twoje zmiany w restauracji \"{editRequest.Restaurant.RestaurantName}\" zostaly automatycznie zatwierdzone.",
+                Message = $"Twoje zmiany w restauracji \"{editRequest.Restaurant.RestaurantName}\" zostały automatycznie zatwierdzone.",
                 CreatedAt = now
             });
         }

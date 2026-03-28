@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-Run a single phase independently.
-
-Usage:
-    python scripts/run_phase.py phase2_restaurants
-    python scripts/run_phase.py phase5_reviews --no-cleanup
-    python scripts/run_phase.py phase3_dishes --verbose
-"""
 
 import argparse
 import logging
@@ -15,7 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal, cast
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import GENERATION_CONFIG, get_connection_params
@@ -42,7 +33,6 @@ from utils.db_connection import DatabaseConnection
 from utils.logging_config import LoggingConfig
 
 def setup_phase_registry() -> PhaseRegistry:
-    """Setup and register all phases."""
     registry = PhaseRegistry()
 
     registry.register(SystemConfigPhase())
@@ -91,12 +81,10 @@ Examples:
 
     args = parser.parse_args()
 
-    # Logging
     log_level = "DEBUG" if args.debug else ("INFO" if args.verbose else "WARNING")
     LoggingConfig.setup(level=cast(Literal["DEBUG", "INFO", "WARNING", "ERROR"], log_level))
     logger = logging.getLogger(__name__)
 
-    # Validate phase ID
     valid_phases = [
         "phase0_config",
         "phase1_cities",
@@ -126,22 +114,19 @@ Examples:
         connection_params = get_connection_params()
 
         with DatabaseConnection(connection_params) as db:
-            # Setup
             registry = setup_phase_registry()
             context = ExecutionContext(db=db, config=GENERATION_CONFIG, phase_registry=registry)
 
             pipeline_config = PipelineConfig(cleanup_before_run=not args.no_cleanup, continue_on_error=False)
 
-            # Execute single phase
             pipeline = DataGenerationPipeline(context, pipeline_config)
             result = pipeline.run(phase_ids=[args.phase_id])
 
-            # Summary
             duration = datetime.now() - start_time
 
             logger.info("\n" + "=" * 80)
             if result.success:
-                logger.info(f"✓ SUCCESS! Completed in {duration}")
+                logger.info(f"[OK] SUCCESS! Completed in {duration}")
 
                 phase_result = result.phase_results[0]
                 logger.info(f"Phase: {phase_result.phase_id}")

@@ -24,7 +24,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 
     public async Task<ErrorOr<Success>> Handle(ModeratePhotoCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var asset = await _db.MediaAssets

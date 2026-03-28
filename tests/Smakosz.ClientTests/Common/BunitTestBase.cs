@@ -29,7 +29,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
     }
 
-    protected void SetAuthenticatedUser(string username = "testuser", string role = "user")
+    protected void SetAuthenticatedUser(string username = "testuser", string role = "User")
     {
         AuthContext.SetAuthorized(username);
         AuthContext.SetRoles(role);

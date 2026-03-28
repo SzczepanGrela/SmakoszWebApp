@@ -5,7 +5,7 @@
 
 <PageTitle>Rejestracja - Smakosz</PageTitle>
 
-<h4 class="text-center mb-4">Utworz konto</h4>
+<h4 class="text-center mb-4">Utwórz konto</h4>
 
 @if (!string.IsNullOrEmpty(_error))
 {
@@ -14,7 +14,7 @@
 
 <EditForm Model="_model" OnValidSubmit="HandleRegister">
     <div class="mb-3">
-        <label class="form-label">Nazwa uzytkownika</label>
+        <label class="form-label">Nazwa użytkownika</label>
         <input type="text" class="form-control" @bind="_model.Username" required minlength="3" maxlength="30" />
     </div>
     <div class="mb-3">
@@ -22,17 +22,17 @@
         <input type="email" class="form-control" @bind="_model.Email" required />
     </div>
     <div class="mb-3">
-        <label class="form-label">Haslo</label>
+        <label class="form-label">Hasło</label>
         <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Placeholder="Min. 8 znaków" />
     </div>
     <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
         @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
-        Zarejestruj sie
+        Zarejestruj się
     </button>
 </EditForm>
 
 <div class="text-center mt-3">
-    <span class="small">Masz juz konto?</span> <a href="/login" class="small fw-bold">Zaloguj sie</a>
+    <span class="small">Masz już konto?</span> <a href="/login" class="small fw-bold">Zaloguj się</a>
 </div>
 
 @code {

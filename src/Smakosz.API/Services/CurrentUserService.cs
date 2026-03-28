@@ -27,9 +27,13 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public string? Role => _httpContextAccessor.HttpContext?.User
-        .FindFirstValue(ClaimTypes.Role);
+        .FindFirstValue(ClaimTypes.Role)
+        ?? _httpContextAccessor.HttpContext?.User
+        .FindFirstValue("role");
 
     public bool IsAdmin => Role == nameof(Domain.Enums.UserRole.Admin);
+
+    public bool IsAdminOrModerator => Role is "Admin" or "Moderator";
 
     public long? SessionId
     {

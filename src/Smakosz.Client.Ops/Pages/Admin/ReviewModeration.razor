@@ -1,6 +1,6 @@
 @page "/admin/reviews"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -14,7 +14,7 @@
 }
 else if (_reviews == null || !_reviews.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji do moderacji" Description="Wszystkie recenzje zostaly sprawdzone." />
+    <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji do moderacji" Description="Wszystkie recenzje zostały sprawdzone." />
 }
 else
 {
@@ -32,7 +32,7 @@ else
                     <div class="d-flex align-items-center gap-2">
                         @if (review.ReportCount > 0)
                         {
-                            <span class="badge bg-danger"><i class="fa-solid fa-flag me-1"></i>@review.ReportCount zgl.</span>
+                            <span class="badge bg-danger"><i class="fa-solid fa-flag me-1"></i>@review.ReportCount zgł.</span>
                         }
                         <StatusBadge Status="@ContentStatusName(review.ContentStatus)" />
                     </div>

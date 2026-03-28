@@ -1,17 +1,3 @@
-"""
-Unified Media Pipeline
-
-Single script for fetching and processing images from multiple providers
-(Pixabay + Unsplash) for all entity types.
-
-R2 upload is handled separately by mirror_to_r2.py after manual review.
-
-Usage:
-    python tools/media_pipeline.py --all           # Fetch all types
-    python tools/media_pipeline.py --ingredients   # Fetch ingredients only
-    python tools/media_pipeline.py --validate      # Validate folder counts
-"""
-
 import argparse
 import json
 import logging
@@ -24,14 +10,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-# Fix Windows console encoding for emoji/Polish characters
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
-# Add parent to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config import PHOTO_CONFIG
@@ -39,16 +23,13 @@ from tools.image_download import ImageDownloadService
 from tools.image_providers import ImageResult, ProviderManager, RateLimitError
 from tools.utils import slugify
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Constants from config
 OUTPUT_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
 WORKERS = int(PHOTO_CONFIG.get("workers", 5))
 IMAGE_FORMAT = str(PHOTO_CONFIG.get("image_format", "WEBP"))
 
-# Size configurations
 SIZE_FULL = tuple(PHOTO_CONFIG["size_full"])
 SIZE_THUMB = tuple(PHOTO_CONFIG["size_thumb"])
 SIZE_TINY = tuple(PHOTO_CONFIG.get("size_tiny", (50, 50)))
@@ -58,7 +39,6 @@ SIZE_HERO = tuple(PHOTO_CONFIG.get("size_hero", (1600, 900)))
 SUFFIX_THUMB = str(PHOTO_CONFIG.get("suffix_thumb", "_thumb"))
 SUFFIX_TINY = str(PHOTO_CONFIG.get("suffix_tiny", "_tiny"))
 
-# Hero image search queries (curated food/restaurant backgrounds)
 HERO_QUERIES = [
     "gourmet food table",
     "restaurant ambiance",
@@ -69,22 +49,20 @@ HERO_QUERIES = [
     "fresh ingredients cooking",
     "elegant dinner setting",
 ]
-HERO_TARGET_COUNT = 60  # Target number of hero images
+HERO_TARGET_COUNT = 60
 
 @dataclass
 class ValidationResult:
-    """Result of folder validation."""
 
     folder: str
     entity_type: str
     count: int
     min_required: int
     max_allowed: int | None
-    status: str  # 'ok', 'error', 'warning'
+    status: str
     message: str
 
 class FolderValidator:
-    """Validates photo counts per folder type."""
 
     RULES = {
         "ingredient": {"min": 1, "max": 1},
@@ -98,7 +76,6 @@ class FolderValidator:
         self.output_dir = output_dir
 
     def validate_all(self) -> list[ValidationResult]:
-        """Validate all folder types."""
         results = []
         results.extend(self._validate_ingredients())
         results.extend(self._validate_dishes())
@@ -108,7 +85,6 @@ class FolderValidator:
         return results
 
     def _count_images(self, folder: Path) -> int:
-        """Count original image files in folder (excludes derived _thumb/_tiny/_hero)."""
         if not folder.exists():
             return 0
         skip_suffixes = {"_thumb", "_tiny", "_hero"}
@@ -123,7 +99,6 @@ class FolderValidator:
         )
 
     def _validate_ingredients(self) -> list[ValidationResult]:
-        """Validate ingredient folders (exactly 1 per ingredient)."""
         results = []
         ing_dir = self.output_dir / "ingredients"
 
@@ -140,7 +115,6 @@ class FolderValidator:
                 )
             ]
 
-        # Each ingredient should have exactly 1 file
         for img_file in ing_dir.glob("*.webp"):
             results.append(
                 ValidationResult(
@@ -157,7 +131,6 @@ class FolderValidator:
         return results
 
     def _validate_dishes(self) -> list[ValidationResult]:
-        """Validate dish variant folders (5-15 per variant)."""
         results = []
         dishes_dir = self.output_dir / "dishes"
 
@@ -209,7 +182,6 @@ class FolderValidator:
         return results
 
     def _validate_restaurants(self) -> list[ValidationResult]:
-        """Validate restaurant theme folders (min 5 per theme)."""
         results = []
         rest_dir = self.output_dir / "restaurants"
 
@@ -255,7 +227,6 @@ class FolderValidator:
         return results
 
     def _validate_avatars(self) -> list[ValidationResult]:
-        """Validate avatar pool (500-2000 total)."""
         avatar_dir = self.output_dir / "avatars" / "pool"
 
         if not avatar_dir.exists():
@@ -297,7 +268,6 @@ class FolderValidator:
         ]
 
     def _validate_hero(self) -> list[ValidationResult]:
-        """Validate hero images pool (20-100 total)."""
         hero_dir = self.output_dir / "hero"
 
         if not hero_dir.exists():
@@ -339,7 +309,6 @@ class FolderValidator:
         ]
 
     def print_report(self, results: list[ValidationResult]) -> tuple[int, int]:
-        """Print validation report and return (errors, warnings)."""
         errors = [r for r in results if r.status == "error"]
         warnings = [r for r in results if r.status == "warning"]
 
@@ -347,7 +316,6 @@ class FolderValidator:
         print("FOLDER VALIDATION REPORT")
         print("=" * 60)
 
-        # Group by entity type
         by_type: dict[str, list[ValidationResult]] = {}
         for r in results:
             by_type.setdefault(r.entity_type, []).append(r)
@@ -371,7 +339,6 @@ class FolderValidator:
         return len(errors), len(warnings)
 
 class MediaPipeline:
-    """Unified media fetching pipeline."""
 
     def __init__(self):
         import requests
@@ -382,14 +349,12 @@ class MediaPipeline:
         self.validator = FolderValidator(OUTPUT_DIR)
         self.output_dir = OUTPUT_DIR
 
-        # Build a session with retry logic (same policy as fetch_photos.py)
         session = requests.Session()
         retries = Retry(total=5, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"])
         session.mount("https://", HTTPAdapter(max_retries=retries))
         session.mount("http://", HTTPAdapter(max_retries=retries))
         self.download_service = ImageDownloadService(session, {}, OUTPUT_DIR)
 
-        # Load blueprints
         blueprints_dir = Path(__file__).parent.parent / "blueprints"
         self.ingredient_mappings = self._load_ingredient_mappings(blueprints_dir)
         self.dish_variants = self._load_dish_variants(blueprints_dir)
@@ -397,14 +362,12 @@ class MediaPipeline:
 
     @staticmethod
     def _prepare_url(url: str) -> str:
-        """Append Unsplash size limit params to prevent decompression bombs."""
         if "unsplash.com" in url:
             sep = "&" if "?" in url else "?"
             return f"{url}{sep}w=1600&q=85"
         return url
 
     def _load_ingredient_mappings(self, blueprints_dir: Path) -> dict[str, str]:
-        """Load ingredient name -> English search term mappings."""
         mapping_file = blueprints_dir / "ingredients_pixabay.json"
         if mapping_file.exists():
             with open(mapping_file, encoding="utf-8") as f:
@@ -415,7 +378,6 @@ class MediaPipeline:
         return {}
 
     def _load_dish_variants(self, blueprints_dir: Path) -> dict:
-        """Load dish variants from blueprints."""
         variants_file = blueprints_dir / "dishes.json"
         if variants_file.exists():
             with open(variants_file, encoding="utf-8") as f:
@@ -423,7 +385,6 @@ class MediaPipeline:
         return {}
 
     def _load_restaurant_themes(self, blueprints_dir: Path) -> dict:
-        """Load restaurant themes from blueprints."""
         themes_file = blueprints_dir / "restaurant_types.json"
         if themes_file.exists():
             with open(themes_file, encoding="utf-8") as f:
@@ -434,12 +395,11 @@ class MediaPipeline:
     def search_with_backoff(
         self, query: str, count: int, orientation: str = "horizontal", max_attempts: int = 15
     ) -> list[ImageResult]:
-        """Search with proper rate limit handling - keeps retrying until success."""
         for attempt in range(max_attempts):
             try:
                 return self.provider_manager.search_mixed(query, count, orientation)
             except RateLimitError as e:
-                wait_time = min(e.retry_after, 3600)  # Use API's suggested wait, max 1h
+                wait_time = min(e.retry_after, 3600)
                 logger.warning(
                     f"Waiting: Rate limit hit for '{query}'. Waiting {wait_time // 60}min (attempt {attempt + 1}/{max_attempts})..."
                 )
@@ -459,12 +419,6 @@ class MediaPipeline:
         category: str | None = None,
         max_attempts: int = 15,
     ) -> list[ImageResult]:
-        """
-        Search ONLY Pixabay (CC0 license, no attribution required).
-
-        Use this for all non-hero images to avoid Unsplash attribution requirements.
-        Hero images should use search_with_backoff() which includes Unsplash.
-        """
         pixabay = self.provider_manager.get_provider("pixabay")
         if not pixabay:
             logger.error("Pixabay provider not available!")
@@ -487,13 +441,9 @@ class MediaPipeline:
         return []
 
     def run_ingredients(self, dry_run: bool = False):
-        """
-        Download ingredient photos from Pixabay only (CC0, no attribution).
-        Creates: ingredients/{ingredient_name}/ingredient_name_001.webp, etc.
-        """
         logger.info("--- FETCHING INGREDIENTS ---")
 
-        PHOTOS_PER_PROVIDER = 3  # 3 from Pixabay + 3 from Unsplash = 6 total per ingredient
+        PHOTOS_PER_PROVIDER = 3
 
         ing_base_dir = self.output_dir / "ingredients"
         ing_base_dir.mkdir(parents=True, exist_ok=True)
@@ -502,15 +452,13 @@ class MediaPipeline:
             logger.warning("No ingredient mappings found!")
             return
 
-        # Count ingredients that need downloads
         to_process = []
         for ing_name, search_term in self.ingredient_mappings.items():
             safe_name = slugify(ing_name)
             ing_dir = ing_base_dir / safe_name
 
-            # Check if we have enough photos already
             existing_count = len(list(ing_dir.glob(f"*.{IMAGE_FORMAT.lower()}"))) if ing_dir.exists() else 0
-            if existing_count < PHOTOS_PER_PROVIDER * 2:  # Need at least 6 total
+            if existing_count < PHOTOS_PER_PROVIDER * 2:
                 to_process.append((ing_name, search_term, safe_name, ing_dir))
 
         logger.info(f"Need to download: {len(to_process)} ingredients")
@@ -522,9 +470,8 @@ class MediaPipeline:
         for ing_name, search_term, safe_name, ing_dir in tqdm(to_process, desc="Ingredients"):
             ing_dir.mkdir(parents=True, exist_ok=True)
 
-            # Check existing photos
             existing = len(list(ing_dir.glob(f"*.{IMAGE_FORMAT.lower()}")))
-            target = PHOTOS_PER_PROVIDER * 2  # 6 total (3 per provider mixed)
+            target = PHOTOS_PER_PROVIDER * 2
             needed = max(0, target - existing)
 
             if needed == 0:
@@ -532,8 +479,6 @@ class MediaPipeline:
 
             logger.info(f"Downloading: Downloading ingredient: {ing_name} ({needed} photos)")
 
-            # Use Pixabay only (CC0 license, no attribution needed)
-            # Request extra images since we'll filter for square-ish ones
             results = self.search_pixabay_only(search_term, needed * 3, orientation="all")
 
             for i, result in enumerate(results[:needed]):
@@ -547,7 +492,6 @@ class MediaPipeline:
                 self.download_service.process_image(self._prepare_url(result.url), save_path, SIZE_INGREDIENT)
 
     def run_dishes(self, dry_run: bool = False):
-        """Download dish photos from Pixabay only (CC0, no attribution)."""
         logger.info("--- FETCHING DISHES ---")
 
         dishes_dir = self.output_dir / "dishes"
@@ -566,7 +510,7 @@ class MediaPipeline:
                 variant_dir.mkdir(parents=True, exist_ok=True)
 
                 existing = len(list(variant_dir.glob(f"*.{IMAGE_FORMAT.lower()}")))
-                target = min_photos  # Fixed target instead of random
+                target = min_photos
                 needed = max(0, target - existing)
 
                 if needed == 0:
@@ -591,7 +535,6 @@ class MediaPipeline:
                     )
 
     def run_restaurants(self, dry_run: bool = False):
-        """Download restaurant photos from Pixabay only (CC0, no attribution)."""
         logger.info("--- FETCHING RESTAURANTS ---")
 
         rest_dir = self.output_dir / "restaurants"
@@ -629,7 +572,6 @@ class MediaPipeline:
                 )
 
     def run_avatars(self, dry_run: bool = False):
-        """Download avatar pool from Pixabay only (CC0, no attribution)."""
         logger.info("--- FETCHING AVATARS ---")
 
         avatar_dir = self.output_dir / "avatars" / "pool"
@@ -672,12 +614,6 @@ class MediaPipeline:
                 idx += 1
 
     def run_hero(self, dry_run: bool = False):
-        """
-        Download hero images for homepage backgrounds.
-
-        Creates: hero/hero_001.webp, hero_002.webp, etc.
-        Also generates hero_index.json with credits for attribution.
-        """
         logger.info("--- FETCHING HERO IMAGES ---")
 
         hero_dir = self.output_dir / "hero"
@@ -695,7 +631,6 @@ class MediaPipeline:
             logger.info(f"[DRY RUN] Would download {needed} hero images")
             return
 
-        # Load existing index if present
         index_path = hero_dir / "hero_index.json"
         if index_path.exists():
             with open(index_path, encoding="utf-8") as f:
@@ -720,28 +655,28 @@ class MediaPipeline:
                 filename = f"hero_{idx:03d}.{IMAGE_FORMAT.lower()}"
                 save_path = hero_dir / filename
 
-                success, _ = self.download_service.process_image(self._prepare_url(result.url), save_path, SIZE_HERO)
+                success, metadata = self.download_service.process_image(self._prepare_url(result.url), save_path, SIZE_HERO)
                 if success:
-                    # Add to index with credits
                     credit = result.credit or {}
-                    hero_index["images"].append(
-                        {
-                            "filename": filename,
-                            "credit_user": credit.get("name") or credit.get("username") or "Unknown",
-                            "credit_url": credit.get("link") or "",
-                            "source": result.provider,
-                        }
-                    )
+                    entry = {
+                        "filename": filename,
+                        "credit_user": credit.get("name") or credit.get("username") or "Unknown",
+                        "credit_url": credit.get("link") or "",
+                        "source": result.provider,
+                    }
+                    if metadata:
+                        entry["blurhash"] = metadata.get("blurhash")
+                        entry["width"] = metadata.get("width")
+                        entry["height"] = metadata.get("height")
+                    hero_index["images"].append(entry)
                     idx += 1
 
-        # Save updated index
         with open(index_path, "w", encoding="utf-8") as f:
             json.dump(hero_index, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Hero images complete. Index saved to {index_path}")
 
     def clear_all(self):
-        """Delete all existing photos (before fresh download)."""
         import shutil
 
         folders = [
@@ -760,7 +695,6 @@ class MediaPipeline:
         logger.info("All photo folders cleared.")
 
     def run_all(self, dry_run: bool = False):
-        """Run all fetch operations."""
         self.run_ingredients(dry_run)
         self.run_dishes(dry_run)
         self.run_restaurants(dry_run)
@@ -768,7 +702,6 @@ class MediaPipeline:
         self.run_hero(dry_run)
 
     def validate(self) -> tuple[int, int]:
-        """Run validation and print report."""
         results = self.validator.validate_all()
         return self.validator.print_report(results)
 
@@ -813,7 +746,6 @@ def main():
         if args.hero:
             pipeline.run_hero(args.dry_run)
 
-    # Always validate after fetching
     if not args.validate:
         print("\nRunning post-fetch validation...")
         pipeline.validate()

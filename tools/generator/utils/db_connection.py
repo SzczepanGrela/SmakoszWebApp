@@ -105,7 +105,6 @@ class DatabaseConnection:
             self.commit()
             if len(data_list) >= 1000:
                 self.logger.debug(f"Inserted {len(data_list)} rows into {table}")
-            # execute_values returns a list of tuples even for single column
             return [row[0] for row in result] if result else []
         except psycopg2.Error as e:
             self.logger.error(f"Bulk insert error: {e}")

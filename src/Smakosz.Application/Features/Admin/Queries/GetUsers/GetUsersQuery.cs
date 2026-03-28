@@ -43,6 +43,7 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, ErrorOr<PagedResul
             .Select(u => new AdminUserDto
             {
                 UserId = u.UserId,
+                PublicId = u.PublicId,
                 Username = u.Username,
                 Email = u.Email,
                 Role = u.Role.ToString(),

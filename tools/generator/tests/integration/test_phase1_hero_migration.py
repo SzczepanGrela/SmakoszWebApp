@@ -1,43 +1,29 @@
-"""
-Integration test for Phase 1 Hero Images migration to new architecture.
-
-Validates that HeroImagesPhase works correctly as an independent Phase 1
-component and integrates with PhaseRegistry.
-"""
-
 from unittest.mock import MagicMock, patch
 
 from generators.phase1_definitions import HeroImagesPhase
 from orchestration import ExecutionContext, PhaseRegistry, PhaseStatus
 
 class TestHeroImagesPhaseMetadata:
-    """Test HeroImagesPhase metadata."""
 
     def test_hero_images_phase_metadata(self):
-        """Test HeroImagesPhase has correct metadata."""
         phase = HeroImagesPhase(blueprints_dir="blueprints")
         metadata = phase.metadata
 
         assert metadata.phase_id == "phase1_hero"
         assert metadata.display_name == "Hero Images Registration"
 
-        # Phase 1 has no dependencies - runs in parallel with Cities, Cuisines, etc.
         assert metadata.dependencies == []
 
-        # Only touches hero rows in media_assets (targeted DELETE, not TRUNCATE)
         assert "media_assets" in metadata.required_tables
         assert metadata.cleanup_tables == []
 
     def test_hero_images_phase_no_dependencies(self):
-        """Confirm HeroImagesPhase has no inter-phase dependencies."""
         phase = HeroImagesPhase()
         assert len(phase.metadata.dependencies) == 0
 
 class TestHeroImagesPhaseRegistration:
-    """Test HeroImagesPhase integration with PhaseRegistry."""
 
     def test_hero_images_phase_registers(self):
-        """Test that HeroImagesPhase can be registered."""
         registry = PhaseRegistry()
         phase = HeroImagesPhase()
 
@@ -47,7 +33,6 @@ class TestHeroImagesPhaseRegistration:
         assert retrieved is phase
 
     def test_phase1_hero_dependency_resolution(self):
-        """Test that phase1_hero resolves with only itself (no upstream deps)."""
         registry = PhaseRegistry()
         registry.register(HeroImagesPhase())
 
@@ -56,14 +41,12 @@ class TestHeroImagesPhaseRegistration:
         assert resolved == ["phase1_hero"]
 
     def test_phase1_hero_parallel_with_cities(self):
-        """Test that HeroImages and Cities can be registered together independently."""
         from generators.phase1_definitions import CitiesPhase
 
         registry = PhaseRegistry()
         registry.register(CitiesPhase())
         registry.register(HeroImagesPhase())
 
-        # Each resolves independently - no ordering constraint between them
         hero_chain = registry.resolve_dependencies(["phase1_hero"])
         cities_chain = registry.resolve_dependencies(["phase1_cities"])
 
@@ -71,10 +54,8 @@ class TestHeroImagesPhaseRegistration:
         assert cities_chain == ["phase1_cities"]
 
 class TestHeroImagesPhaseExecution:
-    """Test HeroImagesPhase execution structure."""
 
     def test_hero_images_phase_execute_structure(self):
-        """Test that execute() returns proper PhaseResult structure when hero index exists."""
         import json
         from unittest.mock import mock_open
 
@@ -99,7 +80,6 @@ class TestHeroImagesPhaseExecution:
         assert result.error is None
 
     def test_hero_images_phase_missing_index_returns_zero(self):
-        """Test that missing hero_index.json returns COMPLETED with 0 images."""
         mock_db = MagicMock()
 
         phase = HeroImagesPhase(blueprints_dir="blueprints")
@@ -113,7 +93,6 @@ class TestHeroImagesPhaseExecution:
         assert result.entities_generated["hero_images"] == 0
 
     def test_hero_images_phase_handles_failure(self):
-        """Test that HeroImagesPhase handles DB failures gracefully."""
         mock_db = MagicMock()
         mock_db.execute_query.side_effect = RuntimeError("DB connection lost")
 
@@ -127,7 +106,6 @@ class TestHeroImagesPhaseExecution:
         assert isinstance(result.error, RuntimeError)
 
     def test_hero_images_cleanup_deletes_existing_rows(self):
-        """Test that execute() issues targeted DELETE for hero rows before insert."""
         import json
         from unittest.mock import mock_open
 

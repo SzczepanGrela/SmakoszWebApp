@@ -42,7 +42,7 @@ public class RespondToContactHandler : IRequestHandler<RespondToContactCommand, 
 
     public async Task<ErrorOr<Success>> Handle(RespondToContactCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var ticket = await _db.SystemTickets

@@ -1,6 +1,6 @@
 @page "/admin/jobs"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
 
@@ -24,7 +24,7 @@
 }
 else if (_jobs == null || !_jobs.Data.Any())
 {
-    <EmptyState Icon="fa-solid fa-clock-rotate-left" Title="Brak zadan" />
+    <EmptyState Icon="fa-solid fa-clock-rotate-left" Title="Brak zadań" />
 }
 else
 {
@@ -35,9 +35,9 @@ else
                     <th>Typ</th>
                     <th>Status</th>
                     <th>Priorytet</th>
-                    <th>Postep</th>
+                    <th>Postęp</th>
                     <th>Utworzono</th>
-                    <th>Zakonczono</th>
+                    <th>Zakończono</th>
                     <th></th>
                 </tr>
             </thead>
@@ -111,7 +111,7 @@ else
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseCreateModal">Anuluj</button>
-                    <button class="btn btn-primary" @onclick="SubmitCreateJob">Utworz</button>
+                    <button class="btn btn-primary" @onclick="SubmitCreateJob">Utwórz</button>
                 </div>
             </div>
         </div>
@@ -137,21 +137,21 @@ else
     {
         var success = await AdminService.TriggerJobAsync(id);
         if (success) { Toast.ShowSuccess("Zadanie uruchomione."); await LoadPage(1); }
-        else Toast.ShowError("Nie udalo sie uruchomic zadania.");
+        else Toast.ShowError("Nie udało się uruchomić zadania.");
     }
 
     private async Task CancelJob(int id)
     {
         var success = await AdminService.CancelJobAsync(id);
         if (success) { Toast.ShowSuccess("Zadanie anulowane."); await LoadPage(1); }
-        else Toast.ShowError("Nie udalo sie anulowac zadania.");
+        else Toast.ShowError("Nie udało się anulować zadania.");
     }
 
     private async Task ScheduleNcfTraining()
     {
         var success = await AdminService.ScheduleNcfTrainingAsync();
         if (success) { Toast.ShowSuccess("NCF Training zaplanowany."); await LoadPage(1); }
-        else Toast.ShowError("Nie udalo sie zaplanowac NCF Training.");
+        else Toast.ShowError("Nie udało się zaplanować NCF Training.");
     }
 
     private void ShowCreateModal()
@@ -171,6 +171,6 @@ else
             _showCreateModal = false;
             await LoadPage(1);
         }
-        else Toast.ShowError("Nie udalo sie utworzyc zadania.");
+        else Toast.ShowError("Nie udało się utworzyć zadania.");
     }
 }

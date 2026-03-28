@@ -126,6 +126,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<ForbiddenWord> ForbiddenWords => Set<ForbiddenWord>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
+    public DbSet<SiteStats> SiteStats => Set<SiteStats>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -5,7 +5,7 @@
 
 <PageTitle>Logowanie - Smakosz</PageTitle>
 
-<h4 class="text-center mb-4">Zaloguj sie</h4>
+<h4 class="text-center mb-4">Zaloguj się</h4>
 
 @if (!string.IsNullOrEmpty(_error))
 {
@@ -18,24 +18,24 @@
         <input type="email" class="form-control" @bind="_model.Email" required />
     </div>
     <div class="mb-3">
-        <label class="form-label">Haslo</label>
+        <label class="form-label">Hasło</label>
         <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" />
     </div>
     <div class="form-check mb-3">
         <input class="form-check-input" type="checkbox" @bind="_model.RememberMe" />
-        <label class="form-check-label">Zapamietaj mnie</label>
+        <label class="form-check-label">Zapamiętaj mnie</label>
     </div>
     <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
         @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
-        Zaloguj sie
+        Zaloguj się
     </button>
 </EditForm>
 
 <div class="text-center mt-3">
-    <a href="/forgot-password" class="small">Nie pamietasz hasla?</a>
+    <a href="/forgot-password" class="small">Nie pamiętasz hasła?</a>
 </div>
 <div class="text-center mt-2">
-    <span class="small">Nie masz konta?</span> <a href="/register" class="small fw-bold">Zarejestruj sie</a>
+    <span class="small">Nie masz konta?</span> <a href="/register" class="small fw-bold">Zarejestruj się</a>
 </div>
 
 @code {
@@ -53,9 +53,13 @@
         {
             Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
         }
+        else if (result.Error?.Code == "AUTH_EMAIL_NOT_VERIFIED")
+        {
+            Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
+        }
         else
         {
-            _error = result.Error?.Message ?? "Nieprawidlowy email lub haslo.";
+            _error = result.Error?.Message ?? "Nieprawidłowy email lub hasło.";
         }
         _loading = false;
     }

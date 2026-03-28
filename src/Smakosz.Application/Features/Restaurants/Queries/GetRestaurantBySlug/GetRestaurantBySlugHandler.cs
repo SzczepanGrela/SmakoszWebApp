@@ -37,6 +37,10 @@ public class GetRestaurantBySlugHandler : IRequestHandler<GetRestaurantBySlugQue
                 f => f.UserId == _currentUser.UserId.Value && f.RestaurantId == restaurant.RestaurantId,
                 cancellationToken);
 
-        return restaurant.ToDetailDto(isFavorite);
+        var reviewCount = await _db.Reviews
+            .CountAsync(r => r.Dish!.RestaurantId == restaurant.RestaurantId
+                && !r.IsDeleted, cancellationToken);
+
+        return restaurant.ToDetailDto(isFavorite, reviewCount);
     }
 }

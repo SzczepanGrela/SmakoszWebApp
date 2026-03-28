@@ -10,7 +10,7 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-4"><i class="fa-solid fa-store me-2"></i>Zarejestruj restauracje</h1>
+            <h1 class="mb-4"><i class="fa-solid fa-store me-2"></i>Zarejestruj restaurację</h1>
 
             <StepWizard Steps="@_steps" @bind-CurrentStep="_currentStep" OnFinish="HandleSubmit">
                 @if (_currentStep == 0)
@@ -117,12 +117,12 @@
         var success = await BusinessService.RegisterBusinessAsync(_model);
         if (success)
         {
-            Toast.ShowSuccess("Wniosek o rejestracje zostal wyslany!");
+            Toast.ShowSuccess("Wniosek o rejestrację został wysłany!");
             Navigation.NavigateTo("/business/pending");
         }
         else
         {
-            _error = "Nie udalo sie wyslac wniosku. Sprobuj ponownie.";
+            _error = "Nie udało się wysłać wniosku. Spróbuj ponownie.";
         }
     }
 }

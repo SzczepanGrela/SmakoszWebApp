@@ -1,6 +1,6 @@
 @page "/restaurant/stats"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 
 <PageTitle>Statystyki - Panel restauracji</PageTitle>
@@ -13,7 +13,7 @@
 }
 else if (_stats == null)
 {
-    <EmptyState Icon="fa-solid fa-chart-bar" Title="Brak danych" Description="Nie udalo sie pobrac statystyk." />
+    <EmptyState Icon="fa-solid fa-chart-bar" Title="Brak danych" Description="Nie udało się pobrać statystyk." />
 }
 else
 {
@@ -21,25 +21,25 @@ else
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_stats.TotalReviews</div>
-                <small class="text-muted">Laczna liczba recenzji</small>
+                <small class="text-muted">Łączna liczba recenzji</small>
             </div>
         </div>
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@(_stats.AverageRating?.ToString("F1") ?? "-")</div>
-                <small class="text-muted">Srednia ocena</small>
+                <small class="text-muted">Średnia ocena</small>
             </div>
         </div>
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_stats.ReviewsThisMonth</div>
-                <small class="text-muted">Recenzje w tym miesiacu</small>
+                <small class="text-muted">Recenzje w tym miesiącu</small>
             </div>
         </div>
         <div class="col-md-3 mb-3">
             <div class="card shadow-sm text-center p-3">
                 <div class="fs-2 fw-bold" style="color:var(--accent-color);">@_stats.ReviewsLastMonth</div>
-                <small class="text-muted">Recenzje w poprzednim miesiacu</small>
+                <small class="text-muted">Recenzje w poprzednim miesiącu</small>
             </div>
         </div>
     </div>
@@ -49,17 +49,17 @@ else
             @if (ReviewDiff > 0)
             {
                 <i class="fa-solid fa-arrow-trend-up fa-2x mb-2 text-success"></i>
-                <p class="mb-0">Wzrost o <strong>@ReviewDiff</strong> recenzji w porownaniu do poprzedniego miesiaca</p>
+                <p class="mb-0">Wzrost o <strong>@ReviewDiff</strong> recenzji w porównaniu do poprzedniego miesiąca</p>
             }
             else if (ReviewDiff < 0)
             {
                 <i class="fa-solid fa-arrow-trend-down fa-2x mb-2 text-danger"></i>
-                <p class="mb-0">Spadek o <strong>@Math.Abs(ReviewDiff)</strong> recenzji w porownaniu do poprzedniego miesiaca</p>
+                <p class="mb-0">Spadek o <strong>@Math.Abs(ReviewDiff)</strong> recenzji w porównaniu do poprzedniego miesiąca</p>
             }
             else
             {
                 <i class="fa-solid fa-equals fa-2x mb-2 text-muted"></i>
-                <p class="mb-0">Taka sama liczba recenzji jak w poprzednim miesiacu</p>
+                <p class="mb-0">Taka sama liczba recenzji jak w poprzednim miesiącu</p>
             }
         </div>
     </div>

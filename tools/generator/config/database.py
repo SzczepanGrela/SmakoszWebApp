@@ -1,17 +1,9 @@
-"""
-Database Configuration
-
-This module contains database connection settings and related utilities.
-Loads configuration from environment variables using .env file.
-"""
-
 import os
 from pathlib import Path
 
 try:
     from dotenv import load_dotenv
 
-    # Single .env at monorepo root
     root_env = Path(__file__).parent.parent.parent.parent / ".env"
     load_dotenv(root_env)
 except ImportError:
@@ -26,12 +18,6 @@ DATABASE_CONFIG = {
 }
 
 def get_connection_params():
-    """
-    Get database connection parameters in psycopg2 format.
-
-    Returns:
-        dict: Connection parameters with 'dbname' key (psycopg2 convention)
-    """
     return {
         "host": DATABASE_CONFIG["host"],
         "port": DATABASE_CONFIG["port"],

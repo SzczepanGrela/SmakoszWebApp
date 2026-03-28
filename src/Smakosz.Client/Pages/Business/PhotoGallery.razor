@@ -1,15 +1,15 @@
 @page "/restaurant/photos"
 @layout BusinessLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "restaurant")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
 @inject ToastService Toast
 
 <PageTitle>Zdjęcia - Panel restauracji</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0"><i class="fa-solid fa-images me-2"></i>Galeria zdjec</h2>
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-images me-2"></i>Galeria zdjęć</h2>
     <button class="btn btn-primary" @onclick="() => _showUpload = !_showUpload">
-        <i class="fa-solid fa-upload me-1"></i>Dodaj zdjecie
+        <i class="fa-solid fa-upload me-1"></i>Dodaj zdjęcie
     </button>
 </div>
 
@@ -24,7 +24,7 @@
 
 @if (!_photos.Any())
 {
-    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjec" Description="Dodaj zdjecia swojej restauracji i dan." />
+    <EmptyState Icon="fa-solid fa-images" Title="Brak zdjęć" Description="Dodaj zdjęcia swojej restauracji i dań." />
 }
 else
 {
@@ -53,12 +53,12 @@ else
     {
         _photos.Insert(0, url);
         _showUpload = false;
-        Toast.ShowSuccess("Zdjęcie zostalo dodane.");
+        Toast.ShowSuccess("Zdjęcie zostało dodane.");
     }
 
     private void RemovePhoto(string url)
     {
         _photos.Remove(url);
-        Toast.ShowSuccess("Zdjęcie zostalo usuniete.");
+        Toast.ShowSuccess("Zdjęcie zostało usunięte.");
     }
 }

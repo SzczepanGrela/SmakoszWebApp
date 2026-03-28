@@ -4,19 +4,19 @@
 @inject ToastService Toast
 @inject NavigationManager Navigation
 
-<PageTitle>Moj profil - Smakosz</PageTitle>
+<PageTitle>Mój profil - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fa-solid fa-user me-2"></i>Moj profil</h1>
+    <h1 class="mb-4"><i class="fa-solid fa-user me-2"></i>Mój profil</h1>
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie profilu..." />
+        <LoadingSpinner Text="Ładowanie profilu..." />
     }
     else if (_profile == null)
     {
-        <EmptyState Icon="fa-solid fa-user-slash" Title="Nie udalo sie zaladowac profilu"
-                    Description="Sprobuj odswiezyc strone." />
+        <EmptyState Icon="fa-solid fa-user-slash" Title="Nie udało się załadować profilu"
+                    Description="Spróbuj odświeżyć stronę." />
     }
     else
     {
@@ -39,7 +39,7 @@
                             <div class="text-center">
                                 <a href="/followers" class="text-decoration-none" style="color:var(--text-color);">
                                     <div class="fw-bold">@_profile.FollowersCount</div>
-                                    <small class="text-muted">Obserwujacy</small>
+                                    <small class="text-muted">Obserwujący</small>
                                 </a>
                             </div>
                             <div class="text-center">
@@ -51,7 +51,7 @@
                         </div>
 
                         <small class="text-muted">
-                            <i class="fa-solid fa-calendar me-1"></i>Dolaczyl/a @_profile.CreatedAt?.ToString("MMMM yyyy")
+                            <i class="fa-solid fa-calendar me-1"></i>Dołączył/a @_profile.CreatedAt?.ToString("MMMM yyyy", new System.Globalization.CultureInfo("pl-PL"))
                         </small>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                         <i class="fa-solid fa-gear me-2"></i>Ustawienia
                     </a>
                     <a href="/profile/security" class="list-group-item list-group-item-action">
-                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczenstwo
+                        <i class="fa-solid fa-shield-halved me-2"></i>Bezpieczeństwo
                     </a>
                     <a href="/profile/notifications" class="list-group-item list-group-item-action">
                         <i class="fa-solid fa-bell me-2"></i>Powiadomienia
@@ -97,14 +97,14 @@
                         {
                             <EditForm Model="_profile" OnValidSubmit="HandleSave">
                                 <div class="mb-3">
-                                    <label class="form-label fw-medium">Nazwa uzytkownika</label>
+                                    <label class="form-label fw-medium">Nazwa użytkownika</label>
                                     <input type="text" class="form-control" @bind="_profile.Username" readonly />
-                                    <small class="text-muted">Nazwy uzytkownika nie mozna zmieniac.</small>
+                                    <small class="text-muted">Nazwy użytkownika nie można zmieniać.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-medium">Email</label>
                                     <input type="email" class="form-control" @bind="_profile.Email" readonly />
-                                    <small class="text-muted">Aby zmienic email, skontaktuj sie z nami.</small>
+                                    <small class="text-muted">Aby zmienić email, skontaktuj się z nami.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-medium">Zdjęcie profilowe</label>
@@ -128,7 +128,7 @@
                         else
                         {
                             <dl class="row mb-0">
-                                <dt class="col-sm-4">Nazwa uzytkownika</dt>
+                                <dt class="col-sm-4">Nazwa użytkownika</dt>
                                 <dd class="col-sm-8">@_profile.Username</dd>
 
                                 <dt class="col-sm-4">Email</dt>
@@ -158,7 +158,7 @@
                         else
                         {
                             <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji"
-                                        Description="Nie napisales/as jeszcze zadnej recenzji." />
+                                        Description="Nie napisałeś/aś jeszcze żadnej recenzji." />
                         }
                     </div>
                 </div>
@@ -227,11 +227,11 @@
         if (success)
         {
             _editMode = false;
-            Toast.ShowSuccess("Profil zostal zaktualizowany.");
+            Toast.ShowSuccess("Profil został zaktualizowany.");
         }
         else
         {
-            _error = "Nie udalo sie zapisac zmian. Sprobuj ponownie.";
+            _error = "Nie udało się zapisać zmian. Spróbuj ponownie.";
         }
         _saving = false;
     }

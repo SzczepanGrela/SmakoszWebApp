@@ -1,10 +1,11 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using Smakosz.Application.Common.Interfaces;
 
 namespace Smakosz.Infrastructure.Services;
 
-public class ImageProcessingService
+public class ImageProcessingService : IImageProcessingService
 {
     private static readonly WebpEncoder WebpEncoder = new() { Quality = 80 };
 

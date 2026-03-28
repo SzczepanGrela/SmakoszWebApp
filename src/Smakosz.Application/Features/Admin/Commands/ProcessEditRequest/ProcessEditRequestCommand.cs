@@ -24,7 +24,7 @@ public class ProcessEditRequestHandler : IRequestHandler<ProcessEditRequestComma
 
     public async Task<ErrorOr<Success>> Handle(ProcessEditRequestCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var editRequest = await _db.RestaurantEditRequests

@@ -18,7 +18,6 @@ DIMENSIONS: list[str] = [
 ]
 
 def clamp(value: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
-    """Clamps value to specified range."""
     return max(min_val, min(value, max_val))
 
 def derive_penalty_weights(
@@ -28,17 +27,6 @@ def derive_penalty_weights(
     extreme_threshold_low: float = 0.15,
     extreme_threshold_high: float = 0.85,
 ) -> dict[str, float]:
-    """
-    Derives penalty weights from adaptation weights to catch culinary aberrations.
-
-    Uses tiered penalty boost based on how critical the dimension is:
-    - adapt_weight <= 0.3 AND extreme base -> CRITICAL (penalty 50.0)
-    - adapt_weight <= 0.5 AND extreme base -> Very Important (penalty 25.0)
-    - adapt_weight <= 1.0 AND extreme base -> Important (penalty 10.0)
-    - otherwise -> use adaptation weight as penalty
-
-    Returns penalty weights used for affinity calculation weighted averaging.
-    """
     penalty_weights = {}
 
     for dim in DIMENSIONS:
@@ -48,16 +36,12 @@ def derive_penalty_weights(
 
         if is_extreme:
             if adapt_weight <= 0.3:
-                # CRITICAL dimension - violation destroys rating
                 penalty_weights[dim] = 50.0
             elif adapt_weight <= 0.5:
-                # Very important - major penalty
                 penalty_weights[dim] = 25.0
             elif adapt_weight <= 1.0:
-                # Important - moderate penalty
                 penalty_weights[dim] = 10.0
             else:
-                # Modifiable dimension - user preference matters
                 penalty_weights[dim] = adapt_weight
         else:
             penalty_weights[dim] = max(1.0, adapt_weight)
@@ -76,12 +60,6 @@ def calculate_direct_affinity(
     penalty_weights: dict[str, float] | None = None,
     default_weight: float = 1.0,
 ) -> float:
-    """
-    Calculates affinity using pre-calculated contextual targets (optimization path).
-
-    Skips contextual vector calculation and relevance gating. Used when targets
-    are already materialized in user_variant_preferences table.
-    """
     if penalty_weights is None:
         penalty_weights = derive_penalty_weights(
             adaptation_weights=adaptation_weights,
@@ -103,8 +81,6 @@ def calculate_direct_affinity(
         contextual_target = target_vector.get(dim, 0.5)
         dish_value = dish_vector.get(dim, 0.5)
         penalty_weight = penalty_weights.get(dim, default_weight)
-
-        # Penalty weight from mask (no runtime override - trust the blueprint)
 
         diff = abs(contextual_target - dish_value)
 
@@ -129,13 +105,6 @@ def calculate_contextual_vector(
     variant_weights_override: dict[str, float] | None = None,
     damping_factor: float = 0.8,
 ) -> dict[str, float]:
-    """
-    Calculates contextualized target vector for user-variant combination.
-
-    Implements relevance-gated preference logic where adaptation weights control
-    how much user preferences influence the archetype base characteristics.
-    Weight > 1.0 indicates relevant dimension where user preferences matter.
-    """
     merged_base = {**archetype_base}
     if variant_base_override:
         merged_base.update(variant_base_override)
@@ -181,15 +150,6 @@ def calculate_affinity(
     adaptation_weights_legacy: dict[str, float] | None = None,
     contextual_targets_override: dict[str, float] | None = None,
 ) -> float:
-    """
-    Calculates affinity between user preferences and dish characteristics.
-
-    Uses Quadratic Penalty Function with user tolerance zones and relevance-gated
-    preference logic. Supports dual-weight system (adaptation vs penalty).
-
-    If contextual_targets_override provided, skips contextual calculation (optimization).
-    """
-    # Backward compatibility
     if archetype_base is not None and base_characteristics == {}:
         base_characteristics = archetype_base
     if adaptation_weights_legacy is not None and adaptation_weights == {}:
@@ -229,8 +189,6 @@ def calculate_affinity(
         dish_value = dish_vector.get(dim, 0.5)
         penalty_weight = penalty_weights.get(dim, default_weight)
 
-        # Penalty weight from mask (no runtime override - trust the blueprint)
-
         diff = abs(contextual_target - dish_value)
 
         if diff <= tolerance:
@@ -247,16 +205,11 @@ def calculate_affinity(
     return clamp(weighted_score_sum / total_weight, 0.0, 1.0) if total_weight > 0 else 0.5
 
 def merge_vectors(base: dict[str, float], override: dict[str, float] | None) -> dict[str, float]:
-    """Merges two vectors with override taking precedence."""
     return {**base, **(override or {})}
 
 def apply_restaurant_bias(
     dish_vector: dict[str, float], archetype: str, restaurant_modifiers: dict[str, dict[str, float]]
 ) -> dict[str, float]:
-    """
-    Applies restaurant-specific modifiers to dish characteristics.
-    Models restaurant style influence (e.g., saltier, richer preparation).
-    """
     if archetype not in restaurant_modifiers:
         return dish_vector
 
@@ -270,7 +223,6 @@ def apply_restaurant_bias(
     return result
 
 def add_dish_variance(dish_vector: dict[str, float], variance: float = 0.05) -> dict[str, float]:
-    """Adds Gaussian noise to dish characteristics to simulate natural variation."""
     result = {}
     for dim, value in dish_vector.items():
         noise = random.gauss(0, variance)

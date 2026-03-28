@@ -7,11 +7,15 @@ public class AdminDashboardDto
     public int TotalReviews { get; init; }
     public int PendingReports { get; init; }
     public int PendingCorrections { get; init; }
+    public int PendingPhotos { get; init; }
+    public int PendingReviews { get; init; }
+    public int OpenTickets { get; init; }
 }
 
 public class AdminUserDto
 {
     public int UserId { get; init; }
+    public Guid PublicId { get; init; }
     public string Username { get; init; } = default!;
     public string Email { get; init; } = default!;
     public string Role { get; init; } = default!;
@@ -150,6 +154,7 @@ public class SystemLogDto
     public string Source { get; set; } = string.Empty;
     public string Level { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+    public string? Context { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 

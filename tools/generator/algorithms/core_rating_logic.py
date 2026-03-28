@@ -9,16 +9,6 @@ from .preference_calculator import calculate_affinity, calculate_direct_affinity
 logger = logging.getLogger(__name__)
 
 def get_archetype_metadata(archetype: str, vectors_data: dict[str, Any] | None = None) -> dict[str, dict[str, float]]:
-    """
-    Get archetype metadata from the provided vectors data.
-
-    Args:
-        archetype: Name of the archetype (e.g., 'Pizza', 'Burger')
-        vectors_data: Dictionary containing vectors.json data. If None, returns default empty metadata.
-
-    Returns:
-        Dictionary with 'base_characteristics' and 'base_weights' for the archetype
-    """
     if vectors_data is None:
         logger.warning(
             f"No vectors_data provided to get_archetype_metadata for archetype '{archetype}'. Using default empty metadata."
@@ -56,8 +46,6 @@ def calculate_food_score_polarized(
     contextual_target_vector: dict[str, float] | None = None,
     vectors_data: dict[str, Any] | None = None,
 ) -> float:
-    # Mod 3: Technical quality is now fully derived from dish.secret_quality
-    # (which already includes restaurant bias from Phase 3 generation)
     technical_quality = float(dish.get("secret_quality", 0.5))
 
     user_vector = user_data.get("secret_characteristics_vector", {})

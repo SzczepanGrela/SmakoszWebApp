@@ -25,7 +25,7 @@ public class GetEditRequestsHandler : IRequestHandler<GetEditRequestsQuery, Erro
 
     public async Task<ErrorOr<PagedResult<EditRequestDto>>> Handle(GetEditRequestsQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUser.IsAdmin)
+        if (_currentUser.Role is not "Admin" and not "Moderator")
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.RestaurantEditRequests

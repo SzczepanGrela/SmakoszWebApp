@@ -13,7 +13,7 @@ public class SearchService : ISearchService
     public Task<SearchResultDto?> SearchAsync(string type = "restaurants", string? query = null, string? location = null,
         string? cuisines = null, int? minPrice = null, int? maxPrice = null, string? dietary = null,
         string sortBy = "rating", string sortDir = "desc", int page = 1, int pageSize = 20,
-        double? lat = null, double? lng = null, double? radius = null)
+        double? lat = null, double? lng = null, double? radius = null, string? tags = null)
     {
         var qs = HttpUtility.ParseQueryString(string.Empty);
         qs["type"] = type;
@@ -30,6 +30,7 @@ public class SearchService : ISearchService
         if (lat.HasValue) qs["lat"] = lat.Value.ToString(CultureInfo.InvariantCulture);
         if (lng.HasValue) qs["lng"] = lng.Value.ToString(CultureInfo.InvariantCulture);
         if (radius.HasValue) qs["radius"] = radius.Value.ToString(CultureInfo.InvariantCulture);
+        if (!string.IsNullOrWhiteSpace(tags)) qs["tags"] = tags;
 
         return _api.GetAsync<SearchResultDto>($"/api/search?{qs}");
     }

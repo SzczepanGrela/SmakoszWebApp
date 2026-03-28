@@ -1,22 +1,3 @@
-"""
-Mirror Photos to Cloudflare R2
-
-This script creates a mirror of the local 'images/' directory in a Cloudflare R2 bucket
-under a specific prefix to keep mock data separate from production uploads.
-
-Path Structure:
-- seed/                    - Generated dishes, restaurants, avatars, hero (SYNCED)
-- seed/ingredients/        - Shared ingredient icons (UPLOAD ONLY)
-- uploads/{entity}/        - Real user uploads (NEVER TOUCHED)
-
-Features:
-- "Mirror" logic with prefix-scoped deletion (safe for other prefixes)
-- Deletes orphaned files ONLY within the mock prefix
-- Multi-threaded upload/delete using boto3
-- Safety prompt before deletion
-- CloudStorageProvider abstraction for testability and provider swapping
-"""
-
 import logging
 import mimetypes
 import os
@@ -24,30 +5,25 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-# Load environment variables first
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent / ".env")
 
 from tqdm import tqdm
 
-# Adjust path to find config module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config import PHOTO_CONFIG
 from tools.storage.cloud_storage import CloudStorageProvider, R2Provider
 
-# Configure Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Local Config
 LOCAL_IMAGES_DIR = Path(str(PHOTO_CONFIG["output_dir"]))
 WORKERS = 10
 
-# R2 Path Prefixes (v3 Architecture)
-MOCK_PREFIX = "seed/"  # For generated mock data (dishes, restaurants, avatars, hero)
-INGREDIENTS_PREFIX = "seed/ingredients/"  # For shared ingredient icons
+MOCK_PREFIX = "seed/"
+INGREDIENTS_PREFIX = "seed/ingredients/"
 
 class R2Mirror:
     def __init__(self, provider: CloudStorageProvider | None = None):
@@ -64,7 +40,6 @@ class R2Mirror:
             sys.exit(1)
 
     def run(self):
-        """Execute the Sync process with interactive mode selection."""
         print("\n--- R2 Sync Tool (v2 - Prefix Architecture) ---")
         print("1. Upload Only - Overwrites files, does NOT delete anything from R2.")
         print("2. Mirror Mock (Full Sync) - Overwrites files and DELETES from R2 (ONLY seed/).")
@@ -79,20 +54,17 @@ class R2Mirror:
 
         logger.info(f"Scanning local directory: {LOCAL_IMAGES_DIR}")
 
-        # 1. Scan local files and categorize by type
-        mock_files: dict[str, Path] = {}  # dishes/, restaurants/, avatars/
-        ingredient_files: dict[str, Path] = {}  # ingredients/
+        mock_files: dict[str, Path] = {}
+        ingredient_files: dict[str, Path] = {}
 
         for path in LOCAL_IMAGES_DIR.rglob("*"):
             if path.is_file() and path.suffix.lower() in {".webp", ".jpg", ".jpeg", ".png", ".svg"}:
                 rel_path = str(path.relative_to(LOCAL_IMAGES_DIR)).replace("\\", "/")
 
                 if rel_path.startswith("ingredients/"):
-                    # Ingredients go to seed/ingredients/
                     r2_key = INGREDIENTS_PREFIX + rel_path.replace("ingredients/", "")
                     ingredient_files[r2_key] = path
                 else:
-                    # Everything else (dishes, restaurants, avatars, hero) goes to seed/
                     r2_key = MOCK_PREFIX + rel_path
                     mock_files[r2_key] = path
 
@@ -102,17 +74,15 @@ class R2Mirror:
         logger.info(f"Found {len(mock_files)} mock files (dishes/restaurants/avatars)")
         logger.info(f"Found {len(ingredient_files)} ingredient files")
 
-        # 2. Get remote files (only within our prefixes for efficiency)
         remote_keys = self.provider.list_keys()
         remote_mock_keys = {k for k in remote_keys if k.startswith(MOCK_PREFIX)}
 
         logger.info(f"Found {len(remote_mock_keys)} existing mock files in R2")
         logger.info(f"Found {len(remote_keys) - len(remote_mock_keys)} other files in R2 (PROTECTED)")
 
-        # 3. Calculate Operations
-        to_upload = list(all_local_files.keys())  # Upload all local files
+        to_upload = list(all_local_files.keys())
 
-        if mode == "2":  # Mirror Mode - ONLY delete from MOCK_PREFIX
+        if mode == "2":
             to_delete = list(remote_mock_keys - mock_keys)
 
             if to_delete:
@@ -135,7 +105,6 @@ class R2Mirror:
         else:
             logger.info("Mode 1 selected: Skipping deletion check.")
 
-        # 4. Handle Uploads
         logger.info(f"Files to upload/update: {len(to_upload)}")
 
         if not to_upload:

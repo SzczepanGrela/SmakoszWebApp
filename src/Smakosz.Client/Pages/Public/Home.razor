@@ -3,17 +3,17 @@
 @inject IDishService DishService
 @inject NavigationManager Navigation
 
-<PageTitle>Smakosz - Znajdz najlepszy smak w miescie</PageTitle>
+<PageTitle>Smakosz - Znajdź najlepszy smak w mieście</PageTitle>
 
 @if (_loading)
 {
-    <LoadingSpinner Text="Ladowanie..." />
+    <LoadingSpinner Text="Ładowanie..." />
 }
 else if (_data != null)
 {
     <!-- Hero Section -->
-    <HeroSection BackgroundUrl="@_heroImage" CreditText="@_heroCreditText">
-        <h1 class="display-4 fw-bold mb-3">Znajdz najlepszy smak w miescie</h1>
+    <HeroSection BackgroundUrl="@_heroImage" BlurHash="@_heroBlurHash" CreditText="@_heroCreditText">
+        <h1 class="display-4 fw-bold mb-3">Znajdź najlepszy smak w mieście</h1>
         <p class="lead mb-4">Najlepsze dania ze wszystkich restauracji.</p>
 
         <!-- Quick Stats -->
@@ -40,7 +40,7 @@ else if (_data != null)
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="d-flex flex-column flex-md-row gap-2">
-                    <input class="form-control form-control-lg" type="search" @bind="_searchQuery"
+                    <input class="form-control form-control-lg" type="search" @bind="_searchQuery" @bind:event="oninput"
                            @onkeydown="HandleSearchKey" placeholder="Jakiego dania szukasz? (np. pizza, ramen...)" />
                     <button class="btn btn-primary btn-lg" @onclick="DoSearch">
                         <i class="fa-solid fa-magnifying-glass"></i> Szukaj
@@ -75,14 +75,9 @@ else if (_data != null)
         {
             <section class="mb-5">
                 <SectionHeader Title="Teraz na topie" Icon="fa-solid fa-fire text-danger" />
-                <div class="row">
-                    @foreach (var dish in _data.TrendingDishes.Take(4))
-                    {
-                        <div class="col-md-6 col-lg-3 mb-4">
-                            <DishCard Dish="@dish" BadgeText="Trending" BadgeClass="bg-danger" />
-                        </div>
-                    }
-                </div>
+                <HorizontalCarousel Items="@_data.TrendingDishes" Context="dish">
+                    <DishCard Dish="@dish" BadgeText="Trending" BadgeClass="bg-danger" />
+                </HorizontalCarousel>
             </section>
         }
 
@@ -91,14 +86,9 @@ else if (_data != null)
         {
             <section class="mb-5">
                 <SectionHeader Title="Wysoko oceniane" Icon="fa-solid fa-star text-warning" />
-                <div class="row">
-                    @foreach (var dish in _data.TopRatedDishes.Take(4))
-                    {
-                        <div class="col-md-6 col-lg-3 mb-4">
-                            <DishCard Dish="@dish" />
-                        </div>
-                    }
-                </div>
+                <HorizontalCarousel Items="@_data.TopRatedDishes" Context="dish">
+                    <DishCard Dish="@dish" />
+                </HorizontalCarousel>
             </section>
         }
 
@@ -111,7 +101,7 @@ else if (_data != null)
                     @foreach (var review in _data.RecentReviews.Take(3))
                     {
                         <div class="col-md-4 mb-3">
-                            <ReviewCard Review="@review" />
+                            <ReviewCard Review="@review" Compact="true" />
                         </div>
                     }
                 </div>
@@ -126,6 +116,7 @@ else if (_data != null)
     private string _searchQuery = "";
 
     private string _heroImage = "/images/restaurant-placeholder.svg";
+    private string? _heroBlurHash;
     private string? _heroCreditText;
 
     protected override async Task OnInitializedAsync()
@@ -134,6 +125,7 @@ else if (_data != null)
         if (_data?.HeroImage != null)
         {
             _heroImage = _data.HeroImage.Url;
+            _heroBlurHash = _data.HeroImage.Blurhash;
             _heroCreditText = _data.HeroImage.CreditText;
         }
         _loading = false;
@@ -142,7 +134,7 @@ else if (_data != null)
     private void DoSearch()
     {
         if (!string.IsNullOrWhiteSpace(_searchQuery))
-            Navigation.NavigateTo($"/search?query={Uri.EscapeDataString(_searchQuery)}");
+            Navigation.NavigateTo($"/search?query={Uri.EscapeDataString(_searchQuery)}&type=dishes");
     }
 
     private void HandleSearchKey(KeyboardEventArgs e)
@@ -150,12 +142,46 @@ else if (_data != null)
         if (e.Key == "Enter") DoSearch();
     }
 
-    private static string GetCategoryIcon(string category) => category switch
+    private static string GetCategoryIcon(string category) => category.ToLowerInvariant() switch
     {
-        "Pizza" => "\U0001F355", "Burgery" => "\U0001F354", "Sushi" => "\U0001F363",
-        "Ramen" => "\U0001F35C", "Pierogi" => "\U0001F95F", "Desery" => "\U0001F370",
-        "Pasta" => "\U0001F35D", "Kebab" => "\U0001F959", "Tacos" => "\U0001F32E",
-        "Curry" => "\U0001F35B", "Salatki" => "\U0001F957", "Owoce morza" => "\U0001F990",
+        "pizzeria" => "\U0001F355",
+        "burgerownia" => "\U0001F354",
+        "sushi bar" => "\U0001F363",
+        "ramen bar" => "\U0001F35C",
+        "kuchnia polska" => "\U0001F95F",
+        "kuchnia w\u0142oska" => "\U0001F35D",
+        "kuchnia indyjska" => "\U0001F35B",
+        "kuchnia chi\u0144ska" => "\U0001F961",
+        "kuchnia meksyka\u0144ska" => "\U0001F32E",
+        "kuchnia tajska" => "\U0001F35C",
+        "kuchnia francuska" => "\U0001F950",
+        "kuchnia azjatycka" => "\U0001F961",
+        "kuchnia turecka" => "\U0001F959",
+        "kuchnia wietnamska" => "\U0001F35C",
+        "kuchnia bliskowschodnia" => "\U0001F9C6",
+        "kebab" => "\U0001F959",
+        "kawiarnia" => "\u2615",
+        "wega\u0144ska kawiarnia" => "\U0001F957",
+        "steakhouse" => "\U0001F969",
+        "korean bbq" => "\U0001F969",
+        "bbq & grill" => "\U0001F525",
+        "w\u0119dzarnia bbq" => "\U0001F525",
+        "food truck" => "\U0001F69A",
+        "sma\u017calnia ryb" => "\U0001F99E",
+        "lodziarnia" => "\U0001F366",
+        "piekarnia" => "\U0001F35E",
+        "piekarnia z kawiarni\u0105" => "\U0001F35E",
+        "taqueria" => "\U0001F32E",
+        "creperie" => "\U0001F95E",
+        "wykwintna restauracja" => "\U0001F377",
+        "restauracja z owocami morza" => "\U0001F99E",
+        "bar tapas" => "\U0001F372",
+        "kanapkownia" => "\U0001F96A",
+        "ameryka\u0144ski diner" => "\U0001F32D",
+        "bar meksyka\u0144ski" => "\U0001F32E",
+        "francuskie bistro" => "\U0001F950",
+        "grecka taverna" => "\U0001F957",
+        "niemiecki pub" => "\U0001F37A",
         _ => "\U0001F374"
     };
 }

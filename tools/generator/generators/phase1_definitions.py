@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 import urllib.parse
 import uuid
@@ -16,12 +17,9 @@ from utils.photo_pools import PhotoPools
 
 logger = logging.getLogger(__name__)
 
-# Hero images index path
 HERO_INDEX_PATH = Path(PHOTO_CONFIG.get("local_photo_dir", "E:/smakosz/images")) / "hero" / "hero_index.json"  # type: ignore[arg-type]
 
 def generate_ingredient_icon_url(ingredient_name: str) -> str:
-    """Generate placeholder icon URL using ui-avatars.com (128x128 square)."""
-    # URL-encode the ingredient name for safe URL usage
     encoded_name = urllib.parse.quote_plus(ingredient_name)
 
     icon_url = (
@@ -112,34 +110,22 @@ def generate_tag_color(tag_category: str, tag_name: str) -> str:
     return "#95a5a6"
 
 class CitiesPhase(BasePhase):
-    """
-    Phase 1a: Cities Generation
-
-    Populates cities table with Polish cities and postal code prefixes.
-
-    Dependencies: None (parallel with other Phase 1 components)
-    Required Tables: cities
-    Estimated Duration: ~2 seconds
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
-        """Initialize CitiesPhase."""
         self.blueprints_dir = blueprints_dir
 
     @property
     def metadata(self) -> PhaseMetadata:
-        """Return phase metadata with dependencies."""
         return PhaseMetadata(
             phase_id="phase1_cities",
             display_name="Cities Generation",
-            dependencies=[],  # No dependencies - parallel with others
+            dependencies=[],
             required_tables=["cities"],
             cleanup_tables=["cities"],
             estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """Execute cities generation."""
         start_time = time.time()
         logger.info("Generating cities...")
         logger.debug(f"Loading cities blueprint from {self.blueprints_dir}")
@@ -152,7 +138,6 @@ class CitiesPhase(BasePhase):
             if not city_config:
                 raise ValueError("cities.json must contain CITY_CONFIG key")
 
-            # Polish postal code prefixes by major city
             POSTAL_CODE_PREFIXES = {
                 "Warszawa": "00",
                 "Kraków": "30",
@@ -184,7 +169,7 @@ class CitiesPhase(BasePhase):
             context.db.insert_bulk("cities", city_data)
 
             duration = time.time() - start_time
-            logger.info(f"✓ Generated {len(city_data)} cities in {duration:.2f}s")
+            logger.info(f"[OK] Generated {len(city_data)} cities in {duration:.2f}s")
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
@@ -205,34 +190,22 @@ class CitiesPhase(BasePhase):
             )
 
 class CuisineTypesPhase(BasePhase):
-    """
-    Phase 1b: Cuisine Types Generation
-
-    Populates cuisine_types table from restaurant themes.
-
-    Dependencies: None (parallel with other Phase 1 components)
-    Required Tables: cuisine_types
-    Estimated Duration: ~2 seconds
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
-        """Initialize CuisineTypesPhase."""
         self.blueprints_dir = blueprints_dir
 
     @property
     def metadata(self) -> PhaseMetadata:
-        """Return phase metadata with dependencies."""
         return PhaseMetadata(
             phase_id="phase1_cuisines",
             display_name="Cuisine Types Generation",
-            dependencies=[],  # No dependencies - parallel with others
+            dependencies=[],
             required_tables=["cuisine_types"],
             cleanup_tables=["cuisine_types"],
             estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """Execute cuisine types generation."""
         start_time = time.time()
         logger.info("Generating cuisine types...")
 
@@ -241,7 +214,6 @@ class CuisineTypesPhase(BasePhase):
             restaurant_rules = loader.load_blueprint("restaurant_types.json")
             themes = restaurant_rules.get("RESTAURANT_THEMES", {})
 
-            # Map themes to display names
             CUISINE_DISPLAY_NAMES = {
                 "Pizzeria": "Włoska",
                 "Kebab": "Turecka",
@@ -266,32 +238,32 @@ class CuisineTypesPhase(BasePhase):
             }
 
             CUISINE_ICONS = {
-                "Amerykański Diner": "\U0001f32d",  # 🌭
-                "Bar Meksykański": "\U0001f32e",  # 🌮
-                "Bar Tapas": "\U0001f372",  # 🍲
-                "Burgerownia": "\U0001f354",  # 🍔
-                "Francuskie Bistro": "\U0001f950",  # 🥐
-                "Grecka Taverna": "\U0001f957",  # 🥗
-                "Kanapkownia": "\U0001f96a",  # 🥪
-                "Kawiarnia": "\u2615",  # ☕
-                "Kebab": "\U0001f959",  # 🥙
-                "Korean BBQ": "\U0001f969",  # 🥩
-                "Kuchnia Azjatycka": "\U0001f961",  # 🥡
-                "Kuchnia Bliskowschodnia": "\U0001f9c6",  # 🧆
-                "Kuchnia Indyjska": "\U0001f35b",  # 🍛
-                "Kuchnia Polska": "\U0001f95f",  # 🥟
-                "Kuchnia Turecka": "\U0001f959",  # 🥙
-                "Kuchnia Wietnamska": "\U0001f35c",  # 🍜
-                "Kuchnia Włoska": "\U0001f35d",  # 🍝
-                "Lodziarnia": "\U0001f366",  # 🍦
-                "Niemiecki Pub": "\U0001f37a",  # 🍺
-                "Piekarnia z Kawiarnią": "\U0001f35e",  # 🍞
-                "Ramen Bar": "\U0001f35c",  # 🍜
-                "Restauracja z Owocami Morza": "\U0001f99e",  # 🦞
-                "Steakhouse": "\U0001f969",  # 🥩
-                "Sushi Bar": "\U0001f363",  # 🍣
-                "Wykwintna Restauracja": "\U0001f377",  # 🍷
-                "Wędzarnia BBQ": "\U0001f525",  # 🔥
+                "Amerykański Diner": "\U0001f32d",
+                "Bar Meksykański": "\U0001f32e",
+                "Bar Tapas": "\U0001f372",
+                "Burgerownia": "\U0001f354",
+                "Francuskie Bistro": "\U0001f950",
+                "Grecka Taverna": "\U0001f957",
+                "Kanapkownia": "\U0001f96a",
+                "Kawiarnia": "\u2615",
+                "Kebab": "\U0001f959",
+                "Korean BBQ": "\U0001f969",
+                "Kuchnia Azjatycka": "\U0001f961",
+                "Kuchnia Bliskowschodnia": "\U0001f9c6",
+                "Kuchnia Indyjska": "\U0001f35b",
+                "Kuchnia Polska": "\U0001f95f",
+                "Kuchnia Turecka": "\U0001f959",
+                "Kuchnia Wietnamska": "\U0001f35c",
+                "Kuchnia Włoska": "\U0001f35d",
+                "Lodziarnia": "\U0001f366",
+                "Niemiecki Pub": "\U0001f37a",
+                "Piekarnia z Kawiarnią": "\U0001f35e",
+                "Ramen Bar": "\U0001f35c",
+                "Restauracja z Owocami Morza": "\U0001f99e",
+                "Steakhouse": "\U0001f969",
+                "Sushi Bar": "\U0001f363",
+                "Wykwintna Restauracja": "\U0001f377",
+                "Wędzarnia BBQ": "\U0001f525",
             }
 
             cuisine_data = []
@@ -309,7 +281,7 @@ class CuisineTypesPhase(BasePhase):
                 context.db.insert_bulk("cuisine_types", cuisine_data)
 
             duration = time.time() - start_time
-            logger.info(f"✓ Generated {len(cuisine_data)} cuisine types in {duration:.2f}s")
+            logger.info(f"[OK] Generated {len(cuisine_data)} cuisine types in {duration:.2f}s")
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
@@ -330,34 +302,22 @@ class CuisineTypesPhase(BasePhase):
             )
 
 class IngredientsPhase(BasePhase):
-    """
-    Phase 1c: Ingredients Generation
-
-    Populates ingredients table with dietary flags and icons.
-
-    Dependencies: None (parallel with other Phase 1 components)
-    Required Tables: ingredients
-    Estimated Duration: ~10 seconds (photo lookup)
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
-        """Initialize IngredientsPhase."""
         self.blueprints_dir = blueprints_dir
 
     @property
     def metadata(self) -> PhaseMetadata:
-        """Return phase metadata with dependencies."""
         return PhaseMetadata(
             phase_id="phase1_ingredients",
             display_name="Ingredients Generation",
-            dependencies=[],  # No dependencies - parallel with others
+            dependencies=[],
             required_tables=["ingredients"],
             cleanup_tables=["ingredients"],
             estimated_duration=10,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """Execute ingredients generation."""
         start_time = time.time()
         logger.info("Generating ingredients...")
 
@@ -365,7 +325,6 @@ class IngredientsPhase(BasePhase):
             loader = BlueprintLoader(self.blueprints_dir)
             dish_variants = loader.load_blueprint("dishes.json")
 
-            # Initialize PhotoPools for real ingredient icons
             photo_pools = PhotoPools()
 
             all_ingredients = set()
@@ -397,7 +356,6 @@ class IngredientsPhase(BasePhase):
                 "łupin",
             }
 
-            # Load dietary keywords
             global_config = loader.load_blueprint("global_config.json")
             dietary_keywords = global_config.get("DIETARY_KEYWORDS", {})
             meat_keywords = dietary_keywords.get("meat", [])
@@ -417,31 +375,25 @@ class IngredientsPhase(BasePhase):
 
                 is_allergen = any(allergen in ing_lower for allergen in allergens)
 
-                # Default to True (Positive logic)
                 is_vegetarian = True
                 is_vegan = True
                 is_gluten_free = True
                 is_lactose_free = True
 
-                # Check for Meat
                 if any(kw in ing_lower for kw in meat_keywords):
                     is_vegetarian = False
                     is_vegan = False
 
-                # Check for Dairy
                 if any(kw in ing_lower for kw in dairy_keywords):
                     is_vegan = False
                     is_lactose_free = False
 
-                # Check for Eggs
                 if any(kw in ing_lower for kw in egg_keywords):
                     is_vegan = False
 
-                # Check for Gluten
                 if any(kw in ing_lower for kw in gluten_keywords) or "gluten" in ing_lower:
                     is_gluten_free = False
 
-                # Corrections for specific items
                 if "tofu" in ing_lower:
                     is_vegetarian = True
                     is_vegan = True
@@ -449,7 +401,6 @@ class IngredientsPhase(BasePhase):
                 if "miód" in ing_lower:
                     is_vegan = False
 
-                # Generate icon URL
                 photo_data = photo_pools.get_ingredient_photo(ingredient)
                 icon_url = photo_data.get("url")
                 icon_blurhash = photo_data.get("blurhash")
@@ -460,7 +411,7 @@ class IngredientsPhase(BasePhase):
 
                 ingredient_data.append(
                     {
-                        "ingredient_name": ingredient,
+                        "ingredient_name": ingredient.replace("_", " "),
                         "icon_url": icon_url,
                         "icon_blurhash": icon_blurhash,
                         "is_allergen": is_allergen,
@@ -476,7 +427,7 @@ class IngredientsPhase(BasePhase):
             duration = time.time() - start_time
             allergen_count = sum(1 for i in ingredient_data if i["is_allergen"])
             logger.info(
-                f"✓ Generated {len(ingredient_data)} ingredients ({allergen_count} allergens) in {duration:.2f}s"
+                f"[OK] Generated {len(ingredient_data)} ingredients ({allergen_count} allergens) in {duration:.2f}s"
             )
 
             return PhaseResult(
@@ -498,30 +449,19 @@ class IngredientsPhase(BasePhase):
             )
 
 class TagsPhase(BasePhase):
-    """
-    Phase 1d: Tags Generation
-
-    Populates tags table with categorized tags and colors.
-
-    Dependencies: None (parallel with other Phase 1 components)
-    Required Tables: tags
-    Estimated Duration: ~2 seconds
-    """
 
     @property
     def metadata(self) -> PhaseMetadata:
-        """Return phase metadata with dependencies."""
         return PhaseMetadata(
             phase_id="phase1_tags",
             display_name="Tags Generation",
-            dependencies=[],  # No dependencies - parallel with others
+            dependencies=[],
             required_tables=["tags"],
             cleanup_tables=["tags"],
             estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """Execute tags generation."""
         start_time = time.time()
         logger.info("Generating tags...")
 
@@ -581,7 +521,7 @@ class TagsPhase(BasePhase):
             context.db.insert_bulk("tags", tags)
 
             duration = time.time() - start_time
-            logger.info(f"✓ Generated {len(tags)} tags in {duration:.2f}s")
+            logger.info(f"[OK] Generated {len(tags)} tags in {duration:.2f}s")
 
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
@@ -602,38 +542,22 @@ class TagsPhase(BasePhase):
             )
 
 class HeroImagesPhase(BasePhase):
-    """
-    Phase 1e: Hero Images Registration
-
-    Reads hero_index.json and registers hero background images in the
-    media_assets table (entity_type = 'hero').
-
-    These are used by the frontend as homepage background images,
-    served from R2/CDN.
-
-    Dependencies: None (parallel with other Phase 1 components)
-    Required Tables: media_assets (entity_type = 'hero' rows only)
-    Estimated Duration: ~2 seconds
-    """
 
     def __init__(self, blueprints_dir: str = "blueprints"):
-        """Initialize HeroImagesPhase."""
         self.blueprints_dir = blueprints_dir
 
     @property
     def metadata(self) -> PhaseMetadata:
-        """Return phase metadata with dependencies."""
         return PhaseMetadata(
             phase_id="phase1_hero",
             display_name="Hero Images Registration",
-            dependencies=[],  # No dependencies - parallel with other Phase 1 components
+            dependencies=[],
             required_tables=["media_assets"],
-            cleanup_tables=[],  # Targeted DELETE (not TRUNCATE) - handled inside execute()
+            cleanup_tables=[],
             estimated_duration=2,
         )
 
     def execute(self, context: ExecutionContext) -> PhaseResult:
-        """Execute hero images registration."""
         start_time = time.time()
         logger.info("Registering hero images...")
 
@@ -654,7 +578,7 @@ class HeroImagesPhase(BasePhase):
                 hero_index = json.load(f)
 
             images = hero_index.get("images", [])
-            r2_base = PHOTO_CONFIG.get("r2_public_base_url", "").rstrip("/")  # type: ignore[attr-defined]
+            r2_base = os.getenv("R2_PUBLIC_DOMAIN", "https://assets.smakosz.xyz").rstrip("/")
             r2_mock_prefix = PHOTO_CONFIG.get("r2_mock_prefix", "seed")
 
             hero_data = []

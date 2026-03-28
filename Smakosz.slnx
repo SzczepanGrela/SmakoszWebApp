@@ -12,5 +12,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj" />
     <Project Path="tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj" />
+    <Project Path="tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj" />
+    <Project Path="tests/Smakosz.E2E/Smakosz.E2E.csproj" />
   </Folder>
 </Solution>

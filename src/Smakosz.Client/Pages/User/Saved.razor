@@ -25,7 +25,7 @@
 
     @if (_loading)
     {
-        <LoadingSpinner Text="Ladowanie zapisanych..." />
+        <LoadingSpinner Text="Ładowanie zapisanych..." />
     }
     else
     {
@@ -33,9 +33,9 @@
         {
             @if (_dishes == null || !_dishes.Data.Any())
             {
-                <EmptyState Icon="fa-solid fa-bookmark" Title="Brak zapisanych dan"
-                            Description="Zapisuj dania, ktore Ci smakowaly, aby latwo je potem znalezc."
-                            ActionText="Przegladaj dania" ActionUrl="/search?type=dishes" />
+                <EmptyState Icon="fa-solid fa-bookmark" Title="Brak zapisanych dań"
+                            Description="Zapisuj dania, które Ci smakowały, aby łatwo je potem znaleźć."
+                            ActionText="Przeglądaj dania" ActionUrl="/search?type=dishes" />
             }
             else
             {
@@ -56,8 +56,8 @@
             @if (_restaurants == null || !_restaurants.Data.Any())
             {
                 <EmptyState Icon="fa-solid fa-heart" Title="Brak zapisanych restauracji"
-                            Description="Dodawaj restauracje do ulubionych, aby miec je zawsze pod reka."
-                            ActionText="Przegladaj restauracje" ActionUrl="/search?type=restaurants" />
+                            Description="Dodawaj restauracje do ulubionych, aby mieć je zawsze pod ręką."
+                            ActionText="Przeglądaj restauracje" ActionUrl="/search?type=restaurants" />
             }
             else
             {

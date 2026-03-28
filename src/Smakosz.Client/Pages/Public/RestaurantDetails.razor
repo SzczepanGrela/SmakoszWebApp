@@ -7,12 +7,12 @@
 
 @if (_loading)
 {
-    <LoadingSpinner Text="Ladowanie restauracji..." />
+    <LoadingSpinner Text="Ładowanie restauracji..." />
 }
 else if (_restaurant == null)
 {
     <div class="container mt-5">
-        <EmptyState Icon="fa-solid fa-store" Title="Nie znaleziono restauracji" ActionText="Strona glowna" ActionUrl="/" />
+        <EmptyState Icon="fa-solid fa-store" Title="Nie znaleziono restauracji" ActionText="Strona główna" ActionUrl="/" />
     </div>
 }
 else
@@ -59,11 +59,11 @@ else
                             </div>
                             <div class="col-6 col-md-3 text-center mb-3">
                                 <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgService)</div>
-                                <small class="text-muted">Obsluga</small>
+                                <small class="text-muted">Obsługa</small>
                             </div>
                             <div class="col-6 col-md-3 text-center mb-3">
                                 <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgCleanliness)</div>
-                                <small class="text-muted">Czystosc</small>
+                                <small class="text-muted">Czystość</small>
                             </div>
                             <div class="col-6 col-md-3 text-center mb-3">
                                 <div class="fs-3 fw-bold" style="color:var(--accent-color);">@FormatScore(_restaurant.AvgAmbiance)</div>
@@ -176,11 +176,15 @@ else
                             <h5 class="mb-3"><i class="fa-solid fa-comment-dots me-2"></i>Akcje</h5>
                             <div class="d-grid gap-2">
                                 <button class="btn btn-outline-primary btn-sm" @onclick="() => _showCorrectionModal = true">
-                                    <i class="fa-solid fa-pen-to-square me-1"></i>Zaproponuj poprawke
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Zaproponuj poprawkę
                                 </button>
-                                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showIngredientModal = true">
-                                    <i class="fa-solid fa-seedling me-1"></i>Zaproponuj skladnik
-                                </button>
+                                <AuthorizeView Roles="Restaurant,Admin" Context="roleCtx">
+                                    <Authorized>
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => _showIngredientModal = true">
+                                            <i class="fa-solid fa-seedling me-1"></i>Zaproponuj składnik
+                                        </button>
+                                    </Authorized>
+                                </AuthorizeView>
                             </div>
                         </div>
                     </Authorized>
@@ -195,7 +199,7 @@ else
                         {
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>@DayName(hours.DayOfWeek)</span>
-                                <span>@(hours.IsClosed ? "Zamknięte" : $"{hours.OpenTime} - {hours.CloseTime}")</span>
+                                <span>@(hours.IsClosed ? "Zamknięte" : $"{FormatTime(hours.OpenTime)} - {FormatTime(hours.CloseTime)}")</span>
                             </div>
                         }
                     </div>
@@ -208,7 +212,7 @@ else
 @* Data Correction Modal *@
 @if (_showCorrectionModal)
 {
-    <Modal IsOpen="true" Title="Zaproponuj poprawke danych" OnClose="() => _showCorrectionModal = false">
+    <Modal IsOpen="true" Title="Zaproponuj poprawkę danych" OnClose="() => _showCorrectionModal = false">
         <div class="mb-3">
             <label class="form-label">Typ problemu *</label>
             <select class="form-select" @bind="_correctionIssueType">
@@ -222,11 +226,11 @@ else
         </div>
         <div class="mb-3">
             <label class="form-label">Opis problemu</label>
-            <textarea class="form-control" rows="3" @bind="_correctionDescription" placeholder="Opisz co jest nieprawidlowe..."></textarea>
+            <textarea class="form-control" rows="3" @bind="_correctionDescription" placeholder="Opisz co jest nieprawidłowe..."></textarea>
         </div>
         <div class="mb-3">
-            <label class="form-label">Proponowana wartosc</label>
-            <textarea class="form-control" rows="2" @bind="_correctionProposedValue" placeholder="Jaka powinna byc prawidlowa wartosc?"></textarea>
+            <label class="form-label">Proponowana wartość</label>
+            <textarea class="form-control" rows="2" @bind="_correctionProposedValue" placeholder="Jaka powinna być prawidłowa wartość?"></textarea>
         </div>
         <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-outline-secondary btn-sm" @onclick="() => _showCorrectionModal = false">Anuluj</button>
@@ -235,7 +239,7 @@ else
                 {
                     <span class="spinner-border spinner-border-sm me-1"></span>
                 }
-                Wyslij
+                Wyślij
             </button>
         </div>
     </Modal>
@@ -244,10 +248,10 @@ else
 @* Ingredient Suggestion Modal *@
 @if (_showIngredientModal)
 {
-    <Modal IsOpen="true" Title="Zaproponuj skladnik" OnClose="() => _showIngredientModal = false">
+    <Modal IsOpen="true" Title="Zaproponuj składnik" OnClose="() => _showIngredientModal = false">
         <div class="mb-3">
-            <label class="form-label">Nazwa skladnika *</label>
-            <input type="text" class="form-control" @bind="_ingredientName" placeholder="Np. Orzechy wloskie" />
+            <label class="form-label">Nazwa składnika *</label>
+            <input type="text" class="form-control" @bind="_ingredientName" placeholder="Np. Orzechy włoskie" />
         </div>
         <div class="mb-3">
             <div class="form-check mb-2">
@@ -256,11 +260,11 @@ else
             </div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="isVegetarian" @bind="_ingredientIsVegetarian" />
-                <label class="form-check-label" for="isVegetarian">Wegetarianski</label>
+                <label class="form-check-label" for="isVegetarian">Wegetariański</label>
             </div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="isVegan" @bind="_ingredientIsVegan" />
-                <label class="form-check-label" for="isVegan">Weganski</label>
+                <label class="form-check-label" for="isVegan">Wegański</label>
             </div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" id="isGlutenFree" @bind="_ingredientIsGlutenFree" />
@@ -278,7 +282,7 @@ else
                 {
                     <span class="spinner-border spinner-border-sm me-1"></span>
                 }
-                Wyslij
+                Wyślij
             </button>
         </div>
     </Modal>
@@ -322,6 +326,8 @@ else
 
     private static string FormatScore(double? score) => score.HasValue ? score.Value.ToString("F1") : "-";
 
+    private static string FormatTime(string time) => time.Length >= 5 ? time[..5] : time;
+
     private static string DayName(int day) => day switch
     {
         0 => "Niedziela", 1 => "Poniedziałek", 2 => "Wtorek", 3 => "Środa",
@@ -352,7 +358,7 @@ else
 
         if (success)
         {
-            Toast.ShowSuccess("Poprawka zostala wyslana. Dziekujemy!");
+            Toast.ShowSuccess("Poprawka została wysłana. Dziękujemy!");
             _showCorrectionModal = false;
             _correctionIssueType = "";
             _correctionDescription = null;
@@ -360,7 +366,7 @@ else
         }
         else
         {
-            Toast.ShowError("Nie udalo sie wyslac poprawki.");
+            Toast.ShowError("Nie udało się wysłać poprawki.");
         }
     }
 
@@ -377,7 +383,7 @@ else
 
         if (success)
         {
-            Toast.ShowSuccess("Sugestia skladnika zostala wyslana. Dziekujemy!");
+            Toast.ShowSuccess("Sugestia składnika została wysłana. Dziękujemy!");
             _showIngredientModal = false;
             _ingredientName = "";
             _ingredientIsAllergen = false;
@@ -388,7 +394,7 @@ else
         }
         else
         {
-            Toast.ShowError("Nie udalo sie wyslac sugestii.");
+            Toast.ShowError("Nie udało się wysłać sugestii.");
         }
     }
 }

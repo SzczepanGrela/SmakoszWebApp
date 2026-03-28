@@ -1,6 +1,6 @@
 @page "/admin/hero-images"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject IMediaService MediaService
 @inject ToastService Toast
@@ -30,7 +30,7 @@
 else if (!_images.Any())
 {
     <EmptyState Icon="fa-solid fa-panorama" Title="Brak hero images"
-                Description="Dodaj zdjecia, ktore beda wyswietlane na stronie glownej." />
+                Description="Dodaj zdjęcia, które będą wyświetlane na stronie głównej." />
 }
 else
 {
@@ -83,12 +83,12 @@ else
         var success = await AdminService.DeleteHeroImageAsync(publicId);
         if (success)
         {
-            Toast.ShowSuccess("Hero image usuniete.");
+            Toast.ShowSuccess("Hero image usunięte.");
             await LoadImages();
         }
         else
         {
-            Toast.ShowError("Nie udalo sie usunac obrazu.");
+            Toast.ShowError("Nie udało się usunąć obrazu.");
         }
         _deleting = false;
     }
