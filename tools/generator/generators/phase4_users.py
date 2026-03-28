@@ -248,6 +248,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "secret_ingredient_preferences": json.dumps({}),
                 "secret_cleanliness_preference": json.dumps({}),
                 "secret_preferred_ambiance": "Casual",
+                "failed_login_count": 0,
             }
         )
 
@@ -376,6 +377,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "secret_ingredient_preferences": json.dumps(ingredient_preferences),
                 "secret_cleanliness_preference": json.dumps(cleanliness_expectations),
                 "secret_preferred_ambiance": secret_preferred_ambiance,
+                "failed_login_count": 0,
             }
         )
 
