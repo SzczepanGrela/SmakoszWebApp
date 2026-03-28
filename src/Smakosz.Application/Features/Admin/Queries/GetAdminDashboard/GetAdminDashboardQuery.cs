@@ -33,9 +33,11 @@ public class GetAdminDashboardHandler : IRequestHandler<GetAdminDashboardQuery, 
         var pendingCorrections = await _db.DataCorrectionRequests
             .CountAsync(c => c.Status == "pending", cancellationToken);
         var pendingPhotos = await _db.MediaAssets
-            .CountAsync(m => m.Status == MediaAssetStatus.Pending, cancellationToken);
+            .CountAsync(m => m.ModerationStatus == ContentModerationStatus.Pending
+                          || m.ModerationStatus == ContentModerationStatus.NeedsReview, cancellationToken);
         var pendingReviews = await _db.Reviews
-            .CountAsync(r => r.ContentStatus == ReviewContentStatus.Pending && !r.IsDeleted, cancellationToken);
+            .CountAsync(r => (r.ModerationStatus == ContentModerationStatus.Pending
+                           || r.ModerationStatus == ContentModerationStatus.NeedsReview) && !r.IsDeleted, cancellationToken);
         var openTickets = await _db.SystemTickets
             .CountAsync(t => t.Status == TicketStatus.Open, cancellationToken);
 

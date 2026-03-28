@@ -30,7 +30,8 @@ public class GetPendingReviewsHandler : IRequestHandler<GetPendingReviewsQuery, 
 
         var query = _db.Reviews
             .AsNoTracking()
-            .Where(r => r.ContentStatus == ReviewContentStatus.Pending && !r.IsDeleted);
+            .Where(r => (r.ModerationStatus == ContentModerationStatus.Pending
+                      || r.ModerationStatus == ContentModerationStatus.NeedsReview) && !r.IsDeleted);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

@@ -42,7 +42,8 @@ public class UpdateReviewHandler : IRequestHandler<UpdateReviewCommand, ErrorOr<
         review.AmbianceRating = request.AmbianceRating;
         review.Content = request.Content;
         review.VisitDate = request.VisitDate;
-        review.ContentStatus = string.IsNullOrEmpty(request.Content) ? ReviewContentStatus.None : ReviewContentStatus.Pending;
+        review.ModerationStatus = string.IsNullOrEmpty(request.Content) ? ContentModerationStatus.None : ContentModerationStatus.Pending;
+        review.IsApproved = null;
 
         await _db.SaveChangesAsync(cancellationToken);
 

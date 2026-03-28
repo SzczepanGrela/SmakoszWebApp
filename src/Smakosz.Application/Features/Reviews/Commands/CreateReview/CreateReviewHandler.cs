@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -66,31 +65,16 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
             AmbianceRating = request.AmbianceRating,
             Content = request.Content,
             VisitDate = request.VisitDate,
-            ContentStatus = string.IsNullOrEmpty(request.Content) ? ReviewContentStatus.None : ReviewContentStatus.Pending,
+            ModerationStatus = string.IsNullOrEmpty(request.Content) ? ContentModerationStatus.None : ContentModerationStatus.Pending,
             IsVisible = true,
-            IsApproved = false
+            IsApproved = null
         };
 
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync(cancellationToken);
 
-        if (review.ContentStatus == ReviewContentStatus.Pending)
+        if (review.ModerationStatus == ContentModerationStatus.Pending)
         {
-            _db.SystemJobs.Add(new SystemJob
-            {
-                Type = "text_moderation",
-                Status = JobStatus.Pending,
-                Priority = 5,
-                EntityId = review.ReviewId.ToString(),
-                EntityType = "review",
-                Payload = JsonSerializer.Serialize(new
-                {
-                    review_id = review.ReviewId,
-                    text = review.Content,
-                    language = "pl"
-                })
-            });
-
             _db.SystemTickets.Add(new SystemTicket
             {
                 TicketType = TicketType.ReviewContent,

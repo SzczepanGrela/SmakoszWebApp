@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Smakosz.Application.Common.Errors;
@@ -78,27 +77,13 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
             Blurhash = result.Blurhash,
             Width = result.Width,
             Height = result.Height,
-            Status = MediaAssetStatus.Pending,
+            ModerationStatus = ContentModerationStatus.Pending,
             UploadedBy = _currentUser.UserId.Value,
             CreditText = request.CreditText
         };
 
         _db.MediaAssets.Add(asset);
         await _db.SaveChangesAsync(cancellationToken);
-
-        _db.SystemJobs.Add(new SystemJob
-        {
-            Type = "image_moderation",
-            Status = JobStatus.Pending,
-            Priority = 5,
-            EntityId = asset.AssetId.ToString(),
-            EntityType = "media_asset",
-            Payload = JsonSerializer.Serialize(new
-            {
-                asset_id = asset.AssetId,
-                image_url = asset.Url
-            })
-        });
 
         if (entityType != MediaEntityType.Hero)
         {
