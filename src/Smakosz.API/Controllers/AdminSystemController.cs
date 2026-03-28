@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.CancelJob;
 using Smakosz.Application.Features.Admin.Commands.CreateJob;
+using Smakosz.Application.Features.Admin.Commands.ScheduleModeration;
 using Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
 using Smakosz.Application.Features.Admin.Commands.TriggerJob;
 using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
@@ -83,6 +84,13 @@ public class AdminSystemController : ApiController
     public async Task<IActionResult> ScheduleNcfTraining()
     {
         var result = await _mediator.Send(new ScheduleNcfTrainingCommand());
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("moderation/aggregate")]
+    public async Task<IActionResult> ScheduleModeration()
+    {
+        var result = await _mediator.Send(new ScheduleModerationCommand());
         return ToNoContentResult(result);
     }
 
