@@ -18,6 +18,7 @@ public class NcfTrainingService : INcfTrainingService
     private readonly IHttpClientFactory _httpFactory;
     private readonly IDateTimeProvider _clock;
     private readonly NcfTrainingOptions _options;
+    private readonly IModerationAggregationService _moderationService;
     private readonly ILogger<NcfTrainingService> _logger;
 
     public NcfTrainingService(
@@ -26,6 +27,7 @@ public class NcfTrainingService : INcfTrainingService
         IHttpClientFactory httpFactory,
         IDateTimeProvider clock,
         IOptions<NcfTrainingOptions> options,
+        IModerationAggregationService moderationService,
         ILogger<NcfTrainingService> logger)
     {
         _db = db;
@@ -33,18 +35,25 @@ public class NcfTrainingService : INcfTrainingService
         _httpFactory = httpFactory;
         _clock = clock;
         _options = options.Value;
+        _moderationService = moderationService;
         _logger = logger;
     }
 
     public async Task<ErrorOr<Success>> ScheduleAsync(CancellationToken ct)
     {
-        var since = _clock.UtcNow.AddDays(-_options.ReviewWindowDays);
+        var query = _db.Reviews.AsQueryable();
 
-        var reviews = await _db.Reviews
-            .Where(r => r.CreatedAt >= since
-                && r.IsVisible
+        // ReviewWindowDays=0 means all reviews (no time filter)
+        if (_options.ReviewWindowDays > 0)
+        {
+            var since = _clock.UtcNow.AddDays(-_options.ReviewWindowDays);
+            query = query.Where(r => r.CreatedAt >= since);
+        }
+
+        var reviews = await query
+            .Where(r => r.IsVisible
                 && !r.IsDeleted
-                && r.ContentStatus != ReviewContentStatus.Rejected)
+                && r.ModerationStatus != ContentModerationStatus.Rejected)
             .Join(_db.Users.Where(u => !u.IsDeleted),
                 r => r.UserId, u => u.UserId,
                 (r, u) => new { r.UserId, r.DishId, r.DishRating })
@@ -90,6 +99,10 @@ public class NcfTrainingService : INcfTrainingService
         });
 
         await _db.SaveChangesAsync(ct);
+
+        // Aggregate pending moderations before GPU wake-up
+        _logger.LogInformation("ncf-training: aggregating pending moderations before GPU wake-up");
+        await _moderationService.AggregateAsync(ct);
 
         // Check GPU health & wake if offline
         var gpuClient = _httpFactory.CreateClient("GpuWorker");

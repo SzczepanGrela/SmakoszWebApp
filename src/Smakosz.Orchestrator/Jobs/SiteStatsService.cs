@@ -31,7 +31,7 @@ public class SiteStatsService
         stats.TotalUsers = await _db.Users
             .CountAsync(u => u.IsActive && !u.IsDeleted, ct);
         stats.TotalPhotos = await _db.MediaAssets
-            .CountAsync(m => m.Status == MediaAssetStatus.Approved, ct);
+            .CountAsync(m => m.ModerationStatus == ContentModerationStatus.Approved, ct);
 
         stats.ReviewsThisWeek = await _db.Reviews
             .CountAsync(r => !r.IsDeleted && r.CreatedAt >= weekAgo, ct);
