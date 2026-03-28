@@ -17,7 +17,7 @@ public class ReviewBuilder
         CleanlinessRating = 8,
         AmbianceRating = 7,
         Content = "Great food and service!",
-        ContentStatus = ReviewContentStatus.Approved,
+        ModerationStatus = ContentModerationStatus.Approved,
         VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
         IsVisible = true,
         IsApproved = true,
@@ -38,12 +38,13 @@ public class ReviewBuilder
     public ReviewBuilder WithDish(Dish dish) { _review.Dish = dish; _review.DishId = dish.DishId; return this; }
     public ReviewBuilder WithRestaurant(Restaurant restaurant) { _review.Restaurant = restaurant; _review.RestaurantId = restaurant.RestaurantId; return this; }
     public ReviewBuilder WithContent(string? content) { _review.Content = content; return this; }
-    public ReviewBuilder WithContentStatus(ReviewContentStatus status) { _review.ContentStatus = status; return this; }
+    public ReviewBuilder WithContentStatus(ContentModerationStatus status) { _review.ModerationStatus = status; return this; }
     public ReviewBuilder WithDishRating(int rating) { _review.DishRating = rating; return this; }
     public ReviewBuilder WithHelpfulCount(int count) { _review.HelpfulCount = count; return this; }
     public ReviewBuilder WithCreatedAt(DateTime createdAt) { _review.CreatedAt = createdAt; return this; }
     public ReviewBuilder AsDeleted() { _review.IsDeleted = true; _review.DeletedAt = DateTime.UtcNow; return this; }
     public ReviewBuilder AsVisible() { _review.IsVisible = true; return this; }
+    public ReviewBuilder WithIsApproved(bool? val) { _review.IsApproved = val; return this; }
     public ReviewBuilder AsHidden() { _review.IsVisible = false; return this; }
 
     public Review Build() => _review;

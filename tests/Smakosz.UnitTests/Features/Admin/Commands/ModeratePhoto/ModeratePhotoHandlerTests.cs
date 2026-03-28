@@ -30,7 +30,7 @@ public class ModeratePhotoHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            EntityId = 1, Url = "http://img.jpg", Status = MediaAssetStatus.Pending, UploadedBy = 1
+            EntityId = 1, Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Pending, UploadedBy = 1
         };
         _sets.Users.Add(user);
         _sets.MediaAssets.Add(asset);
@@ -40,7 +40,7 @@ public class ModeratePhotoHandlerTests
             new ModeratePhotoCommand(asset.PublicId, true, null), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        asset.Status.Should().Be(MediaAssetStatus.Approved);
+        asset.ModerationStatus.Should().Be(ContentModerationStatus.Approved);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ModeratePhotoHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            EntityId = 1, Url = "http://img.jpg", Status = MediaAssetStatus.Pending, UploadedBy = 1
+            EntityId = 1, Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Pending, UploadedBy = 1
         };
         _sets.Users.Add(user);
         _sets.MediaAssets.Add(asset);
@@ -60,7 +60,7 @@ public class ModeratePhotoHandlerTests
             new ModeratePhotoCommand(asset.PublicId, false, "Blurry"), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        asset.Status.Should().Be(MediaAssetStatus.Rejected);
+        asset.ModerationStatus.Should().Be(ContentModerationStatus.Rejected);
         asset.RejectionReason.Should().Be("Blurry");
         _sets.Notifications.Should().HaveCount(1);
     }

@@ -8,7 +8,7 @@
     private string BadgeColor => Color ?? Status.ToLowerInvariant() switch
     {
         "active" or "approved" or "completed" or "resolved" => "bg-success",
-        "pending" or "open" or "scheduled" => "bg-warning text-dark",
+        "pending" or "open" or "scheduled" or "needs_review" => "bg-warning text-dark",
         "rejected" or "banned" or "error" => "bg-danger",
         "training" or "idle" => "bg-info",
         _ => "bg-secondary"

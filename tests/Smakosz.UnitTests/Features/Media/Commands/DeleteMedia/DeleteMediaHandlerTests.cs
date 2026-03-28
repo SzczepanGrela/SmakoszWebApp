@@ -31,7 +31,7 @@ public class DeleteMediaHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            Url = "http://img.jpg", Status = MediaAssetStatus.Approved, UploadedBy = 1
+            Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 1
         };
         _sets.MediaAssets.Add(asset);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -50,7 +50,7 @@ public class DeleteMediaHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            Url = "http://img.jpg", Status = MediaAssetStatus.Approved, UploadedBy = 999
+            Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 999
         };
         _sets.MediaAssets.Add(asset);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -67,7 +67,7 @@ public class DeleteMediaHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            Url = "http://img.jpg", Status = MediaAssetStatus.Approved, UploadedBy = 999
+            Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 999
         };
         _sets.MediaAssets.Add(asset);
         DbContextMockFactory.Refresh(_db, _sets);

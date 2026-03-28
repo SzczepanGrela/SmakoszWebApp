@@ -26,7 +26,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Secret"] = TestAuthHelper.JwtSecret,
                 ["Jwt:Issuer"] = TestAuthHelper.JwtIssuer,
                 ["Jwt:Audience"] = TestAuthHelper.JwtAudience,
-                ["WorkerAuth:ApiKey"] = TestAuthHelper.WorkerApiKey,
                 ["Brevo:ApiKey"] = "",
                 ["R2:AccountId"] = "",
             };
@@ -65,6 +64,14 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             // Replace NCF training service with stub
             services.RemoveAll<INcfTrainingService>();
             services.AddScoped<INcfTrainingService, StubNcfTrainingService>();
+
+            // Replace recommendation provider with stub
+            services.RemoveAll<IRecommendationProvider>();
+            services.AddSingleton<IRecommendationProvider, StubRecommendationProvider>();
+
+            // Replace moderation aggregation service with stub
+            services.RemoveAll<IModerationAggregationService>();
+            services.AddScoped<IModerationAggregationService, StubModerationAggregationService>();
         });
     }
 
@@ -97,15 +104,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        return client;
-    }
-
-    public HttpClient CreateWorkerClient()
-    {
-        var client = CreateClient();
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", TestAuthHelper.WorkerApiKey);
-        client.DefaultRequestHeaders.Add("X-Worker-Id", "test-worker-1");
         return client;
     }
 
