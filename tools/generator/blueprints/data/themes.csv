@@ -4,7 +4,7 @@ id,name,distribution_chance,pixabay_term,dish_count_mean,dish_count_sigma,budget
 3,Kuchnia Polska,0.0944,rustic restaurant interior wooden tables,25,5,0.2,0.7,0.1,Polska,🥟
 4,Sushi Bar,0.0755,sushi bar counter restaurant interior,40,8,0.1,0.6,0.3,Japonska,🍣
 5,Kuchnia Indyjska,0.0113,colorful restaurant interior warm lighting,30,6,0.2,0.7,0.1,Indyjska,🍛
-6,Bar Meksykański,0.0189,colorful restaurant bar interior festive,28,6,0.2,0.7,0.1,Bar Meksykański,
+6,Bar Meksykański,0.0189,colorful restaurant bar interior festive,28,6,0.2,0.7,0.1,Meksykanska,🌮
 7,Francuskie Bistro,0.0113,bistro interior elegant cafe tables,20,4,0.0,0.6,0.4,Francuska,🥐
 8,Steakhouse,0.0189,steakhouse restaurant interior dark wood,20,4,0.0,0.4,0.6,Amerykanska,🥩
 9,Ramen Bar,0.0189,noodle bar interior restaurant counter,35,7,0.2,0.7,0.1,Japonska,🍜
@@ -12,16 +12,16 @@ id,name,distribution_chance,pixabay_term,dish_count_mean,dish_count_sigma,budget
 11,Grecka Taverna,0.0142,taverna restaurant interior mediterranean,28,5,0.2,0.7,0.1,Grecka,🥗
 12,Korean BBQ,0.0094,restaurant interior grill table dining,26,6,0.2,0.7,0.1,Koreanska,🥩
 13,Bar Tapas,0.0094,tapas bar interior wine glasses,18,4,0.2,0.7,0.1,Hiszpanska,🍲
-14,Amerykański Diner,0.0189,american diner interior retro neon,20,5,0.2,0.7,0.1,Amerykański Diner,
+14,Amerykański Diner,0.0189,american diner interior retro neon,20,5,0.2,0.7,0.1,Amerykanska,🌭
 15,Restauracja z Owocami Morza,0.0142,seafood restaurant interior nautical decor,25,5,0.2,0.7,0.1,Srodziemnomorska,🦞
-16,Piekarnia z Kawiarnią,0.0378,bakery cafe interior pastry display,15,4,0.2,0.7,0.1,Piekarnia z Kawiarnią,
+16,Piekarnia z Kawiarnią,0.0378,bakery cafe interior pastry display,15,4,0.2,0.7,0.1,Piekarnia,🍞
 17,Kawiarnia,0.0425,coffee shop interior cozy cafe,15,4,0.2,0.7,0.1,Kawiarnia,☕
-18,Wędzarnia BBQ,0.0094,bbq smokehouse restaurant interior rustic,25,5,0.2,0.7,0.1,Wędzarnia BBQ,
+18,Wędzarnia BBQ,0.0094,bbq smokehouse restaurant interior rustic,25,5,0.2,0.7,0.1,BBQ,🔥
 19,Kuchnia Bliskowschodnia,0.0189,ornate restaurant interior mosaic tiles,24,5,0.2,0.7,0.1,Bliskowschodnia,🧆
 20,Kuchnia Turecka,0.0094,restaurant interior mosaic tiles oriental,24,5,0.2,0.7,0.1,Turecka,🥙
 21,Niemiecki Pub,0.0076,pub interior beer hall wooden,22,4,0.2,0.7,0.1,Niemiecka,🍺
 22,Lodziarnia,0.0425,ice cream parlor interior colorful shop,15,4,0.2,0.7,0.1,Desery,🍦
 23,Wykwintna Restauracja,0.0113,fine dining restaurant interior elegant,45,10,0.0,0.1,0.9,Fine Dining,🍷
 24,Kanapkownia,0.0236,sandwich shop interior modern cafe,12,3,0.2,0.7,0.1,Kanapki,🥪
-25,Kuchnia Włoska,0.1794,trattoria restaurant interior cozy warm,30,6,0.2,0.7,0.1,Kuchnia Włoska,
+25,Kuchnia Włoska,0.1794,trattoria restaurant interior cozy warm,30,6,0.2,0.7,0.1,Wloska,🍝
 26,Kuchnia Azjatycka,0.0519,modern restaurant interior contemporary dining,35,7,0.2,0.7,0.1,Azjatycka,🥡
