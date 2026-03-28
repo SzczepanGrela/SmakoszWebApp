@@ -35,9 +35,10 @@ def generate_social_graph(db: DatabaseConnection, cleanup: bool = True):
     if cleanup:
         _cleanup_social_data(db)
 
-    loader = BlueprintLoader("blueprints")
-    variant_blueprints = loader.load_blueprint("dishes.json")
-    archetypes = list(variant_blueprints.keys())
+    from utils.blueprint_db import BlueprintDB
+    bdb = BlueprintDB()
+    archetypes = bdb.get_archetype_names()
+    bdb.close()
 
     users = UserDAO.get_all_users_for_social(db)
     user_ids = [u.user_id for u in users]

@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
-from generators.constants import THEME_TO_MENU_BLUEPRINT
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
+from utils.blueprint_db import BlueprintDB
 from utils.blueprint_loader import BlueprintLoader
 from utils.date_generator import generate_restaurant_created_date, to_sql_datetime
 from utils.db_connection import DatabaseConnection
@@ -23,32 +23,8 @@ from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
-def generate_restaurant_archetype_modifiers(menu_blueprint: str) -> dict[str, dict[str, float]]:
+def generate_restaurant_archetype_modifiers(theme_archetypes: list[str]) -> dict[str, dict[str, float]]:
     modifiers = {}
-
-    primary_archetypes = {
-        "Italian Restaurant": ["Pizza", "Pasta", "Salad"],
-        "Fast Food": ["Burger", "Fries", "Chicken"],
-        "Ice Cream Shop": ["Ice Cream", "Dessert"],
-        "Asian Fusion": ["Sushi", "Asian", "Soup"],
-        "Steakhouse": ["Steak", "Salad", "Seafood"],
-        "Pizzeria": ["Pizza"],
-        "Sushi Bar": ["Sushi", "Asian"],
-        "Vegan Cafe": ["Vegan", "Salad", "Soup"],
-        "Breakfast Diner": ["Breakfast"],
-        "Bakery": ["Dessert", "Breakfast", "Beverage"],
-        "Seafood Restaurant": ["Seafood", "Salad"],
-        "Mexican Restaurant": ["Mexican"],
-        "Indian Restaurant": ["Indian"],
-        "Chinese Restaurant": ["Chinese"],
-        "Japanese Restaurant": ["Japanese", "Sushi"],
-        "Thai Restaurant": ["Thai"],
-        "American Diner": ["American", "Burger"],
-        "Mediterranean Restaurant": ["Mediterranean", "Seafood"],
-        "French Bistro": ["French"],
-    }
-
-    relevant_archetypes = primary_archetypes.get(menu_blueprint, [])
 
     available_dims = [
         "physics_richness",
@@ -58,7 +34,7 @@ def generate_restaurant_archetype_modifiers(menu_blueprint: str) -> dict[str, di
         "physics_freshness",
     ]
 
-    for archetype in relevant_archetypes:
+    for archetype in theme_archetypes:
         num_mods = random.randint(1, 3)
         selected = random.sample(available_dims, min(num_mods, len(available_dims)))
 
@@ -99,17 +75,12 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             raise e
 
     loader = BlueprintLoader(blueprints_dir)
-    restaurant_rules = loader.load_blueprint("restaurant_types.json")
     city_config = loader.load_blueprint("cities.json").get("CITY_CONFIG", {})
 
+    bdb = BlueprintDB()
+    all_themes = bdb.get_themes()
+
     cities = db.fetch_all("SELECT city_id, city_name FROM cities")
-    city_postal_map = {
-        "Warszawa": "00", "Kraków": "30", "Wrocław": "50", "Łódź": "90",
-        "Poznań": "60", "Gdańsk": "80", "Szczecin": "70", "Bydgoszcz": "85",
-        "Lublin": "20", "Białystok": "15", "Katowice": "40", "Gdynia": "81",
-        "Toruń": "87", "Rzeszów": "35", "Kielce": "25", "Olsztyn": "10",
-        "Opole": "45", "Gorzów Wlkp.": "66",
-    }
 
     global_target = int(GENERATION_CONFIG["num_restaurants"])  # type: ignore
 
@@ -151,11 +122,10 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     primary_photo_cache = {}
     generated_phones = set()
 
-    global_config = loader.load_blueprint("global_config.json")
-    tier_config = global_config.get("RESTAURANT_TIER_PROBABILITIES", {})
-    default_tier_probs = tier_config.get("__default__", {"Budget": 0.2, "Casual": 0.7, "Fine Dining": 0.1})
-
-    available_themes = list(restaurant_rules.get("RESTAURANT_THEMES", {}).keys())
+    available_themes = [t["name"] for t in all_themes]
+    theme_weights = [t["distribution_chance"] for t in all_themes]
+    theme_archetypes_cache = {t["name"]: bdb.get_theme_archetypes(t["name"]) for t in all_themes}
+    theme_sections_cache = {t["name"]: bdb.get_theme_sections(t["name"]) for t in all_themes}
 
     for city_id, city_name in tqdm(
         cities, desc="Generating restaurants", unit=" city", mininterval=1.0, disable=LoggingConfig.is_quiet()
@@ -164,16 +134,12 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
         city_info = city_config.get(city_name, {})
 
         for _ in range(num_restaurants):
-            theme_data = restaurant_rules.get("RESTAURANT_THEMES", {})
-            weights = [theme_data.get(t, {}).get("distribution_chance", 0.05) for t in available_themes]
-            theme = random.choices(available_themes, weights=weights, k=1)[0]
-
-            theme_info = theme_data.get(theme, {})
+            theme = random.choices(available_themes, weights=theme_weights, k=1)[0]
 
             name = name_generator.generate_name(theme, city_name)
             created_date = generate_restaurant_created_date()
 
-            probs = tier_config.get(theme, default_tier_probs)
+            probs = bdb.get_tier_probabilities(theme)
             tier = random.choices(list(probs.keys()), weights=list(probs.values()), k=1)[0]
 
             tier_attrs = _calculate_tier_attributes(tier)
@@ -194,7 +160,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             secret_ambiance_type = random.choice(ambiance_types)
             secret_ambiance_quality = sample_beta(4, 3, 0.4, 0.95)
 
-            menu_blueprint = _get_menu_blueprint(theme)
+            theme_archetypes = theme_archetypes_cache.get(theme, [])
 
             rand_status = random.random()
             if rand_status < 0.95:
@@ -228,7 +194,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "restaurant_name": name,
                     "cuisine_type": theme,
                     "price_level": price_level,
-                    "postal_code": f"{city_postal_map.get(city_name, '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
+                    "postal_code": f"{city_info.get('postal_prefix', '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
                     "email": f"kontakt@{slugify(name)}.pl",
                     "address": f"{fake.street_address()}, {city_name}",
                     "phone": phone,
@@ -249,15 +215,15 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "secret_ambiance_type": secret_ambiance_type,
                     "secret_ambiance_quality": round(secret_ambiance_quality, 3),
                     "slug": slugify(name),
-                    "secret_menu_blueprint": menu_blueprint,
-                    "secret_archetype_modifiers": json.dumps(generate_restaurant_archetype_modifiers(menu_blueprint)),
+                    "secret_menu_blueprint": theme,
+                    "secret_archetype_modifiers": json.dumps(generate_restaurant_archetype_modifiers(theme_archetypes)),
                 }
             )
 
-            menu_config = theme_info.get("menu_config", {}).get("sections", [])
+            sections = theme_sections_cache.get(theme, [])
             display_order = 1
-            for section_def in menu_config:
-                if random.random() <= section_def.get("chance", 1.0):
+            for section_def in sections:
+                if random.random() <= section_def["chance"]:
                     menu_sections_data.append(
                         {
                             "restaurant_id": restaurant_id_counter,
@@ -269,6 +235,8 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     display_order += 1
 
             restaurant_id_counter += 1
+
+    bdb.close()
 
     logger.info(f"Inserting {len(restaurant_data)} restaurants into database...")
     actual_restaurant_ids = db.insert_bulk_returning("restaurants", restaurant_data, "restaurant_id")
@@ -338,9 +306,6 @@ def _generate_description(theme: str, tier: str, city_name: str) -> str:
         base = f"Restauracja {theme} w {city_name}. Oferujemy autentyczne dania przygotowane z najlepszych składników."
 
     return base
-
-def _get_menu_blueprint(theme: str) -> str:
-    return THEME_TO_MENU_BLUEPRINT.get(theme, "General")
 
 def _assign_restaurant_tags(db: DatabaseConnection):
     logger.info("Assigning tags...")

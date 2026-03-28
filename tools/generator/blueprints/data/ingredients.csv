@@ -139,7 +139,7 @@ id,name,pixabay_term,is_meat,is_dairy,is_egg,is_gluten
 138,mielona_jagnięcina,ground lamb meat,1,0,0,0
 139,mielona_wołowina,ground beef,1,0,0,0
 140,migdały,almonds nuts,0,0,0,0
-141,miód,honey sweet,0,0,0,0
+141,miód,honey sweet,0,0,1,0
 142,mięso,meat food,1,0,0,0
 143,mięso_mielone,ground meat,1,0,0,0
 144,mięta,mint herb,0,0,0,0
