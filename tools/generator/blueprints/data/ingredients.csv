@@ -1,0 +1,287 @@
+id,name,pixabay_term,is_meat,is_dairy,is_egg,is_gluten
+1,ananas,pineapple fruit,0,0,0,0
+2,anchois,anchovies fish,1,0,0,0
+3,antrykot,ribeye steak,1,0,0,0
+4,aperol,aperol liqueur,0,0,0,0
+5,awokado,avocado fruit,0,0,0,0
+6,bagietka,baguette bread,0,0,0,1
+7,bajgiel,bagel bread,0,0,0,1
+8,bakłażan,eggplant vegetable,0,0,0,0
+9,banan,banana fruit,0,0,0,0
+10,bataty,sweet potato,0,0,0,0
+11,bazylia,basil herb,0,0,0,0
+12,bekon,bacon meat,1,0,0,0
+13,beszamel,white sauce creamy,0,0,0,0
+14,białe_wino,white wine,0,0,0,0
+15,biszkopt,sponge cake,0,0,0,0
+16,bita_śmietana,whipped cream bowl dessert topping,0,1,0,0
+17,boczek_wieprzowy,pork belly,1,0,0,0
+18,borówki,blueberries fruit,0,0,0,0
+19,brokuły,broccoli vegetable,0,0,0,0
+20,bulion,broth liquid,0,0,0,0
+21,bulion_wołowy,beef broth,0,0,0,0
+22,buraki,beets vegetable,0,0,0,0
+23,bułka,bread roll,0,0,0,1
+24,bułka_tarta,breadcrumbs food,0,0,0,1
+25,cebula,onion vegetable,0,0,0,0
+26,cebulka_dymka,spring onion,0,0,0,0
+27,chashu,chashu pork,1,0,0,0
+28,chili,chili pepper hot,0,0,0,0
+29,chipsy_kukurydziane,tortilla chips nachos,0,0,0,0
+30,chleb,bread loaf,0,0,0,1
+31,chleb_tostowy,toast bread,0,0,0,1
+32,chmiel,hops flowers,0,0,0,0
+33,chorizo,chorizo sausage,1,0,0,0
+34,ciastka_oreo,oreo cookies,0,0,0,0
+35,ciasto,dough pastry,0,0,0,1
+36,ciasto_drożdżowe,yeast dough,0,0,0,1
+37,ciasto_filo,filo pastry,0,0,0,1
+38,ciasto_kruche,shortcrust pastry,0,0,0,1
+39,ciasto_makaronowe,fresh pasta dough,0,0,0,1
+40,ciasto_parzone,choux pastry,0,0,0,1
+41,ciecierzyca,chickpeas legumes,0,0,0,0
+42,cola,cola soda,0,0,0,0
+43,cukier,sugar granules,0,0,0,0
+44,cukinia,zucchini vegetable,0,0,0,0
+45,cynamon,cinnamon spice,0,0,0,0
+46,cytryna,lemon citrus,0,0,0,0
+47,czarna_fasola,black beans,0,0,0,0
+48,czekolada,chocolate bar pieces,0,0,0,0
+49,czekolada_gorzka,dark chocolate,0,0,0,0
+50,czekoladowe_wiórki,chocolate chips baking,0,0,0,0
+51,czerwona_cebula,red onion,0,0,0,0
+52,czerwone_wino,red wine,0,0,0,0
+53,czosnek,garlic vegetable,0,0,0,0
+54,dorsz,cod fish,1,0,0,0
+55,drożdże,yeast ingredient,0,0,0,0
+56,dynia,pumpkin vegetable,0,0,0,0
+57,dzem,jam preserve,0,0,0,0
+58,fasola,beans legumes,0,0,0,0
+59,fasolka_szparagowa,green beans,0,0,0,0
+60,feta,feta cheese,0,1,0,0
+61,fettuccine,fettuccine pasta,0,0,0,1
+62,frytki,french fries,0,0,0,0
+63,gin,gin alcohol,0,0,0,0
+64,gnocchi_ziemniaczane,potato gnocchi,0,0,0,1
+65,gochujang,gochujang korean paste,0,0,0,0
+66,groszek,peas vegetable,0,0,0,0
+67,gruszka,pear fruit,0,0,0,0
+68,grzanki,croutons bread,0,0,0,1
+69,grzyby,mushrooms fungi,0,0,0,0
+70,guacamole,guacamole dip,0,0,0,0
+71,herbata,tea bags,0,0,0,0
+72,herbata_czarna,black tea bags,0,0,0,0
+73,herbata_miętowa,mint tea bags,0,0,0,0
+74,herbata_owocowa,fruit tea bags,0,0,0,0
+75,herbata_zielona,green tea bags,0,0,0,0
+76,herbatniki,butter cookies biscuits,0,0,0,0
+77,homar,lobster seafood,1,0,0,0
+78,hummus,hummus dip,0,0,0,0
+79,imbir,ginger root,0,0,0,0
+80,jabłko,apple fruit,0,0,0,0
+81,jagnięcina,lamb meat,1,0,0,0
+82,jagody,berries fruit,0,0,0,0
+83,jajko,egg food,0,0,1,0
+84,jalapeno,jalapeno pepper,0,0,0,0
+85,jałowiec,juniper berries,0,0,0,0
+86,jogurt,plain white yogurt bowl,0,1,0,0
+87,kakao,cocoa powder,0,0,0,0
+88,kalafior,cauliflower vegetable,0,0,0,0
+89,kalmary,squid seafood,1,0,0,0
+90,kapary,capers food,0,0,0,0
+91,kapusta,cabbage vegetable,0,0,0,0
+92,kapusta_kiszona,sauerkraut cabbage,0,0,0,0
+93,kapusta_pekińska,napa cabbage,0,0,0,0
+94,karmel,caramel sauce drizzle,0,0,0,0
+95,kasza_bulgur,bulgur wheat,0,0,0,0
+96,kawa,coffee drink,0,0,0,0
+97,kefir,kefir dairy,0,1,0,0
+98,ketchup,ketchup sauce,0,0,0,0
+99,kiełbasa,sausage meat,1,0,0,0
+100,kiszone_warzywa,pickled vegetables,0,0,0,0
+101,klopsiki,meatballs food,1,0,0,0
+102,kluski_ziemniaczane,potato dumplings,0,0,0,1
+103,kminek,caraway seeds,0,0,0,0
+104,kolendra,cilantro herb,0,0,0,0
+105,komosa_ryżowa,quinoa grain,0,0,0,0
+106,koperek,dill herb,0,0,0,0
+107,kotlet_roślinny,veggie burger patty,1,0,0,0
+108,kotlet_wołowy,beef patty meat,1,0,0,0
+109,krab,crab seafood,1,0,0,0
+110,krem_waniliowy,vanilla custard cream,0,0,0,0
+111,krewetki,shrimp seafood,1,0,0,0
+112,królik,rabbit meat dish,1,0,0,0
+113,kukurydza,corn vegetable,0,0,0,0
+114,kurczak,chicken meat,1,0,0,0
+115,likier_pomarańczowy,orange liqueur,0,0,0,0
+116,limonka,lime citrus,0,0,0,0
+117,lody,ice cream scoops bowl,0,0,0,0
+118,lukier,icing sugar glaze,0,0,0,0
+119,lód,ice cubes,0,0,0,0
+120,majonez,mayonnaise sauce,0,0,1,0
+121,mak,poppy seeds,0,0,0,0
+122,makaron_lasagne,lasagna pasta sheets,0,0,0,1
+123,makaron_nitki,thin soup noodles vermicelli,0,0,0,1
+124,makaron_ramen,ramen noodles,0,0,0,1
+125,makaron_ryżowy,rice noodles,0,0,0,1
+126,maliny,raspberries fruit,0,0,0,0
+127,mandarynka,mandarin orange,0,0,0,0
+128,mango,mango fruit,0,0,0,0
+129,marakuja,passion fruit,0,0,0,0
+130,marchew,carrot vegetable,0,0,0,0
+131,marynata_octowa,vinegar marinade,0,0,0,0
+132,marynata_sojowa,soy sauce bowl,0,0,0,0
+133,mascarpone,mascarpone cheese,0,1,0,0
+134,masło,butter dairy,0,1,0,0
+135,masło_orzechowe,peanut butter,0,1,0,0
+136,małże,mussels shellfish,1,0,0,0
+137,maślanka,buttermilk dairy,0,0,0,0
+138,mielona_jagnięcina,ground lamb meat,1,0,0,0
+139,mielona_wołowina,ground beef,1,0,0,0
+140,migdały,almonds nuts,0,0,0,0
+141,miód,honey sweet,0,0,0,0
+142,mięso,meat food,1,0,0,0
+143,mięso_mielone,ground meat,1,0,0,0
+144,mięta,mint herb,0,0,0,0
+145,mleko,milk dairy,0,1,0,0
+146,mleko_kokosowe,coconut milk,0,1,0,0
+147,mleko_migdałowe,almond milk,0,1,0,0
+148,mostek_wołowy,beef brisket,1,0,0,0
+149,mozzarella,mozzarella caprese,0,1,0,0
+150,musztarda,mustard sauce,0,0,0,0
+151,mąka,flour powder,0,0,0,1
+152,nori,nori sheets,0,0,0,0
+153,nutella,nutella chocolate spread,0,0,0,0
+154,ocet,vinegar liquid,0,0,0,0
+155,ocet_balsamiczny,balsamic vinegar,0,0,0,0
+156,ogórek,fresh green cucumber,0,0,0,0
+157,ogórek_kiszony,dill pickles,0,0,0,0
+158,okoń_morski,sea bass fish,1,0,0,0
+159,olej_chili,chili oil,0,0,0,0
+160,oliwa,olive oil liquid,0,0,0,0
+161,oliwki,olives,0,0,0,0
+162,orzechy_laskowe,hazelnuts nuts,0,0,0,0
+163,orzechy_włoskie,walnuts nuts,0,0,0,0
+164,orzeszki_ziemne,peanuts nuts,0,0,0,0
+165,panini,panini bread,0,0,0,1
+166,papier_ryżowy,rice paper spring roll wrapper,0,0,0,0
+167,papryka,bell pepper vegetable,0,0,0,0
+168,parmezan,parmesan cheese,0,1,0,0
+169,pasta_chili,chili paste,0,0,0,0
+170,pasta_curry_czerwona,red curry paste,0,0,0,0
+171,pasta_curry_zielona,green curry paste,0,0,0,0
+172,pasztet,pate meat spread,1,0,0,0
+173,penne,penne pasta,0,0,0,1
+174,pesto,pesto sauce,0,0,0,0
+175,pieczarki,button mushrooms,0,0,0,0
+176,pieprz,pepper spice,0,0,0,0
+177,pieprz_syczuański,sichuan pepper,0,0,0,0
+178,pierożki,dumplings pastry,0,0,0,0
+179,pietruszka,parsley herb,0,0,0,0
+180,pikantny_majonez,spicy mayonnaise,0,0,1,0
+181,pikantny_sos_pomidorowy,spicy tomato sauce arrabiata,0,0,0,0
+182,pistacje,pistachios nuts,0,0,0,0
+183,pita,pita bread,0,0,0,1
+184,polewa_czekoladowa,chocolate glaze,0,0,0,0
+185,polędwica,tenderloin meat,1,0,0,0
+186,pomarańcza,orange citrus,0,0,0,0
+187,pomidor,tomato vegetable,0,0,0,0
+188,prosciutto,prosciutto ham,1,0,0,0
+189,prosecco,prosecco wine,0,0,0,0
+190,proszek_chili,chili powder,0,0,0,0
+191,przyprawy,dry spices mix bowl,0,0,0,0
+192,przyprawy_bbq,bbq spices,0,0,0,0
+193,przyprawy_tandoori,tandoori masala powder bowl,0,0,0,0
+194,pędy_bambusa,bamboo shoots,0,0,0,0
+195,płaski_chleb,turkish flatbread,0,0,0,1
+196,ricotta,ricotta cheese,0,1,0,0
+197,rodzynki,dried raisins bowl,0,0,0,0
+198,rosół_drobiowy,chicken broth,0,0,0,0
+199,rosół_miso,miso broth,0,0,0,0
+200,rosół_miso_pikantny,spicy miso broth,0,0,0,0
+201,rosół_sojowy,soy broth,0,0,0,0
+202,rosół_wieprzowy,pork broth,0,0,0,0
+203,rosół_wołowy,beef broth,0,0,0,0
+204,rozmaryn,rosemary herb,0,0,0,0
+205,rukola,fresh arugula leaves salad,0,0,0,0
+206,rum,rum alcohol,0,0,0,0
+207,ryba,fish seafood,1,0,0,0
+208,ryż,rice grain,0,0,0,0
+209,ryż_arborio,arborio rice risotto grain,0,0,0,0
+210,salsa,salsa sauce,0,0,0,0
+211,sałata,lettuce salad greens,0,0,0,0
+212,sałata_rzymska,romaine lettuce,0,0,0,0
+213,schab,pork loin,1,0,0,0
+214,seler_naciowy,celery vegetable,0,0,0,0
+215,ser,cheese dairy,0,1,0,0
+216,ser_kozi,goat cheese,0,1,0,0
+217,serek_kremowy,cream cheese,0,1,0,0
+218,sezam,sesame seeds,0,0,0,0
+219,skrzydełka_kurczaka,chicken wings,1,0,0,0
+220,soja,soy beans,0,0,0,0
+221,sos_amerykański,american burger sauce dip bowl,0,0,0,0
+222,sos_bbq,bbq barbecue sauce bowl,0,0,0,0
+223,sos_boloński,bolognese sauce,0,0,0,0
+224,sos_buffalo,buffalo chicken wing sauce bowl,0,0,0,0
+225,sos_cezar,creamy parmesan garlic dressing bowl,0,0,0,0
+226,sos_czosnkowy,garlic sauce,0,0,0,0
+227,sos_jogurtowy,yogurt herb sauce bowl,0,1,0,0
+228,sos_orzechowy,peanut sauce bowl dip,0,0,0,0
+229,sos_pomidorowy,tomato sauce,0,0,0,0
+230,sos_sojowy,soy sauce bottle asian,0,0,0,0
+231,sos_słodko-kwaśny,sweet sour sauce chinese,0,0,0,0
+232,sos_tatarski,tartar sauce dip bowl,0,0,0,0
+233,spaghetti,spaghetti pasta,0,0,0,1
+234,ssamjang,ssamjang korean sauce,0,0,0,0
+235,stek,steak beef,1,0,0,0
+236,stek_t-bone,t-bone steak,1,0,0,0
+237,suszona_żurawina,dried cranberries,0,0,0,0
+238,syrop_cukrowy,sugar syrup liquid,0,0,0,0
+239,syrop_czekoladowy,chocolate syrup,0,0,0,0
+240,syrop_klonowy,maple syrup,0,0,0,0
+241,szafran,saffron spice,0,0,0,0
+242,szczypiorek,fresh green chives bunch,0,0,0,0
+243,szparagi,asparagus vegetable,0,0,0,0
+244,szpinak,spinach leafy greens,0,0,0,0
+245,szynka,ham meat,1,0,0,0
+246,sól,salt seasoning,0,0,0,0
+247,sól_morska,sea salt,0,0,0,0
+248,słód,malt barley grain,0,0,0,0
+249,tahini,tahini sesame paste,0,0,0,0
+250,tamaryndowiec,tamarind fruit,0,0,0,0
+251,tequila,tequila alcohol,0,0,0,0
+252,tofu,tofu soy,0,0,0,0
+253,tonik,tonic water,0,0,0,0
+254,tortilla,tortilla flatbread,0,0,0,1
+255,trawa_cytrynowa,lemongrass,0,0,0,0
+256,truskawki,strawberries fruit,0,0,0,0
+257,tuńczyk,tuna fish,1,0,0,0
+258,tymianek,thyme herb,0,0,0,0
+259,tzatziki,tzatziki sauce,0,0,0,0
+260,wanilia,vanilla bean,0,0,0,0
+261,warzywa,vegetables fresh,0,0,0,0
+262,warzywa_grillowane,grilled vegetables,0,0,0,0
+263,warzywa_wiosenne,spring vegetables,0,0,0,0
+264,wegańska_bułka,vegan bun bread,0,0,0,1
+265,wieprzowina,pork meat,1,0,0,0
+266,winogrona,grapes fruit,0,0,0,0
+267,wiórki_kokosowe,shredded coconut bowl,0,0,0,0
+268,wiśnie_amarena,amarena cherries,0,0,0,0
+269,woda,water liquid,0,0,0,0
+270,woda_gazowana,sparkling water,0,0,0,0
+271,wołowina,beef meat,1,0,0,0
+272,wołowina_surowa,raw beef meat,1,0,0,0
+273,wódka,vodka alcohol,0,0,0,0
+274,wątróbka,raw chicken liver,1,0,0,0
+275,węgorz,eel fish,1,0,0,0
+276,zakwas,sourdough starter,0,0,0,0
+277,ziarna_kawy,coffee beans,0,0,0,0
+278,ziemniaki,potatoes vegetable,0,0,0,0
+279,łopatka_wieprzowa,pork shoulder,1,0,0,0
+280,łosoś,salmon fish,1,0,0,0
+281,łosoś_wędzony,smoked salmon,1,0,0,0
+282,śmietana,sour cream dairy,0,1,0,0
+283,śmietanka,pouring heavy cream,0,1,0,0
+284,żeberka_wieprzowe,pork ribs,1,0,0,0
+285,żeberka_wołowe,beef ribs,1,0,0,0
+286,żółtko,egg yolk,0,0,1,0
