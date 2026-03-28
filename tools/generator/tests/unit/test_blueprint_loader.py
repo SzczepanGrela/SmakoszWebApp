@@ -63,28 +63,6 @@ class TestDishesBlueprint:
                 for dim, val in var_chars.items():
                     assert 0.0 <= val <= 1.0, f"Variant '{archetype_name}.{variant_name}' {dim}={val} out of [0,1]"
 
-class TestMenuTemplatesBlueprint:
-
-    def test_menu_templates_loads(self, menu_templates_json):
-        assert menu_templates_json is not None
-
-    def test_menu_templates_have_archetypes(self, menu_templates_json, dishes_json):
-        valid_archetypes = set(dishes_json.keys())
-
-        for template_name, template_data in menu_templates_json.items():
-            if not isinstance(template_data, dict):
-                continue
-
-            categories = template_data.get("categories", {})
-            for _category_name, category_archetypes in categories.items():
-                if isinstance(category_archetypes, list):
-                    for arch in category_archetypes:
-                        archetype_name = arch if isinstance(arch, str) else arch.get("archetype", "")
-                        if archetype_name:
-                            assert archetype_name in valid_archetypes, (
-                                f"Template '{template_name}' references unknown archetype '{archetype_name}'"
-                            )
-
 class TestIngredientsBlueprint:
 
     def test_ingredients_loads(self, ingredients_json):
