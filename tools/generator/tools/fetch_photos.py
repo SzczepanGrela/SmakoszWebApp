@@ -100,49 +100,37 @@ class PixabayDownloader:
             json.dump(self.seen_urls, f, indent=2)
 
     def _load_restaurant_themes(self) -> None:
-        blueprint_path = BLUEPRINTS_DIR / "restaurant_types.json"
         try:
-            with open(blueprint_path, encoding="utf-8") as f:
-                data = json.load(f)
-                theme_config = data.get("RESTAURANT_THEMES", {})
-                for theme, config in theme_config.items():
-                    weight = config.get("distribution_chance", 0.05) * 100
-                    self.restaurant_themes[theme] = max(1.0, weight)
+            from utils.blueprint_db import BlueprintDB
+            bdb = BlueprintDB()
+            themes = bdb.get_themes()
+            pixabay_terms = bdb.get_theme_pixabay_terms()
+            bdb.close()
 
-                    pixabay_term = config.get("pixabay_term")
-                    if pixabay_term:
-                        self.restaurant_pixabay_terms[theme] = pixabay_term
+            for theme in themes:
+                weight = theme["distribution_chance"] * 100
+                self.restaurant_themes[theme["name"]] = max(1.0, weight)
+                if pixabay_terms.get(theme["name"]):
+                    self.restaurant_pixabay_terms[theme["name"]] = pixabay_terms[theme["name"]]
 
-                logger.info(f"Loaded {len(self.restaurant_themes)} restaurant themes")
-                logger.info(f"Loaded {len(self.restaurant_pixabay_terms)} restaurant pixabay search terms")
+            logger.info(f"Loaded {len(self.restaurant_themes)} restaurant themes")
+            logger.info(f"Loaded {len(self.restaurant_pixabay_terms)} restaurant pixabay search terms")
         except Exception as e:
-            logger.warning(f"Could not load restaurant themes from blueprint: {e}. Using defaults.")
-            self.restaurant_themes = {
-                "Italian": 3.0,
-                "Asian": 3.0,
-                "American": 2.5,
-                "Modern": 4.0,
-                "Cozy": 3.0,
-                "Bar": 2.0,
-                "Cafe": 2.0,
-                "Mexican": 2.5,
-                "French": 2.5,
-            }
+            logger.warning(f"Could not load restaurant themes from BlueprintDB: {e}. Using defaults.")
+            self.restaurant_themes = {}
             self.restaurant_pixabay_terms = {}
 
     def _load_ingredient_mappings(self) -> dict[str, str]:
-        mapping_path = BLUEPRINTS_DIR / "ingredients_pixabay.json"
-        mappings = {}
         try:
-            with open(mapping_path, encoding="utf-8") as f:
-                mappings = json.load(f)
-                logger.info(f"Loaded {len(mappings)} ingredient search term mappings")
-        except FileNotFoundError:
-            logger.warning(f"Ingredient mapping file not found: {mapping_path}")
-            logger.warning("Will use fallback search terms for ingredients.")
+            from utils.blueprint_db import BlueprintDB
+            bdb = BlueprintDB()
+            mappings = {k: v for k, v in bdb.get_ingredient_pixabay_terms().items() if v}
+            bdb.close()
+            logger.info(f"Loaded {len(mappings)} ingredient search term mappings")
+            return mappings
         except Exception as e:
-            logger.warning(f"Could not load ingredient mappings: {e}. Using fallback search terms.")
-        return mappings
+            logger.warning(f"Could not load ingredient mappings from BlueprintDB: {e}. Using fallback search terms.")
+            return {}
 
     def _load_dish_variants(self) -> dict[str, Any]:
         bp_path = BLUEPRINTS_DIR / "dishes.json"

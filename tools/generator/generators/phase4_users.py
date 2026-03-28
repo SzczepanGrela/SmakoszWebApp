@@ -171,9 +171,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     all_ingredients = db.fetch_all("SELECT ingredient_name FROM ingredients")
     ingredient_names = [ing_name for (ing_name,) in all_ingredients]
 
-    loader = BlueprintLoader("blueprints")
-    dish_blueprints = loader.load_blueprint("dishes.json")
-    all_archetypes = list(dish_blueprints.keys())
+    from utils.blueprint_db import BlueprintDB
+    bdb = BlueprintDB()
+    all_archetypes = bdb.get_archetype_names()
+    bdb.close()
 
     photo_pools = PhotoPools()
 

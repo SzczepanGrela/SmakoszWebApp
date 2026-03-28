@@ -37,7 +37,7 @@ class TestPhase6Registration:
         assert retrieved is phase
 
     def test_phase6_dependency_resolution(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
         from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
@@ -46,7 +46,9 @@ class TestPhase6Registration:
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
         registry.register(UsersPhase())
@@ -95,6 +97,9 @@ class TestPhase6ExecutionStructure:
             2000,
             200,
             150,
+            80,
+            40,
+            10,
         ]
 
         phase = SocialGraphPhase(blueprints_dir="blueprints")
@@ -142,7 +147,7 @@ class TestPhase6ErrorHandling:
 class TestPhase6CompleteChain:
 
     def test_full_pipeline_with_phase6(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
         from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
@@ -154,7 +159,9 @@ class TestPhase6CompleteChain:
 
         registry.register(SystemConfigPhase())
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
         registry.register(UsersPhase())

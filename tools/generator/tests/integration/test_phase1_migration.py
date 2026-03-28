@@ -124,18 +124,16 @@ class TestPhase1Execution:
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 
-        mock_blueprint = {
-            "RESTAURANT_THEMES": {
-                "Pizzeria": {},
-                "Burgerownia": {},
-                "Sushi Bar": {},
-            }
-        }
+        mock_themes = [
+            {"name": "Pizzeria", "display_name": "Pizzeria", "icon": "icon1"},
+            {"name": "Burgerownia", "display_name": "Burgerownia", "icon": "icon2"},
+            {"name": "Sushi Bar", "display_name": "Sushi Bar", "icon": "icon3"},
+        ]
 
-        with patch("generators.phase1_definitions.BlueprintLoader") as MockLoader:
-            mock_loader = Mock()
-            mock_loader.load_blueprint.return_value = mock_blueprint
-            MockLoader.return_value = mock_loader
+        with patch("generators.phase1_definitions.BlueprintDB") as MockBDB:
+            mock_bdb = MagicMock()
+            mock_bdb.get_themes.return_value = mock_themes
+            MockBDB.return_value = mock_bdb
 
             phase = CuisineTypesPhase(blueprints_dir="blueprints")
             context = ExecutionContext(db=mock_db, config={}, phase_registry=PhaseRegistry())
@@ -167,28 +165,20 @@ class TestPhase1Execution:
         mock_db = MagicMock()
         mock_db.insert_bulk = Mock()
 
-        mock_dishes = {"Pizza": {"variants": {"Margherita": {"ingredients": ["mozzarella", "pomidory", "bazylia"]}}}}
-
-        mock_global_config = {
-            "DIETARY_KEYWORDS": {
-                "meat": ["kurczak", "wołowina"],
-                "dairy": ["ser", "mleko"],
-                "eggs": ["jajko"],
-                "gluten": ["pszenica", "mąka"],
-            }
-        }
+        mock_ingredients = [
+            {"name": "mozzarella", "is_meat": 0, "is_dairy": 1, "is_egg": 0, "is_gluten": 0},
+            {"name": "pomidory", "is_meat": 0, "is_dairy": 0, "is_egg": 0, "is_gluten": 0},
+            {"name": "bazylia", "is_meat": 0, "is_dairy": 0, "is_egg": 0, "is_gluten": 0},
+        ]
 
         with (
-            patch("generators.phase1_definitions.BlueprintLoader") as MockLoader,
+            patch("generators.phase1_definitions.BlueprintDB") as MockBDB,
             patch("generators.phase1_definitions.PhotoPools") as MockPhotoP,
             patch("generators.phase1_definitions.tqdm", side_effect=lambda x, **kwargs: x),
         ):
-            mock_loader = Mock()
-            mock_loader.load_blueprint.side_effect = [
-                mock_dishes,
-                mock_global_config,
-            ]
-            MockLoader.return_value = mock_loader
+            mock_bdb = MagicMock()
+            mock_bdb.get_all_ingredients.return_value = mock_ingredients
+            MockBDB.return_value = mock_bdb
 
             mock_photo_pools = Mock()
             mock_photo_pools.get_ingredient_photo.return_value = {
