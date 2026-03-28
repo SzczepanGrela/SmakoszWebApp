@@ -386,6 +386,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
                 if not assigned_sections:
                     assigned_sections.append(random.choice(available_sections)["id"])
+                    logger.warning(f"Random section fallback: archetype='{archetype}' restaurant={restaurant_id}")
 
             dish_meta_buffer.append(
                 {
