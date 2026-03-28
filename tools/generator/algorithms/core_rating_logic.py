@@ -1,12 +1,18 @@
-import json
+import hashlib
 import logging
 import math
-import random
+import random as _random
 from typing import Any
 
-from .preference_calculator import calculate_affinity, calculate_direct_affinity
+from .preference_calculator import calculate_affinity
 
 logger = logging.getLogger(__name__)
+
+def get_review_rng(user_id: int, dish_id: int) -> _random.Random:
+    """Deterministic RNG seeded by (user_id, dish_id) pair."""
+    seed_str = f"review_{user_id}_{dish_id}"
+    seed_int = int.from_bytes(hashlib.md5(seed_str.encode()).digest()[:8], "little")
+    return _random.Random(seed_int)
 
 def get_archetype_metadata(archetype: str, vectors_data: dict[str, Any] | None = None) -> dict[str, dict[str, float]]:
     if vectors_data is None:
@@ -45,67 +51,54 @@ def calculate_food_score_polarized(
     restaurant: dict,
     contextual_target_vector: dict[str, float] | None = None,
     vectors_data: dict[str, Any] | None = None,
+    rng: _random.Random | None = None,
 ) -> float:
+    if rng is None:
+        rng = _random.Random()
+
     technical_quality = float(dish.get("secret_quality", 0.5))
 
     user_vector = user_data.get("secret_characteristics_vector", {})
     dish_vector = dish.get("secret_characteristics_vector", {})
 
-    if isinstance(user_vector, str):
-        user_vector = json.loads(user_vector)
-    if isinstance(dish_vector, str):
-        dish_vector = json.loads(dish_vector)
+    archetype = dish.get("secret_archetype", "Inne")
+    archetype_metadata = get_archetype_metadata(archetype, vectors_data)
+    adaptation_weights = archetype_metadata["base_weights"]
+    base_characteristics = archetype_metadata["base_characteristics"]
+    penalty_vector = dish.get("secret_penalty_vector")
 
-    if contextual_target_vector is not None:
-        archetype = dish.get("secret_archetype", "Inne")
-        archetype_metadata = get_archetype_metadata(archetype, vectors_data)
-        adaptation_weights = archetype_metadata["base_weights"]
-        base_characteristics = archetype_metadata["base_characteristics"]
-        penalty_vector = dish.get("secret_penalty_vector")
-        if isinstance(penalty_vector, str):
-            penalty_vector = json.loads(penalty_vector)
+    sensory_fit = calculate_affinity(
+        user_vector=user_vector,
+        dish_vector=dish_vector,
+        adaptation_weights=adaptation_weights,
+        base_characteristics=base_characteristics,
+        penalty_weights=penalty_vector,
+        contextual_targets=contextual_target_vector,
+    )
 
-        sensory_fit = calculate_direct_affinity(
-            target_vector=contextual_target_vector,
-            dish_vector=dish_vector,
-            user_vector=user_vector,
-            adaptation_weights=adaptation_weights,
-            base_characteristics=base_characteristics,
-            penalty_weights=penalty_vector,
-        )
-    else:
-        archetype = dish.get("secret_archetype", "Inne")
-        archetype_metadata = get_archetype_metadata(archetype, vectors_data)
-        base_characteristics = archetype_metadata["base_characteristics"]
-        adaptation_weights = archetype_metadata["base_weights"]
-        penalty_vector = dish.get("secret_penalty_vector")
-        if isinstance(penalty_vector, str):
-            penalty_vector = json.loads(penalty_vector)
-
-        sensory_fit = calculate_affinity(
-            user_vector=user_vector,
-            dish_vector=dish_vector,
-            adaptation_weights=adaptation_weights,
-            base_characteristics=base_characteristics,
-            penalty_weights=penalty_vector,
-        )
-
+    # 1. Base score from technical quality
     base_score = technical_quality * 10.0
 
-    if sensory_fit < 0.5:
-        penalty = (0.5 - sensory_fit) * 6.0
-        base_score -= penalty
+    # 2. Continuous affinity modifier (fit=0->-2, fit=0.5->0, fit=1->+2)
+    affinity_shift = (sensory_fit - 0.5) * 4.0
+    base_score += affinity_shift
 
-    archetype = dish.get("secret_archetype", "Inne")
+    # 3. Category affinity - continuous modifier
     category_affinity = user_data.get("secret_enjoyed_archetypes", {}).get(archetype, 0.5)
     if category_affinity < 0.3:
-        base_score = min(base_score, 4.0)
+        base_score -= (0.3 - category_affinity) * 8.0  # up to -2.4
+    elif category_affinity > 0.7:
+        base_score += (category_affinity - 0.7) * 3.0  # up to +0.9
 
-    noise = random.gauss(0, 1.5)
-    final_score = base_score + noise
+    # 4. User personality - baseline shifts food_score (NCF signal)
+    baseline = float(user_data.get("secret_rating_baseline", 6.0))
+    base_score += (baseline - 6.0) * 0.5  # ~±1.0 for typical users
 
-    if random.random() < 0.05:
-        mishap_penalty = random.uniform(2.0, 4.0)
-        final_score -= mishap_penalty
+    # 5. Deterministic noise (reduced - new variance sources compensate)
+    base_score += rng.gauss(0, 1.0)
 
-    return max(1.0, min(10.0, final_score))
+    # 6. Random mishap (deterministic)
+    if rng.random() < 0.05:
+        base_score -= rng.uniform(2.0, 4.0)
+
+    return max(1.0, min(10.0, base_score))

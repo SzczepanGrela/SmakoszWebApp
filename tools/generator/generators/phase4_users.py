@@ -14,7 +14,7 @@ from data_access import UserDAO
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
-from utils.date_generator import DateGenerator
+from utils.date_generator import generate_user_join_date, to_sql_datetime
 from utils.db_connection import DatabaseConnection
 from utils.distributions import sample_normal
 from utils.faker_instance import fake
@@ -74,6 +74,78 @@ def allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints"):
     random.shuffle(user_city_assignments)
     return user_city_assignments
 
+def _generate_user_attributes(
+    role: str, all_archetypes: list[str], ingredient_names: list[str]
+) -> dict:
+    """Generate secret user attributes based on role. Returns dict of secret fields."""
+    if role != "user":
+        return {
+            "is_power_user": False,
+            "mobility_factor": 0.0,
+            "secret_total_review_count": 0,
+            "is_influencer": random.random() < 0.50,
+            "secret_mood_propensity": 0.0,
+            "secret_cross_impact_factor": 0.0,
+            "ingredient_preferences": {},
+            "enjoyed_archetypes": {},
+            "cleanliness_expectations": {},
+            "secret_preferred_ambiance": "Casual",
+        }
+
+    is_power_user = random.random() < 0.15
+    mobility_factor = float(round(beta_dist.rvs(2, 5), 3))
+
+    if is_power_user:
+        secret_total_review_count = max(50, int(random.gauss(100, 15)))
+        mobility_factor = min(1.0, mobility_factor + 0.1)
+        is_influencer = random.random() < 0.20
+    elif random.random() < 0.05:
+        secret_total_review_count = random.randint(1, 3)
+        is_influencer = False
+    else:
+        secret_total_review_count = max(10, int(random.gauss(40, 20)))
+        is_influencer = random.random() < 0.005
+
+    secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)
+    secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)
+
+    ingredient_preferences = {}
+    sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
+    for ingredient in sampled_ingredients:
+        ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
+
+    num_favorites = random.randint(3, 7)
+    favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
+    remaining = [a for a in all_archetypes if a not in favorites]
+    num_dislikes = random.randint(1, 3)
+    dislikes = random.sample(remaining, min(num_dislikes, len(remaining)))
+
+    enjoyed_archetypes = {}
+    for arch in favorites:
+        enjoyed_archetypes[arch] = round(random.uniform(0.7, 1.0), 2)
+    for arch in dislikes:
+        enjoyed_archetypes[arch] = round(random.uniform(0.1, 0.3), 2)
+
+    cleanliness_expectations = {
+        "Fine dining": round(random.uniform(8.0, 9.5), 1),
+        "Casual": round(random.uniform(6.0, 8.0), 1),
+        "Fast casual": round(random.uniform(5.0, 7.0), 1),
+    }
+    ambiance_types = ["Spokojny", "Energiczny", "Romantyczny", "Rodzinny", "Biznesowy"]
+
+    return {
+        "is_power_user": is_power_user,
+        "mobility_factor": mobility_factor,
+        "secret_total_review_count": secret_total_review_count,
+        "is_influencer": is_influencer,
+        "secret_mood_propensity": secret_mood_propensity,
+        "secret_cross_impact_factor": secret_cross_impact_factor,
+        "ingredient_preferences": ingredient_preferences,
+        "enjoyed_archetypes": enjoyed_archetypes,
+        "cleanliness_expectations": cleanliness_expectations,
+        "secret_preferred_ambiance": random.choice(ambiance_types),
+    }
+
 def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool = True):
     start_time = time.time()
     logger.info("Generating users...")
@@ -104,7 +176,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     dish_blueprints = loader.load_blueprint("dishes.json")
     all_archetypes = list(dish_blueprints.keys())
 
-    date_gen = DateGenerator()
     photo_pools = PhotoPools()
 
     # Password: "Password123!" - reused for all 50k users (acceptable for mock data)
@@ -129,7 +200,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         email = f"contact_{r_id}@{sanitized_name}.com"
 
         phone = generate_phone()
-        join_date = date_gen.generate_user_join_date()
+        join_date = generate_user_join_date()
 
         days_since_join = (datetime.now() - join_date).days
         if days_since_join > 0:
@@ -154,8 +225,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "role": "restaurant",
                 "secret_home_city_id": r_city_id,
                 "restaurant_id": r_id,
-                "created_at": DateGenerator.to_sql_datetime(join_date),
-                "last_login_at": DateGenerator.to_sql_datetime(last_login),
+                "created_at": to_sql_datetime(join_date),
+                "last_login_at": to_sql_datetime(last_login),
                 "is_active": True,
                 "is_banned": False,
                 "is_deleted": False,
@@ -207,65 +278,18 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             email = f"{base_username}{i}@example.com"
 
         city_id, city_name = user_city_assignments[i]
-        join_date = date_gen.generate_user_join_date()
+        join_date = generate_user_join_date()
 
-        if role == "user":
-            is_power_user = random.random() < 0.15
-            mobility_factor = float(round(beta_dist.rvs(2, 5), 3))
-
-            if is_power_user:
-                secret_total_review_count = int(random.gauss(100, 15))
-                secret_total_review_count = max(50, secret_total_review_count)
-                mobility_factor = min(1.0, mobility_factor + 0.1)
-                is_influencer = random.random() < 0.20
-            elif random.random() < 0.05:
-                secret_total_review_count = random.randint(1, 3)
-                is_influencer = False
-            else:
-                secret_total_review_count = int(random.gauss(40, 20))
-                secret_total_review_count = max(10, secret_total_review_count)
-                is_influencer = random.random() < 0.005
-
-            secret_mood_propensity = sample_normal(0.3, 0.05, 0.20, 0.40)
-            secret_cross_impact_factor = sample_normal(0.02, 0.01, 0.01, 0.04)
-
-            ingredient_preferences = {}
-            sampled_ingredients = random.sample(ingredient_names, min(30, len(ingredient_names)))
-            for ingredient in sampled_ingredients:
-                ingredient_preferences[ingredient] = round(random.uniform(0.0, 1.0), 2)
-
-            num_favorites = random.randint(3, 7)
-            favorites = random.sample(all_archetypes, min(num_favorites, len(all_archetypes)))
-            remaining = [a for a in all_archetypes if a not in favorites]
-            num_dislikes = random.randint(1, 3)
-            dislikes = random.sample(remaining, min(num_dislikes, len(remaining)))
-
-            enjoyed_archetypes = {}
-            for arch in favorites:
-                enjoyed_archetypes[arch] = round(random.uniform(0.7, 1.0), 2)
-            for arch in dislikes:
-                enjoyed_archetypes[arch] = round(random.uniform(0.1, 0.3), 2)
-
-            cleanliness_expectations = {
-                "Fine dining": round(random.uniform(8.0, 9.5), 1),
-                "Casual": round(random.uniform(6.0, 8.0), 1),
-                "Fast casual": round(random.uniform(5.0, 7.0), 1),
-            }
-            ambiance_types = ["Spokojny", "Energiczny", "Romantyczny", "Rodzinny", "Biznesowy"]
-            secret_preferred_ambiance = random.choice(ambiance_types)
-
-        else:
-            is_power_user = False
-            mobility_factor = 0.0
-            secret_total_review_count = 0
-            is_influencer = random.random() < 0.50
-            secret_mood_propensity = 0.0
-            secret_cross_impact_factor = 0.0
-
-            ingredient_preferences = {}
-            enjoyed_archetypes = {}
-            cleanliness_expectations = {}
-            secret_preferred_ambiance = "Casual"
+        attrs = _generate_user_attributes(role, all_archetypes, ingredient_names)
+        secret_total_review_count = attrs["secret_total_review_count"]
+        is_influencer = attrs["is_influencer"]
+        mobility_factor = attrs["mobility_factor"]
+        secret_mood_propensity = attrs["secret_mood_propensity"]
+        secret_cross_impact_factor = attrs["secret_cross_impact_factor"]
+        ingredient_preferences = attrs["ingredient_preferences"]
+        enjoyed_archetypes = attrs["enjoyed_archetypes"]
+        cleanliness_expectations = attrs["cleanliness_expectations"]
+        secret_preferred_ambiance = attrs["secret_preferred_ambiance"]
 
         full_name = generate_full_name()
 
@@ -299,15 +323,15 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             deletion_date = join_date + timedelta(days=days_active)
             if deletion_date > datetime.now():
                 deletion_date = datetime.now()
-            deleted_at = DateGenerator.to_sql_datetime(deletion_date)
+            deleted_at = to_sql_datetime(deletion_date)
 
         personality_roll = random.random()
-        if personality_roll < 0.15:
-            secret_rating_baseline = max(1.0, min(10.0, random.gauss(4.0, 0.5)))
-        elif personality_roll < 0.75:
-            secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.5, 0.5)))
-        else:
-            secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.0, 0.5)))
+        if personality_roll < 0.15:       # 15% harsh critics
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(3.5, 1.0)))
+        elif personality_roll < 0.75:     # 60% balanced
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(6.0, 1.2)))
+        else:                              # 25% generous
+            secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.5, 1.0)))
         secret_rating_baseline = round(secret_rating_baseline, 2)
 
         user_data.append(
@@ -327,8 +351,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "role": role,
                 "secret_home_city_id": city_id,
                 "restaurant_id": None,
-                "created_at": DateGenerator.to_sql_datetime(join_date),
-                "last_login_at": DateGenerator.to_sql_datetime(last_login),
+                "created_at": to_sql_datetime(join_date),
+                "last_login_at": to_sql_datetime(last_login),
                 "is_active": is_active,
                 "is_banned": is_banned,
                 "is_deleted": is_deleted,
