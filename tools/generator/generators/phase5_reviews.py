@@ -1,43 +1,52 @@
+import dataclasses
 import logging
 import os
 import random
 import time
 import uuid
-from datetime import timedelta
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from multiprocessing import Pool, cpu_count
 
 from tqdm import tqdm
 
 from algorithms.dish_selector import select_dish_from_menu
 from algorithms.restaurant_selector import select_restaurants_for_user
+from algorithms.review_builder import generate_single_review
 from config import GENERATION_CONFIG, get_connection_params
 from data_access import RestaurantDAO, UserDAO
+from data_access.city_dao import CityDAO
+from models.domain import DishForReview
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
-from services.review_service import ReviewGeneratorService
 from utils.blueprint_loader import BlueprintLoader
-from utils.date_generator import DateGenerator
+from utils.date_generator import (
+    ensure_naive,
+    generate_dates_skewed_to_end,
+    to_sql_date,
+    to_sql_datetime,
+)
 from utils.db_connection import DatabaseConnection
 from utils.helpers import safe_json_loads
 from utils.logging_config import LoggingConfig
+from utils.photo_pools import PhotoPools
+from utils.text_generator import ReviewTextGenerator
 
 logger = logging.getLogger(__name__)
 
-_WORKER_DB_PARAMS: dict[str, str] = {}
-_WORKER_RESTAURANTS: list[dict] = []
-_WORKER_CITIES: list[dict] = []
-_WORKER_ADJACENCY: dict[int, list[int]] = {}
-_WORKER_VECTORS_DATA: dict[str, dict] = {}
-_WORKER_SIMULATION_TODAY: object = None
+@dataclass
+class Phase5WorkerContext:
+    db_params: dict[str, str]
+    restaurants: list[dict]
+    cities: list[dict]
+    adjacency_map: dict[int, list[int]]
+    vectors_data: dict[str, dict]
+    simulation_today: datetime
+
+_worker_ctx: Phase5WorkerContext | None = None
 
 def worker_init(db_params, restaurants, cities, adjacency_map, vectors_data, simulation_today):
-    global \
-        _WORKER_DB_PARAMS, \
-        _WORKER_RESTAURANTS, \
-        _WORKER_CITIES, \
-        _WORKER_ADJACENCY, \
-        _WORKER_VECTORS_DATA, \
-        _WORKER_SIMULATION_TODAY
+    global _worker_ctx
 
     if not db_params:
         raise ValueError("worker_init: db_params is empty!")
@@ -48,16 +57,18 @@ def worker_init(db_params, restaurants, cities, adjacency_map, vectors_data, sim
     if not vectors_data:
         raise ValueError("worker_init: vectors_data (dishes.json) is empty or not loaded!")
 
-    _WORKER_DB_PARAMS = db_params
-    _WORKER_RESTAURANTS = restaurants
-    _WORKER_CITIES = cities
-    _WORKER_ADJACENCY = adjacency_map
-    _WORKER_VECTORS_DATA = vectors_data
-    _WORKER_SIMULATION_TODAY = simulation_today
+    _worker_ctx = Phase5WorkerContext(
+        db_params=db_params,
+        restaurants=restaurants,
+        cities=cities,
+        adjacency_map=adjacency_map,
+        vectors_data=vectors_data,
+        simulation_today=simulation_today,
+    )
 
     random.seed(os.getpid() + time.time())
 
-def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int):
+def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int) -> list[DishForReview]:
     dishes = db.fetch_all(
         """
         SELECT d.dish_id, d.dish_name, da.archetype_name, d.price,
@@ -93,41 +104,210 @@ def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int):
                 ingredients_by_dish[d_id] = []
             ingredients_by_dish[d_id].append(i_name)
 
-    enriched_dishes = []
-    for d in dishes:
-        d_id = d[0]
-        char_vector = safe_json_loads(d[7])
-        enriched_dishes.append(
+    return [
+        DishForReview(
+            dish_id=d[0],
+            dish_name=d[1],
+            secret_archetype=d[2],
+            price=d[3],
+            secret_base_price=d[4],
+            secret_quality=d[5],
+            secret_popularity_factor=d[6],
+            secret_characteristics_vector=safe_json_loads(d[7]),
+            secret_penalty_vector=safe_json_loads(d[8]),
+            secret_variant_name=d[9],
+            ingredients=ingredients_by_dish.get(d[0], []),
+        )
+        for d in dishes
+    ]
+
+def _select_city(home_city_id: int, travel_prop: float, city_ids: list[int], adjacency_map: dict) -> tuple[int, str]:
+    """Select a city for the review based on travel propensity. Returns (city_id, location_type)."""
+    eff_random = 0.05 + (travel_prop * 0.15)
+    eff_nearby = 0.10 + (travel_prop * 0.20)
+    rand_loc = random.random()
+
+    if rand_loc < eff_random:
+        candidates = [c for c in city_ids if c != home_city_id]
+        city_id = random.choice(candidates) if candidates else home_city_id
+        return city_id, "random"
+
+    if rand_loc < (eff_random + eff_nearby):
+        neighbors = adjacency_map.get(home_city_id, [])
+        if neighbors:
+            return random.choice(neighbors), "nearby"
+        candidates = [c for c in city_ids if c != home_city_id]
+        city_id = random.choice(candidates) if candidates else home_city_id
+        return city_id, "random"
+
+    return home_city_id, "home"
+
+def _select_restaurant_and_dish(
+    user: dict, city_id: int, review_date, reviewed_dishes: set, db: DatabaseConnection, ctx: Phase5WorkerContext
+) -> tuple[dict | None, dict | None, int]:
+    """Select a restaurant and dish for the user. Returns (restaurant, dish, actual_city_id)."""
+    available_restaurants = [
+        r
+        for r in ctx.restaurants
+        if r["city_id"] == city_id and ensure_naive(r["created_at"]) <= review_date
+    ]
+
+    if not available_restaurants:
+        available_restaurants = [
+            r for r in ctx.restaurants if ensure_naive(r["created_at"]) <= review_date
+        ]
+        if not available_restaurants:
+            return None, None, city_id
+        random_res = random.choice(available_restaurants)
+        city_id = random_res["city_id"]
+        available_restaurants = [r for r in available_restaurants if r["city_id"] == city_id]
+
+    selected_restaurant_ids = select_restaurants_for_user(user, available_restaurants, city_id, count=3)
+    if not selected_restaurant_ids:
+        return None, None, city_id
+
+    for r_id in selected_restaurant_ids:
+        candidate_restaurant = next((r for r in available_restaurants if r["restaurant_id"] == r_id), None)
+        if not candidate_restaurant:
+            continue
+
+        dishes_raw = get_dishes_for_restaurant(db, r_id)
+        if not dishes_raw:
+            continue
+
+        dishes = [dataclasses.asdict(d) for d in dishes_raw]
+        unreviewed = [d for d in dishes if d["dish_id"] not in reviewed_dishes]
+        if not unreviewed:
+            continue
+
+        selected_dish = select_dish_from_menu(user, unreviewed)
+        if selected_dish:
+            return candidate_restaurant, selected_dish, city_id
+
+    return None, None, city_id
+
+def _write_review(
+    user: dict, restaurant: dict, dish: dict, review_date, text_gen, photo_pools, db, ctx: Phase5WorkerContext
+) -> int | None:
+    """Generate and write a single review + optional photo. Returns review_id."""
+    days_before_review = random.randint(0, 14)
+    visit_date = review_date - timedelta(days=days_before_review)
+
+    if restaurant["created_at"]:
+        res_created = restaurant["created_at"]
+        if hasattr(res_created, "date"):
+            res_created = res_created.date()
+        if hasattr(visit_date, "date"):
+            visit_date_val = visit_date.date()
+        else:
+            visit_date_val = visit_date
+        if visit_date_val < res_created:
+            visit_date = review_date
+
+    review_result = generate_single_review(
+        user=user,
+        restaurant=restaurant,
+        dish=dish,
+        review_date=review_date,
+        vectors_data=ctx.vectors_data,
+        text_gen=text_gen,
+        photo_pools=photo_pools,
+        user_variant_preference_vector=None,
+        simulation_today=ctx.simulation_today,
+    )
+
+    review_result["review_data"]["visit_date"] = to_sql_date(visit_date)
+    review_id = db.insert_single("reviews", review_result["review_data"])
+
+    if review_result["user_photo"]:
+        db.insert_single(
+            "media_assets",
             {
-                "dish_id": d_id,
-                "dish_name": d[1],
-                "secret_archetype": d[2],
-                "price": d[3],
-                "secret_base_price": d[4],
-                "secret_quality": d[5],
-                "secret_popularity_factor": d[6],
-                "secret_characteristics_vector": char_vector,
-                "secret_penalty_vector": safe_json_loads(d[8]),
-                "secret_variant_name": d[9],
-                "ingredients": ingredients_by_dish.get(d_id, []),
-            }
+                "public_id": str(uuid.uuid4()),
+                **review_result["user_photo"],
+                "entity_type": "review",
+                "entity_id": review_id,
+                "is_primary": False,
+                "created_at": to_sql_datetime(review_date),
+                "uploaded_by": user["user_id"],
+                "version": 1,
+            },
         )
 
-    return enriched_dishes
+    return review_id
+
+def _generate_reviews_for_user(user: dict, db: DatabaseConnection, ctx: Phase5WorkerContext) -> dict[str, int]:
+    """Generate all reviews for a single user. Returns stats dict."""
+    stats = {"reviews": 0, "skipped_temporal": 0, "home": 0, "nearby": 0, "random": 0}
+    text_gen = ReviewTextGenerator()
+    photo_pools = PhotoPools()
+    BATCH_SIZE = int(GENERATION_CONFIG.get("review_commit_batch_size", 50))
+
+    city_ids = [c["city_id"] for c in ctx.cities]
+    reviewed_dishes: set = set()
+    user_review_dates = []
+    pending_commits = 0
+
+    review_dates = generate_dates_skewed_to_end(
+        count=user["secret_total_review_count"],
+        start_date=user["join_date"],
+        end_date=ctx.simulation_today,
+    )
+
+    for review_date in review_dates:
+        review_date = ensure_naive(review_date)
+
+        city_id, loc_type = _select_city(user["city_id"], user["travel_propensity"], city_ids, ctx.adjacency_map)
+        stats[loc_type] += 1
+
+        restaurant, selected_dish, city_id = _select_restaurant_and_dish(
+            user, city_id, review_date, reviewed_dishes, db, ctx
+        )
+
+        if not selected_dish or not restaurant:
+            if loc_type == "random":
+                pass  # already counted
+            stats["skipped_temporal"] += 1
+            continue
+
+        reviewed_dishes.add(selected_dish["dish_id"])
+
+        _write_review(user, restaurant, selected_dish, review_date, text_gen, photo_pools, db, ctx)
+        stats["reviews"] += 1
+        user_review_dates.append(review_date)
+        pending_commits += 1
+
+        if pending_commits >= BATCH_SIZE:
+            db.commit()
+            pending_commits = 0
+
+    if pending_commits > 0:
+        db.commit()
+        pending_commits = 0
+
+    if user_review_dates:
+        latest = max(user_review_dates)
+        offset = timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
+        last_login = latest + offset
+        db.execute_query(
+            "UPDATE users SET last_login_at = %s WHERE user_id = %s",
+            (to_sql_datetime(last_login), user["user_id"]),
+        )
+        db.commit()
+
+    return stats
 
 def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
-    stats = {"reviews": 0, "skipped_temporal": 0, "home": 0, "nearby": 0, "random": 0}
+    ctx = _worker_ctx
+    assert ctx is not None, "worker_init() must be called before process_user_chunk()"
 
-    date_gen = DateGenerator()
-    review_service = ReviewGeneratorService()
-
-    simulation_today = _WORKER_SIMULATION_TODAY
+    total_stats = {"reviews": 0, "skipped_temporal": 0, "home": 0, "nearby": 0, "random": 0}
 
     db = None
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            db = DatabaseConnection(_WORKER_DB_PARAMS)
+            db = DatabaseConnection(ctx.db_params)
             db.connect()
             break
         except Exception as e:
@@ -136,165 +316,11 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
                 raise
             time.sleep(2**attempt)
 
-    city_ids = [c["city_id"] for c in _WORKER_CITIES]
-
     try:
         for user in user_data_chunk:
-            user_id = user["user_id"]
-            home_city_id = user["city_id"]
-            num_reviews = user["secret_total_review_count"]
-            travel_prop = user["travel_propensity"]
-
-            reviewed_dishes = set()
-            user_review_dates = []
-
-            pending_commits = 0
-            BATCH_SIZE = 50
-
-            review_dates = date_gen.generate_dates_skewed_to_end(
-                count=num_reviews,
-                start_date=user["join_date"],
-                end_date=simulation_today,  # type: ignore[arg-type]
-            )
-
-            for review_date in review_dates:
-                review_date = DateGenerator.ensure_naive(review_date)
-
-                eff_random = 0.05 + (travel_prop * 0.15)
-                eff_nearby = 0.10 + (travel_prop * 0.20)
-                rand_loc = random.random()
-
-                if rand_loc < eff_random:
-                    candidates = [c for c in city_ids if c != home_city_id]
-                    city_id = random.choice(candidates) if candidates else home_city_id
-                    stats["random"] += 1
-                elif rand_loc < (eff_random + eff_nearby):
-                    neighbors = _WORKER_ADJACENCY.get(home_city_id, [])
-                    if neighbors:
-                        city_id = random.choice(neighbors)
-                        stats["nearby"] += 1
-                    else:
-                        candidates = [c for c in city_ids if c != home_city_id]
-                        city_id = random.choice(candidates) if candidates else home_city_id
-                        stats["random"] += 1
-                else:
-                    city_id = home_city_id
-                    stats["home"] += 1
-
-                available_restaurants = [
-                    r
-                    for r in _WORKER_RESTAURANTS
-                    if r["city_id"] == city_id and DateGenerator.ensure_naive(r["created_at"]) <= review_date
-                ]
-
-                if not available_restaurants:
-                    available_restaurants = [
-                        r for r in _WORKER_RESTAURANTS if DateGenerator.ensure_naive(r["created_at"]) <= review_date
-                    ]
-                    if not available_restaurants:
-                        stats["skipped_temporal"] += 1
-                        continue
-                    random_res = random.choice(available_restaurants)
-                    city_id = random_res["city_id"]
-                    available_restaurants = [r for r in available_restaurants if r["city_id"] == city_id]
-
-                selected_restaurant_ids = select_restaurants_for_user(user, available_restaurants, city_id, count=3)
-
-                if not selected_restaurant_ids:
-                    continue
-
-                selected_dish = None
-                restaurant = None
-
-                for r_id in selected_restaurant_ids:
-                    candidate_restaurant = next((r for r in available_restaurants if r["restaurant_id"] == r_id), None)
-                    if not candidate_restaurant:
-                        continue
-
-                    dishes = get_dishes_for_restaurant(db, r_id)  # type: ignore[arg-type]
-                    if not dishes:
-                        continue
-
-                    unreviewed = [d for d in dishes if d["dish_id"] not in reviewed_dishes]
-                    if not unreviewed:
-                        continue
-
-                    restaurant = candidate_restaurant
-                    selected_dish = select_dish_from_menu(user, unreviewed)
-                    if selected_dish:
-                        break
-
-                if not selected_dish or not restaurant:
-                    continue
-
-                reviewed_dishes.add(selected_dish["dish_id"])
-
-                user_variant_preference_vector = None
-
-                days_before_review = random.randint(0, 14)
-                visit_date = review_date - timedelta(days=days_before_review)
-
-                if restaurant["created_at"]:
-                    res_created = restaurant["created_at"]
-                    if hasattr(res_created, "date"):
-                        res_created = res_created.date()
-                    if hasattr(visit_date, "date"):
-                        visit_date_val = visit_date.date()
-                    else:
-                        visit_date_val = visit_date
-
-                    if visit_date_val < res_created:
-                        visit_date = review_date
-
-                review_result = review_service.generate_single_review(
-                    user=user,
-                    restaurant=restaurant,
-                    dish=selected_dish,
-                    review_date=review_date,
-                    vectors_data=_WORKER_VECTORS_DATA,
-                    user_variant_preference_vector=user_variant_preference_vector,
-                    simulation_today=simulation_today,  # type: ignore[arg-type]
-                )
-
-                review_result["review_data"]["visit_date"] = DateGenerator.to_sql_date(visit_date)
-
-                review_id = db.insert_single("reviews", review_result["review_data"])  # type: ignore[union-attr]
-                stats["reviews"] += 1
-                user_review_dates.append(review_date)
-                pending_commits += 1
-
-                if review_result["user_photo"]:
-                    db.insert_single(  # type: ignore[union-attr]
-                        "media_assets",
-                        {
-                            "public_id": str(uuid.uuid4()),
-                            **review_result["user_photo"],
-                            "entity_type": "review",
-                            "entity_id": review_id,
-                            "is_primary": False,
-                            "created_at": DateGenerator.to_sql_datetime(review_date),
-                            "uploaded_by": user["user_id"],
-                            "version": 1,
-                        },
-                    )
-
-                if pending_commits >= BATCH_SIZE:
-                    db.commit()  # type: ignore[union-attr]
-                    pending_commits = 0
-
-            if pending_commits > 0:
-                db.commit()  # type: ignore[union-attr]
-                pending_commits = 0
-
-            if user_review_dates:
-                latest = max(user_review_dates)
-                offset = timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
-                last_login = latest + offset
-                db.execute_query(  # type: ignore[union-attr]
-                    "UPDATE users SET last_login_at = %s WHERE user_id = %s",
-                    (DateGenerator.to_sql_datetime(last_login), user_id),
-                )
-                db.commit()  # type: ignore[union-attr]
+            user_stats = _generate_reviews_for_user(user, db, ctx)
+            for k, v in user_stats.items():
+                total_stats[k] += v
 
     except Exception as e:
         logger.error(f"Worker process FAILED for chunk: {e}", exc_info=True)
@@ -306,7 +332,7 @@ def process_user_chunk(user_data_chunk: list[dict]) -> dict[str, int]:
         if db and hasattr(db, "is_connected") and db.is_connected():
             db.close()
 
-    return stats
+    return total_stats
 
 def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     logger.info("Generating reviews (Multiprocessing)...")
@@ -337,42 +363,18 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     logger.info("Loading data into memory...")
 
-    restaurants_raw = RestaurantDAO.get_all_restaurants_for_reviews(db)
+    restaurants_objs = RestaurantDAO.get_all_restaurants_for_reviews(db)
 
-    restaurants_data = []
-    for row in restaurants_raw:
-        created_at = row[3]
-        if created_at and hasattr(created_at, "replace"):
-            created_at = created_at.replace(tzinfo=None)
-
-        restaurants_data.append(
-            {
-                "restaurant_id": row[0],
-                "city_id": row[1],
-                "cuisine_type": row[2],
-                "created_at": created_at,
-                "secret_price_multiplier": row[4],
-                "secret_overall_food_quality": row[5],
-                "secret_service_quality": row[6],
-                "secret_cleanliness_score": row[7],
-                "secret_ambiance_type": row[8],
-                "secret_ambiance_quality": row[9],
-            }
-        )
-
-    if not restaurants_raw:
+    if not restaurants_objs:
         logger.error("CRITICAL: No restaurants found! Phase 2 may have failed. Cannot generate reviews.")
         return
 
-    if len(restaurants_data) == 0:
-        logger.error("CRITICAL: restaurants_data is empty after processing. Cannot generate reviews.")
-        return
-
+    restaurants_data = [dataclasses.asdict(r) for r in restaurants_objs]
     logger.info(f"Loaded {len(restaurants_data):,} restaurants for review generation")
 
-    cities_raw = db.fetch_all("SELECT city_id, city_name FROM cities")
-    cities_data = [{"city_id": c[0], "city_name": c[1]} for c in cities_raw]
-    city_name_to_id = {c["city_name"]: c["city_id"] for c in cities_data}
+    cities_objs = CityDAO.get_all_cities(db)
+    cities_data = [dataclasses.asdict(c) for c in cities_objs]
+    city_name_to_id = {c.city_name: c.city_id for c in cities_objs}
 
     loader = BlueprintLoader("blueprints")
     city_rules = loader.load_blueprint("cities.json")
@@ -384,58 +386,26 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
             neighbors = [city_name_to_id[n] for n in config.get("adjacency", []) if n in city_name_to_id]
             adjacency_map[cid] = neighbors
 
-    users_raw = UserDAO.get_all_users_for_reviews(db)
+    users_objs = UserDAO.get_all_users_for_reviews(db)
 
     total_users_in_db = db.fetch_val("SELECT COUNT(*) FROM users")
-    users_with_role_user = len(users_raw) if users_raw else 0
+    users_with_role_user = len(users_objs) if users_objs else 0
     logger.info(
         f"Phase 5 User Filter: {users_with_role_user:,} users with role='user' (out of {total_users_in_db:,} total)"
     )
 
-    if not users_raw:
+    if not users_objs:
         logger.error("No users found to process!")
         return
 
     if users_with_role_user == 0:
-        logger.error("CRITICAL: WHERE role='user' filter returned 0 users! Check user_dao.py:82")
+        logger.error("CRITICAL: WHERE role='user' filter returned 0 users!")
         logger.error(
             f"Total users in DB: {total_users_in_db:,} - all may be non-user roles (restaurant/admin/moderator)"
         )
         return
 
-    user_objects = []
-    for u in users_raw:
-        join_date = u[12]
-        if join_date and hasattr(join_date, "replace"):
-            join_date = join_date.replace(tzinfo=None)
-
-        pref_vector = safe_json_loads(u[13], {})
-        user_objects.append(
-            {
-                "user_id": u[0],
-                "city_id": u[1],
-                "secret_total_review_count": u[2],
-                "travel_propensity": u[3],
-                "secret_enjoyed_archetypes": safe_json_loads(u[4], {}),
-                "secret_ingredient_preferences": safe_json_loads(u[5], {}),
-                "secret_price_preference_range": 35.0,
-                "secret_price_tolerance_above": 2.0,
-                "secret_price_tolerance_below": 0.5,
-                "secret_spice_preference": pref_vector.get("flavor_spiciness", 0.5),
-                "secret_richness_preference": pref_vector.get("physics_richness", 0.5),
-                "secret_texture_preference": pref_vector.get("texture_crispy", 0.5),
-                "secret_cleanliness_preference": safe_json_loads(u[6], {}),
-                "secret_preferred_ambiance": u[7],
-                "secret_mood_propensity": u[8],
-                "secret_cross_impact_factor": u[9],
-                "secret_chance_dine_random": u[10] if u[10] is not None else 0.1,
-                "secret_chance_pick_random_dish": u[11] if u[11] is not None else 0.05,
-                "join_date": join_date,
-                "secret_characteristics_vector": pref_vector,
-                "secret_rating_baseline": u[14] if len(u) > 14 else 6.0,
-            }
-        )
-
+    user_objects = [dataclasses.asdict(u) for u in users_objs]
     logger.info(f"Prepared {len(user_objects)} users.")
 
     logger.info("Loading dishes.json for rating calculations...")
@@ -446,14 +416,12 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     target_workers = int(total_cores * float(GENERATION_CONFIG.get("worker_cpu_usage_percent", 0.75)))  # type: ignore
     num_processes = max(1, min(target_workers, int(GENERATION_CONFIG.get("max_db_connections_limit", 16))))  # type: ignore
 
-    chunk_size = 100
+    chunk_size = int(GENERATION_CONFIG.get("review_user_chunk_size", 100))
     user_chunks = [user_objects[i : i + chunk_size] for i in range(0, len(user_objects), chunk_size)]
 
     logger.info(f"Multiprocessing: {num_processes} processes, {len(user_chunks)} chunks")
 
     db_params = get_connection_params()
-
-    from datetime import datetime
 
     simulation_today = datetime.now().replace(tzinfo=None)
     logger.info(f"Simulation today: {simulation_today.date()} (reviews from last 7 days will be pending)")

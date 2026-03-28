@@ -9,7 +9,7 @@ from tqdm import tqdm
 from algorithms.preference_calculator import DIMENSIONS, add_dish_variance, apply_restaurant_bias, merge_vectors
 from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
-from generators.constants import MENU_BLUEPRINTS
+from generators.constants import DAIRY_KEYWORDS, EGG_KEYWORDS, GLUTEN_KEYWORDS, MEAT_KEYWORDS, MENU_BLUEPRINTS
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.blueprint_loader import BlueprintLoader
@@ -82,20 +82,19 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     loader = BlueprintLoader(blueprints_dir)
     dish_variants = loader.load_blueprint("dishes.json")
 
-    restaurants = RestaurantDAO.get_all_restaurants_for_dishes(db)
+    restaurants_objs = RestaurantDAO.get_all_restaurants_for_dishes(db)
 
-    restaurants_list = []
-    for row in restaurants:
-        restaurants_list.append(
-            {
-                "restaurant_id": row[0],
-                "secret_menu_blueprint": row[1],
-                "secret_price_multiplier": row[2],
-                "secret_archetype_modifiers": row[3],
-                "status": row[4],
-                "created_at": row[5],
-            }
-        )
+    restaurants_list = [
+        {
+            "restaurant_id": r.restaurant_id,
+            "secret_menu_blueprint": r.secret_menu_blueprint,
+            "secret_price_multiplier": r.secret_price_multiplier,
+            "secret_archetype_modifiers": r.secret_archetype_modifiers,
+            "status": r.status,
+            "created_at": r.created_at,
+        }
+        for r in restaurants_objs
+    ]
 
     target_total_dishes = GENERATION_CONFIG["num_dishes"]
     num_restaurants = len(restaurants_list)
@@ -182,6 +181,79 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     total_dish_tags = 0
     dish_tags_buffer = []
     dish_sections_buffer = []
+    ingredients_buffer = []
+    photos_buffer = []
+
+    # Batch insert buffer: collect dishes, flush per restaurant chunk
+    DISH_BATCH_SIZE = 500
+    dish_buffer = []
+    # Parallel metadata keyed by buffer index (for post-insert linking)
+    dish_meta_buffer: list[dict] = []
+
+    def _flush_dish_buffer():
+        nonlocal total_dishes, total_ingredients_links, total_photos, total_dish_tags
+
+        if not dish_buffer:
+            return
+
+        dish_ids = db.insert_bulk_returning("dishes", dish_buffer, "dish_id")
+        total_dishes += len(dish_ids)
+
+        for idx, dish_id in enumerate(dish_ids):
+            meta = dish_meta_buffer[idx]
+
+            # Sections
+            for sec_id in meta["section_ids"]:
+                dish_sections_buffer.append(
+                    {"dish_id": dish_id, "section_id": sec_id, "created_at": meta["created_at"]}
+                )
+
+            # Ingredients
+            for ingredient_name in meta["ingredients"]:
+                if ingredient_name in ingredient_map:
+                    ingredients_buffer.append({"dish_id": dish_id, "ingredient_id": ingredient_map[ingredient_name]})
+
+            # Photos
+            photos_buffer.append(
+                {
+                    "public_id": str(uuid.uuid4()),
+                    "entity_type": "dish",
+                    "entity_id": dish_id,
+                    "url": meta["photo"]["url"],
+                    "blurhash": meta["photo"]["blurhash"],
+                    "width": meta["photo"]["width"],
+                    "height": meta["photo"]["height"],
+                    "is_primary": True,
+                    "status": "approved",
+                }
+            )
+
+            # Tags
+            for tag_id in meta["tag_ids"]:
+                dish_tags_buffer.append({"dish_id": dish_id, "tag_id": tag_id})
+
+        # Flush secondary buffers when large enough
+        if len(ingredients_buffer) >= 5000:
+            db.insert_bulk("dish_ingredients", ingredients_buffer)
+            total_ingredients_links += len(ingredients_buffer)
+            ingredients_buffer.clear()
+
+        if len(photos_buffer) >= 5000:
+            db.insert_bulk("media_assets", photos_buffer)
+            total_photos += len(photos_buffer)
+            photos_buffer.clear()
+
+        if len(dish_tags_buffer) >= 5000:
+            db.insert_bulk("dish_tags", dish_tags_buffer)
+            total_dish_tags += len(dish_tags_buffer)
+            dish_tags_buffer.clear()
+
+        if len(dish_sections_buffer) >= 5000:
+            db.insert_bulk("dish_section_assignments", dish_sections_buffer)
+            dish_sections_buffer.clear()
+
+        dish_buffer.clear()
+        dish_meta_buffer.clear()
 
     for restaurant in tqdm(restaurants_list, desc="Generating dishes", unit=" restaurant", mininterval=1.0):
         restaurant_id = restaurant["restaurant_id"]
@@ -197,14 +269,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
         popularity_scores = zipf_distribution(len(menu_dishes), alpha=1.5)
 
-        restaurant_modifiers_raw = restaurant["secret_archetype_modifiers"]
-        if isinstance(restaurant_modifiers_raw, str):
-            try:
-                restaurant_modifiers = json.loads(restaurant_modifiers_raw)
-            except json.JSONDecodeError:
-                restaurant_modifiers = {}
-        else:
-            restaurant_modifiers = restaurant_modifiers_raw or {}
+        restaurant_modifiers = restaurant["secret_archetype_modifiers"] or {}
 
         available_sections = restaurant_sections_map.get(restaurant_id, [])
 
@@ -240,12 +305,12 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
             secret_spiciness_val = characteristics_vec.get("flavor_spiciness", 0.0) * 10.0
 
-            ingredients = variant.get("ingredients", [])
+            dish_ingredients = variant.get("ingredients", [])
 
             description = generate_dish_description(
                 dish_name=dish_name,
                 archetype=archetype,
-                ingredients=ingredients,
+                ingredients=dish_ingredients,
                 quality=secret_quality,
                 spiciness=secret_spiciness_val,
             )
@@ -259,15 +324,13 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             dish_tag_ids = _get_tags_for_dish(
                 archetype=archetype,
                 spiciness=secret_spiciness_val,
-                ingredients=ingredients,
+                ingredients=dish_ingredients,
                 tag_map=tag_map,
                 tag_by_category=tag_by_category,
             )
 
             is_spicy = secret_spiciness_val > 6.0
-            is_vegan = False
-            if "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids:
-                is_vegan = True
+            is_vegan = "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids
 
             is_vegetarian = is_vegan
             if not is_vegetarian and "Wegetariańskie" in tag_map and tag_map["Wegetariańskie"] in dish_tag_ids:
@@ -276,40 +339,38 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             is_gluten_free = "Bezglutenowe" in tag_map and tag_map["Bezglutenowe"] in dish_tag_ids
             is_lactose_free = is_vegan or ("Bez laktozy" in tag_map and tag_map["Bez laktozy"] in dish_tag_ids)
 
-            is_available = True
-            if restaurant_status != "active":
-                is_available = False
+            is_available = restaurant_status == "active"
 
-            dish_data = {
-                "public_id": str(uuid.uuid4()),
-                "restaurant_id": restaurant_id,
-                "secret_variant_id": variant_id,
-                "dish_name": dish_name,
-                "slug": _unique_slug(dish_name, used_slugs),
-                "price": price,
-                "description": description,
-                "is_vegetarian": is_vegetarian,
-                "is_vegan": is_vegan,
-                "is_gluten_free": is_gluten_free,
-                "is_lactose_free": is_lactose_free,
-                "is_spicy": is_spicy,
-                "ingredients_json": json.dumps([i.replace("_", " ") for i in ingredients]),
-                "is_available": is_available,
-                "secret_base_price": round(secret_base_price, 2),
-                "secret_quality": round(secret_quality, 3),
-                "secret_characteristics_vector": json.dumps(characteristics_vec),
-                "secret_penalty_vector": json.dumps(weights_vec) if weights_vec else None,
-                "secret_popularity_factor": round(popularity_scores[i], 4),
-                "image_url": primary_photo_metadata["url"],
-                "image_blurhash": primary_photo_metadata.get("blurhash"),
-                "calories": calories,
-                "created_at": restaurant.get("created_at"),
-            }
+            dish_buffer.append(
+                {
+                    "public_id": str(uuid.uuid4()),
+                    "restaurant_id": restaurant_id,
+                    "secret_variant_id": variant_id,
+                    "dish_name": dish_name,
+                    "slug": _unique_slug(dish_name, used_slugs),
+                    "price": price,
+                    "description": description,
+                    "is_vegetarian": is_vegetarian,
+                    "is_vegan": is_vegan,
+                    "is_gluten_free": is_gluten_free,
+                    "is_lactose_free": is_lactose_free,
+                    "is_spicy": is_spicy,
+                    "ingredients_json": json.dumps([ing.replace("_", " ") for ing in dish_ingredients]),
+                    "is_available": is_available,
+                    "secret_base_price": round(secret_base_price, 2),
+                    "secret_quality": round(secret_quality, 3),
+                    "secret_characteristics_vector": json.dumps(characteristics_vec),
+                    "secret_penalty_vector": json.dumps(weights_vec) if weights_vec else None,
+                    "secret_popularity_factor": round(popularity_scores[i], 4),
+                    "image_url": primary_photo_metadata["url"],
+                    "image_blurhash": primary_photo_metadata.get("blurhash"),
+                    "calories": calories,
+                    "created_at": restaurant.get("created_at"),
+                }
+            )
 
-            dish_id = db.insert_single("dishes", dish_data)
-            total_dishes += 1
-
-            assigned_sections = []
+            # Determine section assignment
+            assigned_sections: list[int] = []
             if available_sections:
                 preferred_keywords = dish_section_mapping.get(archetype, [])
                 if not preferred_keywords:
@@ -333,47 +394,30 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 if not assigned_sections:
                     assigned_sections.append(random.choice(available_sections)["id"])
 
-            for sec_id in set(assigned_sections):
-                dish_sections_buffer.append(
-                    {"dish_id": dish_id, "section_id": sec_id, "created_at": restaurant.get("created_at")}
-                )
-
-            ingredient_links = []
-            for ingredient_name in ingredients:
-                if ingredient_name in ingredient_map:
-                    ingredient_links.append({"dish_id": dish_id, "ingredient_id": ingredient_map[ingredient_name]})
-
-            if ingredient_links:
-                db.insert_bulk("dish_ingredients", ingredient_links)
-                total_ingredients_links += len(ingredient_links)
-
-            db.insert_single(
-                "media_assets",
+            dish_meta_buffer.append(
                 {
-                    "public_id": str(uuid.uuid4()),
-                    "entity_type": "dish",
-                    "entity_id": dish_id,
-                    "url": primary_photo_metadata["url"],
-                    "blurhash": primary_photo_metadata["blurhash"],
-                    "width": primary_photo_metadata["width"],
-                    "height": primary_photo_metadata["height"],
-                    "is_primary": True,
-                    "status": "approved",
-                },
+                    "ingredients": dish_ingredients,
+                    "photo": primary_photo_metadata,
+                    "tag_ids": dish_tag_ids,
+                    "section_ids": list(set(assigned_sections)),
+                    "created_at": restaurant.get("created_at"),
+                }
             )
-            total_photos += 1
 
-            for tag_id in dish_tag_ids:
-                dish_tags_buffer.append({"dish_id": dish_id, "tag_id": tag_id})
+        if len(dish_buffer) >= DISH_BATCH_SIZE:
+            _flush_dish_buffer()
 
-            if len(dish_tags_buffer) >= 5000:
-                db.insert_bulk("dish_tags", dish_tags_buffer)
-                total_dish_tags += len(dish_tags_buffer)
-                dish_tags_buffer = []
+    # Final flush
+    _flush_dish_buffer()
 
-            if len(dish_sections_buffer) >= 5000:
-                db.insert_bulk("dish_section_assignments", dish_sections_buffer)
-                dish_sections_buffer = []
+    # Flush remaining secondary buffers
+    if ingredients_buffer:
+        db.insert_bulk("dish_ingredients", ingredients_buffer)
+        total_ingredients_links += len(ingredients_buffer)
+
+    if photos_buffer:
+        db.insert_bulk("media_assets", photos_buffer)
+        total_photos += len(photos_buffer)
 
     if dish_tags_buffer:
         db.insert_bulk("dish_tags", dish_tags_buffer)
@@ -436,84 +480,17 @@ def _get_tags_for_dish(
 
     ingredients_lower = [i.lower() for i in ingredients]
 
-    meat_keywords = [
-        "mięso",
-        "kurczak",
-        "wołowina",
-        "wieprzowina",
-        "boczek",
-        "szynka",
-        "kiełbasa",
-        "beef",
-        "chicken",
-        "pork",
-        "bacon",
-        "ham",
-        "sausage",
-        "ryba",
-        "fish",
-        "łosoś",
-        "salmon",
-        "tuńczyk",
-        "tuna",
-        "krewetki",
-        "shrimp",
-        "steak",
-        "befsztyk",
-        "polędwica",
-        "antrykot",
-        "rostbef",
-        "kaczka",
-        "duck",
-        "indyk",
-        "turkey",
-        "jagnięcina",
-        "lamb",
-        "cielęcina",
-        "veal",
-        "dziczyzna",
-        "królik",
-        "rabbit",
-        "wątroba",
-        "liver",
-        "smalec",
-        "lard",
-        "słonina",
-        "pepperoni",
-        "salami",
-        "mortadela",
-        "parówka",
-        "flaki",
-        "żeberka",
-        "ribs",
-        "skrzydełka",
-        "wings",
-        "nuggets",
-        "kotlet",
-        "schab",
-        "karkówka",
-        "łopatka",
-        "bekon",
-    ]
-    dairy_keywords = ["ser", "cheese", "mleko", "milk", "śmietana", "cream", "masło", "butter"]
-    egg_keywords = ["jajko", "egg", "jaja"]
+    has_meat = any(any(kw in ing for kw in MEAT_KEYWORDS) for ing in ingredients_lower)
+    has_dairy = any(any(kw in ing for kw in DAIRY_KEYWORDS) for ing in ingredients_lower)
+    has_egg = any(any(kw in ing for kw in EGG_KEYWORDS) for ing in ingredients_lower)
 
-    if (
-        not any(any(kw in ing for kw in meat_keywords) for ing in ingredients_lower)
-        and not any(any(kw in ing for kw in dairy_keywords) for ing in ingredients_lower)
-        and not any(any(kw in ing for kw in egg_keywords) for ing in ingredients_lower)
-    ):
+    if not has_meat and not has_dairy and not has_egg:
         if "Wegańskie" in tag_map:
             tag_ids.add(tag_map["Wegańskie"])
-    elif not any(any(kw in ing for kw in meat_keywords) for ing in ingredients_lower) and "Wegetariańskie" in tag_map:
+    elif not has_meat and "Wegetariańskie" in tag_map:
         tag_ids.add(tag_map["Wegetariańskie"])
 
-    gluten_keywords = [
-        "mąka", "flour", "chleb", "bread", "makaron", "pasta", "pszenica", "wheat",
-        "ciasto", "bułka", "tortilla", "pita", "naleśnik", "pierogi", "kluski",
-        "focaccia", "ravioli", "wonton", "noodle",
-    ]
-    has_gluten = any(any(kw in ing for kw in gluten_keywords) for ing in ingredients_lower)
+    has_gluten = any(any(kw in ing for kw in GLUTEN_KEYWORDS) for ing in ingredients_lower)
     if not has_gluten and "Bezglutenowe" in tag_map:
         tag_ids.add(tag_map["Bezglutenowe"])
 

@@ -4,139 +4,134 @@ from typing import Any
 
 import numpy as np
 
-class DateGenerator:
-    def __init__(self):
-        self.min_date = datetime(2020, 1, 1)
-        self.max_date = datetime(2024, 12, 31)
+MIN_DATE = datetime(2020, 1, 1)
+MAX_DATE = datetime(2024, 12, 31)
 
-    @staticmethod
-    def ensure_naive(dt: Any) -> datetime:
-        if dt is None:
-            return None  # type: ignore[return-value]
-        if not isinstance(dt, datetime):
-            if hasattr(dt, "year") and hasattr(dt, "month") and hasattr(dt, "day") and not hasattr(dt, "hour"):
-                return datetime.combine(dt, datetime.min.time())
-            return dt
-        if dt.tzinfo is not None:
-            return dt.replace(tzinfo=None)
+def ensure_naive(dt: Any) -> datetime:
+    if dt is None:
+        return None  # type: ignore[return-value]
+    if not isinstance(dt, datetime):
+        if hasattr(dt, "year") and hasattr(dt, "month") and hasattr(dt, "day") and not hasattr(dt, "hour"):
+            return datetime.combine(dt, datetime.min.time())
         return dt
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
 
-    def generate_random_date(self, start: datetime | None = None, end: datetime | None = None) -> datetime:
-        start = self.ensure_naive(start) if start is not None else self.min_date
-        end = self.ensure_naive(end) if end is not None else self.max_date
+def generate_random_date(start: datetime | None = None, end: datetime | None = None) -> datetime:
+    start = ensure_naive(start) if start is not None else MIN_DATE
+    end = ensure_naive(end) if end is not None else MAX_DATE
 
-        delta = end - start
-        random_days = random.randint(0, delta.days)
+    delta = end - start
+    random_days = random.randint(0, delta.days)
 
-        return start + timedelta(days=random_days)
+    return start + timedelta(days=random_days)
 
-    def generate_business_hours_datetime(self, date: datetime | None = None) -> datetime:
-        date = self.ensure_naive(date) if date is not None else self.generate_random_date()
+def generate_business_hours_datetime(date: datetime | None = None) -> datetime:
+    date = ensure_naive(date) if date is not None else generate_random_date()
 
-        hour = random.randint(10, 22)
-        minute = random.randint(0, 59)
+    hour = random.randint(10, 22)
+    minute = random.randint(0, 59)
 
-        return date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    return date.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
-    def generate_restaurant_created_date(self) -> datetime:
-        beta_value = np.random.beta(2, 5)
+def generate_restaurant_created_date() -> datetime:
+    beta_value = np.random.beta(2, 5)
 
-        delta = self.max_date - self.min_date
-        days_offset = int(beta_value * delta.days)
+    delta = MAX_DATE - MIN_DATE
+    days_offset = int(beta_value * delta.days)
 
-        created_date = self.min_date + timedelta(days=days_offset)
+    created_date = MIN_DATE + timedelta(days=days_offset)
 
-        return created_date.replace(hour=10, minute=0, second=0, microsecond=0)
+    return created_date.replace(hour=10, minute=0, second=0, microsecond=0)
 
-    def generate_review_date(self, restaurant_created: datetime, user_first_review: datetime | None = None) -> datetime:
-        restaurant_created = self.ensure_naive(restaurant_created)
-        user_first_review = self.ensure_naive(user_first_review)
+def generate_review_date(restaurant_created: datetime, user_first_review: datetime | None = None) -> datetime:
+    restaurant_created = ensure_naive(restaurant_created)
+    user_first_review = ensure_naive(user_first_review)
 
-        earliest_date = restaurant_created + timedelta(days=1)
+    earliest_date = restaurant_created + timedelta(days=1)
 
-        if user_first_review and user_first_review > earliest_date:
-            earliest_date = user_first_review
+    if user_first_review and user_first_review > earliest_date:
+        earliest_date = user_first_review
 
-        latest_date = self.max_date
+    latest_date = MAX_DATE
 
-        if earliest_date >= latest_date:
-            return earliest_date + timedelta(days=random.randint(1, 7))
+    if earliest_date >= latest_date:
+        return earliest_date + timedelta(days=random.randint(1, 7))
 
-        return self.generate_random_date(earliest_date, latest_date)
+    return generate_random_date(earliest_date, latest_date)
 
-    def generate_dates_with_spacing(
-        self, count: int, start_date: datetime, min_days: int = 1, max_days: int = 30
-    ) -> list[datetime]:
-        if count <= 0:
-            return []
+def generate_dates_with_spacing(
+    count: int, start_date: datetime, min_days: int = 1, max_days: int = 30
+) -> list[datetime]:
+    if count <= 0:
+        return []
 
-        start_date = self.ensure_naive(start_date)
-        dates = []
+    start_date = ensure_naive(start_date)
+    dates = []
 
-        incubation_days = int(random.expovariate(1 / 14))
-        incubation_days = min(incubation_days, 180)
+    incubation_days = int(random.expovariate(1 / 14))
+    incubation_days = min(incubation_days, 180)
 
-        current_date = start_date + timedelta(days=incubation_days)
-        now_naive = datetime.now().replace(tzinfo=None)
+    current_date = start_date + timedelta(days=incubation_days)
+    now_naive = datetime.now().replace(tzinfo=None)
+
+    if current_date > now_naive:
+        current_date = now_naive - timedelta(days=count)
+
+    for _ in range(count):
+        dates.append(current_date)
+        gap = random.randint(min_days, max_days)
+        current_date += timedelta(gap)
 
         if current_date > now_naive:
-            current_date = now_naive - timedelta(days=count)
+            break
 
-        for _ in range(count):
-            dates.append(current_date)
-            gap = random.randint(min_days, max_days)
-            current_date += timedelta(gap)
+    return dates
 
-            if current_date > now_naive:
-                break
+def generate_dates_skewed_to_end(count: int, start_date: datetime, end_date: datetime) -> list[datetime]:
+    if count <= 0:
+        return []
 
-        return dates
+    start_date = ensure_naive(start_date)
+    end_date = ensure_naive(end_date)
 
-    def generate_dates_skewed_to_end(self, count: int, start_date: datetime, end_date: datetime) -> list[datetime]:
-        if count <= 0:
-            return []
+    total_seconds = (end_date - start_date).total_seconds()
+    if total_seconds <= 0:
+        return [start_date] * count
 
-        start_date = self.ensure_naive(start_date)
-        end_date = self.ensure_naive(end_date)
+    dates: set[datetime] = set()
+    attempts = 0
+    max_attempts = count * 3
 
-        total_seconds = (end_date - start_date).total_seconds()
-        if total_seconds <= 0:
-            return [start_date] * count
+    while len(dates) < count and attempts < max_attempts:
+        ratio = random.betavariate(5, 1)
 
-        dates: set[datetime] = set()
-        attempts = 0
-        max_attempts = count * 3
+        offset_seconds = int(total_seconds * ratio)
+        gen_date = start_date + timedelta(seconds=offset_seconds)
+        gen_date = gen_date.replace(second=0, microsecond=0)
 
-        while len(dates) < count and attempts < max_attempts:
-            ratio = random.betavariate(5, 1)
+        dates.add(gen_date)
+        attempts += 1
 
-            offset_seconds = int(total_seconds * ratio)
-            gen_date = start_date + timedelta(seconds=offset_seconds)
-            gen_date = gen_date.replace(second=0, microsecond=0)
+    result = sorted(dates)
+    while len(result) < count:
+        result.append(end_date)
 
-            dates.add(gen_date)
-            attempts += 1
+    return result
 
-        result = sorted(dates)
-        while len(result) < count:
-            result.append(end_date)
+def generate_user_join_date() -> datetime:
+    beta_value = np.random.beta(2, 4)
 
-        return result
+    delta = MAX_DATE - MIN_DATE
+    days_offset = int(beta_value * delta.days)
 
-    def generate_user_join_date(self) -> datetime:
-        beta_value = np.random.beta(2, 4)
+    join_date = MIN_DATE + timedelta(days=days_offset)
 
-        delta = self.max_date - self.min_date
-        days_offset = int(beta_value * delta.days)
+    return join_date.replace(hour=12, minute=0, second=0, microsecond=0)
 
-        join_date = self.min_date + timedelta(days=days_offset)
+def to_sql_datetime(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        return join_date.replace(hour=12, minute=0, second=0, microsecond=0)
-
-    @staticmethod
-    def to_sql_datetime(dt: datetime) -> str:
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-    @staticmethod
-    def to_sql_date(dt: datetime) -> str:
-        return dt.strftime("%Y-%m-%d")
+def to_sql_date(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%d")

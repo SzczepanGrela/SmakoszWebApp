@@ -2,6 +2,8 @@ import math
 import random
 from typing import Any
 
+from config import GENERATION_CONFIG
+
 def select_dish_from_menu(user: dict[str, Any], restaurant_dishes: list[dict[str, Any]]) -> dict[str, Any] | None:
     if not restaurant_dishes:
         return None
@@ -56,7 +58,7 @@ def select_dish_from_menu(user: dict[str, Any], restaurant_dishes: list[dict[str
     if total_score == 0:
         return random.choice(dishes)
 
-    temperature = 2.5
+    temperature = float(GENERATION_CONFIG.get("dish_selection_temperature", 2.5))
     exp_scores = [math.exp(s / temperature) for s in scores]
     total_exp = sum(exp_scores)
     weights = [s / total_exp for s in exp_scores]

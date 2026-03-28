@@ -118,7 +118,7 @@
     "jabłko": "apple fruit",
     "chleb_tostowy": "toast bread",
     "bagietka": "baguette bread",
-    "bagel": "bagel bread",
+    "bajgiel": "bagel bread",
     "panini": "panini bread",
     "spaghetti": "spaghetti pasta",
     "penne": "penne pasta",
@@ -284,5 +284,7 @@
     "cukinia": "zucchini vegetable",
     "szparagi": "asparagus vegetable",
     "kiszone_warzywa": "pickled vegetables",
-    "maślanka": "buttermilk dairy"
+    "maślanka": "buttermilk dairy",
+    "makaron_nitki": "thin soup noodles vermicelli",
+    "pasztet": "pate meat spread"
 }

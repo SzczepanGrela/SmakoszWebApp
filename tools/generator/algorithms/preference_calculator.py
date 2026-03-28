@@ -51,52 +51,6 @@ def derive_penalty_weights(
 
     return penalty_weights
 
-def calculate_direct_affinity(
-    target_vector: dict[str, float],
-    dish_vector: dict[str, float],
-    user_vector: dict[str, dict[str, float]],
-    adaptation_weights: dict[str, float],
-    base_characteristics: dict[str, float],
-    penalty_weights: dict[str, float] | None = None,
-    default_weight: float = 1.0,
-) -> float:
-    if penalty_weights is None:
-        penalty_weights = derive_penalty_weights(
-            adaptation_weights=adaptation_weights,
-            base_characteristics=base_characteristics,
-            default_adaptation_weight=default_weight,
-        )
-
-    weighted_score_sum = 0.0
-    total_weight = 0.0
-
-    for dim in DIMENSIONS:
-        user_pref = user_vector.get(dim, {"value": 0.5, "tolerance": 0.2})
-
-        if isinstance(user_pref, (int, float)):
-            tolerance = 0.2
-        else:
-            tolerance = user_pref.get("tolerance", 0.2)
-
-        contextual_target = target_vector.get(dim, 0.5)
-        dish_value = dish_vector.get(dim, 0.5)
-        penalty_weight = penalty_weights.get(dim, default_weight)
-
-        diff = abs(contextual_target - dish_value)
-
-        if diff <= tolerance:
-            penalty = 0.0
-        else:
-            excess = diff - tolerance
-            max_excess = 1.0 - tolerance
-            penalty = (excess / max_excess) ** 2 if max_excess > 0 else 0.0
-
-        dimension_score = clamp(1.0 - penalty, 0.0, 1.0)
-        weighted_score_sum += dimension_score * penalty_weight
-        total_weight += penalty_weight
-
-    return clamp(weighted_score_sum / total_weight, 0.0, 1.0) if total_weight > 0 else 0.5
-
 def calculate_contextual_vector(
     user_vector: dict[str, dict[str, float]],
     archetype_base: dict[str, float],
@@ -146,15 +100,14 @@ def calculate_affinity(
     base_characteristics: dict[str, float],
     penalty_weights: dict[str, float] | None = None,
     default_weight: float = 1.0,
-    archetype_base: dict[str, float] | None = None,
-    adaptation_weights_legacy: dict[str, float] | None = None,
-    contextual_targets_override: dict[str, float] | None = None,
+    contextual_targets: dict[str, float] | None = None,
 ) -> float:
-    if archetype_base is not None and base_characteristics == {}:
-        base_characteristics = archetype_base
-    if adaptation_weights_legacy is not None and adaptation_weights == {}:
-        adaptation_weights = adaptation_weights_legacy
+    """Unified affinity calculation.
 
+    When contextual_targets is provided, uses them directly (replaces the old
+    calculate_direct_affinity). Otherwise, computes them from user preferences
+    and archetype base via calculate_contextual_vector.
+    """
     if penalty_weights is None:
         penalty_weights = derive_penalty_weights(
             adaptation_weights=adaptation_weights,
@@ -162,20 +115,17 @@ def calculate_affinity(
             default_adaptation_weight=default_weight,
         )
 
-    weighted_score_sum = 0.0
-    total_weight = 0.0
-
-    if contextual_targets_override is not None:
-        contextual_targets = contextual_targets_override
+    if contextual_targets is not None:
+        computed_targets = contextual_targets
     else:
-        contextual_targets = calculate_contextual_vector(
+        computed_targets = calculate_contextual_vector(
             user_vector=user_vector,
             archetype_base=base_characteristics,
             adaptation_weights=adaptation_weights,
-            variant_base_override=None,
-            variant_weights_override=None,
-            damping_factor=0.8,
         )
+
+    weighted_score_sum = 0.0
+    total_weight = 0.0
 
     for dim in DIMENSIONS:
         user_pref = user_vector.get(dim, {"value": 0.5, "tolerance": 0.2})
@@ -185,7 +135,7 @@ def calculate_affinity(
         else:
             tolerance = user_pref.get("tolerance", 0.2)
 
-        contextual_target = contextual_targets.get(dim, 0.5)
+        contextual_target = computed_targets.get(dim, 0.5)
         dish_value = dish_vector.get(dim, 0.5)
         penalty_weight = penalty_weights.get(dim, default_weight)
 

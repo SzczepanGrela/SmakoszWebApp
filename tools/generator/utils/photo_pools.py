@@ -58,99 +58,69 @@ class PhotoPools:
             logger.warning(f"Unknown photo entry format: {type(photo_entry)}")
             return ("", None, None, None)
 
-    def get_dish_photo(self, category: str, variant: str, restaurant_id: int) -> dict[str, str | int | None]:
-        cat_data = self.index.get("dishes", {}).get(category)
-        if cat_data is None:
-            from tools.utils import slugify
+    def _select_photo(
+        self, section: str, category: str, variant: str | None = None, deduplicate_for: int | None = None
+    ) -> dict[str, str | int | None]:
+        """Unified photo selection: lookup -> slugify fallback -> flatten -> dedup -> format."""
+        if section == "restaurants":
+            photos = self.index.get("restaurants", {}).get(category)
+            if photos is None:
+                from tools.utils import slugify
+                photos = self.index.get("restaurants", {}).get(slugify(category), [])
+        else:
+            cat_data = self.index.get("dishes", {}).get(category)
+            if cat_data is None:
+                from tools.utils import slugify
+                cat_data = self.index.get("dishes", {}).get(slugify(category), {})
 
-            cat_data = self.index.get("dishes", {}).get(slugify(category), {})
+            if variant is not None:
+                photos = cat_data.get(variant)
+                if photos is None:
+                    from tools.utils import slugify
+                    photos = cat_data.get(slugify(variant), [])
+            else:
+                photos = []
 
-        photos = cat_data.get(variant)
-        if photos is None:
-            from tools.utils import slugify
-
-            photos = cat_data.get(slugify(variant), [])
+            if not photos:
+                photos = [p for sublist in cat_data.values() for p in sublist]
 
         if not photos:
-            photos = [p for sublist in cat_data.values() for p in sublist]
-
-        if not photos:
-            logger.error(f"No photos available for dish: {category}/{variant}")
+            logger.error(f"No photos available for {section}: {category}/{variant}")
             return {"url": None, "blurhash": None, "width": None, "height": None}
 
-        used = self._get_used(restaurant_id, "dishes")
+        if deduplicate_for is not None:
+            usage_key = "interior" if section == "restaurants" else "dishes"
+            used = self._get_used(deduplicate_for, usage_key)
 
-        photo_paths = []
-        for p in photos:
-            path, _, _, _ = self._extract_photo_data(p)
-            if path:
-                photo_paths.append((p, path))
+            photo_paths = []
+            for p in photos:
+                path, _, _, _ = self._extract_photo_data(p)
+                if path:
+                    photo_paths.append((p, path))
 
-        unused = [p for p, path in photo_paths if path not in used]
+            unused = [p for p, path in photo_paths if path not in used]
 
-        if unused:
-            selected = random.choice(unused)
+            if unused:
+                selected = random.choice(unused)
+            else:
+                selected = random.choice([p for p, _ in photo_paths]) if photo_paths else photos[0]
+
+            selected_path, selected_hash, width, height = self._extract_photo_data(selected)
+            used.add(selected_path)
         else:
-            selected = random.choice([p for p, _ in photo_paths]) if photo_paths else photos[0]
-
-        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
-        used.add(selected_path)
+            selected = random.choice(photos)
+            selected_path, selected_hash, width, height = self._extract_photo_data(selected)
 
         return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
+
+    def get_dish_photo(self, category: str, variant: str, restaurant_id: int) -> dict[str, str | int | None]:
+        return self._select_photo("dishes", category, variant, deduplicate_for=restaurant_id)
 
     def get_restaurant_photo(self, theme: str, restaurant_id: int) -> dict[str, str | int | None]:
-        photos = self.index.get("restaurants", {}).get(theme)
-        if photos is None:
-            from tools.utils import slugify
-
-            photos = self.index.get("restaurants", {}).get(slugify(theme), [])
-        if not photos:
-            logger.error(f"No photos available for restaurant theme: {theme}")
-            return {"url": None, "blurhash": None, "width": None, "height": None}
-
-        used = self._get_used(restaurant_id, "interior")
-
-        photo_paths = []
-        for p in photos:
-            path, _, _, _ = self._extract_photo_data(p)
-            if path:
-                photo_paths.append((p, path))
-
-        unused = [p for p, path in photo_paths if path not in used]
-
-        if unused:
-            selected = random.choice(unused)
-        else:
-            selected = random.choice([p for p, _ in photo_paths]) if photo_paths else photos[0]
-
-        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
-        used.add(selected_path)
-
-        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
+        return self._select_photo("restaurants", theme, deduplicate_for=restaurant_id)
 
     def get_review_photo(self, archetype: str, variant: str) -> dict[str, str | int | None]:
-        cat_data = self.index.get("dishes", {}).get(archetype)
-        if cat_data is None:
-            from tools.utils import slugify
-
-            cat_data = self.index.get("dishes", {}).get(slugify(archetype), {})
-
-        photos = cat_data.get(variant)
-        if photos is None:
-            from tools.utils import slugify
-
-            photos = cat_data.get(slugify(variant), [])
-
-        if not photos:
-            photos = [p for sublist in cat_data.values() for p in sublist]
-
-        if not photos:
-            logger.error(f"No photos available for review: {archetype}/{variant}")
-            return {"url": None, "blurhash": None, "width": None, "height": None}
-
-        selected = random.choice(photos)
-        selected_path, selected_hash, width, height = self._extract_photo_data(selected)
-        return {"url": self._format_url(selected_path), "blurhash": selected_hash, "width": width, "height": height}
+        return self._select_photo("dishes", archetype, variant)
 
     def get_user_photo_generic(self) -> str:
         return "https://ui-avatars.com/api/?name=User&background=random"
