@@ -834,7 +834,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("ix_media_assets_moderation")
-                        .HasFilter("status = 'pending'");
+                        .HasFilter("status IN ('pending', 'needs_review')");
 
                     b.ToTable("media_assets", (string)null);
                 });
@@ -1712,7 +1712,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("helpful_count");
 
-                    b.Property<bool>("IsApproved")
+                    b.Property<bool?>("IsApproved")
                         .HasColumnType("boolean")
                         .HasColumnName("is_approved");
 
@@ -1764,7 +1764,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.HasIndex("ContentStatus", "CreatedAt")
                         .HasDatabaseName("ix_reviews_content_status")
-                        .HasFilter("content_status = 'pending'");
+                        .HasFilter("content_status IN ('pending', 'needs_review')");
 
                     b.HasIndex("DishId", "CreatedAt")
                         .IsDescending(false, true)

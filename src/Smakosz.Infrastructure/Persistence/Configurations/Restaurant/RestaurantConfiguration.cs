@@ -63,6 +63,10 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasConversion(new SnakeCaseEnumConverter<RestaurantStatus>())
             .HasMaxLength(50);
 
+        builder.Property(x => x.ModerationStatus)
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
+            .HasMaxLength(20);
+
         builder.Property(x => x.TrendingScore)
             .HasColumnType("numeric(10,4)");
 

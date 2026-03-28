@@ -33,8 +33,9 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(x => x.AmbianceRating)
             .IsRequired();
 
-        builder.Property(x => x.ContentStatus)
-            .HasConversion(new SnakeCaseEnumConverter<ReviewContentStatus>())
+        builder.Property(x => x.ModerationStatus)
+            .HasColumnName("content_status")
+            .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
             .HasMaxLength(20);
 
         builder.Property(x => x.ContentRejectionReason)
@@ -42,18 +43,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         builder.Property(x => x.HelpfulCount)
             .HasDefaultValue(0);
-
-        builder.Property(x => x.AiToxicityScore)
-            .HasColumnType("numeric(5,4)");
-
-        builder.Property(x => x.AiSpamScore)
-            .HasColumnType("numeric(5,4)");
-
-        builder.Property(x => x.AiVerdict)
-            .HasMaxLength(20);
-
-        builder.Property(x => x.AiModelVersion)
-            .HasMaxLength(50);
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
@@ -91,8 +80,8 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.HasIndex(x => new { x.RestaurantId, x.CreatedAt })
             .IsDescending(false, true);
 
-        builder.HasIndex(x => new { x.ContentStatus, x.CreatedAt })
-            .HasFilter("content_status = 'pending'")
+        builder.HasIndex(x => new { x.ModerationStatus, x.CreatedAt })
+            .HasFilter("content_status IN ('pending', 'needs_review')")
             .HasDatabaseName("ix_reviews_content_status");
     }
 }

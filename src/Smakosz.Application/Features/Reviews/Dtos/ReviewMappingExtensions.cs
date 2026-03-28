@@ -14,7 +14,7 @@ public static class ReviewMappingExtensions
             CleanlinessRating = r.CleanlinessRating,
             AmbianceRating = r.AmbianceRating,
             Content = r.Content,
-            ContentStatus = r.ContentStatus,
+            ContentStatus = r.ModerationStatus,
             VisitDate = r.VisitDate,
             HelpfulCount = r.HelpfulCount,
             IsHelpfulByMe = isHelpfulByMe,

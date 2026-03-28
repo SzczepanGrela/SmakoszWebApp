@@ -64,7 +64,7 @@ public class GetReviewsByDishHandler
                 CleanlinessRating = r.CleanlinessRating,
                 AmbianceRating = r.AmbianceRating,
                 Content = r.Content,
-                ContentStatus = r.ContentStatus,
+                ContentStatus = r.ModerationStatus,
                 VisitDate = r.VisitDate,
                 HelpfulCount = r.HelpfulCount,
                 IsHelpfulByMe = likedReviewIds.Contains(r.ReviewId),

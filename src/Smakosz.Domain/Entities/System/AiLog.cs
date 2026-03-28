@@ -4,6 +4,7 @@ public class AiLog
 {
     public long LogId { get; set; }
     public string? ModelType { get; set; }
+    public string? ModelName { get; set; }
     public string? ModelVersion { get; set; }
     public string? EntityType { get; set; }
     public int? EntityId { get; set; }

@@ -37,6 +37,7 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned
     public int Version { get; set; } = 1;
     public DateTime? VerifiedAt { get; set; }
     public int? VerifiedBy { get; set; }
+    public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
 
     #region Generator-Only Fields
     public double? SecretPriceMultiplier { get; set; }

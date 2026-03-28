@@ -10,7 +10,7 @@ public class ReviewCardDto
     public int CleanlinessRating { get; init; }
     public int AmbianceRating { get; init; }
     public string? Content { get; init; }
-    public ReviewContentStatus ContentStatus { get; init; }
+    public ContentModerationStatus ContentStatus { get; init; }
     public DateOnly VisitDate { get; init; }
     public int HelpfulCount { get; init; }
     public bool IsHelpfulByMe { get; init; }

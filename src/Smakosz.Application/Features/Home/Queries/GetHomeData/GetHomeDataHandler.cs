@@ -117,7 +117,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 CleanlinessRating = r.CleanlinessRating,
                 AmbianceRating = r.AmbianceRating,
                 Content = r.Content,
-                ContentStatus = r.ContentStatus,
+                ContentStatus = r.ModerationStatus,
                 VisitDate = r.VisitDate,
                 HelpfulCount = r.HelpfulCount,
                 IsHelpfulByMe = false,
@@ -150,7 +150,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
 
         var heroImage = await _db.MediaAssets
             .AsNoTracking()
-            .Where(m => m.EntityType == MediaEntityType.Hero && m.Status == MediaAssetStatus.Approved)
+            .Where(m => m.EntityType == MediaEntityType.Hero && m.ModerationStatus == ContentModerationStatus.Approved)
             .OrderBy(_ => EF.Functions.Random())
             .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(cancellationToken);

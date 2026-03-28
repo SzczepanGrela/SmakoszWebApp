@@ -1,3 +1,4 @@
+using Smakosz.Domain.Enums;
 using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
@@ -26,6 +27,7 @@ public class Dish : IAuditableEntity, IHasPublicId
     public DateTime? UpdatedAt { get; set; }
     public double? AvgRating { get; set; }
     public int ReviewCount { get; set; }
+    public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
 
     #region Generator-Only Fields
     public int? SecretVariantId { get; set; }

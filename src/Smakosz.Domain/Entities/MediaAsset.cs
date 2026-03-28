@@ -14,15 +14,10 @@ public class MediaAsset : IHasPublicId, IVersioned
     public int? Width { get; set; }
     public int? Height { get; set; }
     public bool IsPrimary { get; set; }
-    public MediaAssetStatus Status { get; set; } = MediaAssetStatus.Approved;
+    public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.Approved;
     public int? UploadedBy { get; set; }
     public DateTime? CreatedAt { get; set; }
     public string? RejectionReason { get; set; }
-    public decimal? AiNsfwScore { get; set; }
-    public decimal? AiOnTopicScore { get; set; }
-    public string? AiVerdict { get; set; }
-    public string? AiModelVersion { get; set; }
-    public DateTime? AiProcessedAt { get; set; }
     public string? CreditText { get; set; }
     public int Version { get; set; } = 1;
 
