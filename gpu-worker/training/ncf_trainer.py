@@ -13,8 +13,9 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from api.client import WorkerApiClient
 from config import Settings
+from handlers.protocol import JobMapping, ModelRequirement
 from models.model_manager import ModelManager
-from training.export_onnx import export_to_onnx, upload_onnx_to_r2
+from training.export_onnx import export_to_onnx, upload_onnx_to_r2, upload_mapping_to_r2
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,10 @@ class NcfModel(nn.Module):
 
 class NcfTrainer:
     """Neural Collaborative Filtering - training + ONNX export."""
+
+    PHASE_NAME = "loading_ncf"
+    MODELS: list[ModelRequirement] = []
+    JOB_MAPPINGS = [JobMapping("ncf_training", "train")]
 
     def __init__(self, model_manager: ModelManager, settings: Settings, device: torch.device):
         self.model_manager = model_manager
@@ -216,12 +221,21 @@ class NcfTrainer:
                     version,
                 )
                 model_url = f"r2://{self.settings.r2_bucket}/{key}"
+
+                # Upload mapping.json alongside model
+                upload_mapping_to_r2(
+                    self.model_manager.s3_client,
+                    self.settings.r2_bucket,
+                    mapping_path,
+                    version,
+                )
             except Exception:
-                logger.exception("Failed to upload ONNX to R2")
+                logger.exception("Failed to upload ONNX/mapping to R2")
 
         training_time = time.monotonic() - start_time
 
         return {
+            "model_version": version,
             "model_url": model_url,
             "training_time_seconds": round(training_time, 1),
             "final_loss": round(final_loss, 4),

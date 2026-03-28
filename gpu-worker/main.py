@@ -8,10 +8,8 @@ import torch
 from api.client import WorkerApiClient, request_shutdown
 from api.health_server import set_current_phase, set_models_loaded, start_health_server
 from config import Settings
-from inference.image_moderator import ImageModerator
-from inference.text_moderator import TextModerator
+from handlers.registry import HANDLER_CLASSES
 from models.model_manager import ModelManager
-from training.ncf_trainer import NcfTrainer
 from worker.heartbeat import HeartbeatThread, get_gpu_info
 from worker.job_loop import drain_jobs, run_loop
 
@@ -39,61 +37,71 @@ def batch_run(
     settings: Settings,
     device: torch.device,
 ) -> None:
-    """Process all jobs in phases (text -> image -> NCF), then shutdown."""
-
-    JOB_PHASES: list[tuple[str, str, list[str], object]] = [
-        # (job_type, loading_phase_label, model_names, factory)
-        ("text_moderation", "loading_herbert", ["herbert"],
-         lambda: TextModerator(model_manager, settings, device)),
-        ("image_moderation", "loading_nsfw_clip", ["nsfw", "clip"],
-         lambda: ImageModerator(model_manager, settings, device)),
-        ("ncf_training", "loading_ncf", [],
-         lambda: NcfTrainer(model_manager, settings, device)),
-    ]
+    """Process all jobs in phases (one per handler class), then shutdown."""
 
     idle_count = 0
 
     while True:
         any_processed = False
 
-        for job_type, loading_phase, model_names, factory in JOB_PHASES:
-            # Peek: is there a job of this type?
-            try:
-                job = api.get_next_job(job_type=job_type)
-            except Exception:
-                logger.exception("Error polling for %s jobs", job_type)
-                continue
+        for handler_cls in HANDLER_CLASSES:
+            job_mappings = handler_cls.JOB_MAPPINGS
+            model_names = [m.name for m in handler_cls.MODELS]
 
-            if job is None:
+            # Peek: is there any job across this phase's types?
+            first_jobs: dict[str, dict] = {}
+            for mapping in job_mappings:
+                try:
+                    job = api.get_next_job(job_type=mapping.job_type)
+                    if job is not None:
+                        first_jobs[mapping.job_type] = job
+                except Exception:
+                    logger.exception("Error polling for %s jobs", mapping.job_type)
+
+            if not first_jobs:
                 continue
 
             # Lazy load model for this phase
-            set_current_phase(loading_phase)
-            logger.info("Loading model for phase: %s", job_type)
+            set_current_phase(handler_cls.PHASE_NAME)
+            phase_label = job_mappings[0].job_type.rsplit("_batch", 1)[0]
+            logger.info("Loading model for phase: %s", phase_label)
             try:
-                handler_instance = factory()
+                handler_instance = handler_cls(model_manager, settings, device)
             except Exception:
-                logger.exception("Failed to load model for %s", job_type)
+                logger.exception("Failed to load model for %s", phase_label)
                 set_current_phase("idle")
                 continue
 
             set_models_loaded(model_names)
-            set_current_phase(f"processing_{job_type}")
 
-            # Get the handler function
-            handler_fn = getattr(handler_instance, "handle_job", None) or handler_instance.train
+            # Drain all job types in this phase
+            for mapping in job_mappings:
+                handler_fn = getattr(handler_instance, mapping.method, None)
+                if handler_fn is None:
+                    continue
 
-            # Drain all jobs of this type
-            processed = drain_jobs(api, job_type, handler_fn, job, settings)
-            logger.info("Phase %s: processed %d jobs", job_type, processed)
-            any_processed = any_processed or (processed > 0)
+                set_current_phase(f"processing_{mapping.job_type}")
+
+                first = first_jobs.get(mapping.job_type)
+                if first is None:
+                    try:
+                        first = api.get_next_job(job_type=mapping.job_type)
+                    except Exception:
+                        logger.exception("Error polling for %s jobs", mapping.job_type)
+                        continue
+                if first is None:
+                    continue
+
+                processed = drain_jobs(api, mapping.job_type, handler_fn, first, settings)
+                logger.info("Phase %s/%s: processed %d jobs", phase_label, mapping.job_type, processed)
+                any_processed = any_processed or (processed > 0)
 
             # Unload model and free VRAM
             del handler_instance
             _free_vram()
             set_models_loaded([])
             set_current_phase("idle")
-            logger.info("Unloaded models for phase: %s", job_type)
+            logger.info("Unloaded models for phase: %s", phase_label)
 
         if any_processed:
             idle_count = 0
@@ -126,31 +134,20 @@ def legacy_continuous_run(
 ) -> None:
     """Original behavior: load all models upfront, poll indefinitely."""
     loaded_models: list[str] = []
-
-    logger.info("Loading text moderation model (HerBERT)...")
-    try:
-        text_mod = TextModerator(model_manager, settings, device)
-        loaded_models.append("herbert")
-    except Exception:
-        logger.exception("Failed to load HerBERT model")
-        text_mod = None
-
-    logger.info("Loading image moderation models (NSFW + CLIP)...")
-    try:
-        image_mod = ImageModerator(model_manager, settings, device)
-        loaded_models.extend(["nsfw", "clip"])
-    except Exception:
-        logger.exception("Failed to load image moderation models")
-        image_mod = None
-
-    ncf_trainer = NcfTrainer(model_manager, settings, device)
-
     handlers: dict = {}
-    if text_mod is not None:
-        handlers["text_moderation"] = text_mod.handle_job
-    if image_mod is not None:
-        handlers["image_moderation"] = image_mod.handle_job
-    handlers["ncf_training"] = ncf_trainer.train
+
+    for handler_cls in HANDLER_CLASSES:
+        logger.info("Loading handler: %s (phase: %s)", handler_cls.__name__, handler_cls.PHASE_NAME)
+        try:
+            instance = handler_cls(model_manager, settings, device)
+            for m in handler_cls.MODELS:
+                loaded_models.append(m.name)
+            for mapping in handler_cls.JOB_MAPPINGS:
+                fn = getattr(instance, mapping.method, None)
+                if fn is not None:
+                    handlers[mapping.job_type] = fn
+        except Exception:
+            logger.exception("Failed to load %s", handler_cls.__name__)
 
     set_models_loaded(loaded_models)
     set_current_phase("processing")
@@ -172,6 +169,11 @@ def main() -> None:
         logger.info("No CUDA GPU available, running on CPU")
 
     model_manager = ModelManager(settings)
+
+    # Register HF mappings from all handlers
+    for handler_cls in HANDLER_CLASSES:
+        model_manager.register_models(handler_cls.MODELS)
+
     api = WorkerApiClient(settings)
 
     start_health_server(settings, [])
