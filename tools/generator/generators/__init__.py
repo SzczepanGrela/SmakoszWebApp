@@ -1,4 +1,5 @@
 from .phase0_config import SystemConfigPhase
+from .phase0_forbidden_words import ForbiddenWordsPhase
 from .phase1_definitions import (
     CitiesPhase,
     CuisineTypesPhase,
@@ -14,6 +15,7 @@ from .phase6_social import SocialGraphPhase
 
 __all__ = [
     "SystemConfigPhase",
+    "ForbiddenWordsPhase",
     "CitiesPhase",
     "CuisineTypesPhase",
     "HeroImagesPhase",

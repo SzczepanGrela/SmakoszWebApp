@@ -9,6 +9,7 @@ from generators import (
     CitiesPhase,
     CuisineTypesPhase,
     DishesPhase,
+    ForbiddenWordsPhase,
     HeroImagesPhase,
     IngredientsPhase,
     RestaurantsPhase,
@@ -32,6 +33,7 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
     registry = PhaseRegistry()
 
     registry.register(SystemConfigPhase(blueprints_dir=blueprints_dir))
+    registry.register(ForbiddenWordsPhase(blueprints_dir=blueprints_dir))
 
     registry.register(CitiesPhase(blueprints_dir=blueprints_dir))
     registry.register(CuisineTypesPhase(blueprints_dir=blueprints_dir))
@@ -59,6 +61,7 @@ def print_statistics(db: DatabaseConnection):
 
     tables = [
         "system.config",
+        "system.forbidden_words",
         "cities",
         "cuisine_types",
         "ingredients",
@@ -158,6 +161,7 @@ Examples:
                     phase_ids = []
                     if start_num == 0:
                         phase_ids.append("phase0_config")
+                        phase_ids.append("phase0_forbidden_words")
                         start_num = 1
 
                     phase_map = {
