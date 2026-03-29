@@ -40,7 +40,9 @@ public interface IAdminService
     Task<bool> CancelJobAsync(int id);
     Task<bool> ScheduleNcfTrainingAsync();
     Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
-    Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null);
+    Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null,
+        bool? isAllergen = null, bool? isVegetarian = null, bool? isVegan = null,
+        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null);
     Task<List<AdminHeroImageDto>> GetHeroImagesAsync();
     Task<bool> DeleteHeroImageAsync(Guid publicId);
 }

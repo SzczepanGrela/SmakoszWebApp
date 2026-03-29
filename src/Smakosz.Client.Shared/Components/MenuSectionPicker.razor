@@ -1,0 +1,54 @@
+@namespace Smakosz.Client.Components
+@inject IBusinessService BusinessService
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-bars me-2"></i>Sekcje menu</h5></div>
+    <div class="card-body">
+        @if (_sections == null)
+        {
+            <LoadingSpinner />
+        }
+        else if (!_sections.Any())
+        {
+            <p class="text-muted small mb-0">Brak sekcji menu. <a href="/restaurant/menu-sections">Dodaj sekcje</a></p>
+        }
+        else
+        {
+            @foreach (var ms in _sections)
+            {
+                var isSelected = SelectedIds.Contains(ms.MenuSectionId);
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" checked="@isSelected"
+                           @onchange="e => ToggleSection(ms.MenuSectionId, (bool)e.Value!)" />
+                    <label class="form-check-label">
+                        @ms.Name
+                        <small class="text-muted">(@ms.DishCount dan)</small>
+                    </label>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<int> SelectedIds { get; set; } = [];
+    [Parameter] public EventCallback<List<int>> SelectedIdsChanged { get; set; }
+
+    private List<BusinessMenuSectionDto>? _sections;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sections = await BusinessService.GetBusinessMenuSectionsAsync();
+    }
+
+    private async Task ToggleSection(int id, bool isChecked)
+    {
+        var updated = new List<int>(SelectedIds);
+        if (isChecked && !updated.Contains(id))
+            updated.Add(id);
+        else if (!isChecked)
+            updated.Remove(id);
+        SelectedIds = updated;
+        await SelectedIdsChanged.InvokeAsync(updated);
+    }
+}

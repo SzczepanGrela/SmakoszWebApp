@@ -49,5 +49,6 @@ builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>();
 
 await builder.Build().RunAsync();

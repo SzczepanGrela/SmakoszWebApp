@@ -60,6 +60,14 @@ public class EditRequestSummaryDto
     public string? RejectionReason { get; set; }
 }
 
+public class BusinessMenuSectionDto
+{
+    public int MenuSectionId { get; set; }
+    public string Name { get; set; } = default!;
+    public int SortOrder { get; set; }
+    public int DishCount { get; set; }
+}
+
 public class BusinessDishDto
 {
     public int DishId { get; set; }

@@ -15,7 +15,7 @@
 }
 else if (_dish == null)
 {
-    <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Powrót do listy" ActionUrl="/restaurant/dishes" />
+    <EmptyState Icon="fa-solid fa-bowl-food" Title="Nie znaleziono dania" ActionText="Powrot do listy" ActionUrl="/restaurant/dishes" />
 }
 else
 {
@@ -39,13 +39,17 @@ else
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-medium">Cena (zł)</label>
+                            <label class="form-label fw-medium">Cena (zl)</label>
                             <input type="number" class="form-control" step="0.01" @bind="_dish.Price" />
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-medium">Kalorie (kcal)</label>
                             <input type="number" class="form-control" @bind="_dish.Calories" />
                         </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @bind="_dish.IsAvailable" />
+                        <label class="form-check-label">Dostępne</label>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-medium">Zdjęcie dania</label>
@@ -55,41 +59,9 @@ else
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header"><h5 class="mb-0">Opcje dietetyczne</h5></div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsVegetarian" />
-                                <label class="form-check-label">Wegetariańskie</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsVegan" />
-                                <label class="form-check-label">Wegańskie</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsGlutenFree" />
-                                <label class="form-check-label">Bez glutenu</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsLactoseFree" />
-                                <label class="form-check-label">Bez laktozy</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsSpicy" />
-                                <label class="form-check-label">Ostre</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" @bind="_dish.IsAvailable" />
-                                <label class="form-check-label">Dostępne</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <IngredientPicker @bind-SelectedIds="_selectedIngredientIds" />
+
+            <MenuSectionPicker @bind-SelectedIds="_selectedSectionIds" />
         </div>
 
         <div class="col-lg-4">
@@ -99,7 +71,7 @@ else
                     <h6 class="fw-bold">@_dish.DishName</h6>
                     @if (_dish.Price.HasValue)
                     {
-                        <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zł</span>
+                        <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zl</span>
                     }
                     @if (_dish.AvgRating.HasValue)
                     {
@@ -115,7 +87,7 @@ else
 
     <div class="d-flex justify-content-between">
         <a href="/restaurant/dishes" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Powrót
+            <i class="fa-solid fa-arrow-left me-1"></i>Powrot
         </a>
         <button class="btn btn-primary" @onclick="HandleSave" disabled="@_saving">
             @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
@@ -128,6 +100,8 @@ else
     [Parameter] public Guid Id { get; set; }
 
     private DishDetailDto? _dish;
+    private List<int> _selectedIngredientIds = [];
+    private List<int> _selectedSectionIds = [];
     private bool _loading = true;
     private bool _saving;
     private string? _error;
@@ -135,6 +109,10 @@ else
     protected override async Task OnInitializedAsync()
     {
         _dish = await BusinessService.GetDishAsync(Id);
+        if (_dish != null)
+        {
+            _selectedIngredientIds = _dish.Ingredients?.Select(i => i.IngredientId).ToList() ?? [];
+        }
         _loading = false;
     }
 
@@ -148,15 +126,15 @@ else
 
         _saving = true;
         _error = null;
-        var success = await BusinessService.UpdateDishAsync(Id, _dish);
+        var success = await BusinessService.UpdateDishAsync(Id, _dish, _selectedIngredientIds, _selectedSectionIds);
         if (success)
         {
-            Toast.ShowSuccess("Danie zostało zaktualizowane.");
+            Toast.ShowSuccess("Danie zostalo zaktualizowane.");
             Navigation.NavigateTo("/restaurant/dishes");
         }
         else
         {
-            _error = "Nie udało się zapisać zmian.";
+            _error = "Nie udalo sie zapisac zmian.";
         }
         _saving = false;
     }
