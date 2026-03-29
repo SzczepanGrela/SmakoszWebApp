@@ -11,12 +11,7 @@ namespace Smakosz.Application.Features.IngredientSuggestions.Commands.CreateIngr
 
 public record CreateIngredientSuggestionCommand(
     string RestaurantSlug,
-    string SuggestedName,
-    bool IsAllergen,
-    bool IsVegetarian,
-    bool IsVegan,
-    bool IsGlutenFree,
-    bool IsLactoseFree) : IRequest<ErrorOr<Success>>;
+    string SuggestedName) : IRequest<ErrorOr<Success>>;
 
 public class CreateIngredientSuggestionHandler : IRequestHandler<CreateIngredientSuggestionCommand, ErrorOr<Success>>
 {
@@ -63,11 +58,6 @@ public class CreateIngredientSuggestionHandler : IRequestHandler<CreateIngredien
             RestaurantId = restaurant.RestaurantId,
             UserId = _currentUser.UserId.Value,
             SuggestedName = request.SuggestedName.Trim(),
-            IsAllergen = request.IsAllergen,
-            IsVegetarian = request.IsVegetarian,
-            IsVegan = request.IsVegan,
-            IsGlutenFree = request.IsGlutenFree,
-            IsLactoseFree = request.IsLactoseFree,
             Status = IngredientSuggestionStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };

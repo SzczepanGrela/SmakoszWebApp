@@ -21,17 +21,24 @@ public class RegisterBusinessHandler : IRequestHandler<RegisterBusinessCommand, 
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public RegisterBusinessHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public RegisterBusinessHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<int>> Handle(RegisterBusinessCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
+
+        if (await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        if (request.Description is not null && await _forbiddenWords.ContainsAsync(request.Description, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
 
         var existingRestaurant = await _db.Restaurants
             .AsNoTracking()

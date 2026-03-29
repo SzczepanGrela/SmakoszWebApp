@@ -57,6 +57,17 @@ public static class DishMappingExtensions
                 TagName = dt.Tag.TagName,
                 Category = dt.Tag.Category,
                 DisplayColor = dt.Tag.DisplayColor
+            }).ToList(),
+            Ingredients = d.DishIngredients.Select(di => new DishIngredientDto
+            {
+                IngredientId = di.Ingredient.IngredientId,
+                Name = di.Ingredient.IngredientName,
+                IconUrl = di.Ingredient.IconUrl,
+                IsAllergen = di.Ingredient.IsAllergen,
+                IsVegetarian = di.Ingredient.IsVegetarian,
+                IsVegan = di.Ingredient.IsVegan,
+                IsGlutenFree = di.Ingredient.IsGlutenFree,
+                IsLactoseFree = di.Ingredient.IsLactoseFree
             }).ToList()
         };
     }

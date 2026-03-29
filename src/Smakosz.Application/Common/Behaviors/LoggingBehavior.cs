@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -32,6 +33,18 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
             _logger.LogWarning(
                 "Long running request: {RequestName} ({ElapsedMs}ms)",
                 requestName, stopwatch.ElapsedMilliseconds);
+        }
+
+        if (response is IErrorOr { IsError: true, Errors: { Count: > 0 } errors })
+        {
+            var first = errors[0];
+            var level = first.Type is ErrorType.Unauthorized or ErrorType.Forbidden
+                ? LogLevel.Warning
+                : LogLevel.Information;
+
+            _logger.Log(level,
+                "Request {RequestName} failed: {ErrorCode} - {ErrorMessage}",
+                requestName, first.Code, first.Description);
         }
 
         return response;

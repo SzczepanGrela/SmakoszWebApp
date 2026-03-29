@@ -119,6 +119,23 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 }
             }
 
+            // MenuSections with pending moderation
+            if (items.Count < BatchSize)
+            {
+                var pendingSections = await _db.MenuSections
+                    .Where(ms => ms.ModerationStatus == ContentModerationStatus.Pending)
+                    .OrderBy(ms => ms.CreatedAt)
+                    .Take(BatchSize - items.Count)
+                    .Select(ms => new { ms.SectionId, ms.SectionName })
+                    .ToListAsync(ct);
+
+                foreach (var ms in pendingSections)
+                {
+                    items.Add(new BatchItem("menu_section", ms.SectionId, ms.SectionName));
+                    if (items.Count >= BatchSize) break;
+                }
+            }
+
             if (items.Count == 0)
                 break;
 
@@ -224,6 +241,13 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
         {
             var restaurants = await _db.Restaurants.Where(r => restaurantIds.Contains(r.RestaurantId)).ToListAsync(ct);
             foreach (var r in restaurants) r.ModerationStatus = ContentModerationStatus.Processing;
+        }
+
+        var menuSectionIds = items.Where(i => i.EntityType == "menu_section").Select(i => i.EntityId).ToList();
+        if (menuSectionIds.Count > 0)
+        {
+            var sections = await _db.MenuSections.Where(ms => menuSectionIds.Contains(ms.SectionId)).ToListAsync(ct);
+            foreach (var ms in sections) ms.ModerationStatus = ContentModerationStatus.Processing;
         }
     }
 

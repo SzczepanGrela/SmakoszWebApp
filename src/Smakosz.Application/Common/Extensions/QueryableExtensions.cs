@@ -1,10 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Models;
+using Smakosz.Domain.Enums;
+using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Application.Common.Extensions;
 
 public static class QueryableExtensions
 {
+    public static IQueryable<T> WhereModerated<T>(this IQueryable<T> query) where T : class, IModerable
+        => query.Where(e => e.ModerationStatus == ContentModerationStatus.None
+                         || e.ModerationStatus == ContentModerationStatus.Approved);
+
     public static async Task<PagedResult<T>> ToPagedResultAsync<T>(
         this IQueryable<T> query,
         PaginationParams pagination,

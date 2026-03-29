@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -16,17 +17,21 @@ public record UpdateDishCommand(
     decimal? Price,
     string? Description,
     int? Calories,
-    bool? IsAvailable) : IRequest<ErrorOr<Success>>;
+    bool? IsAvailable,
+    List<int>? IngredientIds = null,
+    List<int>? SectionIds = null) : IRequest<ErrorOr<Success>>;
 
 public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Success>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public UpdateDishHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public UpdateDishHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<Success>> Handle(UpdateDishCommand request, CancellationToken cancellationToken)
@@ -34,8 +39,14 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
-        var dish = await _db.Dishes
+        var query = _db.Dishes
             .Include(d => d.Restaurant)
+            .AsQueryable();
+
+        if (request.IngredientIds is not null)
+            query = query.Include(d => d.DishIngredients);
+
+        var dish = await query
             .FirstOrDefaultAsync(d => d.PublicId == request.PublicId, cancellationToken);
 
         if (dish is null)
@@ -49,7 +60,12 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (request.Calories.HasValue) dish.Calories = request.Calories.Value;
         if (request.IsAvailable.HasValue) dish.IsAvailable = request.IsAvailable.Value;
 
-        // Text fields - pessimistic moderation via EditRequest
+        // Text fields - forbidden words check + pessimistic moderation via EditRequest
+        if (request.Name is not null && await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        if (request.Description is not null && await _forbiddenWords.ContainsAsync(request.Description, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+            return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+
         if (request.Name is not null || request.Description is not null)
         {
             var editRequest = new RestaurantEditRequest
@@ -77,6 +93,60 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
                 Priority = 3,
                 Description = $"Edycja dania \"{dish.DishName}\" (via UpdateDish)"
             });
+        }
+
+        if (request.IngredientIds is not null)
+        {
+            foreach (var old in dish.DishIngredients.ToList())
+                _db.DishIngredients.Remove(old);
+
+            var ingredients = request.IngredientIds.Count > 0
+                ? await _db.Ingredients
+                    .Where(i => request.IngredientIds.Contains(i.IngredientId))
+                    .ToListAsync(cancellationToken)
+                : new List<Ingredient>();
+
+            foreach (var ingredient in ingredients)
+            {
+                _db.DishIngredients.Add(new DishIngredient
+                {
+                    DishId = dish.DishId,
+                    IngredientId = ingredient.IngredientId
+                });
+            }
+
+            DishDietaryExtensions.RecalculateDietaryFlags(dish, ingredients);
+            dish.IngredientsJson = DishDietaryExtensions.SerializeIngredientNames(ingredients);
+        }
+
+        if (request.SectionIds is not null)
+        {
+            var existingAssignments = await _db.DishSectionAssignments
+                .Where(dsa => dsa.DishId == dish.DishId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var old in existingAssignments)
+                _db.DishSectionAssignments.Remove(old);
+
+            if (request.SectionIds.Count > 0)
+            {
+                var validSectionIds = await _db.MenuSections
+                    .Where(ms => ms.RestaurantId == dish.Restaurant!.RestaurantId
+                        && request.SectionIds.Contains(ms.SectionId))
+                    .Select(ms => ms.SectionId)
+                    .ToListAsync(cancellationToken);
+
+                for (var i = 0; i < validSectionIds.Count; i++)
+                {
+                    _db.DishSectionAssignments.Add(new DishSectionAssignment
+                    {
+                        DishId = dish.DishId,
+                        SectionId = validSectionIds[i],
+                        DisplayOrder = i + 1,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
         }
 
         dish.UpdatedAt = DateTime.UtcNow;

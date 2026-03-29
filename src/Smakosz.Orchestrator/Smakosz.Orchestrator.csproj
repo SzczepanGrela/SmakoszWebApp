@@ -11,7 +11,7 @@
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.*" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.*" />
     <PackageReference Include="MediatR" Version="12.*" />
-
+    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Smakosz.Application\Smakosz.Application.csproj" />

@@ -16,6 +16,7 @@ public class RegisterHandlerTests
     private readonly ICodeHasher _codeHasher;
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
+    private readonly IForbiddenWordService _forbiddenWords;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
@@ -25,11 +26,12 @@ public class RegisterHandlerTests
         _codeHasher = Substitute.For<ICodeHasher>();
         _currentUser = Substitute.For<ICurrentUserService>();
         _emailService = Substitute.For<IEmailService>();
+        _forbiddenWords = Substitute.For<IForbiddenWordService>();
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
         _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService);
+        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService, _forbiddenWords);
     }
 
     [Fact]

@@ -6,6 +6,7 @@ using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Dishes.Dtos;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Dishes.Queries.GetDishesByRestaurant;
 
@@ -42,7 +43,8 @@ public class GetDishesByRestaurantHandler
         var result = await _db.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
-            .Where(d => d.RestaurantId == restaurant.RestaurantId && d.IsAvailable)
+            .Where(d => d.RestaurantId == restaurant.RestaurantId && d.IsAvailable
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved))
             .OrderBy(d => d.DishName)
             .Select(d => new DishCardDto
             {

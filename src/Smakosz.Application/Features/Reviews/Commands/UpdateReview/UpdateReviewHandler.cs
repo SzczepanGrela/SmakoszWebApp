@@ -12,11 +12,13 @@ public class UpdateReviewHandler : IRequestHandler<UpdateReviewCommand, ErrorOr<
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public UpdateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public UpdateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<ReviewCardDto>> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
@@ -35,6 +37,12 @@ public class UpdateReviewHandler : IRequestHandler<UpdateReviewCommand, ErrorOr<
 
         if (review.UserId != _currentUser.UserId.Value)
             return DomainErrors.Review.NotOwner;
+
+        if (!string.IsNullOrEmpty(request.Content))
+        {
+            if (await _forbiddenWords.ContainsAsync(request.Content, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
+                return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;
+        }
 
         review.DishRating = request.DishRating;
         review.ServiceRating = request.ServiceRating;

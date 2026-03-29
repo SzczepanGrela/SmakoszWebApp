@@ -26,6 +26,19 @@ public class DishDetailDto
     public string? CityName { get; init; }
     public bool IsSaved { get; init; }
     public List<TagDto> Tags { get; init; } = [];
+    public List<DishIngredientDto> Ingredients { get; init; } = [];
+}
+
+public class DishIngredientDto
+{
+    public int IngredientId { get; init; }
+    public string Name { get; init; } = default!;
+    public string? IconUrl { get; init; }
+    public bool IsAllergen { get; init; }
+    public bool IsVegetarian { get; init; }
+    public bool IsVegan { get; init; }
+    public bool IsGlutenFree { get; init; }
+    public bool IsLactoseFree { get; init; }
 }
 
 public class TagDto

@@ -176,6 +176,13 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                         dish.Description = editRequest.NewDescription;
                 }
             }
+            else if (editRequest.ChangeScope == EditRequestChangeScope.Section && editRequest.TargetEntityId.HasValue)
+            {
+                var section = await _db.MenuSections.FirstOrDefaultAsync(
+                    ms => ms.SectionId == editRequest.TargetEntityId.Value, ct);
+                if (section is not null && !string.IsNullOrEmpty(editRequest.NewName))
+                    section.SectionName = editRequest.NewName;
+            }
             else
             {
                 if (!string.IsNullOrEmpty(editRequest.NewName))
@@ -198,9 +205,12 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             if (relatedTicket != null)
                 relatedTicket.Status = TicketStatus.Resolved;
 
-            var entityName = editRequest.ChangeScope == EditRequestChangeScope.Dish
-                ? "daniu"
-                : $"restauracji \"{editRequest.Restaurant.RestaurantName}\"";
+            var entityName = editRequest.ChangeScope switch
+            {
+                EditRequestChangeScope.Dish => "daniu",
+                EditRequestChangeScope.Section => "sekcji menu",
+                _ => $"restauracji \"{editRequest.Restaurant.RestaurantName}\""
+            };
 
             _db.Notifications.Add(new Domain.Entities.Notification
             {
@@ -352,6 +362,9 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 case "restaurant":
                     await ApplyTextModerationToRestaurant(entityId, verdict, ct);
                     break;
+                case "menu_section":
+                    await ApplyTextModerationToMenuSection(entityId, verdict, ct);
+                    break;
             }
 
             var moderationEntityType = entityType switch
@@ -360,6 +373,7 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 "edit_request" => ModerationEntityType.EditRequest,
                 "dish" => ModerationEntityType.Dish,
                 "restaurant" => ModerationEntityType.Restaurant,
+                "menu_section" => ModerationEntityType.MenuSection,
                 _ => ModerationEntityType.Review
             };
 
@@ -442,6 +456,14 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                         dish.Description = editRequest.NewDescription;
                 }
             }
+            else if (editRequest.ChangeScope == EditRequestChangeScope.Section && editRequest.TargetEntityId.HasValue)
+            {
+                // Section edit: apply name change to the target menu section
+                var section = await _db.MenuSections.FirstOrDefaultAsync(
+                    ms => ms.SectionId == editRequest.TargetEntityId.Value, ct);
+                if (section is not null && !string.IsNullOrEmpty(editRequest.NewName))
+                    section.SectionName = editRequest.NewName;
+            }
             else
             {
                 // Restaurant edit: apply changes to the restaurant
@@ -465,9 +487,12 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             if (relatedTicket != null)
                 relatedTicket.Status = TicketStatus.Resolved;
 
-            var entityName = editRequest.ChangeScope == EditRequestChangeScope.Dish
-                ? "daniu"
-                : $"restauracji \"{editRequest.Restaurant.RestaurantName}\"";
+            var entityName = editRequest.ChangeScope switch
+            {
+                EditRequestChangeScope.Dish => "daniu",
+                EditRequestChangeScope.Section => "sekcji menu",
+                _ => $"restauracji \"{editRequest.Restaurant.RestaurantName}\""
+            };
 
             _db.Notifications.Add(new Domain.Entities.Notification
             {
@@ -501,6 +526,14 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         if (restaurant is null) return;
 
         restaurant.ModerationStatus = MapStatus(verdict);
+    }
+
+    private async Task ApplyTextModerationToMenuSection(int sectionId, string verdict, CancellationToken ct)
+    {
+        var section = await _db.MenuSections.FirstOrDefaultAsync(ms => ms.SectionId == sectionId, ct);
+        if (section is null) return;
+
+        section.ModerationStatus = MapStatus(verdict);
     }
 
     private async Task HandleImageModerationBatch(CompleteJobCommand request, DateTime now, CancellationToken ct)

@@ -11,11 +11,13 @@ public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ErrorO
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public UpdateProfileHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public UpdateProfileHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _currentUser = currentUser;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<Success>> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
@@ -31,12 +33,7 @@ public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ErrorO
 
         if (request.Username is not null)
         {
-            var usernameLower = request.Username.ToLowerInvariant();
-            var forbiddenUsername = await _db.ForbiddenWords
-                .Where(fw => fw.Category == ForbiddenWordCategory.Reserved || fw.Category == ForbiddenWordCategory.Offensive)
-                .AnyAsync(fw => !fw.IsRegex && usernameLower.Contains(fw.Word.ToLower()), cancellationToken);
-
-            if (forbiddenUsername)
+            if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
                 return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
 
             var slugCandidate = request.Username.ToLowerInvariant().Replace(" ", "-");
@@ -50,6 +47,9 @@ public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ErrorO
             user.Username = request.Username;
             user.Slug = slugCandidate;
         }
+
+        if (request.AvatarUrl is not null)
+            user.AvatarUrl = request.AvatarUrl;
 
         await _db.SaveChangesAsync(cancellationToken);
         return Result.Success;

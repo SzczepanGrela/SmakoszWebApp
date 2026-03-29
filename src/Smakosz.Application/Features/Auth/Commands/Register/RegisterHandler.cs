@@ -16,14 +16,16 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
     private readonly ICodeHasher _codeHasher;
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
+    private readonly IForbiddenWordService _forbiddenWords;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _codeHasher = codeHasher;
         _currentUser = currentUser;
         _emailService = emailService;
+        _forbiddenWords = forbiddenWords;
     }
 
     public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -40,12 +42,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
         if (usernameExists)
             return DomainErrors.Auth.UsernameAlreadyExists;
 
-        var usernameLower = request.Username.ToLowerInvariant();
-        var forbiddenUsername = await _db.ForbiddenWords
-            .Where(fw => fw.Category == ForbiddenWordCategory.Reserved || fw.Category == ForbiddenWordCategory.Offensive)
-            .AnyAsync(fw => !fw.IsRegex && usernameLower.Contains(fw.Word.ToLower()), cancellationToken);
-
-        if (forbiddenUsername)
+        if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
             return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
 
         var emailDomain = request.Email.ToLowerInvariant().Split('@')[1];
