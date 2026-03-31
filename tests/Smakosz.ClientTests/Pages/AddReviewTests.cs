@@ -47,7 +47,7 @@ public class AddReviewTests : BunitTestBase
         var cut = RenderComponent<AddReview>();
 
         cut.Markup.Should().Contain("Wyszukaj danie");
-        cut.Find("input[placeholder='Wpisz nazwe dania...']").Should().NotBeNull();
+        cut.Find("input[placeholder='Wpisz nazwę dania...']").Should().NotBeNull();
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class AddReviewTests : BunitTestBase
         cut.WaitForState(() => cut.Markup.Contains("Pizza Margherita"));
 
         cut.Markup.Should().Contain("Ocena dania");
-        cut.Markup.Should().Contain("Obsluga");
-        cut.Markup.Should().Contain("Czystosc");
+        cut.Markup.Should().Contain("Obsługa");
+        cut.Markup.Should().Contain("Czystość");
         cut.Markup.Should().Contain("Atmosfera");
     }
 
@@ -107,7 +107,7 @@ public class AddReviewTests : BunitTestBase
             r.DishRating == 5 && r.ServiceRating == 5));
 
         var nav = Services.GetRequiredService<NavigationManager>();
-        nav.Uri.Should().Contain("/dish/pizza-margherita");
+        nav.Uri.Should().Contain("/dishes/pizza-margherita");
     }
 
     [Fact]
@@ -151,6 +151,6 @@ public class AddReviewTests : BunitTestBase
         cut.Find("button.btn-outline-secondary").Click();
 
         var nav = Services.GetRequiredService<NavigationManager>();
-        nav.Uri.Should().Contain("/dish/pizza-margherita");
+        nav.Uri.Should().Contain("/dishes/pizza-margherita");
     }
 }

@@ -41,7 +41,7 @@ public class QuickActionsBarTests : BunitTestBase
         randomBtn.Click();
 
         var nav = Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
-        nav.Uri.Should().Contain("/dish/random-dish");
+        nav.Uri.Should().Contain("/dishes/random-dish");
     }
 
     [Fact]
