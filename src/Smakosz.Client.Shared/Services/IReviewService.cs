@@ -11,4 +11,5 @@ public interface IReviewService
     Task<PagedResult<ReviewCardDto>?> GetByUserAsync(string userSlug, int page = 1, int pageSize = 10);
     Task<List<ReportReasonDto>?> GetReportReasonsAsync();
     Task<bool> ReportReviewAsync(Guid publicId, List<string> reasonCodes, string? description);
+    Task<ApiResponse<ToggleLikeResult>> ToggleLikeAsync(Guid publicId);
 }

@@ -3,6 +3,7 @@ using Smakosz.Application.Features.Reports.Commands.CreateReport;
 using Smakosz.Application.Features.Reports.Queries.GetReportReasons;
 using Smakosz.Application.Features.Reviews.Commands.CreateReview;
 using Smakosz.Application.Features.Reviews.Commands.DeleteReview;
+using Smakosz.Application.Features.Reviews.Commands.ToggleReviewLike;
 using Smakosz.Application.Features.Reviews.Commands.UpdateReview;
 
 namespace Smakosz.API.Controllers;
@@ -54,6 +55,14 @@ public class ReviewsController : ApiController
     public async Task<IActionResult> GetReportReasons()
     {
         var result = await _mediator.Send(new GetReportReasonsQuery());
+        return ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("{publicId:guid}/like")]
+    public async Task<IActionResult> ToggleLike(Guid publicId)
+    {
+        var result = await _mediator.Send(new ToggleReviewLikeCommand(publicId));
         return ToActionResult(result);
     }
 
