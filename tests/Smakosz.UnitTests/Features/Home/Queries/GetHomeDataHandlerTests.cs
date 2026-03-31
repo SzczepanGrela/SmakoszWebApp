@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Smakosz.Application.Features.Home.Queries.GetHomeData;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
@@ -20,9 +21,15 @@ public class GetHomeDataHandlerTests
         _handler = new GetHomeDataHandler(_db);
     }
 
+    private void SeedSiteStats()
+    {
+        _sets.SiteStats.Add(new SiteStats { Id = 1 });
+    }
+
     [Fact]
     public async Task Handle_WithData_ReturnsAllSections()
     {
+        _sets.SiteStats.Add(new SiteStats { Id = 1, TotalDishes = 1, TotalRestaurants = 1, TotalReviews = 1 });
         var city = new City { CityId = 1, CityName = "Warsaw" };
         var restaurant = new RestaurantBuilder()
             .WithId(1).WithCity(city).WithCuisineType("Italian").WithTrendingScore(100m).Build();
@@ -50,6 +57,9 @@ public class GetHomeDataHandlerTests
     [Fact]
     public async Task Handle_EmptyDatabase_ReturnsZeroStats()
     {
+        SeedSiteStats();
+        DbContextMockFactory.Refresh(_db, _sets);
+
         var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
@@ -64,6 +74,7 @@ public class GetHomeDataHandlerTests
     [Fact]
     public async Task Handle_OnlyActiveRestaurants_CountedInStats()
     {
+        SeedSiteStats();
         var active = new RestaurantBuilder().WithId(1).AsActive().Build();
         var suspended = new RestaurantBuilder().WithId(2).AsSuspended().Build();
         _sets.Restaurants.AddRange(new[] { active, suspended });
@@ -71,12 +82,13 @@ public class GetHomeDataHandlerTests
 
         var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
 
-        result.Value.Stats.TotalRestaurants.Should().Be(1);
+        result.Value.TrendingRestaurants.Should().HaveCount(1);
     }
 
     [Fact]
     public async Task Handle_TopRated_RequiresMinimumThreeReviews()
     {
+        SeedSiteStats();
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         var dishFewReviews = new DishBuilder()
             .WithId(1).WithRestaurant(restaurant).WithAvgRating(10.0).WithReviewCount(2).Build();
@@ -90,5 +102,45 @@ public class GetHomeDataHandlerTests
 
         result.Value.TopRatedDishes.Should().HaveCount(1);
         result.Value.TopRatedDishes[0].DishName.Should().Be(dishEnoughReviews.DishName);
+    }
+
+    [Fact]
+    public async Task Handle_PendingRestaurant_NotInTrending()
+    {
+        SeedSiteStats();
+        var approved = new RestaurantBuilder().WithId(1).AsActive().WithTrendingScore(100m).Build();
+        approved.ModerationStatus = ContentModerationStatus.Approved;
+        var pending = new RestaurantBuilder().WithId(2).AsActive().WithTrendingScore(200m).Build();
+        pending.ModerationStatus = ContentModerationStatus.Pending;
+        _sets.Restaurants.AddRange(new[] { approved, pending });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.TrendingRestaurants.Should().HaveCount(1);
+        result.Value.TrendingRestaurants[0].RestaurantName.Should().Be(approved.RestaurantName);
+    }
+
+    [Fact]
+    public async Task Handle_PendingDish_NotInTrendingOrTopRated()
+    {
+        SeedSiteStats();
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        var approvedDish = new DishBuilder()
+            .WithId(1).WithName("Approved").WithRestaurant(restaurant).WithTrendingScore(90m).WithReviewCount(5).WithAvgRating(9.0).Build();
+        approvedDish.ModerationStatus = ContentModerationStatus.Approved;
+        var pendingDish = new DishBuilder()
+            .WithId(2).WithName("Pending").WithRestaurant(restaurant).WithTrendingScore(200m).WithReviewCount(5).WithAvgRating(10.0).Build();
+        pendingDish.ModerationStatus = ContentModerationStatus.Pending;
+        _sets.Restaurants.Add(restaurant);
+        _sets.Dishes.AddRange(new[] { approvedDish, pendingDish });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.TrendingDishes.Should().HaveCount(1);
+        result.Value.TrendingDishes[0].DishName.Should().Be("Approved");
+        result.Value.TopRatedDishes.Should().HaveCount(1);
+        result.Value.TopRatedDishes[0].DishName.Should().Be("Approved");
     }
 }

@@ -82,4 +82,32 @@ public class RegisterBusinessHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("BUSINESS_RESTAURANT_EXISTS");
     }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInName_ReturnsError()
+    {
+        _forbiddenWords.ContainsAsync("Bad Name", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new RegisterBusinessCommand("Bad Name", "Good description", null, null, null, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
+
+    [Fact]
+    public async Task Handle_ForbiddenWordInDescription_ReturnsError()
+    {
+        _forbiddenWords.ContainsAsync("Bad description", Arg.Any<CancellationToken>(),
+            Arg.Any<ForbiddenWordCategory[]>()).Returns(true);
+
+        var result = await _handler.Handle(
+            new RegisterBusinessCommand("Good Name", "Bad description", null, null, null, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
 }
