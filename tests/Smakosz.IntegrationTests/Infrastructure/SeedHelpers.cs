@@ -178,6 +178,16 @@ public static class SeedHelpers
         };
     }
 
+    public static Domain.Entities.System.SiteStats CreateSiteStats() => new()
+    {
+        Id = 1,
+        TotalDishes = 0,
+        TotalRestaurants = 0,
+        TotalReviews = 0,
+        TotalUsers = 0,
+        UpdatedAt = DateTime.UtcNow,
+    };
+
     public static ReportReasonDefinition CreateReportReason(
         string code = "spam",
         string label = "Spam lub reklama")
@@ -190,6 +200,49 @@ public static class SeedHelpers
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
         };
+    }
+
+    public static MenuSection CreateMenuSection(
+        int sectionId = 1,
+        int restaurantId = 1,
+        string name = "Pizze",
+        int displayOrder = 1)
+    {
+        return new MenuSection
+        {
+            SectionId = sectionId,
+            RestaurantId = restaurantId,
+            SectionName = name,
+            DisplayOrder = displayOrder,
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
+
+    public static Domain.Entities.System.ForbiddenWord CreateForbiddenWord(
+        int wordId,
+        string word,
+        ForbiddenWordCategory category = ForbiddenWordCategory.Profanity,
+        bool isRegex = false)
+    {
+        return new Domain.Entities.System.ForbiddenWord
+        {
+            WordId = wordId,
+            Word = word,
+            Category = category,
+            IsRegex = isRegex,
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
+
+    public static void SeedForbiddenWords(SmakoszDbContext db)
+    {
+        db.ForbiddenWords.AddRange(
+            CreateForbiddenWord(1, "kurwa", ForbiddenWordCategory.Profanity),
+            CreateForbiddenWord(2, "chuj", ForbiddenWordCategory.Profanity),
+            CreateForbiddenWord(3, "jebane", ForbiddenWordCategory.Profanity),
+            CreateForbiddenWord(4, "fuck", ForbiddenWordCategory.Offensive),
+            CreateForbiddenWord(5, "shit", ForbiddenWordCategory.Offensive)
+        );
     }
 
     public static async Task SeedRestaurantScenarioAsync(SmakoszDbContext db, string? passwordHash = null)

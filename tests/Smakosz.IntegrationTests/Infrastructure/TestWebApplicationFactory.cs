@@ -24,6 +24,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Host=localhost",
                 ["Jwt:Secret"] = TestAuthHelper.JwtSecret,
+                ["Jwt:Key"] = TestAuthHelper.JwtSecret,
                 ["Jwt:Issuer"] = TestAuthHelper.JwtIssuer,
                 ["Jwt:Audience"] = TestAuthHelper.JwtAudience,
                 ["Brevo:ApiKey"] = "",
@@ -72,6 +73,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             // Replace moderation aggregation service with stub
             services.RemoveAll<IModerationAggregationService>();
             services.AddScoped<IModerationAggregationService, StubModerationAggregationService>();
+
         });
     }
 

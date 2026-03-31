@@ -64,7 +64,7 @@ public class BusinessAccessTests : IntegrationTestBase
 
         var response = await client.PostAsJsonAsync("/api/business/dishes", new
         {
-            Name = "Spaghetti Bolognese",
+            DishName = "Spaghetti Bolognese",
             Price = 32.50,
             Description = "Klasyczne spaghetti z sosem bolonskim",
             Calories = 650,
