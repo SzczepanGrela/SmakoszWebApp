@@ -266,7 +266,7 @@
         if (result.Success)
         {
             Toast.ShowSuccess("Recenzja została opublikowana!");
-            Navigation.NavigateTo($"/dish/{_selectedDish.Slug}");
+            Navigation.NavigateTo($"/dishes/{_selectedDish.Slug}");
         }
         else
         {
@@ -279,7 +279,7 @@
     {
         if (_selectedDish != null)
         {
-            Navigation.NavigateTo($"/dish/{_selectedDish.Slug}");
+            Navigation.NavigateTo($"/dishes/{_selectedDish.Slug}");
         }
         else
         {

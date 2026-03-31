@@ -41,7 +41,7 @@ else
                 @foreach (var r in _restaurants.Data)
                 {
                     <tr>
-                        <td><a href="/restaurant/@r.Slug">@r.Name</a></td>
+                        <td><a href="/restaurants/@r.Slug">@r.Name</a></td>
                         <td><span class="badge bg-@GetStatusColor(r.Status)">@r.Status</span></td>
                         <td>
                             @if (r.IsVerified)

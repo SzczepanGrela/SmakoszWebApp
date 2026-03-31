@@ -26,6 +26,9 @@ public class ReviewService : IReviewService
     public Task<List<ReportReasonDto>?> GetReportReasonsAsync()
         => _api.GetAsync<List<ReportReasonDto>>("/api/reviews/report-reasons");
 
+    public Task<ApiResponse<ToggleLikeResult>> ToggleLikeAsync(Guid publicId)
+        => _api.PostApiResponseAsync<ToggleLikeResult>($"/api/reviews/{publicId}/like");
+
     public async Task<bool> ReportReviewAsync(Guid publicId, List<string> reasonCodes, string? description)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/reviews/{publicId}/report",

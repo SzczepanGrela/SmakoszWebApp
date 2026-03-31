@@ -35,7 +35,7 @@
     {
         var dish = await DishService.GetRandomAsync();
         if (dish != null)
-            Navigation.NavigateTo($"/dish/{dish.Slug}");
+            Navigation.NavigateTo($"/dishes/{dish.Slug}");
     }
 
     private async Task NearbyRestaurants()

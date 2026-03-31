@@ -186,7 +186,7 @@
         if (result.Success)
         {
             Toast.ShowSuccess("Recenzja została zaktualizowana!");
-            Navigation.NavigateTo($"/dish/{_review!.DishSlug}");
+            Navigation.NavigateTo($"/dishes/{_review!.DishSlug}");
         }
         else
         {
@@ -199,7 +199,7 @@
     {
         if (_review != null)
         {
-            Navigation.NavigateTo($"/dish/{_review.DishSlug}");
+            Navigation.NavigateTo($"/dishes/{_review.DishSlug}");
         }
         else
         {
