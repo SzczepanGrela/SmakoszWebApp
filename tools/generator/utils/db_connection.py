@@ -52,8 +52,11 @@ class DatabaseConnection:
                 "restaurant_opening_hours": "hours_id",
                 "search_history": "search_id",
                 "data_correction_requests": "request_id",
+                "restaurant_edit_requests": "request_id",
                 "verification_codes": "verification_code_id",
                 "media_assets": "asset_id",
+                "system.tickets": "ticket_id",
+                "system.moderation_results": "result_id",
             }
             id_column = id_map.get(table_lower, table_lower.rstrip("s") + "_id")
 

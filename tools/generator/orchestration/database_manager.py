@@ -11,6 +11,7 @@ class DatabaseManager:
 
     CLEANUP_TABLE_ORDER: ClassVar[list[str]] = [
         "system.tickets",
+        "system.moderation_results",
         "system.job_progress",
         "system.ai_logs",
         "system.moderation_logs",
