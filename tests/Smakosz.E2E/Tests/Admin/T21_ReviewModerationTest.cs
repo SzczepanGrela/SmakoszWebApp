@@ -46,7 +46,7 @@ public class T21_ReviewModerationTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         var pageContent = await Page.ContentAsync();
-        var hasReviews = pageContent.Contains("Zatwierdz") || pageContent.Contains("Odrzuc");
+        var hasReviews = pageContent.Contains("Zatwierdź") || pageContent.Contains("Odrzuć");
 
         if (!hasReviews)
         {
@@ -57,14 +57,14 @@ public class T21_ReviewModerationTest : SmakoszE2ETestBase
             Assert.Pass("No pending reviews to moderate (auto-approval may be enabled)");
         }
 
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         await approveButton.ClickAsync();
 
         await Page.WaitForTimeoutAsync(2000);
         await WaitForBlazorLoadedAsync();
 
         var bodyText = await Page.Locator("body").InnerTextAsync();
-        Assert.That(bodyText.Contains("zatwierdzona") || bodyText.Contains("Brak") || !bodyText.Contains("Zatwierdz"),
+        Assert.That(bodyText.Contains("zatwierdzona") || bodyText.Contains("Brak") || !bodyText.Contains("Zatwierdź"),
             Is.True, "Review should be approved or queue should be empty after approval");
     }
 }

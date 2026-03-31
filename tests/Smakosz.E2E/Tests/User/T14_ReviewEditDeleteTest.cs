@@ -79,7 +79,7 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
             $"Edit review failed: {editResponse.StatusCode} - {await editResponse.Content.ReadAsStringAsync()}");
 
         await LoginViaLocalStorageAsync(TestConstants.User2Email, TestConstants.UserPassword);
-        await NavigateAndWaitAsync("/dish/kebab-duzy");
+        await NavigateAndWaitAsync("/dishes/kebab-duzy");
         await WaitForBlazorLoadedAsync();
 
         var pageContent = await Page.ContentAsync();

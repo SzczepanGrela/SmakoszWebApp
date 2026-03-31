@@ -35,7 +35,7 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await Page.EvaluateAsync("localStorage.clear()");
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/dish/panna-cotta");
+        await NavigateAndWaitAsync("/dishes/panna-cotta");
         await WaitForBlazorLoadedAsync();
 
         var dishPageContent = await Page.ContentAsync();
@@ -50,7 +50,7 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
             if (await dishLink.IsVisibleAsync())
             {
                 await dishLink.ClickAsync();
-                await Page.WaitForURLAsync(url => url.Contains("/dish/"),
+                await Page.WaitForURLAsync(url => url.Contains("/dishes/"),
                     new PageWaitForURLOptions { Timeout = 10_000 });
             }
             else
@@ -77,17 +77,17 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await Page.Locator("textarea.form-control").FillAsync("Panna cotta pyszna, delikatna i kremowa!");
         await Page.Locator("input[type='date']").FillAsync(DateTime.Today.ToString("yyyy-MM-dd"));
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzje" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();
 
         var reviewRedirectTask = Page.WaitForURLAsync(
-            url => url.Contains("/dish/panna-cotta"),
+            url => url.Contains("/dishes/panna-cotta"),
             new PageWaitForURLOptions { Timeout = 15_000 });
         var reviewErrorTask = Page.Locator(".alert-danger").First.WaitForAsync(
             new LocatorWaitForOptions { Timeout = 15_000 });
 
         await Task.WhenAny(reviewRedirectTask, reviewErrorTask);
 
-        if (!Page.Url.Contains("/dish/"))
+        if (!Page.Url.Contains("/dishes/"))
         {
             var errorVisible = await Page.Locator(".alert-danger").First.IsVisibleAsync();
             if (errorVisible)

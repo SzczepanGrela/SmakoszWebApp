@@ -23,13 +23,13 @@ public class T22_PhotoModerationTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+        var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
         var approveCount = await approveButton.CountAsync();
 
         if (approveCount == 0)
         {
             var pageContent = await Page.ContentAsync();
-            if (pageContent.Contains("Brak zdjec") || pageContent.Contains("zostaly sprawdzone"))
+            if (pageContent.Contains("Brak zdjęć") || pageContent.Contains("zostały sprawdzone"))
             {
                 Assert.Pass("No pending photos to moderate - queue is empty");
             }
@@ -43,8 +43,8 @@ public class T22_PhotoModerationTest : SmakoszE2ETestBase
 
         // After approval and page reload, the empty state should show (only 1 photo in seed)
         var updatedContent = await Page.ContentAsync();
-        var queueEmpty = updatedContent.Contains("Brak zdjec") || updatedContent.Contains("zostaly sprawdzone");
-        var fewerButtons = await Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).CountAsync() < approveCount;
+        var queueEmpty = updatedContent.Contains("Brak zdjęć") || updatedContent.Contains("zostały sprawdzone");
+        var fewerButtons = await Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).CountAsync() < approveCount;
 
         Assert.That(queueEmpty || fewerButtons, Is.True,
             "Photo should be approved and removed from moderation queue");

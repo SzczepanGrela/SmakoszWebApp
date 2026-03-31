@@ -57,14 +57,14 @@ public class T23_ModeratorReviewModerationTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("Nie masz uprawnien") || pageContent.Contains("403"), Is.False,
+        Assert.That(pageContent.Contains("Nie masz uprawnień") || pageContent.Contains("403"), Is.False,
             "Moderator should have access to review moderation page");
 
-        var hasReviews = pageContent.Contains("Zatwierdz") || pageContent.Contains("Odrzuc");
+        var hasReviews = pageContent.Contains("Zatwierdź") || pageContent.Contains("Odrzuć");
 
         if (hasReviews)
         {
-            var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdz" }).First;
+            var approveButton = Page.Locator("button.btn-success", new() { HasText = "Zatwierdź" }).First;
             await approveButton.ClickAsync();
             await Page.WaitForTimeoutAsync(2000);
             await WaitForBlazorLoadedAsync();

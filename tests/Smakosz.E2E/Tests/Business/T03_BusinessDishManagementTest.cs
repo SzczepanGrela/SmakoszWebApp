@@ -119,11 +119,11 @@ public class T03_BusinessDishManagementTest : SmakoszE2ETestBase
         var deleteButton = dishRowAfterEdit.Locator("button.btn-outline-danger").First;
         await deleteButton.ClickAsync();
 
-        await AssertPageContainsTextAsync("Czy na pewno chcesz usunac danie");
+        await AssertPageContainsTextAsync("Czy na pewno chcesz usunąć danie");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Potwierdz" }).ClickAsync();
 
         await Page.WaitForTimeoutAsync(2000);
-        await AssertToastAsync("Danie zostalo usuniete.");
+        await AssertToastAsync("Danie zostało usunięte.");
 
         var deletedDish = Page.Locator("tr", new() { HasText = "Spaghetti Carbonara" });
         await Expect(deletedDish).ToHaveCountAsync(0);

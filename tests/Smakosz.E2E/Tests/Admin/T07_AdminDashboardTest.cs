@@ -25,11 +25,11 @@ public class T07_AdminDashboardTest : SmakoszE2ETestBase
         await Expect(heading).ToContainTextAsync("Dashboard",
             new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
 
-        await AssertPageContainsTextAsync("Uzytkownicy");
+        await AssertPageContainsTextAsync("Użytkownicy");
         await AssertPageContainsTextAsync("Restauracje");
         await AssertPageContainsTextAsync("Recenzje");
 
-        await AssertPageContainsTextAsync("Oczekujace raporty");
-        await AssertPageContainsTextAsync("Oczekujace korekty");
+        await AssertPageContainsTextAsync("Oczekujące raporty");
+        await AssertPageContainsTextAsync("Oczekujące korekty");
     }
 }

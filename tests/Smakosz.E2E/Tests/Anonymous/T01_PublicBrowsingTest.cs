@@ -51,15 +51,15 @@ public class T01_PublicBrowsingTest : SmakoszE2ETestBase
         if (isDishVisible)
         {
             await dishLink.ClickAsync();
-            await Page.WaitForURLAsync(url => url.Contains("/dish/"), new PageWaitForURLOptions { Timeout = 10_000 });
+            await Page.WaitForURLAsync(url => url.Contains("/dishes/"), new PageWaitForURLOptions { Timeout = 10_000 });
             await WaitForBlazorLoadedAsync();
         }
         else
         {
-            await NavigateAndWaitAsync("/dish/pizza-margherita");
+            await NavigateAndWaitAsync("/dishes/pizza-margherita");
         }
 
-        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/dish/pizza-margherita"));
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/dishes/pizza-margherita"));
 
         var dishHeading = Page.Locator("h1").First;
         await Expect(dishHeading).ToContainTextAsync("Pizza Margherita");
@@ -73,10 +73,10 @@ public class T01_PublicBrowsingTest : SmakoszE2ETestBase
         var restaurantLink = Page.GetByRole(AriaRole.Link, new() { Name = "Pizzeria Roma" }).First;
         await restaurantLink.ClickAsync();
 
-        await Page.WaitForURLAsync(url => url.Contains("/restaurant/pizzeria-roma"), new PageWaitForURLOptions { Timeout = 10_000 });
+        await Page.WaitForURLAsync(url => url.Contains("/restaurants/pizzeria-roma"), new PageWaitForURLOptions { Timeout = 10_000 });
         await WaitForBlazorLoadedAsync();
 
-        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/restaurant/pizzeria-roma"));
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/restaurants/pizzeria-roma"));
 
         var restaurantHeading = Page.Locator("h1").First;
         await Expect(restaurantHeading).ToContainTextAsync("Pizzeria Roma");

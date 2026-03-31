@@ -20,7 +20,7 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj się" }).ClickAsync();
 
         var redirectTask = Page.WaitForURLAsync(
             url => url.Contains("/verify-email"),
@@ -40,12 +40,12 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await Page.Locator("input[type='email']").FillAsync(TestConstants.UserEmail);
         await Page.Locator(".input-group input[type='password']").FillAsync(TestConstants.UserPassword);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj sie" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Page.WaitForURLAsync(url => !url.Contains("/login"), new PageWaitForURLOptions { Timeout = 15_000 });
         await WaitForBlazorLoadedAsync();
 
-        await NavigateAndWaitAsync("/dish/pizza-pepperoni");
+        await NavigateAndWaitAsync("/dishes/pizza-pepperoni");
 
         // Assert "Ocen to danie" button is visible (requires User role)
         var addReviewLink = Page.GetByRole(AriaRole.Link, new() { Name = "Ocen to danie" });
@@ -80,17 +80,17 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
         var today = DateTime.Today.ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(today);
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzje" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();
 
         var reviewRedirectTask = Page.WaitForURLAsync(
-            url => url.Contains("/dish/pizza-pepperoni"),
+            url => url.Contains("/dishes/pizza-pepperoni"),
             new PageWaitForURLOptions { Timeout = 15_000 });
         var reviewErrorTask = Page.Locator(".alert-danger, .toast-error").First.WaitForAsync(
             new LocatorWaitForOptions { Timeout = 15_000 });
 
         await Task.WhenAny(reviewRedirectTask, reviewErrorTask);
 
-        if (!Page.Url.Contains("/dish/pizza-pepperoni"))
+        if (!Page.Url.Contains("/dishes/pizza-pepperoni"))
         {
             var errorText = await Page.Locator(".alert-danger, .toast-error").First.TextContentAsync();
             Assert.Fail($"Review submission failed: {errorText}");
