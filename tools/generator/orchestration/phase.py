@@ -48,14 +48,19 @@ class BasePhase(ABC):
     def execute(self, context: "ExecutionContext") -> PhaseResult:
         pass
 
-    def validate_prerequisites(self, context: "ExecutionContext") -> None:
+    def validate_prerequisites(self, context: "ExecutionContext", selective: bool = False) -> None:
         for dep_id in self.metadata.dependencies:
             if dep_id not in context.completed_phases:
-                raise ValueError(
-                    f"Phase {self.metadata.phase_id} requires {dep_id} "
-                    f"but it hasn't been completed. "
-                    f"Completed phases: {sorted(context.completed_phases)}"
-                )
+                if selective:
+                    logger.info(
+                        f"[Selective] Assuming {dep_id} data exists for {self.metadata.phase_id}"
+                    )
+                else:
+                    raise ValueError(
+                        f"Phase {self.metadata.phase_id} requires {dep_id} "
+                        f"but it hasn't been completed. "
+                        f"Completed phases: {sorted(context.completed_phases)}"
+                    )
 
         if self.metadata.dependencies:
             for dep_id in self.metadata.dependencies:
@@ -148,6 +153,45 @@ class PhaseRegistry:
 
         logger.debug(f"Dependency resolution: {requested_phase_ids} -> {result}")
         return result
+
+    def resolve_downstream(self, phase_ids: list[str]) -> list[str]:
+        """Find all phases that transitively depend on the given phases."""
+        reverse_deps: dict[str, list[str]] = defaultdict(list)
+        for phase in self._phases.values():
+            for dep in phase.metadata.dependencies:
+                reverse_deps[dep].append(phase.metadata.phase_id)
+
+        downstream: set[str] = set()
+        queue: deque[str] = deque(phase_ids)
+        while queue:
+            pid = queue.popleft()
+            for child in reverse_deps.get(pid, []):
+                if child not in downstream and child not in phase_ids:
+                    downstream.add(child)
+                    queue.append(child)
+        return list(downstream)
+
+    def sort_phases(self, phase_ids: list[str]) -> list[str]:
+        """Sort phases by number without pulling in dependencies."""
+        for pid in phase_ids:
+            if pid not in self._phases:
+                available = ", ".join(sorted(self._phases.keys()))
+                raise ValueError(f"Unknown phase: {pid}. Available: {available}")
+        unique = list(dict.fromkeys(phase_ids))
+        return sorted(unique, key=lambda pid: (int(pid.replace("phase", "").split("_")[0]), pid))
+
+    def get_cleanup_tables_for_phases(self, phase_ids: list[str]) -> list[str]:
+        """Collect cleanup_tables from multiple phases, preserving order, no duplicates."""
+        tables: list[str] = []
+        seen: set[str] = set()
+        for pid in phase_ids:
+            phase = self._phases.get(pid)
+            if phase:
+                for t in phase.metadata.cleanup_tables:
+                    if t not in seen:
+                        tables.append(t)
+                        seen.add(t)
+        return tables
 
     def get_dependency_graph(self) -> dict[str, list[str]]:
         return {phase.metadata.phase_id: phase.metadata.dependencies for phase in self._phases.values()}

@@ -139,6 +139,22 @@ class DatabaseManager:
         self.db.commit()
         logger.info("Database cleanup completed")
 
+    def cleanup_selective(self, tables: list[str]) -> None:
+        if not tables:
+            logger.info("No tables to clean up.")
+            return
+
+        logger.info(f"Selective cleanup: {len(tables)} tables")
+        self.db.execute_query("SET session_replication_role = 'replica';")
+        try:
+            for table in tables:
+                logger.debug(f"Truncating {table}...")
+                self.db.execute_query(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE")
+        finally:
+            self.db.execute_query("SET session_replication_role = 'origin';")
+        self.db.commit()
+        logger.info("Selective cleanup completed.")
+
     def get_statistics(self) -> dict[str, int]:
         tables = [
             "users",

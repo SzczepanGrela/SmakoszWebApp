@@ -249,6 +249,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "image_blurhash": primary_photo_metadata.get("blurhash"),
                     "status": status,
                     "is_verified": is_verified,
+                    "moderation_status": "none",
                     "owner_id": None,
                     "created_at": to_sql_datetime(created_date),
                     "updated_at": to_sql_datetime(created_date),
@@ -273,6 +274,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                             "restaurant_id": restaurant_id_counter,
                             "section_name": section_def["name"],
                             "display_order": display_order,
+                            "moderation_status": "none",
                         }
                     )
                     display_order += 1
@@ -522,7 +524,7 @@ class RestaurantsPhase(BasePhase):
         return PhaseMetadata(
             phase_id="phase2_restaurants",
             display_name="Restaurants Generation",
-            dependencies=["phase1_cities"],
+            dependencies=["phase1_cities", "phase1_cuisines", "phase1_tags"],
             required_tables=["restaurants", "restaurant_opening_hours", "menu_sections"],
             cleanup_tables=["restaurants", "restaurant_opening_hours", "menu_sections", "restaurant_tags"],
             estimated_duration=30,
@@ -559,7 +561,7 @@ class RestaurantsPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Restaurants generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Restaurants generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,

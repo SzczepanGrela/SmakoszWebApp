@@ -258,13 +258,12 @@ class DatasetStatistics:
             GROUP BY content_status ORDER BY COUNT(*) DESC
         """)
         by_verdict = self.db.fetch_all("""
-            SELECT ai_verdict, COUNT(*) FROM reviews
-            WHERE ai_verdict IS NOT NULL
-            GROUP BY ai_verdict ORDER BY COUNT(*) DESC
+            SELECT status, COUNT(*) FROM system.moderation_results
+            GROUP BY status ORDER BY COUNT(*) DESC
         """)
         return {
             "content_status": dict(by_status),
-            "ai_verdict": dict(by_verdict),
+            "moderation_verdict": dict(by_verdict),
         }
 
     def _temporal_stats(self) -> dict:

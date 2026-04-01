@@ -505,7 +505,7 @@ class UsersPhase(BasePhase):
         return PhaseMetadata(
             phase_id="phase4_users",
             display_name="Users Generation",
-            dependencies=["phase1_cities"],
+            dependencies=["phase1_cities", "phase3_dishes"],
             required_tables=["users", "user_notification_settings"],
             cleanup_tables=["users", "user_notification_settings", "saved_dishes"],
             estimated_duration=40,
@@ -537,7 +537,7 @@ class UsersPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Users generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Users generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,

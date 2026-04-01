@@ -180,7 +180,7 @@ class CitiesPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Cities generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Cities generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,
@@ -292,7 +292,7 @@ class CuisineTypesPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Cuisine types generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Cuisine types generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,
@@ -439,7 +439,7 @@ class IngredientsPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Ingredients generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Ingredients generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,
@@ -532,7 +532,7 @@ class TagsPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Tags generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Tags generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,

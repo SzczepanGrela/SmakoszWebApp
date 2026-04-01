@@ -68,19 +68,6 @@ def generate_single_review(
 
     is_visible = not is_recent_review
 
-    is_uncertain = random.random() < 0.02
-    if is_uncertain:
-        ai_toxicity_score = round(random.uniform(0.3, 0.7), 4)
-        ai_spam_score = round(random.uniform(0.3, 0.7), 4)
-        ai_verdict = "needs_review"
-    else:
-        ai_toxicity_score = round(random.uniform(0.0, 0.1), 4)
-        ai_spam_score = round(random.uniform(0.0, 0.05), 4)
-        ai_verdict = "approved"
-
-    ai_model_version = "mockHerbert-v1"
-    ai_processed_at = to_sql_datetime(review_date)
-
     dish_rating_value = int(round(ratings["food_score"]))
     review_data = {
         "public_id": str(uuid.uuid4()),
@@ -97,11 +84,6 @@ def generate_single_review(
         "is_visible": is_visible,
         "created_at": to_sql_datetime(review_date),
         "version": 1,
-        "ai_toxicity_score": ai_toxicity_score,
-        "ai_spam_score": ai_spam_score,
-        "ai_verdict": ai_verdict,
-        "ai_model_version": ai_model_version,
-        "ai_processed_at": ai_processed_at,
         "is_approved": True,
         "is_deleted": False,
     }
@@ -113,27 +95,12 @@ def generate_single_review(
 
         photo_status = "pending" if is_recent_review else "approved"
 
-        photo_uncertain = random.random() < 0.02
-        if photo_uncertain:
-            photo_ai_nsfw = round(random.uniform(0.3, 0.6), 4)
-            photo_ai_on_topic = round(random.uniform(0.3, 0.5), 4)
-            photo_ai_verdict = "needs_review"
-        else:
-            photo_ai_nsfw = round(random.uniform(0.0, 0.05), 4)
-            photo_ai_on_topic = round(random.uniform(0.8, 0.99), 4)
-            photo_ai_verdict = "approved"
-
         user_photo_data = {
             "url": photo_metadata["url"],
             "blurhash": photo_metadata["blurhash"],
             "width": photo_metadata["width"],
             "height": photo_metadata["height"],
             "status": photo_status,
-            "ai_nsfw_score": photo_ai_nsfw,
-            "ai_on_topic_score": photo_ai_on_topic,
-            "ai_verdict": photo_ai_verdict,
-            "ai_model_version": "mockNSFW-v1/mockCLIP-v1",
-            "ai_processed_at": to_sql_datetime(review_date),
         }
 
     return {

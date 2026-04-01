@@ -366,6 +366,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                     "image_blurhash": primary_photo_metadata.get("blurhash"),
                     "calories": calories,
                     "created_at": restaurant.get("created_at"),
+                    "moderation_status": "none",
                 }
             )
 
@@ -568,7 +569,7 @@ class DishesPhase(BasePhase):
         return PhaseMetadata(
             phase_id="phase3_dishes",
             display_name="Dishes Generation",
-            dependencies=["phase1_ingredients", "phase2_restaurants"],
+            dependencies=["phase1_ingredients", "phase1_tags", "phase2_restaurants"],
             required_tables=["dishes", "dish_variants", "dish_ingredients"],
             cleanup_tables=["dishes", "dish_variants", "dish_ingredients", "dish_tags"],
             estimated_duration=60,
@@ -605,7 +606,7 @@ class DishesPhase(BasePhase):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(f"✗ Dishes generation failed: {e}", exc_info=True)
+            logger.error(f"[FAIL] Dishes generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,
