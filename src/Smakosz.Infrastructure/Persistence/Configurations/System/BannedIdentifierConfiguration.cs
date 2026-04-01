@@ -26,7 +26,6 @@ public class BannedIdentifierConfiguration : IEntityTypeConfiguration<BannedIden
         builder.Property(x => x.BannedAt)
             .HasDefaultValueSql("now()");
 
-        // Cross-schema FK to public.users
         builder.HasOne(x => x.BannedByUser)
             .WithMany()
             .HasForeignKey(x => x.BannedBy)

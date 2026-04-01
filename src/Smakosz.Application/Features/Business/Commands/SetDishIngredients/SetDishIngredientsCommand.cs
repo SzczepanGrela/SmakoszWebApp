@@ -44,11 +44,9 @@ public class SetDishIngredientsHandler : IRequestHandler<SetDishIngredientsComma
         if (ingredients.Count != request.IngredientIds.Count)
             return Error.Validation("INVALID_INGREDIENTS", "Some ingredient IDs are invalid.");
 
-        // Remove old assignments
         foreach (var old in dish.DishIngredients.ToList())
             _db.DishIngredients.Remove(old);
 
-        // Add new assignments
         foreach (var ingredient in ingredients)
         {
             _db.DishIngredients.Add(new DishIngredient
@@ -58,10 +56,8 @@ public class SetDishIngredientsHandler : IRequestHandler<SetDishIngredientsComma
             });
         }
 
-        // Recalculate dietary flags
         DishDietaryExtensions.RecalculateDietaryFlags(dish, ingredients);
 
-        // Serialize ingredient names to JSON
         dish.IngredientsJson = DishDietaryExtensions.SerializeIngredientNames(ingredients);
 
         await _db.SaveChangesAsync(cancellationToken);

@@ -1,20 +1,9 @@
-"""
-NCF Evaluation Pipeline - CLI entry point.
-
-Usage:
-    cd tools/generator
-    python -m evaluation.main --model-path ../../gpu-worker/model_cache/ncf/v20250226_120000
-    python -m evaluation.main --top-n 20 --k-values 5,10,20 --min-reviews 5
-    python -m evaluation.main -v --output results.json
-"""
-
 import argparse
 import logging
 import os
 import sys
 from pathlib import Path
 
-# sys.path setup - same pattern as tests/conftest.py
 EVALUATION_ROOT = Path(__file__).parent.resolve()
 TOOLS_ROOT = EVALUATION_ROOT.parent
 GENERATOR_ROOT = TOOLS_ROOT / "generator"
@@ -22,12 +11,10 @@ GENERATOR_ROOT = TOOLS_ROOT / "generator"
 if str(GENERATOR_ROOT) not in sys.path:
     sys.path.insert(0, str(GENERATOR_ROOT))
 
-# Imports from generator (after sys.path setup)
 from config.database import get_connection_params  # noqa: E402
 from utils.blueprint_loader import BlueprintLoader  # noqa: E402
 from utils.db_connection import DatabaseConnection  # noqa: E402
 
-# Imports from evaluation package
 from .config import (  # noqa: E402
     DEFAULT_K_VALUES,
     DEFAULT_MIN_REVIEWS,
@@ -43,11 +30,9 @@ from .reporting import EvaluationReport  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-# Relevance threshold - dishes rated >= this are considered "relevant"
 RELEVANCE_THRESHOLD = 7.0
 
 def resolve_model_path(model_path_arg: str | None) -> Path:
-    """Resolve model directory: explicit path or auto-detect latest."""
     if model_path_arg:
         p = Path(model_path_arg)
         if not p.exists():
@@ -56,33 +41,25 @@ def resolve_model_path(model_path_arg: str | None) -> Path:
     return find_latest_model()
 
 def evaluate(args: argparse.Namespace) -> None:
-    """Main evaluation pipeline."""
-
-    # CWD must be generator root for BlueprintLoader("blueprints")
     os.chdir(GENERATOR_ROOT)
 
-    # [1] Load model
     model_dir = resolve_model_path(args.model_path)
     logger.info("Using model: %s", model_dir)
     model = OnnxNcfModel(model_dir)
 
-    # [2] Load data from DB
     with DatabaseConnection(get_connection_params()) as db:
         users = EvaluationDAO.get_test_users(db, args.min_reviews)
         all_dishes = EvaluationDAO.get_all_dishes_enriched(db)
         restaurants = EvaluationDAO.get_all_restaurants_enriched(db)
 
-        # Build lookup maps
         dish_by_id = {d["dish_id"]: d for d in all_dishes}
         restaurant_by_id = {r["restaurant_id"]: r for r in restaurants}
         all_dish_ids = list(dish_by_id.keys())
 
-        # [3] Ground truth calculator
         loader = BlueprintLoader("blueprints")
         vectors_data = loader.load_blueprint("dishes.json")
         gt_calc = GroundTruthCalculator(vectors_data)
 
-        # [4] Per-user evaluation
         all_predicted: list[float] = []
         all_actual: list[float] = []
         all_hr: dict[int, list[float]] = {k: [] for k in args.k_values}
@@ -94,7 +71,6 @@ def evaluate(args: argparse.Namespace) -> None:
         for user in users:
             user_id = user["user_id"]
 
-            # Get user's reviewed dishes to exclude from candidates
             reviewed = EvaluationDAO.get_user_reviewed_dishes(db, user_id)
             candidates = [did for did in all_dish_ids if did not in reviewed]
 
@@ -102,7 +78,6 @@ def evaluate(args: argparse.Namespace) -> None:
                 users_skipped += 1
                 continue
 
-            # Model predictions: top-N
             top_n_predictions = model.predict_top_n_for_user(
                 user_id, candidates, args.top_n
             )
@@ -114,7 +89,6 @@ def evaluate(args: argparse.Namespace) -> None:
             recommended_ids = [did for did, _ in top_n_predictions]
             all_recommended.update(recommended_ids)
 
-            # Ground truth for each predicted dish
             relevant_ids: set[int] = set()
 
             for dish_id, pred_score in top_n_predictions:
@@ -136,12 +110,10 @@ def evaluate(args: argparse.Namespace) -> None:
                 if gt_score >= RELEVANCE_THRESHOLD:
                     relevant_ids.add(dish_id)
 
-            # Per-user ranking metrics
             for k in args.k_values:
                 all_hr[k].append(hit_rate_at_k(recommended_ids, relevant_ids, k))
                 all_ndcg[k].append(ndcg_at_k(recommended_ids, relevant_ids, k))
 
-    # [5] Aggregate metrics
     rmse_val = rmse(all_predicted, all_actual)
     mae_val = mae(all_predicted, all_actual)
 
@@ -149,7 +121,6 @@ def evaluate(args: argparse.Namespace) -> None:
     mean_ndcg = {k: (sum(v) / len(v) if v else 0.0) for k, v in all_ndcg.items()}
     cov = coverage(all_recommended, len(all_dishes))
 
-    # [6] Report
     report = EvaluationReport()
     report.collect(
         model_path=str(model_dir),
@@ -212,10 +183,8 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Parse k_values
     args.k_values = [int(k.strip()) for k in args.k_values.split(",")]
 
-    # Logging setup
     if args.verbose:
         level = logging.DEBUG
     elif args.quiet:

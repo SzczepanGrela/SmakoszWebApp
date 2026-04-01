@@ -47,7 +47,6 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
         if (alreadyReported)
             return Error.Conflict("REPORT_ALREADY_EXISTS", "Już zgłosiłeś te recenzje");
 
-        // Validate reason codes and get severity scores
         var validReasons = await _db.ReportReasonDefinitions
             .Where(r => r.IsActive && request.ReasonCodes.Contains(r.ReasonCode))
             .ToListAsync(cancellationToken);
@@ -73,7 +72,6 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
         _db.Reports.Add(report);
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Create reason assignments
         foreach (var code in request.ReasonCodes)
         {
             _db.ReportReasonAssignments.Add(new ReportReasonAssignment
@@ -83,7 +81,6 @@ public class CreateReportHandler : IRequestHandler<CreateReportCommand, ErrorOr<
             });
         }
 
-        // Priority: severity 1-2 -> priority 3, severity 3 -> priority 2, severity 4-5 -> priority 1
         var ticketPriority = maxSeverity switch
         {
             >= 4 => 1,

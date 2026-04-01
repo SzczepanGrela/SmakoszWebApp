@@ -8,42 +8,47 @@ using Smakosz.Application.Common.Interfaces;
 using Smakosz.Orchestrator.Configuration;
 using Smakosz.Orchestrator.Jobs;
 using Smakosz.Orchestrator.Middleware;
+using Smakosz.Orchestrator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
-// Infrastructure (DbContext, IFileStorageService, IEmailService, IDateTimeProvider)
 builder.Services.AddInfrastructure(connectionString, builder.Configuration);
 
-// Application layer (MediatR + handlers from both assemblies)
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Smakosz.Application.DependencyInjection).Assembly);
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
 
-// Database logging (Hangfire not ignored - we want job error logs)
+builder.Services.AddScoped<ICurrentUserService, SystemCurrentUserService>();
+if (string.IsNullOrEmpty(builder.Configuration.GetSection("R2Models")["AccountId"]))
+    builder.Services.AddSingleton<INcfModelStorageService, StubNcfModelStorageService>();
+
 builder.Logging.AddDatabaseLogger(opts => opts.IgnoredPrefixes = ["Microsoft", "System"]);
 
-// Concrete DbContext for UserReaperService (needs IgnoreQueryFilters)
 builder.Services.AddScoped<SmakoszDbContext>();
 
-// Configuration
 builder.Services.Configure<GpuWorkerOptions>(builder.Configuration.GetSection(GpuWorkerOptions.SectionName));
 builder.Services.Configure<RpiGatewayOptions>(builder.Configuration.GetSection(RpiGatewayOptions.SectionName));
 builder.Services.Configure<NcfTrainingOptions>(builder.Configuration.GetSection(NcfTrainingOptions.SectionName));
 
-// HttpClients
 var gpuUrl = builder.Configuration.GetSection("GpuWorker")["Url"] ?? "http://localhost:8000";
-var rpiUrl = builder.Configuration.GetSection("RpiGateway")["Url"] ?? "http://localhost:5000";
+var rpiSection = builder.Configuration.GetSection("RpiGateway");
+var rpiUrl = rpiSection["Url"] ?? "http://localhost:5000";
+var rpiToken = rpiSection["ApiToken"] ?? "";
 
 builder.Services.AddHttpClient("GpuWorker", c => c.BaseAddress = new Uri(gpuUrl))
     .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(10));
-builder.Services.AddHttpClient("RpiGateway", c => c.BaseAddress = new Uri(rpiUrl))
+builder.Services.AddHttpClient("RpiGateway", c =>
+    {
+        c.BaseAddress = new Uri(rpiUrl);
+        if (!string.IsNullOrEmpty(rpiToken))
+            c.DefaultRequestHeaders.Add("X-API-Token", rpiToken);
+    })
     .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(10));
 
-// Hangfire
 builder.Services.AddHangfire(cfg => cfg
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
@@ -56,17 +61,14 @@ builder.Services.AddHangfireServer(options =>
     options.Queues = ["default"];
 });
 
-// Controllers
 builder.Services.AddControllers();
 
-// Worker API Key authentication
 builder.Services.AddAuthentication("WorkerApiKey")
     .AddScheme<AuthenticationSchemeOptions, WorkerApiKeyAuthHandler>("WorkerApiKey", null);
 
 builder.Services.AddAuthorization(options =>
     options.AddPolicy("Worker", p => p.RequireRole("Worker")));
 
-// Job services
 builder.Services.AddScoped<SessionCleanupService>();
 builder.Services.AddScoped<NotificationCleanupService>();
 builder.Services.AddScoped<StuckJobsRecoveryService>();
@@ -91,7 +93,6 @@ app.MapControllers();
 
 app.MapHangfireDashboard("/hangfire");
 
-// Recurring jobs - UTC timezone
 var utc = new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc };
 
 RecurringJob.AddOrUpdate<SessionCleanupService>(
@@ -127,7 +128,6 @@ RecurringJob.AddOrUpdate<NotificationDigestService>(
 RecurringJob.AddOrUpdate<SiteStatsService>(
     "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
 
-// Moderation aggregation is now on-demand (before NCF training WoL + admin trigger)
 RecurringJob.RemoveIfExists("moderation-aggregation");
 
 await app.RunAsync();

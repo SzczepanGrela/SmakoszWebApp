@@ -55,7 +55,6 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
 
         try
         {
-            // Load mapping
             var mappingJson = File.ReadAllText(mappingPath);
             var mapping = JsonSerializer.Deserialize<NcfMapping>(mappingJson);
 
@@ -72,10 +71,8 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
                 kvp => int.Parse(kvp.Key), kvp => kvp.Value);
             _reverseDishMap = _dishMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
-            // Load ONNX session
             _session = new InferenceSession(modelPath);
 
-            // Smoke test
             var smokeResult = RunInference(0, 0);
             if (smokeResult < 0f || smokeResult > 10f)
             {
@@ -107,7 +104,6 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
         if (!_userMap.TryGetValue(userId, out var userIdx))
             return Task.FromResult(new List<(int, float)>());
 
-        // Score all dishes for this user
         var dishCount = _dishMap.Count;
         var userArr = new long[dishCount];
         var dishArr = new long[dishCount];

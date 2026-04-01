@@ -48,7 +48,6 @@ public class SystemJobConfiguration : IEntityTypeConfiguration<SystemJob>
             .HasForeignKey(x => x.WorkerNode)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Indexes
         builder.HasIndex(x => new { x.Status, x.Priority, x.CreatedAt })
             .IsDescending(false, true, false);
 

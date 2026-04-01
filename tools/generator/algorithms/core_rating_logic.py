@@ -9,7 +9,6 @@ from .preference_calculator import calculate_affinity
 logger = logging.getLogger(__name__)
 
 def get_review_rng(user_id: int, dish_id: int) -> _random.Random:
-    """Deterministic RNG seeded by (user_id, dish_id) pair."""
     seed_str = f"review_{user_id}_{dish_id}"
     seed_int = int.from_bytes(hashlib.md5(seed_str.encode()).digest()[:8], "little")
     return _random.Random(seed_int)
@@ -76,28 +75,22 @@ def calculate_food_score_polarized(
         contextual_targets=contextual_target_vector,
     )
 
-    # 1. Base score from technical quality
     base_score = technical_quality * 10.0
 
-    # 2. Continuous affinity modifier (fit=0->-2, fit=0.5->0, fit=1->+2)
     affinity_shift = (sensory_fit - 0.5) * 4.0
     base_score += affinity_shift
 
-    # 3. Category affinity - continuous modifier
     category_affinity = user_data.get("secret_enjoyed_archetypes", {}).get(archetype, 0.5)
     if category_affinity < 0.3:
         base_score -= (0.3 - category_affinity) * 8.0  # up to -2.4
     elif category_affinity > 0.7:
         base_score += (category_affinity - 0.7) * 3.0  # up to +0.9
 
-    # 4. User personality - baseline shifts food_score (NCF signal)
     baseline = float(user_data.get("secret_rating_baseline", 6.0))
     base_score += (baseline - 6.0) * 0.5  # ~±1.0 for typical users
 
-    # 5. Deterministic noise (reduced - new variance sources compensate)
     base_score += rng.gauss(0, 1.0)
 
-    # 6. Random mishap (deterministic)
     if rng.random() < 0.05:
         base_score -= rng.uniform(2.0, 4.0)
 

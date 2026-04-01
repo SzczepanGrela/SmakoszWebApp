@@ -49,7 +49,6 @@ public class PasswordHasher : IPasswordHasher
         salt = [];
         hash = [];
 
-        // Expected: $argon2id$v=19$m=19456,t=2,p=1$<salt>$<hash>
         var parts = phc.Split('$');
         if (parts.Length != 6 || parts[1] != "argon2id")
             return false;

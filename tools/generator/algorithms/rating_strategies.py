@@ -61,11 +61,9 @@ def calculate_service_rating(
     if base_quality > expected_quality + 0.1:
         score += (base_quality - expected_quality) * bonus_mult
 
-    # User personality shift
     baseline = float(user_data.get("secret_rating_baseline", 6.0))
     score += (baseline - 6.0) * 0.3
 
-    # Deterministic noise (wider than before)
     score += rng.gauss(0, 0.8)
     return max(1.0, min(10.0, score))
 
@@ -101,11 +99,9 @@ def calculate_cleanliness_rating(
         penalty = (expected_quality - base_quality) * penalty_mult
         score -= penalty
 
-    # User personality shift
     baseline = float(user_data.get("secret_rating_baseline", 6.0))
     score += (baseline - 6.0) * 0.3
 
-    # Deterministic noise
     score += rng.gauss(0, 0.6)
     return max(1.0, min(10.0, score))
 
@@ -129,11 +125,9 @@ def calculate_ambiance_rating(
     else:
         score -= 0.5
 
-    # User personality shift
     baseline = float(user_data.get("secret_rating_baseline", 6.0))
     score += (baseline - 6.0) * 0.3
 
-    # Deterministic noise (same effective variance as old 0.15*10)
     score += rng.gauss(0, 1.5)
     return max(1.0, min(10.0, score))
 
@@ -261,7 +255,6 @@ def calculate_review_ratings(
         else:
             components[name] = fn(user_data, dish, restaurant, sw, rng=rng)
 
-    # Overall rating - simple weighted mean (components already contain baseline shift)
     weighted_mean = sum(components[name] * COMPONENT_WEIGHTS.get(name, 0.0) for name in components)
     overall_rating = weighted_mean + rng.gauss(0, 0.3)
     overall_rating = max(1.0, min(10.0, overall_rating))

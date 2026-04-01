@@ -33,7 +33,6 @@ def health():
     return jsonify({"status": "ok", "service": "rpi-gateway"})
 
 def _start_gpu_worker_after_boot():
-    """Background task: poll homelab-api until machine is up, then start gpu-worker container."""
     if not config.HOMELAB_API_URL:
         logger.warning("HOMELAB_API_URL not configured, skipping container start")
         return

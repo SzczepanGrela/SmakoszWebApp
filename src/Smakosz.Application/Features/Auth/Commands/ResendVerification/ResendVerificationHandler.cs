@@ -26,7 +26,6 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant() && !u.IsDeleted, cancellationToken);
 
-        // Silent success for security - don't reveal if email exists
         if (user is null || user.EmailVerified)
             return Result.Success;
 

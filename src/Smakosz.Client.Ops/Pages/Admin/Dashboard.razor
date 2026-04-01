@@ -17,7 +17,6 @@ else if (_dashboard == null)
 }
 else
 {
-    <!-- Global stats - admin only -->
     <AuthorizeView Roles="Admin">
         <Authorized Context="adminCtx">
             <div class="row mb-4">
@@ -34,7 +33,6 @@ else
         </Authorized>
     </AuthorizeView>
 
-    <!-- Moderation items - visible for both roles -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
             <a href="/admin/photos" class="text-decoration-none">

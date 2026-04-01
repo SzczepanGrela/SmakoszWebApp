@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""
-Prepare BAN-PL dataset for HerBERT fine-tuning.
-Stratified 80/10/10 split into train/val/test.
-
-Usage:
-    python tools/herbert/prepare_dataset.py --input BAN-PL/data/BAN_PL_1.csv
-    python tools/herbert/prepare_dataset.py --input data.csv --output-dir ./splits
-"""
-
 import argparse
 
 def main():

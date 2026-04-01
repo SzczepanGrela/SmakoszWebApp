@@ -40,7 +40,6 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
         if (verificationCode is null || !_codeHasher.Verify(request.Code, verificationCode.CodeHash))
             return DomainErrors.Auth.InvalidVerificationCode;
 
-        // Remove used code
         _db.VerificationCodes.Remove(verificationCode);
 
         var accessToken = _jwtTokenService.GenerateAccessToken(user);

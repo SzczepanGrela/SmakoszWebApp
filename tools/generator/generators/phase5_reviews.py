@@ -122,7 +122,6 @@ def get_dishes_for_restaurant(db: DatabaseConnection, restaurant_id: int) -> lis
     ]
 
 def _select_city(home_city_id: int, travel_prop: float, city_ids: list[int], adjacency_map: dict) -> tuple[int, str]:
-    """Select a city for the review based on travel propensity. Returns (city_id, location_type)."""
     eff_random = 0.05 + (travel_prop * 0.15)
     eff_nearby = 0.10 + (travel_prop * 0.20)
     rand_loc = random.random()
@@ -145,7 +144,6 @@ def _select_city(home_city_id: int, travel_prop: float, city_ids: list[int], adj
 def _select_restaurant_and_dish(
     user: dict, city_id: int, review_date, reviewed_dishes: set, db: DatabaseConnection, ctx: Phase5WorkerContext
 ) -> tuple[dict | None, dict | None, int]:
-    """Select a restaurant and dish for the user. Returns (restaurant, dish, actual_city_id)."""
     available_restaurants = [
         r
         for r in ctx.restaurants
@@ -189,7 +187,6 @@ def _select_restaurant_and_dish(
 def _write_review(
     user: dict, restaurant: dict, dish: dict, review_date, text_gen, photo_pools, db, ctx: Phase5WorkerContext
 ) -> int | None:
-    """Generate and write a single review + optional photo. Returns review_id."""
     days_before_review = random.randint(0, 14)
     visit_date = review_date - timedelta(days=days_before_review)
 
@@ -237,7 +234,6 @@ def _write_review(
     return review_id
 
 def _generate_reviews_for_user(user: dict, db: DatabaseConnection, ctx: Phase5WorkerContext) -> dict[str, int]:
-    """Generate all reviews for a single user. Returns stats dict."""
     stats = {"reviews": 0, "skipped_temporal": 0, "home": 0, "nearby": 0, "random": 0}
     text_gen = ReviewTextGenerator()
     photo_pools = PhotoPools()
@@ -453,7 +449,6 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
     logger.info("Phase 5 completed.")
 
 def _generate_moderation_results(db: DatabaseConnection):
-    """Generate moderation_results for all reviews and photos using bulk SQL."""
     logger.info("Generating moderation results for reviews...")
 
     db.execute_query("DELETE FROM system.moderation_results WHERE entity_type IN ('review', 'photo')")

@@ -51,11 +51,9 @@ public class ModerationResultConfiguration : IEntityTypeConfiguration<Moderation
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 
-        // Unique constraint: one result per entity
         builder.HasIndex(x => new { x.EntityType, x.EntityId })
             .IsUnique();
 
-        // For querying unprocessed/pending results
         builder.HasIndex(x => new { x.Status, x.ProcessedAt });
     }
 }

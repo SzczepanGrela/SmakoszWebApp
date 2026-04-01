@@ -102,12 +102,6 @@ def calculate_affinity(
     default_weight: float = 1.0,
     contextual_targets: dict[str, float] | None = None,
 ) -> float:
-    """Unified affinity calculation.
-
-    When contextual_targets is provided, uses them directly (replaces the old
-    calculate_direct_affinity). Otherwise, computes them from user preferences
-    and archetype base via calculate_contextual_vector.
-    """
     if penalty_weights is None:
         penalty_weights = derive_penalty_weights(
             adaptation_weights=adaptation_weights,

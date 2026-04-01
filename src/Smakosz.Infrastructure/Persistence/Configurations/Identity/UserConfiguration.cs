@@ -80,7 +80,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.SecretPreferredAmbiance)
             .HasMaxLength(100);
 
-        // FK - circular FK to Restaurant, use ClientSetNull to avoid cascade cycle
         builder.HasOne<Domain.Entities.Restaurant>()
             .WithMany()
             .HasForeignKey(x => x.RestaurantId)
@@ -95,7 +94,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey<UserNotificationSettings>(ns => ns.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 

@@ -47,7 +47,6 @@ public class SystemNodeConfiguration : IEntityTypeConfiguration<SystemNode>
         builder.Property(x => x.Metadata)
             .HasColumnType("jsonb");
 
-        // Self-referential FK
         builder.HasOne(x => x.WolGateway)
             .WithMany()
             .HasForeignKey(x => x.WolGatewayId)

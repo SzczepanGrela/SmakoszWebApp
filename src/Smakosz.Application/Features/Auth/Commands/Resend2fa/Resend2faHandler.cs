@@ -28,7 +28,6 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
                 && !u.IsDeleted
                 && u.Is2faEnabled, cancellationToken);
 
-        // Silent success for security
         if (user is null)
             return Result.Success;
 

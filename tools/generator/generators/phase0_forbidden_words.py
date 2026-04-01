@@ -10,7 +10,6 @@ from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStat
 logger = logging.getLogger(__name__)
 
 CATEGORY_MAP: dict[str, tuple[int, bool]] = {
-    # section_name -> (category_enum_value, is_regex)
     "reserved": (1, False),        # ForbiddenWordCategory.Reserved
     "profanity_pl": (0, False),    # ForbiddenWordCategory.Profanity
     "profanity_en": (0, False),    # ForbiddenWordCategory.Profanity

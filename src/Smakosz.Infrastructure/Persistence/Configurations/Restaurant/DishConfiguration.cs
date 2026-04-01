@@ -60,7 +60,6 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
         builder.Property(x => x.SecretPenaltyVector)
             .HasColumnType("jsonb");
 
-        // FK
         builder.HasOne(x => x.Restaurant)
             .WithMany()
             .HasForeignKey(x => x.RestaurantId);
@@ -69,7 +68,6 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .WithMany()
             .HasForeignKey(x => x.SecretVariantId);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 

@@ -155,7 +155,6 @@ class PhaseRegistry:
         return result
 
     def resolve_downstream(self, phase_ids: list[str]) -> list[str]:
-        """Find all phases that transitively depend on the given phases."""
         reverse_deps: dict[str, list[str]] = defaultdict(list)
         for phase in self._phases.values():
             for dep in phase.metadata.dependencies:
@@ -172,7 +171,6 @@ class PhaseRegistry:
         return list(downstream)
 
     def sort_phases(self, phase_ids: list[str]) -> list[str]:
-        """Sort phases by number without pulling in dependencies."""
         for pid in phase_ids:
             if pid not in self._phases:
                 available = ", ".join(sorted(self._phases.keys()))
@@ -181,7 +179,6 @@ class PhaseRegistry:
         return sorted(unique, key=lambda pid: (int(pid.replace("phase", "").split("_")[0]), pid))
 
     def get_cleanup_tables_for_phases(self, phase_ids: list[str]) -> list[str]:
-        """Collect cleanup_tables from multiple phases, preserving order, no duplicates."""
         tables: list[str] = []
         seen: set[str] = set()
         for pid in phase_ids:

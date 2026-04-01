@@ -17,7 +17,6 @@ public class RatingService
 
     public async Task UpdateAsync(CancellationToken ct)
     {
-        // Restaurant averages
         var restaurantAverages = await _db.Reviews
             .GroupBy(r => r.RestaurantId)
             .Select(g => new
@@ -47,7 +46,6 @@ public class RatingService
             }
         }
 
-        // Dish averages
         var dishAverages = await _db.Reviews
             .GroupBy(r => r.DishId)
             .Select(g => new

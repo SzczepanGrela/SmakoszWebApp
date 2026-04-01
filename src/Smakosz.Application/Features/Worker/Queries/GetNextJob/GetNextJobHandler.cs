@@ -7,7 +7,7 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Worker.Queries.GetNextJob;
 
-public class GetNextJobHandler : IRequestHandler<GetNextJobQuery, ErrorOr<WorkerJobDto?>>
+public class GetNextJobHandler : IRequestHandler<GetNextJobQuery, ErrorOr<WorkerJobDto>>
 {
     private readonly ISmakoszDbContext _db;
 
@@ -16,7 +16,7 @@ public class GetNextJobHandler : IRequestHandler<GetNextJobQuery, ErrorOr<Worker
         _db = db;
     }
 
-    public async Task<ErrorOr<WorkerJobDto?>> Handle(GetNextJobQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<WorkerJobDto>> Handle(GetNextJobQuery request, CancellationToken cancellationToken)
     {
         var query = _db.SystemJobs
             .Where(j => j.Status == JobStatus.Pending);
@@ -38,6 +38,9 @@ public class GetNextJobHandler : IRequestHandler<GetNextJobQuery, ErrorOr<Worker
                 Priority = j.Priority
             })
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (job is null)
+            return Error.NotFound("Job.NoPending", "No pending jobs available");
 
         return job;
     }

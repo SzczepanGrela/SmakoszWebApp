@@ -10,7 +10,6 @@ from utils.db_connection import DatabaseConnection
 logger = logging.getLogger(__name__)
 
 def _generate_system_tickets(db: DatabaseConnection):
-    """Generate system tickets from pending content across all entity types."""
     logger.info("Generating system tickets...")
 
     admin_users = db.fetch_all("SELECT user_id FROM users WHERE role = 'admin'")
@@ -19,7 +18,6 @@ def _generate_system_tickets(db: DatabaseConnection):
     now = datetime.now(timezone.utc)
     tickets = []
 
-    # 1. Tickets for pending reviews (content_status = 'pending')
     pending_reviews = db.fetch_all("""
         SELECT r.review_id, r.created_at
         FROM reviews r
@@ -31,7 +29,6 @@ def _generate_system_tickets(db: DatabaseConnection):
 
     logger.info(f"  ReviewContent tickets: {len(pending_reviews)}")
 
-    # 2. Tickets for pending photos (status = 'pending')
     pending_photos = db.fetch_all("""
         SELECT ma.asset_id, ma.created_at
         FROM media_assets ma
@@ -43,7 +40,6 @@ def _generate_system_tickets(db: DatabaseConnection):
 
     logger.info(f"  Photo tickets: {len(pending_photos)}")
 
-    # 3. Tickets for pending reports
     pending_reports = db.fetch_all("""
         SELECT rp.report_id, rp.created_at
         FROM reports rp
@@ -55,7 +51,6 @@ def _generate_system_tickets(db: DatabaseConnection):
 
     logger.info(f"  Report tickets: {len(pending_reports)}")
 
-    # 4. Tickets for pending edit requests
     pending_edits = db.fetch_all("""
         SELECT re.request_id, re.created_at
         FROM restaurant_edit_requests re
@@ -67,7 +62,6 @@ def _generate_system_tickets(db: DatabaseConnection):
 
     logger.info(f"  EditRequest tickets: {len(pending_edits)}")
 
-    # 5. Tickets for pending data correction requests
     pending_corrections = db.fetch_all("""
         SELECT dcr.request_id, dcr.created_at
         FROM data_correction_requests dcr
@@ -79,7 +73,6 @@ def _generate_system_tickets(db: DatabaseConnection):
 
     logger.info(f"  DataCorrection tickets: {len(pending_corrections)}")
 
-    # Randomly resolve some tickets (~30%) to simulate admin activity
     if admin_ids:
         num_to_resolve = int(len(tickets) * 0.3)
         resolve_indices = random.sample(range(len(tickets)), min(num_to_resolve, len(tickets)))

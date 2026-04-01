@@ -61,7 +61,6 @@ class PhotoPools:
     def _select_photo(
         self, section: str, category: str, variant: str | None = None, deduplicate_for: int | None = None
     ) -> dict[str, str | int | None]:
-        """Unified photo selection: lookup -> slugify fallback -> flatten -> dedup -> format."""
         if section == "restaurants":
             photos = self.index.get("restaurants", {}).get(category)
             if photos is None:

@@ -184,10 +184,8 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     ingredients_buffer = []
     photos_buffer = []
 
-    # Batch insert buffer: collect dishes, flush per restaurant chunk
     DISH_BATCH_SIZE = 500
     dish_buffer = []
-    # Parallel metadata keyed by buffer index (for post-insert linking)
     dish_meta_buffer: list[dict] = []
 
     def _flush_dish_buffer():
@@ -202,18 +200,15 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
         for idx, dish_id in enumerate(dish_ids):
             meta = dish_meta_buffer[idx]
 
-            # Sections
             for sec_id in meta["section_ids"]:
                 dish_sections_buffer.append(
                     {"dish_id": dish_id, "section_id": sec_id, "created_at": meta["created_at"]}
                 )
 
-            # Ingredients
             for ingredient_name in meta["ingredients"]:
                 if ingredient_name in ingredient_map:
                     ingredients_buffer.append({"dish_id": dish_id, "ingredient_id": ingredient_map[ingredient_name]})
 
-            # Photos
             photos_buffer.append(
                 {
                     "public_id": str(uuid.uuid4()),
@@ -228,11 +223,9 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 }
             )
 
-            # Tags
             for tag_id in meta["tag_ids"]:
                 dish_tags_buffer.append({"dish_id": dish_id, "tag_id": tag_id})
 
-        # Flush secondary buffers when large enough
         if len(ingredients_buffer) >= 5000:
             db.insert_bulk("dish_ingredients", ingredients_buffer)
             total_ingredients_links += len(ingredients_buffer)
@@ -370,7 +363,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 }
             )
 
-            # Determine section assignment
             assigned_sections: list[int] = []
             if available_sections:
                 preferred_keywords = dish_section_mapping.get(archetype, [])
@@ -408,10 +400,8 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
         if len(dish_buffer) >= DISH_BATCH_SIZE:
             _flush_dish_buffer()
 
-    # Final flush
     _flush_dish_buffer()
 
-    # Flush remaining secondary buffers
     if ingredients_buffer:
         db.insert_bulk("dish_ingredients", ingredients_buffer)
         total_ingredients_links += len(ingredients_buffer)

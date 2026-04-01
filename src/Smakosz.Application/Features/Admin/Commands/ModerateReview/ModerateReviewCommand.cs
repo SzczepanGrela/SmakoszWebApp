@@ -39,7 +39,6 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         if (!request.Approve)
             review.ContentRejectionReason = request.RejectionReason;
 
-        // Upsert ModerationResult
         var existing = await _db.ModerationResults
             .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Review && r.EntityId == review.ReviewId, cancellationToken);
         var now = DateTime.UtcNow;

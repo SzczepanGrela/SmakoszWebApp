@@ -6,7 +6,6 @@ namespace Smakosz.Application.Features.Content.Queries.GetContentPage;
 
 public class GetContentPageHandler : IRequestHandler<GetContentPageQuery, ErrorOr<ContentPageDto>>
 {
-    // Static content - in production this could be backed by a DB table or CMS
     private static readonly Dictionary<string, ContentPageDto> Pages = new(StringComparer.OrdinalIgnoreCase)
     {
         ["about"] = new ContentPageDto

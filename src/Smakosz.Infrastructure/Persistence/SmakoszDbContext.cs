@@ -53,7 +53,6 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
                 && pub.PublicId == Guid.Empty)
                 pub.PublicId = Guid.NewGuid();
 
-            // Slug generation
             if (entry.State == EntityState.Added)
             {
                 if (entry.Entity is User user && string.IsNullOrEmpty(user.Slug))
@@ -66,7 +65,6 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
         }
     }
 
-    // Dictionary
     public DbSet<City> Cities => Set<City>();
     public DbSet<CuisineType> CuisineTypes => Set<CuisineType>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
@@ -76,7 +74,6 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<ReportReasonDefinition> ReportReasonDefinitions => Set<ReportReasonDefinition>();
     public DbSet<RejectionReason> RejectionReasons => Set<RejectionReason>();
 
-    // Identity
     public DbSet<User> Users => Set<User>();
     public DbSet<VerificationCode> VerificationCodes => Set<VerificationCode>();
     public DbSet<UserNotificationSettings> UserNotificationSettings => Set<UserNotificationSettings>();
@@ -84,7 +81,6 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
-    // Restaurant / Menu
     public DbSet<Restaurant> Restaurants => Set<Restaurant>();
     public DbSet<RestaurantOpeningHours> RestaurantOpeningHours => Set<RestaurantOpeningHours>();
     public DbSet<MenuSection> MenuSections => Set<MenuSection>();
@@ -96,7 +92,6 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<SavedDish> SavedDishes => Set<SavedDish>();
     public DbSet<FavoriteRestaurant> FavoriteRestaurants => Set<FavoriteRestaurant>();
 
-    // Social / Content
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Review> Reviews => Set<Review>();
@@ -107,10 +102,8 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<RestaurantEditRequest> RestaurantEditRequests => Set<RestaurantEditRequest>();
     public DbSet<IngredientSuggestion> IngredientSuggestions => Set<IngredientSuggestion>();
 
-    // Audit
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
-    // System
     public DbSet<SystemConfig> SystemConfigs => Set<SystemConfig>();
     public DbSet<SystemNode> SystemNodes => Set<SystemNode>();
     public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();

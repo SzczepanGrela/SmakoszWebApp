@@ -7,4 +7,4 @@ namespace Smakosz.Application.Features.Worker.Queries.GetNextJob;
 public record GetNextJobQuery(
     string? Type,
     string WorkerNodeId
-) : IRequest<ErrorOr<WorkerJobDto?>>;
+) : IRequest<ErrorOr<WorkerJobDto>>;

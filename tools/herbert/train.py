@@ -1,19 +1,7 @@
 #!/usr/bin/env python3
-"""
-Fine-tune HerBERT for toxicity detection on Vertex AI.
-
-Usage:
-    python tools/herbert/train.py \
-        --train_data gs://<BUCKET>/datasets/train.csv \
-        --val_data gs://<BUCKET>/datasets/val.csv \
-        --test_data gs://<BUCKET>/datasets/test.csv \
-        --output_dir gs://<BUCKET>/models/v1
-"""
-
 import argparse
 import sys
 
-# Vertex AI buffers stdout - force line-by-line flushing
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
 
@@ -98,8 +86,6 @@ def compute_metrics(eval_pred):
     }
 
 class TokenizedDataset:
-    """PyTorch Dataset backed by pandas + tokenizer. No HF datasets dependency."""
-
     def __init__(self, texts, labels, tokenizer, max_length):
         self.encodings = tokenizer(
             texts, padding="max_length", truncation=True, max_length=max_length

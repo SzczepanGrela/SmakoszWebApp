@@ -385,6 +385,7 @@ FodyWeavers.xsd
 
 tools/generator/config/db_config.ini
 /venv/
+.venv/
 
 # PyCharm IDE
 .idea/

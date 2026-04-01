@@ -51,7 +51,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasDefaultValue(1)
             .IsConcurrencyToken();
 
-        // FK
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
@@ -67,7 +66,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasForeignKey(x => x.DishId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Indexes
         builder.HasIndex(x => x.PublicId)
             .IsUnique();
 
