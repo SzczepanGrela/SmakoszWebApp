@@ -11,11 +11,11 @@ using Smakosz.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Smakosz.Infrastructure.Persistence.Migrations
+namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260308145413_AddModerationSystem")]
-    partial class AddModerationSystem
+    [Migration("20260310235904_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

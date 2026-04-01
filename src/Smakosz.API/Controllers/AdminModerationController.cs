@@ -6,6 +6,7 @@ using Smakosz.Application.Features.Admin.Commands.ProcessEditRequest;
 using Smakosz.Application.Features.Admin.Commands.RespondToContact;
 using Smakosz.Application.Features.Admin.Commands.UpdateTicketStatus;
 using Smakosz.Application.Features.Admin.Commands.UpdateReportStatus;
+using Smakosz.Application.Features.Admin.Queries.GetAdminDashboard;
 using Smakosz.Application.Features.Admin.Queries.GetEditRequests;
 using Smakosz.Application.Features.Admin.Queries.GetPendingPhotos;
 using Smakosz.Application.Features.Admin.Queries.GetPendingReviews;
@@ -24,6 +25,13 @@ public class AdminModerationController : ApiController
     public AdminModerationController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> GetDashboard()
+    {
+        var result = await _mediator.Send(new GetAdminDashboardQuery());
+        return ToActionResult(result);
     }
 
     [HttpGet("tickets")]

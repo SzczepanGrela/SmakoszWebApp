@@ -16,4 +16,5 @@ public class DishCardDto
     public bool IsVegan { get; init; }
     public bool IsGlutenFree { get; init; }
     public bool IsSaved { get; init; }
+    public List<string> SectionNames { get; init; } = [];
 }

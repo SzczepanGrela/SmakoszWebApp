@@ -61,7 +61,12 @@ public class GetDishesByRestaurantHandler
                 IsVegetarian = d.IsVegetarian,
                 IsVegan = d.IsVegan,
                 IsGlutenFree = d.IsGlutenFree,
-                IsSaved = savedDishIds.Contains(d.DishId)
+                IsSaved = savedDishIds.Contains(d.DishId),
+                SectionNames = _db.DishSectionAssignments
+                    .Where(dsa => dsa.DishId == d.DishId)
+                    .Join(_db.MenuSections, dsa => dsa.SectionId, ms => ms.SectionId,
+                          (dsa, ms) => ms.SectionName)
+                    .ToList()
             })
             .ToPagedResultAsync(request.Pagination, cancellationToken);
 

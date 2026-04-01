@@ -29,7 +29,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-medium">Cena (zl)</label>
+                        <label class="form-label fw-medium">Cena (zł)</label>
                         <input type="number" class="form-control" step="0.01" @bind="_dish.Price" />
                     </div>
                     <div class="col-md-6 mb-3">
@@ -69,7 +69,7 @@
                 <h6 class="fw-bold">@(string.IsNullOrEmpty(_dish.DishName) ? "Nazwa dania" : _dish.DishName)</h6>
                 @if (_dish.Price.HasValue)
                 {
-                    <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zl</span>
+                    <span class="fw-bold" style="color:var(--accent-color);">@_dish.Price.Value.ToString("F2") zł</span>
                 }
             </div>
         </div>

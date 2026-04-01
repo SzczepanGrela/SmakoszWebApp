@@ -94,9 +94,29 @@ else
                         {
                             @foreach (var menuSec in _restaurant.MenuSections.OrderBy(s => s.DisplayOrder))
                             {
-                                <h6 class="mt-3 mb-2 fw-bold">@menuSec.SectionName</h6>
+                                var sectionDishes = _dishes.Data
+                                    .Where(d => d.SectionNames.Contains(menuSec.SectionName))
+                                    .ToList();
+                                @if (sectionDishes.Any())
+                                {
+                                    <h6 class="mt-3 mb-2 fw-bold">@menuSec.SectionName</h6>
+                                    <div class="row">
+                                        @foreach (var dish in sectionDishes)
+                                        {
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <DishCard Dish="@dish" Size="small" />
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                            var assignedNames = _restaurant.MenuSections.Select(s => s.SectionName).ToHashSet();
+                            var unassigned = _dishes.Data.Where(d => !d.SectionNames.Any(sn => assignedNames.Contains(sn))).ToList();
+                            @if (unassigned.Any())
+                            {
+                                <h6 class="mt-3 mb-2 fw-bold">Inne</h6>
                                 <div class="row">
-                                    @foreach (var dish in _dishes.Data)
+                                    @foreach (var dish in unassigned)
                                     {
                                         <div class="col-md-6 col-lg-4 mb-3">
                                             <DishCard Dish="@dish" Size="small" />
@@ -195,7 +215,7 @@ else
                 {
                     <div class="dish-details-panel">
                         <h5 class="mb-3"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h5>
-                        @foreach (var hours in _restaurant.OpeningHours.OrderBy(h => h.DayOfWeek))
+                        @foreach (var hours in _restaurant.OpeningHours.OrderBy(h => h.DayOfWeek == 0 ? 7 : h.DayOfWeek))
                         {
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>@DayName(hours.DayOfWeek)</span>
@@ -330,7 +350,7 @@ else
 
     private static string DayName(int day) => day switch
     {
-        0 => "Niedziela", 1 => "Poniedziałek", 2 => "Wtorek", 3 => "Środa",
+        0 or 7 => "Niedziela", 1 => "Poniedziałek", 2 => "Wtorek", 3 => "Środa",
         4 => "Czwartek", 5 => "Piątek", 6 => "Sobota", _ => ""
     };
 
