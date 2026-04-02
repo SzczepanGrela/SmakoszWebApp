@@ -41,6 +41,64 @@ public class NcfModelStorageService : INcfModelStorageService
         _logger.LogInformation("Downloaded NCF model {Version} to {Path}", version, versionDir);
     }
 
+    public async Task<string> UploadTrainingDataAsync(Stream data, string key, CancellationToken ct)
+    {
+        await _s3.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = _options.BucketName,
+            Key = key,
+            InputStream = data,
+            ContentType = "text/csv",
+            DisablePayloadSigning = true,
+            DisableDefaultChecksumValidation = true
+        }, ct);
+
+        _logger.LogDebug("Uploaded training data {Key} to {Bucket}", key, _options.BucketName);
+        return $"s3://{_options.BucketName}/{key}";
+    }
+
+    public async Task CleanupOldFilesAsync(string prefix, int keepCount, CancellationToken ct)
+    {
+        var response = await _s3.ListObjectsV2Async(new ListObjectsV2Request
+        {
+            BucketName = _options.BucketName,
+            Prefix = prefix
+        }, ct);
+
+        var grouped = response.S3Objects
+            .GroupBy(o =>
+            {
+                var afterPrefix = o.Key[prefix.Length..];
+                var slashIdx = afterPrefix.IndexOf('/');
+                return slashIdx > 0 ? afterPrefix[..slashIdx] : afterPrefix;
+            })
+            .OrderByDescending(g => g.Max(o => o.LastModified))
+            .ToList();
+
+        var toDelete = grouped.Skip(keepCount).SelectMany(g => g).ToList();
+
+        if (toDelete.Count == 0)
+            return;
+
+        foreach (var obj in toDelete)
+        {
+            try
+            {
+                await _s3.DeleteObjectAsync(new DeleteObjectRequest
+                {
+                    BucketName = _options.BucketName,
+                    Key = obj.Key
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete old file {Key}", obj.Key);
+            }
+        }
+
+        _logger.LogInformation("Cleaned up {Count} old files from {Prefix}", toDelete.Count, prefix);
+    }
+
     private async Task DownloadFileAsync(string key, string localPath, CancellationToken ct)
     {
         var response = await _s3.GetObjectAsync(new GetObjectRequest

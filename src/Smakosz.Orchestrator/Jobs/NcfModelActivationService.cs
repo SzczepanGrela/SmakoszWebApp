@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,6 +13,7 @@ namespace Smakosz.Orchestrator.Jobs;
 public class NcfModelActivationService
 {
     private readonly INcfModelStorageService _modelStorage;
+    private readonly IBackgroundJobClient _jobs;
     private readonly ISmakoszDbContext _db;
     private readonly IDateTimeProvider _clock;
     private readonly OnnxOptions _onnxOptions;
@@ -19,12 +21,14 @@ public class NcfModelActivationService
 
     public NcfModelActivationService(
         INcfModelStorageService modelStorage,
+        IBackgroundJobClient jobs,
         ISmakoszDbContext db,
         IDateTimeProvider clock,
         IOptions<OnnxOptions> onnxOptions,
         ILogger<NcfModelActivationService> logger)
     {
         _modelStorage = modelStorage;
+        _jobs = jobs;
         _db = db;
         _clock = clock;
         _onnxOptions = onnxOptions.Value;
@@ -39,10 +43,8 @@ public class NcfModelActivationService
 
         _logger.LogInformation("Activating NCF model {Version}", modelVersion);
 
-        // 1. Download model + mapping from R2
         await _modelStorage.DownloadModelAsync(modelVersion, basePath, ct);
 
-        // 2. Smoke test
         var modelPath = Path.Combine(versionDir, "ncf_model.onnx");
         if (!File.Exists(modelPath))
         {
@@ -79,7 +81,6 @@ public class NcfModelActivationService
             return;
         }
 
-        // 3. Symlink: /models/ncf/current -> /models/ncf/{version}/
         try
         {
             if (Path.Exists(currentLink))
@@ -99,7 +100,6 @@ public class NcfModelActivationService
             return;
         }
 
-        // 4. Set ncf_available=true and ncf_activated_version in system_configs
         var now = _clock.UtcNow;
 
         await UpsertConfigAsync("ncf_available", "true", "Whether NCF recommendations are available", now, ct);
@@ -107,7 +107,9 @@ public class NcfModelActivationService
 
         await _db.SaveChangesAsync(ct);
 
-        // 5. Restart API container via Docker Engine API
+        _jobs.Enqueue<INcfModelStorageService>(x => x.CleanupOldFilesAsync("models/ncf/", 2, CancellationToken.None));
+        CleanupOldLocalVersions(basePath, modelVersion);
+
         await RestartApiContainerAsync(ct);
 
         _logger.LogInformation("NCF model {Version} activated successfully", modelVersion);
@@ -135,6 +137,31 @@ public class NcfModelActivationService
         }
     }
 
+    private void CleanupOldLocalVersions(string basePath, string currentVersion)
+    {
+        try
+        {
+            if (!Directory.Exists(basePath))
+                return;
+
+            var versionDirs = Directory.GetDirectories(basePath)
+                .Where(d => Path.GetFileName(d).StartsWith("v"))
+                .OrderByDescending(d => Path.GetFileName(d))
+                .Skip(2)
+                .ToList();
+
+            foreach (var dir in versionDirs)
+            {
+                Directory.Delete(dir, true);
+                _logger.LogInformation("Deleted old local model version: {Dir}", Path.GetFileName(dir));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to cleanup old local model versions");
+        }
+    }
+
     private async Task RestartApiContainerAsync(CancellationToken ct)
     {
         try
@@ -156,7 +183,6 @@ public class NcfModelActivationService
 
             using var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
 
-            // Find the API container by name pattern
             var response = await client.PostAsync(
                 "/v1.45/containers/smakosz-net-api-1/restart?t=5", null, ct);
 
