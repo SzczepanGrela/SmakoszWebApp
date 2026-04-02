@@ -4,10 +4,10 @@
 
 <section class="quick-actions-bar">
     <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-primary btn-sm" @onclick="GetRandomDish">
+        <button class="btn btn-outline-primary" @onclick="GetRandomDish">
             <i class="fa-solid fa-dice me-1"></i>Losowe danie
         </button>
-        <button class="btn btn-outline-info btn-sm" @onclick="NearbyRestaurants" disabled="@_locating">
+        <button class="btn btn-outline-info" @onclick="NearbyRestaurants" disabled="@_locating">
             @if (_locating)
             {
                 <span class="spinner-border spinner-border-sm me-1"></span>
@@ -20,7 +20,7 @@
         </button>
         <AuthorizeView>
             <Authorized>
-                <a href="/recommendations" class="btn btn-primary btn-sm">
+                <a href="/recommendations" class="btn btn-primary">
                     <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Rekomendacje
                 </a>
             </Authorized>
