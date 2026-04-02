@@ -28,12 +28,14 @@
 
     private async Task ScrollLeft()
     {
-        await JS.InvokeVoidAsync("eval", $"document.getElementById('{_trackId}').scrollBy({{left:-600,behavior:'smooth'}})");
+        await JS.InvokeVoidAsync("eval",
+            $"(function(){{var t=document.getElementById('{_trackId}');var d=window.innerWidth<=480?(t.querySelector('.carousel-item-wrapper').offsetWidth+16):600;t.scrollBy({{left:-d,behavior:'smooth'}})}})()");
     }
 
     private async Task ScrollRight()
     {
-        await JS.InvokeVoidAsync("eval", $"document.getElementById('{_trackId}').scrollBy({{left:600,behavior:'smooth'}})");
+        await JS.InvokeVoidAsync("eval",
+            $"(function(){{var t=document.getElementById('{_trackId}');var d=window.innerWidth<=480?(t.querySelector('.carousel-item-wrapper').offsetWidth+16):600;t.scrollBy({{left:d,behavior:'smooth'}})}})()");
     }
 
     private async Task OnScroll()

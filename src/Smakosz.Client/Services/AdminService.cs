@@ -8,11 +8,9 @@ public class AdminService : IAdminService
 
     public AdminService(SmakoszApiClient api) => _api = api;
 
-    // Dashboard
     public Task<AdminDashboardDto?> GetDashboardAsync()
         => _api.GetAsync<AdminDashboardDto>("/api/admin/dashboard");
 
-    // Tickets
     public Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null, string? ticketType = null)
         => _api.GetAsync<PagedResult<AdminTicketDto>>($"/api/admin/tickets?page={page}&status={status}&ticketType={ticketType}");
 
@@ -32,7 +30,6 @@ public class AdminService : IAdminService
         return result.Success;
     }
 
-    // Photos
     public Task<PagedResult<AdminPhotoDto>?> GetPendingPhotosAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminPhotoDto>>($"/api/admin/photos/pending?page={page}");
 
@@ -43,7 +40,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Reviews
     public Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminReviewDto>>($"/api/admin/reviews/pending?page={page}");
 
@@ -54,7 +50,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Reports
     public Task<PagedResult<AdminReportDto>?> GetReportsAsync(int page = 1, string? status = null)
         => _api.GetAsync<PagedResult<AdminReportDto>>($"/api/admin/reports?page={page}&status={status}");
 
@@ -65,7 +60,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Edit Requests
     public Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminEditRequestDto>>($"/api/admin/edit-requests?page={page}");
 
@@ -76,7 +70,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Users
     public Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminUserDto>>($"/api/admin/users?page={page}&search={search}");
 
@@ -94,7 +87,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Restaurants
     public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
 
@@ -104,7 +96,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Ingredients
     public Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminIngredientDto>>($"/api/admin/ingredients?page={page}&search={search}");
 
@@ -123,7 +114,6 @@ public class AdminService : IAdminService
     public async Task<bool> DeleteIngredientAsync(int id)
         => await _api.DeleteAsync($"/api/admin/ingredients/{id}");
 
-    // Cities
     public Task<PagedResult<AdminCityDto>?> GetCitiesAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminCityDto>>($"/api/admin/cities?page={page}&search={search}");
 
@@ -142,7 +132,6 @@ public class AdminService : IAdminService
     public async Task<bool> DeleteCityAsync(int id)
         => await _api.DeleteAsync($"/api/admin/cities/{id}");
 
-    // System Config
     public async Task<List<AdminSystemConfigDto>> GetSystemConfigAsync()
         => await _api.GetAsync<List<AdminSystemConfigDto>>("/api/admin/system-config") ?? [];
 
@@ -153,15 +142,12 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Logs
     public Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null)
         => _api.GetAsync<PagedResult<AdminLogEntryDto>>($"/api/admin/logs?page={page}&level={level}");
 
-    // AI Models
     public async Task<List<AdminAiModelDto>> GetAiModelsAsync()
         => await _api.GetAsync<List<AdminAiModelDto>>("/api/admin/ai-models") ?? [];
 
-    // Jobs
     public Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminJobDto>>($"/api/admin/jobs?page={page}");
 
@@ -189,7 +175,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Ingredient Suggestions
     public Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null)
         => _api.GetAsync<PagedResult<AdminIngredientSuggestionDto>>($"/api/admin/ingredient-suggestions?page={page}&status={status}");
 
@@ -204,7 +189,6 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    // Hero Images
     public async Task<List<AdminHeroImageDto>> GetHeroImagesAsync()
         => await _api.GetAsync<List<AdminHeroImageDto>>("/api/admin/hero-images") ?? [];
 

@@ -3,20 +3,17 @@
 {
     <nav>
         <ul class="pagination justify-content-center flex-wrap">
-            @* First page *@
             <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(1)" title="Pierwsza strona">
                     <i class="fa-solid fa-angles-left"></i>
                 </button>
             </li>
-            @* Previous *@
             <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(Info.Page - 1)">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             </li>
 
-            @* Page numbers with ellipsis *@
             @foreach (var item in GetPageNumbers())
             {
                 @if (item == -1)
@@ -33,13 +30,11 @@
                 }
             }
 
-            @* Next *@
             <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(Info.Page + 1)">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </li>
-            @* Last page *@
             <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
                 <button class="page-link" @onclick="() => GoToPage(Info.TotalPages)" title="Ostatnia strona">
                     <i class="fa-solid fa-angles-right"></i>
@@ -47,7 +42,6 @@
             </li>
         </ul>
 
-        @* Page input *@
         @if (Info.TotalPages > 5)
         {
             <div class="d-flex justify-content-center align-items-center gap-2 mt-1">

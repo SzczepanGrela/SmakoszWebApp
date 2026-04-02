@@ -19,9 +19,7 @@ else
 {
     <div class="container mt-4">
         <div class="row">
-            <!-- Main content -->
             <div class="col-lg-8">
-                <!-- Dish Hero -->
                 <div class="mb-4">
                     <img src="@Helpers.ImageHelper.GetDishImage(_dish.ImageUrl)" alt="@_dish.DishName"
                          class="img-fluid rounded-3 w-100" style="max-height:450px;object-fit:cover;" />
@@ -44,7 +42,6 @@ else
                     </AuthorizeView>
                 </div>
 
-                <!-- Ratings & Price -->
                 <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
                     @if (_dish.AvgRating.HasValue)
                     {
@@ -92,37 +89,8 @@ else
                 {
                     <IngredientList Ingredients="@_dish.Ingredients" />
                 }
-
-                <!-- Reviews -->
-                <div class="mt-5">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
-                        <AuthorizeView Roles="User">
-                            <Authorized>
-                                <a href="/review/add?dish=@Slug" class="btn btn-primary btn-sm">
-                                    <i class="fa-solid fa-pen me-1"></i>Ocen to danie
-                                </a>
-                            </Authorized>
-                        </AuthorizeView>
-                    </div>
-
-                    @if (_reviews != null && _reviews.Data.Any())
-                    {
-                        @foreach (var review in _reviews.Data)
-                        {
-                            <ReviewCard Review="@review" ShowDish="false" ShowActions="true" />
-                        }
-                        <Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviewPage" />
-                    }
-                    else
-                    {
-                        <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji"
-                                    Description="Bądź pierwszym, który oceni to danie!" />
-                    }
-                </div>
             </div>
 
-            <!-- Sticky sidebar -->
             <div class="col-lg-4">
                 <div class="dish-details-panel">
                     <h5 class="mb-3">Informacje</h5>
@@ -174,6 +142,43 @@ else
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="mt-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <SectionHeader Title="Recenzje" Icon="fa-solid fa-comments" />
+                        <div class="d-flex align-items-center gap-2">
+                            @if (_reviews != null && _reviews.Data.Any())
+                            {
+                                <SortDropdown CurrentSort="@_sortBy" Options="@_reviewSortOptions" OnSortChange="ChangeReviewSort" />
+                            }
+                            <AuthorizeView Roles="User">
+                                <Authorized>
+                                    <a href="/review/add?dish=@Slug" class="btn btn-primary btn-sm">
+                                        <i class="fa-solid fa-pen me-1"></i>Ocen to danie
+                                    </a>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                    </div>
+
+                    @if (_reviews != null && _reviews.Data.Any())
+                    {
+                        @foreach (var review in _reviews.Data)
+                        {
+                            <ReviewCard Review="@review" ShowDish="false" ShowActions="true" />
+                        }
+                        <Pagination Info="@_reviews.Pagination" OnPageChange="LoadReviewPage" />
+                    }
+                    else
+                    {
+                        <EmptyState Icon="fa-solid fa-comments" Title="Brak recenzji"
+                                    Description="Bądź pierwszym, który oceni to danie!" />
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -184,6 +189,16 @@ else
     private Models.DishDetailDto? _dish;
     private Models.PagedResult<Models.ReviewCardDto>? _reviews;
     private bool _loading = true;
+    private string _sortBy = "newest";
+
+    private static readonly List<Components.SortOption> _reviewSortOptions = new()
+    {
+        new() { Label = "Najnowsze", Value = "newest" },
+        new() { Label = "Najstarsze", Value = "oldest" },
+        new() { Label = "Najpopularniejsze", Value = "helpful" },
+        new() { Label = "Najlepsze", Value = "rating_desc" },
+        new() { Label = "Najgorsze", Value = "rating_asc" }
+    };
 
     private string? _lastSlug;
 
@@ -195,13 +210,19 @@ else
         _loading = true;
         _dish = await DishService.GetBySlugAsync(Slug);
         if (_dish != null)
-            _reviews = await ReviewService.GetByDishAsync(Slug);
+            _reviews = await ReviewService.GetByDishAsync(Slug, 1, 10, _sortBy);
         _loading = false;
     }
 
     private async Task LoadReviewPage(int page)
     {
-        _reviews = await ReviewService.GetByDishAsync(Slug, page);
+        _reviews = await ReviewService.GetByDishAsync(Slug, page, 10, _sortBy);
+    }
+
+    private async Task ChangeReviewSort(string sort)
+    {
+        _sortBy = sort;
+        _reviews = await ReviewService.GetByDishAsync(Slug, 1, 10, _sortBy);
     }
 
     private async Task GetRandomDish()

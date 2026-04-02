@@ -26,7 +26,6 @@
             }
             else
             {
-                <!-- Dish selection / info -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fa-solid fa-utensils me-2"></i>Danie</h5>
@@ -63,7 +62,6 @@
                         }
                         else
                         {
-                            <!-- Dish search -->
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Wyszukaj danie</label>
                                 <div class="input-group">
@@ -112,7 +110,6 @@
                     </div>
                 </div>
 
-                <!-- Review form -->
                 @if (_selectedDish != null)
                 {
                     <div class="card shadow-sm mb-4">
@@ -148,7 +145,6 @@
                         </div>
                     </div>
 
-                    <!-- Submit -->
                     <div class="d-flex justify-content-between">
                         <button class="btn btn-outline-secondary" @onclick="GoBack">
                             <i class="fa-solid fa-arrow-left me-1"></i>Anuluj

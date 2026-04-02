@@ -11,12 +11,10 @@
 }
 else if (_data != null)
 {
-    <!-- Hero Section -->
     <HeroSection BackgroundUrl="@_heroImage" BlurHash="@_heroBlurHash" CreditText="@_heroCreditText">
         <h1 class="display-4 fw-bold mb-3">Znajdź najlepszy smak w mieście</h1>
         <p class="lead mb-4">Najlepsze dania ze wszystkich restauracji.</p>
 
-        <!-- Quick Stats -->
         <div class="row justify-content-center mb-4">
             <div class="col-auto">
                 <div class="d-flex gap-4 text-center stats-container">
@@ -36,7 +34,6 @@ else if (_data != null)
             </div>
         </div>
 
-        <!-- Search Form -->
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="d-flex flex-column flex-md-row gap-2">
@@ -51,18 +48,16 @@ else if (_data != null)
     </HeroSection>
 
     <div class="container mt-5">
-        <!-- Quick Actions Bar -->
         <QuickActionsBar />
 
-        <!-- Popular Categories -->
         @if (_data.PopularCategories.Any())
         {
             <section class="mb-5">
                 <h2 class="text-center mb-4">Popularne kategorie</h2>
-                <div class="row g-3">
+                <div class="row g-3 justify-content-center">
                     @foreach (var category in _data.PopularCategories)
                     {
-                        <div class="col-6 col-md-4 col-lg-2">
+                        <div class="col-6 col-md-3">
                             <CategoryCard Name="@category" Icon="@GetCategoryIcon(category)" />
                         </div>
                     }
@@ -70,7 +65,6 @@ else if (_data != null)
             </section>
         }
 
-        <!-- Trending Dishes -->
         @if (_data.TrendingDishes.Any())
         {
             <section class="mb-5">
@@ -81,7 +75,6 @@ else if (_data != null)
             </section>
         }
 
-        <!-- Top Rated Dishes -->
         @if (_data.TopRatedDishes.Any())
         {
             <section class="mb-5">
@@ -92,7 +85,6 @@ else if (_data != null)
             </section>
         }
 
-        <!-- Recent Reviews -->
         @if (_data.RecentReviews.Any())
         {
             <section class="mb-5">

@@ -10,6 +10,10 @@
         <span class="navbar-text fw-bold">
             <i class="fa-solid fa-store me-1"></i>Panel Restauracji
         </span>
+        <button class="btn d-lg-none ms-auto me-2" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#businessMobileNav">
+            <i class="fa-solid fa-bars" style="color:var(--text-color);"></i>
+        </button>
         <AuthorizeView>
             <Authorized>
                 <UserDropdown />
@@ -18,8 +22,75 @@
     </div>
 </nav>
 
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="businessMobileNav">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <i class="fa-solid fa-store me-1"></i>Panel Restauracji
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/dashboard")" href="/restaurant/dashboard">
+                    <i class="fa-solid fa-chart-line me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/info")" href="/restaurant/info">
+                    <i class="fa-solid fa-circle-info me-2"></i>Informacje
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/hours")" href="/restaurant/hours">
+                    <i class="fa-solid fa-clock me-2"></i>Godziny otwarcia
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/menu")" href="/restaurant/menu">
+                    <i class="fa-solid fa-bars me-2"></i>Menu
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/menu-sections")" href="/restaurant/menu-sections">
+                    <i class="fa-solid fa-layer-group me-2"></i>Sekcje menu
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/dishes")" href="/restaurant/dishes">
+                    <i class="fa-solid fa-bowl-food me-2"></i>Dania
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/ingredients")" href="/restaurant/ingredients/suggest">
+                    <i class="fa-solid fa-lightbulb me-2"></i>Sugeruj składnik
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/photos")" href="/restaurant/photos">
+                    <i class="fa-solid fa-images me-2"></i>Zdjęcia
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/reviews")" href="/restaurant/reviews">
+                    <i class="fa-solid fa-comments me-2"></i>Recenzje
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/stats")" href="/restaurant/stats">
+                    <i class="fa-solid fa-chart-bar me-2"></i>Statystyki
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ActiveClass("/restaurant/requests")" href="/restaurant/requests">
+                    <i class="fa-solid fa-history me-2"></i>Historia zmian
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
 <div class="d-flex" style="padding-top:76px;">
-    <!-- Sidebar -->
     <nav class="business-sidebar d-none d-lg-block" style="width:260px;min-width:260px;">
         <div class="p-3">
             <h6 class="text-muted text-uppercase small mb-3">Zarządzanie</h6>
@@ -83,7 +154,6 @@
         </ul>
     </nav>
 
-    <!-- Content -->
     <div class="flex-grow-1 p-4" style="min-height:calc(100vh - 76px);">
         @Body
     </div>
