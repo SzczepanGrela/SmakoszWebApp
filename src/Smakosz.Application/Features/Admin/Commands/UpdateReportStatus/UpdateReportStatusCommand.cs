@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -53,6 +54,10 @@ public class UpdateReportStatusHandler : IRequestHandler<UpdateReportStatusComma
             CreatedAt = _dateTime.UtcNow
         });
 
+        var pushSettings = await _db.UserNotificationSettings
+            .FirstOrDefaultAsync(s => s.UserId == report.ReporterId, cancellationToken);
+        var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
         _db.Notifications.Add(new Notification
         {
             UserId = report.ReporterId,
@@ -60,6 +65,8 @@ public class UpdateReportStatusHandler : IRequestHandler<UpdateReportStatusComma
             Type = NotificationType.System,
             Title = "Zgłoszenie rozpatrzone",
             Message = $"Twoje zgłoszenie zostało rozpatrzone ze statusem: {request.Status}.",
+            SendPush = sendPush,
+            PushStatus = pushStatus,
             CreatedAt = _dateTime.UtcNow
         });
 

@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
@@ -96,6 +97,10 @@ public class ReviewIngredientSuggestionHandler
                 ? $"Twoja sugestia składnika \"{suggestion.SuggestedName}\" została zaakceptowana."
                 : $"Twoja sugestia składnika \"{suggestion.SuggestedName}\" została odrzucona.";
 
+            var pushSettings = await _db.UserNotificationSettings
+                .FirstOrDefaultAsync(s => s.UserId == suggestion.UserId.Value, cancellationToken);
+            var (sendPush, pushStatusVal) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
             _db.Notifications.Add(new Notification
             {
                 UserId = suggestion.UserId.Value,
@@ -104,6 +109,8 @@ public class ReviewIngredientSuggestionHandler
                 Severity = request.Approve ? NotificationSeverity.Success : NotificationSeverity.Info,
                 Title = request.Approve ? "Sugestia zaakceptowana" : "Sugestia odrzucona",
                 Message = message,
+                SendPush = sendPush,
+                PushStatus = pushStatusVal,
                 CreatedAt = _dateTime.UtcNow
             });
         }

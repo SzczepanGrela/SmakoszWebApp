@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -75,6 +76,10 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
 
         if (!request.Approve)
         {
+            var pushSettings = await _db.UserNotificationSettings
+                .FirstOrDefaultAsync(s => s.UserId == review.UserId, cancellationToken);
+            var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
             _db.Notifications.Add(new Notification
             {
                 UserId = review.UserId,
@@ -85,6 +90,8 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
                 Message = !string.IsNullOrEmpty(request.RejectionReason)
                     ? $"Twoja recenzja została odrzucona. Powód: {request.RejectionReason}"
                     : "Twoja recenzja została odrzucona przez moderatora.",
+                SendPush = sendPush,
+                PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow
             });
         }

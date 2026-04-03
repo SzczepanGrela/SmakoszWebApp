@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -81,6 +82,10 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 
         if (!request.Approve && asset.UploadedBy.HasValue)
         {
+            var pushSettings = await _db.UserNotificationSettings
+                .FirstOrDefaultAsync(s => s.UserId == asset.UploadedBy.Value, cancellationToken);
+            var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
             _db.Notifications.Add(new Notification
             {
                 UserId = asset.UploadedBy.Value,
@@ -91,6 +96,8 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
                 Message = !string.IsNullOrEmpty(request.RejectionReason)
                     ? $"Twoje zdjęcie zostało odrzucone. Powód: {request.RejectionReason}"
                     : "Twoje zdjęcie zostało odrzucone przez moderatora.",
+                SendPush = sendPush,
+                PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow
             });
         }

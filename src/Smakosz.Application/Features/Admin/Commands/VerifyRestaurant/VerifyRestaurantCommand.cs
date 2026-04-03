@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -50,6 +51,10 @@ public class VerifyRestaurantHandler : IRequestHandler<VerifyRestaurantCommand, 
 
         if (restaurant.OwnerId.HasValue)
         {
+            var pushSettings = await _db.UserNotificationSettings
+                .FirstOrDefaultAsync(s => s.UserId == restaurant.OwnerId.Value, cancellationToken);
+            var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
             _db.Notifications.Add(new Notification
             {
                 UserId = restaurant.OwnerId.Value,
@@ -57,6 +62,8 @@ public class VerifyRestaurantHandler : IRequestHandler<VerifyRestaurantCommand, 
                 Type = NotificationType.System,
                 Title = "Restauracja zweryfikowana",
                 Message = $"Twoja restauracja \"{restaurant.RestaurantName}\" została zweryfikowana i jest teraz aktywna.",
+                SendPush = sendPush,
+                PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow
             });
         }

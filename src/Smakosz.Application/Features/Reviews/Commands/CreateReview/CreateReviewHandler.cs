@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Reviews.Dtos;
 using Smakosz.Domain.Entities;
@@ -92,12 +93,18 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
                     && n.GroupKey == groupKey
                     && !n.IsRead, cancellationToken);
 
+            var pushSettings = await _db.UserNotificationSettings
+                .FirstOrDefaultAsync(s => s.UserId == ownerId, cancellationToken);
+            var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
             if (existingNotification != null)
             {
                 existingNotification.Counter++;
                 existingNotification.ActorId = _currentUser.UserId.Value;
                 existingNotification.CreatedAt = DateTime.UtcNow;
                 existingNotification.Message = $"Ktoś i {existingNotification.Counter - 1} innych dodało recenzje Twojej restauracji.";
+                existingNotification.SendPush = sendPush;
+                existingNotification.PushStatus = pushStatus;
             }
             else
             {
@@ -110,6 +117,8 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
                     Message = $"Ktoś dodał recenzję dania \"{dish.DishName}\".",
                     GroupKey = groupKey,
                     Counter = 1,
+                    SendPush = sendPush,
+                    PushStatus = pushStatus,
                     CreatedAt = DateTime.UtcNow
                 });
             }
