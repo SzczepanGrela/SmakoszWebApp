@@ -23,8 +23,6 @@ public class BusinessRestaurantDto
     public string? Website { get; set; }
     public string? ImageUrl { get; set; }
     public int? CityId { get; set; }
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
     public string Status { get; set; } = default!;
 }
 

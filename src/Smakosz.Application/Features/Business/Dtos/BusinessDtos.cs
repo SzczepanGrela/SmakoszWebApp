@@ -21,8 +21,6 @@ public class BusinessRestaurantDto
     public string? Phone { get; init; }
     public string? Email { get; init; }
     public string? Website { get; init; }
-    public decimal? Latitude { get; init; }
-    public decimal? Longitude { get; init; }
     public string? ImageUrl { get; init; }
     public int? CityId { get; init; }
     public string Status { get; init; } = default!;

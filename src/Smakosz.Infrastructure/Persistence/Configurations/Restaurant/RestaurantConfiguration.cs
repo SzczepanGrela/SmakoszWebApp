@@ -28,16 +28,6 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
         builder.Property(x => x.PostalCode)
             .HasMaxLength(10);
 
-        builder.Property(x => x.Latitude)
-            .HasColumnType("numeric(10,7)");
-
-        builder.Property(x => x.Longitude)
-            .HasColumnType("numeric(10,7)");
-
-        builder.Property(x => x.GeocodeSource)
-            .HasConversion(new SnakeCaseEnumConverter<GeocodeSource>())
-            .HasMaxLength(20);
-
         builder.Property(x => x.Phone)
             .HasMaxLength(20);
 

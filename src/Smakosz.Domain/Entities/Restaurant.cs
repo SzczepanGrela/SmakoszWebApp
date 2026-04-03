@@ -13,10 +13,6 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned, IModerable
     public int? PriceLevel { get; set; }
     public string? Address { get; set; }
     public string? PostalCode { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
-    public GeocodeSource? GeocodeSource { get; set; }
-    public DateTime? GeocodedAt { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Website { get; set; }
