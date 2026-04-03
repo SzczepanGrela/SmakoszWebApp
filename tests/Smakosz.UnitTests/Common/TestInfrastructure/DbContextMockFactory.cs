@@ -59,6 +59,7 @@ public class MockDbSets
     public List<FileToDelete> FilesToDelete { get; } = new();
     public List<SiteStats> SiteStats { get; } = new();
     public List<ModerationResult> ModerationResults { get; } = new();
+    public List<PushSubscription> PushSubscriptions { get; } = new();
 }
 
 public static class DbContextMockFactory
@@ -144,6 +145,7 @@ public static class DbContextMockFactory
         WireDbSet(() => sets.FilesToDelete, v => context.FilesToDelete.Returns(v), sets.FilesToDelete);
         WireDbSet(() => sets.SiteStats, v => context.SiteStats.Returns(v), sets.SiteStats);
         WireDbSet(() => sets.ModerationResults, v => context.ModerationResults.Returns(v), sets.ModerationResults);
+        WireDbSet(() => sets.PushSubscriptions, v => context.PushSubscriptions.Returns(v), sets.PushSubscriptions);
     }
 
     public static void Refresh(ISmakoszDbContext context, MockDbSets sets)
