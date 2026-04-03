@@ -3,6 +3,8 @@ const CACHE_NAME = 'smakosz-cache-v1';
 self.addEventListener('install', event => event.waitUntil(onInstall(event)));
 self.addEventListener('activate', event => event.waitUntil(onActivate(event)));
 self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
+self.addEventListener('push', event => event.waitUntil(onPush(event)));
+self.addEventListener('notificationclick', event => event.waitUntil(onNotificationClick(event)));
 
 async function onInstall(event) {
     console.info('Service worker: Install');
@@ -40,4 +42,33 @@ async function onFetch(event) {
     } catch {
         return new Response('', { status: 408, statusText: 'Request timed out.' });
     }
+}
+
+async function onPush(event) {
+    var data = { title: 'Smakosz', body: 'Masz nowe powiadomienie' };
+    try {
+        data = event.data.json();
+    } catch { }
+
+    await self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: '/favicon-96x96.png',
+        badge: '/favicon-96x96.png',
+        data: { url: data.url || '/' }
+    });
+}
+
+async function onNotificationClick(event) {
+    event.notification.close();
+    var url = event.notification.data?.url || '/';
+
+    var allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (var i = 0; i < allClients.length; i++) {
+        if (allClients[i].url.includes(self.location.origin)) {
+            allClients[i].focus();
+            allClients[i].navigate(url);
+            return;
+        }
+    }
+    await clients.openWindow(url);
 }
