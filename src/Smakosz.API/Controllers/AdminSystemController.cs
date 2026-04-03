@@ -10,7 +10,10 @@ using Smakosz.Application.Features.Admin.Queries.GetAiModels;
 using Smakosz.Application.Features.Admin.Queries.GetHeroImages;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemConfig;
+using Smakosz.Application.Features.Admin.Queries.GetAuditLogs;
+using Smakosz.Application.Features.Admin.Queries.GetSecurityLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemLogs;
+using Smakosz.Application.Features.Admin.Queries.GetSystemNodes;
 
 namespace Smakosz.API.Controllers;
 
@@ -105,6 +108,33 @@ public class AdminSystemController : ApiController
     public async Task<IActionResult> GetAiModels()
     {
         var result = await _mediator.Send(new GetAiModelsQuery());
+        return ToActionResult(result);
+    }
+
+    [HttpGet("audit-logs")]
+    public async Task<IActionResult> GetAuditLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? tableName = null)
+    {
+        var result = await _mediator.Send(new GetAuditLogsQuery(new PaginationParams(page, pageSize), tableName));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("security-logs")]
+    public async Task<IActionResult> GetSecurityLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? eventType = null)
+    {
+        var result = await _mediator.Send(new GetSecurityLogsQuery(new PaginationParams(page, pageSize), eventType));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("nodes")]
+    public async Task<IActionResult> GetSystemNodes()
+    {
+        var result = await _mediator.Send(new GetSystemNodesQuery());
         return ToActionResult(result);
     }
 }
