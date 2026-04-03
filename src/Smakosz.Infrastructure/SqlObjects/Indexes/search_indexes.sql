@@ -21,7 +21,3 @@ ON restaurants(cuisine_type) WHERE status = 'active';
 
 CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users (lower(email));
 CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users (lower(username));
-
-CREATE INDEX IF NOT EXISTS idx_restaurants_geo
-ON restaurants(latitude, longitude)
-WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
