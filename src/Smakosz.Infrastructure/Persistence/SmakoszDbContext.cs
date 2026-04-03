@@ -77,6 +77,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<VerificationCode> VerificationCodes => Set<VerificationCode>();
     public DbSet<UserNotificationSettings> UserNotificationSettings => Set<UserNotificationSettings>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();

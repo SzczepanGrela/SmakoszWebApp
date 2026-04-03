@@ -43,6 +43,7 @@ public interface ISmakoszDbContext
     DbSet<RestaurantEditRequest> RestaurantEditRequests { get; }
     DbSet<IngredientSuggestion> IngredientSuggestions { get; }
     DbSet<UserNotificationSettings> UserNotificationSettings { get; }
+    DbSet<PushSubscription> PushSubscriptions { get; }
 
     DbSet<AuditLog> AuditLogs { get; }
 
