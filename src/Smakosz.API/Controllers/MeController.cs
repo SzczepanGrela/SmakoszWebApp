@@ -11,6 +11,8 @@ using Smakosz.Application.Features.Me.Commands.SaveDish;
 using Smakosz.Application.Features.Me.Commands.UnfavoriteRestaurant;
 using Smakosz.Application.Features.Me.Commands.UnfollowUser;
 using Smakosz.Application.Features.Me.Commands.UnsaveDish;
+using Smakosz.Application.Features.Me.Commands.RemovePushSubscription;
+using Smakosz.Application.Features.Me.Commands.SavePushSubscription;
 using Smakosz.Application.Features.Me.Commands.UpdateNotificationSettings;
 using Smakosz.Application.Features.Me.Commands.UpdateProfile;
 using Smakosz.Application.Features.Me.Queries.GetFavoriteRestaurants;
@@ -31,10 +33,12 @@ namespace Smakosz.API.Controllers;
 public class MeController : ApiController
 {
     private readonly IMediator _mediator;
+    private readonly IConfiguration _configuration;
 
-    public MeController(IMediator mediator)
+    public MeController(IMediator mediator, IConfiguration configuration)
     {
         _mediator = mediator;
+        _configuration = configuration;
     }
 
     [HttpGet]
@@ -207,6 +211,27 @@ public class MeController : ApiController
     public async Task<IActionResult> MarkAllNotificationsRead()
     {
         var result = await _mediator.Send(new MarkAllNotificationsReadCommand());
+        return ToNoContentResult(result);
+    }
+
+    [HttpGet("push-public-key")]
+    public IActionResult GetPushPublicKey()
+    {
+        var key = _configuration["Vapid:PublicKey"] ?? string.Empty;
+        return Ok(new { publicKey = key });
+    }
+
+    [HttpPost("push-subscriptions")]
+    public async Task<IActionResult> SavePushSubscription([FromBody] SavePushSubscriptionCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("push-subscriptions/unsubscribe")]
+    public async Task<IActionResult> RemovePushSubscription([FromBody] RemovePushSubscriptionCommand command)
+    {
+        var result = await _mediator.Send(command);
         return ToNoContentResult(result);
     }
 }
