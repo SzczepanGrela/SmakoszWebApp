@@ -11,30 +11,41 @@
     "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
     "AccessKey": "<R2_ACCESS_KEY_ID>",
     "SecretKey": "<R2_SECRET_ACCESS_KEY>",
-    "BucketName": "<R2_BUCKET_NAME>",
+    "BucketName": "smakosz-photos",
     "PublicUrl": "<R2_PUBLIC_DOMAIN>"
   },
   "GpuWorker": {
-    "Url": "http://100.x.x.3:8000",
-    "NodeId": "gpu-worker"
+    "Url": "http://<TAILSCALE_GPU_IP>:8000"
   },
   "RpiGateway": {
-    "Url": "http://100.x.x.2:5000",
+    "Url": "http://<TAILSCALE_RPI_IP>:5000",
     "ApiToken": "<RPI_GATEWAY_API_TOKEN>"
   },
+  "WorkerAuth": {
+    "ApiKey": "<WORKER_API_KEY>"
+  },
   "NcfTraining": {
-    "Epochs": 50,
-    "BatchSize": 256,
-    "LearningRate": 0.001,
-    "EmbeddingDim": 64,
-    "ReviewWindowDays": 90
+    "Enabled": false
+  },
+  "R2Models": {
+    "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
+    "AccessKey": "<R2_ACCESS_KEY_ID>",
+    "SecretKey": "<R2_SECRET_ACCESS_KEY>",
+    "BucketName": "smakosz-models"
+  },
+  "Vapid": {
+    "PublicKey": "<VAPID_PUBLIC_KEY>",
+    "PrivateKey": "<VAPID_PRIVATE_KEY>",
+    "Subject": "mailto:push@smakosz.xyz"
+  },
+  "Onnx": {
+    "ModelBasePath": "/models/ncf"
   },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
-      "Hangfire": "Information",
       "Microsoft.AspNetCore": "Warning",
-      "Microsoft.EntityFrameworkCore": "Warning"
+      "Hangfire": "Information"
     }
   }
 }
