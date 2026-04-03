@@ -1,0 +1,104 @@
+@page "/admin/audit-logs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Dziennik audytu - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-clipboard-list me-2"></i>Dziennik audytu</h2>
+    <div class="btn-group btn-group-sm">
+        <button class="btn @(_tableFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByTable(null)">Wszystkie</button>
+        <button class="btn @(_tableFilter == "config" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByTable("config")'>config</button>
+        <button class="btn @(_tableFilter == "cities" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByTable("cities")'>cities</button>
+        <button class="btn @(_tableFilter == "ingredients" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByTable("ingredients")'>ingredients</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_logs == null || !_logs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-clipboard-list" Title="Brak wpisów audytu" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover" style="font-size:0.85rem;">
+            <thead>
+                <tr>
+                    <th style="width:160px;">Czas</th>
+                    <th style="width:90px;">Operacja</th>
+                    <th>Tabela</th>
+                    <th>Rekord ID</th>
+                    <th>Zmienił</th>
+                    <th>Wartości</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in _logs.Data)
+                {
+                    <tr>
+                        <td class="text-muted">@log.ChangedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="badge @OperationBadge(log.Operation)">@log.Operation</span></td>
+                        <td>@log.TableName</td>
+                        <td>@log.RecordId</td>
+                        <td>@log.ChangedBy</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                            {
+                                <details>
+                                    <summary class="small text-primary">Szczegóły</summary>
+                                    @if (!string.IsNullOrEmpty(log.OldValues))
+                                    {
+                                        <div class="small"><strong>Stare:</strong>
+                                            <pre class="mb-1" style="max-height:150px;overflow:auto;">@log.OldValues</pre>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(log.NewValues))
+                                    {
+                                        <div class="small"><strong>Nowe:</strong>
+                                            <pre class="mb-0" style="max-height:150px;overflow:auto;">@log.NewValues</pre>
+                                        </div>
+                                    }
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_logs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_logs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminAuditLogDto>? _logs;
+    private string? _tableFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _logs = await AdminService.GetAuditLogsAsync(page, _tableFilter);
+        _loading = false;
+    }
+
+    private async Task FilterByTable(string? table) { _tableFilter = table; await LoadPage(1); }
+
+    private static string OperationBadge(string operation) => operation switch
+    {
+        "Insert" => "bg-success",
+        "Update" => "bg-warning text-dark",
+        "Delete" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
