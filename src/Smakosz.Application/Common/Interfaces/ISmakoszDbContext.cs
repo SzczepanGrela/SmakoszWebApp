@@ -63,6 +63,7 @@ public interface ISmakoszDbContext
     DbSet<ForbiddenWord> ForbiddenWords { get; }
     DbSet<FileToDelete> FilesToDelete { get; }
     DbSet<SiteStats> SiteStats { get; }
+    DbSet<HomePageCache> HomePageCaches { get; }
     DbSet<ModerationResult> ModerationResults { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

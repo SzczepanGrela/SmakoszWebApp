@@ -132,6 +132,9 @@ RecurringJob.AddOrUpdate<PushNotificationDispatchService>(
 RecurringJob.AddOrUpdate<SiteStatsService>(
     "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
 
+RecurringJob.AddOrUpdate<HomePageCacheService>(
+    "home-page-cache", x => x.RefreshAsync(CancellationToken.None), "*/5 * * * *", utc);
+
 RecurringJob.RemoveIfExists("moderation-aggregation");
 
 await app.RunAsync();
