@@ -87,6 +87,9 @@ public class BusinessService : IBusinessService
     public Task<BusinessStatsDto?> GetStatsAsync()
         => _api.GetAsync<BusinessStatsDto>("/api/business/stats");
 
+    public Task<BusinessChartDataDto?> GetChartDataAsync(int days = 30)
+        => _api.GetAsync<BusinessChartDataDto>($"/api/business/stats/charts?days={days}");
+
     public async Task<List<EditRequestSummaryDto>> GetEditRequestsAsync()
         => await _api.GetAsync<List<EditRequestSummaryDto>>("/api/business/edit-requests") ?? [];
 

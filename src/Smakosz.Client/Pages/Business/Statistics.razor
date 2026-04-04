@@ -44,7 +44,7 @@ else
         </div>
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-4">
         <div class="card-body text-center p-4">
             @if (ReviewDiff > 0)
             {
@@ -63,17 +63,125 @@ else
             }
         </div>
     </div>
+
+    @if (_chartData != null)
+    {
+        <h4 class="fw-bold mb-3"><i class="fa-solid fa-chart-line me-2"></i>Wykresy</h4>
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" data-testid="chart-review-trend">
+                    <div class="card-header fw-semibold">Trend recenzji (30 dni)</div>
+                    <div class="card-body">
+                        <ApexChart TItem="DailyReviewCount" Height="300">
+                            <ApexPointSeries TItem="DailyReviewCount"
+                                             Items="_chartData.ReviewTrend"
+                                             SeriesType="SeriesType.Line"
+                                             Name="Recenzje"
+                                             XValue="e => e.Date.ToString()"
+                                             YValue="e => e.Count" />
+                        </ApexChart>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" data-testid="chart-rating-distribution">
+                    <div class="card-header fw-semibold">Rozkład ocen (1-10)</div>
+                    <div class="card-body">
+                        <ApexChart TItem="RatingDistributionItem" Height="300">
+                            <ApexPointSeries TItem="RatingDistributionItem"
+                                             Items="_chartData.RatingDistribution"
+                                             SeriesType="SeriesType.Bar"
+                                             Name="Liczba"
+                                             XValue="e => e.Rating.ToString()"
+                                             YValue="e => (decimal)e.Count" />
+                        </ApexChart>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" data-testid="chart-category-averages">
+                    <div class="card-header fw-semibold">Oceny wg kategorii</div>
+                    <div class="card-body">
+                        <ApexChart TItem="CategoryDataPoint" Height="300">
+                            <ApexPointSeries TItem="CategoryDataPoint"
+                                             Items="_categoryPoints"
+                                             SeriesType="SeriesType.Radar"
+                                             Name="Ocena"
+                                             XValue="e => e.Category"
+                                             YValue="e => (decimal)e.Value" />
+                        </ApexChart>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" data-testid="chart-top-dishes">
+                    <div class="card-header fw-semibold">Ranking dań (top 5)</div>
+                    <div class="card-body">
+                        @if (_chartData.TopDishes.Count > 0)
+                        {
+                            <ApexChart TItem="DishRankingItem" Height="300"
+                                       Options="@_topDishesOptions">
+                                <ApexPointSeries TItem="DishRankingItem"
+                                                 Items="_chartData.TopDishes"
+                                                 SeriesType="SeriesType.Bar"
+                                                 Name="Średnia ocena"
+                                                 XValue="e => e.DishName"
+                                                 YValue="e => (decimal)e.AvgRating" />
+                            </ApexChart>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center py-4">Brak dań z wystarczającą liczbą recenzji</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
     private BusinessStatsDto? _stats;
+    private BusinessChartDataDto? _chartData;
+    private List<CategoryDataPoint> _categoryPoints = [];
     private bool _loading = true;
+
+    private ApexChartOptions<DishRankingItem> _topDishesOptions = new()
+    {
+        PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar { Horizontal = true }
+        }
+    };
 
     private int ReviewDiff => _stats is not null ? _stats.ReviewsThisMonth - _stats.ReviewsLastMonth : 0;
 
     protected override async Task OnInitializedAsync()
     {
-        _stats = await BusinessService.GetStatsAsync();
+        var statsTask = BusinessService.GetStatsAsync();
+        var chartTask = BusinessService.GetChartDataAsync();
+
+        await Task.WhenAll(statsTask, chartTask);
+
+        _stats = statsTask.Result;
+        _chartData = chartTask.Result;
+
+        if (_chartData != null)
+        {
+            _categoryPoints =
+            [
+                new("Jedzenie", _chartData.CategoryAverages.Food),
+                new("Obsługa", _chartData.CategoryAverages.Service),
+                new("Czystość", _chartData.CategoryAverages.Cleanliness),
+                new("Atmosfera", _chartData.CategoryAverages.Ambiance)
+            ];
+        }
+
         _loading = false;
     }
+
+    private record CategoryDataPoint(string Category, double Value);
 }

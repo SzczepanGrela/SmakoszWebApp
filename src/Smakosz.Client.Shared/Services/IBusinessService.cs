@@ -19,6 +19,7 @@ public interface IBusinessService
     Task<bool> DeleteDishAsync(Guid id);
     Task<PagedResult<ReviewCardDto>?> GetReviewsAsync(int page = 1);
     Task<BusinessStatsDto?> GetStatsAsync();
+    Task<BusinessChartDataDto?> GetChartDataAsync(int days = 30);
     Task<List<EditRequestSummaryDto>> GetEditRequestsAsync();
     Task<RegistrationStatusDto?> GetRegistrationStatusAsync();
     Task<bool> RegisterBusinessAsync(BusinessRestaurantDto dto);

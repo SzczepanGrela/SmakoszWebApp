@@ -79,3 +79,38 @@ public class BusinessDishDto
     public int ReviewCount { get; set; }
     public bool IsAvailable { get; set; }
 }
+
+public class BusinessChartDataDto
+{
+    public List<DailyReviewCount> ReviewTrend { get; set; } = [];
+    public List<RatingDistributionItem> RatingDistribution { get; set; } = [];
+    public CategoryAverages CategoryAverages { get; set; } = new();
+    public List<DishRankingItem> TopDishes { get; set; } = [];
+}
+
+public class DailyReviewCount
+{
+    public DateOnly Date { get; set; }
+    public int Count { get; set; }
+}
+
+public class RatingDistributionItem
+{
+    public int Rating { get; set; }
+    public int Count { get; set; }
+}
+
+public class CategoryAverages
+{
+    public double Food { get; set; }
+    public double Service { get; set; }
+    public double Cleanliness { get; set; }
+    public double Ambiance { get; set; }
+}
+
+public class DishRankingItem
+{
+    public string DishName { get; set; } = default!;
+    public double AvgRating { get; set; }
+    public int ReviewCount { get; set; }
+}
