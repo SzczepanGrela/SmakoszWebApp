@@ -17,8 +17,9 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
+    private readonly ITurnstileService _turnstile;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords, ITurnstileService turnstile)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -26,10 +27,17 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
         _currentUser = currentUser;
         _emailService = emailService;
         _forbiddenWords = forbiddenWords;
+        _turnstile = turnstile;
     }
 
     public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(request.TurnstileToken) ||
+            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        {
+            return DomainErrors.Captcha.VerificationFailed;
+        }
+
         var emailExists = await _db.Users
             .AnyAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
 

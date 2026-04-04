@@ -1,6 +1,7 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -13,16 +14,24 @@ public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Erro
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
     private readonly ICodeHasher _codeHasher;
+    private readonly ITurnstileService _turnstile;
 
-    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
+    public ForgotPasswordHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher, ITurnstileService turnstile)
     {
         _db = db;
         _emailService = emailService;
         _codeHasher = codeHasher;
+        _turnstile = turnstile;
     }
 
     public async Task<ErrorOr<Success>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(request.TurnstileToken) ||
+            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        {
+            return DomainErrors.Captcha.VerificationFailed;
+        }
+
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant() && !u.IsDeleted, cancellationToken);
 

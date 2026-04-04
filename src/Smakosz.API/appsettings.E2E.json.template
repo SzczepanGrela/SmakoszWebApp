@@ -2,6 +2,10 @@
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=<E2E_DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>"
   },
+  "Turnstile": {
+    "SiteKey": "1x00000000000000000000AA",
+    "SecretKey": "1x0000000000000000000000000000000AA"
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Warning",
