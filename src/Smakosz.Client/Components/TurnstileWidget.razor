@@ -1,0 +1,25 @@
+@inject IJSRuntime JS
+
+<div id="@_elementId"></div>
+
+@code {
+    [Parameter] public EventCallback<string> OnVerified { get; set; }
+
+    private string _elementId = $"turnstile-{Guid.NewGuid():N}";
+    private string _siteKey = "0x4AAAAAACrslpQAJFM5gHII";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var token = await JS.InvokeAsync<string>("smakoszTurnstile.render", _elementId, _siteKey);
+            if (!string.IsNullOrEmpty(token))
+                await OnVerified.InvokeAsync(token);
+        }
+    }
+
+    public async Task ResetAsync()
+    {
+        await JS.InvokeVoidAsync("smakoszTurnstile.reset", _elementId);
+    }
+}

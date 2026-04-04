@@ -59,8 +59,8 @@ public class AuthService : IAuthService
         _authStateProvider.NotifyUserLogout();
     }
 
-    public Task<ApiResponse<object>> ForgotPasswordAsync(string email)
-        => _api.PostApiResponseAsync<object>("/api/auth/forgot-password", new ForgotPasswordRequest { Email = email });
+    public Task<ApiResponse<object>> ForgotPasswordAsync(string email, string? turnstileToken = null)
+        => _api.PostApiResponseAsync<object>("/api/auth/forgot-password", new ForgotPasswordRequest { Email = email, TurnstileToken = turnstileToken });
 
     public Task<ApiResponse<object>> ResetPasswordAsync(string token, string newPassword, string confirmPassword)
         => _api.PostApiResponseAsync<object>("/api/auth/reset-password", new ResetPasswordRequest

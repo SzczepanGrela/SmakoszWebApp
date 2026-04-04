@@ -25,6 +25,9 @@
         <label class="form-label">Hasło</label>
         <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Placeholder="Min. 8 znaków" />
     </div>
+    <div class="mb-3">
+        <Smakosz.Client.Components.TurnstileWidget OnVerified="t => _turnstileToken = t" />
+    </div>
     <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
         @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
         Zarejestruj się
@@ -39,11 +42,13 @@
     private Smakosz.Client.Models.RegisterRequest _model = new();
     private string? _error;
     private bool _loading;
+    private string? _turnstileToken;
 
     private async Task HandleRegister()
     {
         _loading = true;
         _error = null;
+        _model.TurnstileToken = _turnstileToken;
         var result = await AuthService.RegisterAsync(_model);
         if (result.Success)
         {
