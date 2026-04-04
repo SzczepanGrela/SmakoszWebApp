@@ -23,13 +23,26 @@ public class SendContactMessageHandlerTests
         _dateTime.UtcNow.Returns(new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
         _email = Substitute.For<IEmailService>();
         var logger = Substitute.For<ILogger<SendContactMessageHandler>>();
-        _handler = new SendContactMessageHandler(_db, _dateTime, _email, logger);
+        var turnstile = Substitute.For<ITurnstileService>();
+        turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+        _handler = new SendContactMessageHandler(_db, _dateTime, _email, logger, turnstile);
+    }
+
+    [Fact]
+    public async Task Handle_MissingTurnstileToken_ReturnsCaptchaFailed()
+    {
+        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("CAPTCHA_FAILED");
     }
 
     [Fact]
     public async Task Handle_HappyPath_CreatesTicketAndReturnsSuccess()
     {
-        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa");
+        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa", "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -41,7 +54,7 @@ public class SendContactMessageHandlerTests
     [Fact]
     public async Task Handle_HappyPath_SendsConfirmationEmail()
     {
-        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa");
+        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa", "valid-token");
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -61,7 +74,7 @@ public class SendContactMessageValidatorTests
     [Fact]
     public void Validate_ValidCommand_NoErrors()
     {
-        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa");
+        var command = new SendContactMessageCommand("Jan", "jan@example.com", "Pytanie", "To jest testowa wiadomosc kontaktowa", "valid-token");
         var result = _validator.Validate(command);
         result.IsValid.Should().BeTrue();
     }

@@ -17,6 +17,7 @@ public class RegisterHandlerTests
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
+    private readonly ITurnstileService _turnstile;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
@@ -27,17 +28,42 @@ public class RegisterHandlerTests
         _currentUser = Substitute.For<ICurrentUserService>();
         _emailService = Substitute.For<IEmailService>();
         _forbiddenWords = Substitute.For<IForbiddenWordService>();
+        _turnstile = Substitute.For<ITurnstileService>();
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns("hashed_password");
         _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
+        _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService, _forbiddenWords);
+        _handler = new RegisterHandler(_db, _passwordHasher, _codeHasher, _currentUser, _emailService, _forbiddenWords, _turnstile);
+    }
+
+    [Fact]
+    public async Task Handle_MissingTurnstileToken_ReturnsCaptchaFailed()
+    {
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("CAPTCHA_FAILED");
+    }
+
+    [Fact]
+    public async Task Handle_InvalidTurnstileToken_ReturnsCaptchaFailed()
+    {
+        _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(false);
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123", "invalid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("CAPTCHA_FAILED");
     }
 
     [Fact]
     public async Task Handle_ValidCommand_ReturnsSuccess()
     {
-        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -49,7 +75,7 @@ public class RegisterHandlerTests
     {
         _sets.Users.Add(new UserBuilder().WithEmail("existing@example.com").Build());
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new RegisterCommand("newuser", "existing@example.com", "Password123");
+        var command = new RegisterCommand("newuser", "existing@example.com", "Password123", "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -62,7 +88,7 @@ public class RegisterHandlerTests
     {
         _sets.Users.Add(new UserBuilder().WithUsername("existinguser").Build());
         DbContextMockFactory.Refresh(_db, _sets);
-        var command = new RegisterCommand("existinguser", "new@example.com", "Password123");
+        var command = new RegisterCommand("existinguser", "new@example.com", "Password123", "valid-token");
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -73,7 +99,7 @@ public class RegisterHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_HashesPasswordWithPasswordHasher()
     {
-        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -83,7 +109,7 @@ public class RegisterHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_HashesCodeWithCodeHasher()
     {
-        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -94,7 +120,7 @@ public class RegisterHandlerTests
     [Fact]
     public async Task Handle_ValidCommand_SendsVerificationEmail()
     {
-        var command = new RegisterCommand("newuser", "new@example.com", "Password123");
+        var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");
 
         await _handler.Handle(command, CancellationToken.None);
 

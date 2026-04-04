@@ -19,6 +19,8 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
 
+        await WaitForTurnstileAsync();
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Zarejestruj się" }).ClickAsync();
 
         var redirectTask = Page.WaitForURLAsync(

@@ -62,7 +62,7 @@ public class SmakoszE2ETestBase : PageTest
         });
 
         using var http = new HttpClient();
-        var loginPayload = JsonSerializer.Serialize(new { email, password });
+        var loginPayload = JsonSerializer.Serialize(new { email, password, turnstileToken = "e2e-test" });
         var content = new StringContent(loginPayload, Encoding.UTF8, "application/json");
 
         try
@@ -122,6 +122,9 @@ public class SmakoszE2ETestBase : PageTest
 
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
+
+        await WaitForTurnstileAsync();
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Zaloguj się" }).ClickAsync();
 
         await Page.WaitForURLAsync(url => !url.Contains("/login"), new PageWaitForURLOptions
@@ -130,6 +133,22 @@ public class SmakoszE2ETestBase : PageTest
         });
 
         await WaitForBlazorLoadedAsync();
+    }
+
+    protected async Task WaitForTurnstileAsync(int timeoutMs = 10_000)
+    {
+        try
+        {
+            await Page.WaitForFunctionAsync(
+                "() => document.querySelector('[id^=\"turnstile-\"] iframe') !== null || typeof turnstile === 'undefined'",
+                null,
+                new PageWaitForFunctionOptions { Timeout = timeoutMs });
+            await Page.WaitForTimeoutAsync(1000);
+        }
+        catch (TimeoutException)
+        {
+            // Turnstile not loaded - OK in E2E with test keys
+        }
     }
 
     protected async Task AssertPageContainsTextAsync(string text, int timeoutMs = 10_000)
