@@ -62,6 +62,8 @@ builder.Services.AddHangfireServer(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication("WorkerApiKey")
     .AddScheme<AuthenticationSchemeOptions, WorkerApiKeyAuthHandler>("WorkerApiKey", null);
@@ -87,6 +89,12 @@ builder.Services.AddScoped<ModerationBatchAggregatorService>();
 builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
