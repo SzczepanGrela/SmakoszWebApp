@@ -26,16 +26,13 @@ public class StuckJobsRecoveryService
 
     public async Task RecoverAsync(CancellationToken ct)
     {
-        var threshold = _clock.UtcNow.AddHours(-4);
+        var now = _clock.UtcNow;
+
+        var processingThreshold = now.AddHours(-4);
 
         var stuckJobs = await _db.SystemJobs
-            .Where(j => j.Status == JobStatus.Processing && j.StartedAt < threshold)
+            .Where(j => j.Status == JobStatus.Processing && j.StartedAt < processingThreshold)
             .ToListAsync(ct);
-
-        if (stuckJobs.Count == 0)
-            return;
-
-        var now = _clock.UtcNow;
 
         foreach (var job in stuckJobs)
         {
@@ -57,9 +54,30 @@ public class StuckJobsRecoveryService
             }
         }
 
-        await _db.SaveChangesAsync(ct);
+        if (stuckJobs.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("stuck-jobs-recovery: recovered {Count} stuck jobs", stuckJobs.Count);
+        }
 
-        _logger.LogInformation("stuck-jobs-recovery: recovered {Count} stuck jobs", stuckJobs.Count);
+        var pendingThreshold = now.AddHours(-24);
+
+        var zombiePending = await _db.SystemJobs
+            .Where(j => j.Status == JobStatus.Pending && j.CreatedAt < pendingThreshold)
+            .ToListAsync(ct);
+
+        foreach (var job in zombiePending)
+        {
+            job.Status = JobStatus.Cancelled;
+            job.ErrorMessage = "Auto-cancelled: pending for over 24 hours without being picked up";
+            job.FinishedAt = now;
+        }
+
+        if (zombiePending.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("stuck-jobs-recovery: auto-cancelled {Count} zombie pending jobs", zombiePending.Count);
+        }
     }
 
     private async Task ResetBatchModerationStatusAsync(Domain.Entities.System.SystemJob job, CancellationToken ct)

@@ -38,7 +38,7 @@ public interface IAdminService
     Task<bool> TriggerJobAsync(int id);
     Task<bool> CreateJobAsync(CreateJobRequest request);
     Task<bool> CancelJobAsync(int id);
-    Task<bool> ScheduleNcfTrainingAsync();
+    Task<(bool Success, string? ErrorMessage)> ScheduleNcfTrainingAsync();
     Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
     Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null,
         bool? isAllergen = null, bool? isVegetarian = null, bool? isVegan = null,

@@ -169,10 +169,10 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    public async Task<bool> ScheduleNcfTrainingAsync()
+    public async Task<(bool Success, string? ErrorMessage)> ScheduleNcfTrainingAsync()
     {
         var response = await _api.PostApiResponseAsync<object>("/api/admin/ncf-training/schedule", null);
-        return response.Success;
+        return (response.Success, response.Error?.Message);
     }
 
     public Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null)
