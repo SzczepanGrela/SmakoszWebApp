@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Hangfire;
+using Hangfire.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,8 +19,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
     private readonly GpuWorkerOptions _gpuOptions;
     private readonly ILogger<ModerationBatchAggregatorService> _logger;
 
-    private const int BatchSize = 100;
-
     public ModerationBatchAggregatorService(
         ISmakoszDbContext db,
         IHttpClientFactory httpFactory,
@@ -35,12 +35,38 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
 
     public async Task AggregateAsync(CancellationToken ct)
     {
-        await AggregateTextBatchesAsync(ct);
-        await AggregateImageBatchesAsync(ct);
-        await WakeGpuIfNeededAsync(ct);
+        IDisposable? distributedLock = null;
+        try
+        {
+            var connection = JobStorage.Current.GetConnection();
+            distributedLock = connection.AcquireDistributedLock("moderation-aggregation", TimeSpan.FromSeconds(10));
+        }
+        catch (DistributedLockTimeoutException)
+        {
+            _logger.LogInformation("Moderation aggregation skipped - another instance is running");
+            return;
+        }
+
+        try
+        {
+            var configs = await _db.SystemConfigs
+                .Where(c => c.Key == "moderation.text_batch_size" || c.Key == "moderation.image_batch_size")
+                .ToDictionaryAsync(c => c.Key, c => c.Value, ct);
+
+            var textBatchSize = GetInt(configs, "moderation.text_batch_size", 100);
+            var imageBatchSize = GetInt(configs, "moderation.image_batch_size", 10);
+
+            await AggregateTextBatchesAsync(textBatchSize, ct);
+            await AggregateImageBatchesAsync(imageBatchSize, ct);
+            await WakeGpuIfNeededAsync(ct);
+        }
+        finally
+        {
+            distributedLock?.Dispose();
+        }
     }
 
-    private async Task AggregateTextBatchesAsync(CancellationToken ct)
+    private async Task AggregateTextBatchesAsync(int batchSize, CancellationToken ct)
     {
         while (true)
         {
@@ -49,23 +75,23 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             var pendingReviews = await _db.Reviews
                 .Where(r => r.ModerationStatus == ContentModerationStatus.Pending && !r.IsDeleted && r.Content != null)
                 .OrderBy(r => r.CreatedAt)
-                .Take(BatchSize)
+                .Take(batchSize)
                 .Select(r => new { r.ReviewId, r.Content })
                 .ToListAsync(ct);
 
             foreach (var r in pendingReviews)
             {
                 items.Add(new BatchItem("review", r.ReviewId, r.Content!));
-                if (items.Count >= BatchSize) break;
+                if (items.Count >= batchSize) break;
             }
 
-            if (items.Count < BatchSize)
+            if (items.Count < batchSize)
             {
                 var pendingEdits = await _db.RestaurantEditRequests
                     .Where(er => er.ModerationStatus == ContentModerationStatus.Pending
                         && er.Status == EditRequestStatus.Pending)
                     .OrderBy(er => er.CreatedAt)
-                    .Take(BatchSize - items.Count)
+                    .Take(batchSize - items.Count)
                     .Select(er => new { er.RequestId, er.NewName, er.NewDescription })
                     .ToListAsync(ct);
 
@@ -73,16 +99,16 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                 {
                     var text = string.Join("\n\n", new[] { er.NewName, er.NewDescription }.Where(t => !string.IsNullOrEmpty(t)));
                     items.Add(new BatchItem("edit_request", er.RequestId, text));
-                    if (items.Count >= BatchSize) break;
+                    if (items.Count >= batchSize) break;
                 }
             }
 
-            if (items.Count < BatchSize)
+            if (items.Count < batchSize)
             {
                 var pendingDishes = await _db.Dishes
                     .Where(d => d.ModerationStatus == ContentModerationStatus.Pending)
                     .OrderBy(d => d.CreatedAt)
-                    .Take(BatchSize - items.Count)
+                    .Take(batchSize - items.Count)
                     .Select(d => new { d.DishId, d.DishName, d.Description })
                     .ToListAsync(ct);
 
@@ -92,16 +118,16 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                         ? d.DishName
                         : $"{d.DishName}\n\n{d.Description}";
                     items.Add(new BatchItem("dish", d.DishId, text));
-                    if (items.Count >= BatchSize) break;
+                    if (items.Count >= batchSize) break;
                 }
             }
 
-            if (items.Count < BatchSize)
+            if (items.Count < batchSize)
             {
                 var pendingRestaurants = await _db.Restaurants
                     .Where(r => r.ModerationStatus == ContentModerationStatus.Pending)
                     .OrderBy(r => r.CreatedAt)
-                    .Take(BatchSize - items.Count)
+                    .Take(batchSize - items.Count)
                     .Select(r => new { r.RestaurantId, r.RestaurantName, r.Description })
                     .ToListAsync(ct);
 
@@ -111,23 +137,23 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
                         ? r.RestaurantName
                         : $"{r.RestaurantName}\n\n{r.Description}";
                     items.Add(new BatchItem("restaurant", r.RestaurantId, text));
-                    if (items.Count >= BatchSize) break;
+                    if (items.Count >= batchSize) break;
                 }
             }
 
-            if (items.Count < BatchSize)
+            if (items.Count < batchSize)
             {
                 var pendingSections = await _db.MenuSections
                     .Where(ms => ms.ModerationStatus == ContentModerationStatus.Pending)
                     .OrderBy(ms => ms.CreatedAt)
-                    .Take(BatchSize - items.Count)
+                    .Take(batchSize - items.Count)
                     .Select(ms => new { ms.SectionId, ms.SectionName })
                     .ToListAsync(ct);
 
                 foreach (var ms in pendingSections)
                 {
                     items.Add(new BatchItem("menu_section", ms.SectionId, ms.SectionName));
-                    if (items.Count >= BatchSize) break;
+                    if (items.Count >= batchSize) break;
                 }
             }
 
@@ -155,19 +181,19 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             await _db.SaveChangesAsync(ct);
             _logger.LogInformation("Created text_moderation_batch with {Count} items", items.Count);
 
-            if (items.Count < BatchSize)
+            if (items.Count < batchSize)
                 break;
         }
     }
 
-    private async Task AggregateImageBatchesAsync(CancellationToken ct)
+    private async Task AggregateImageBatchesAsync(int batchSize, CancellationToken ct)
     {
         while (true)
         {
             var pendingAssets = await _db.MediaAssets
                 .Where(a => a.ModerationStatus == ContentModerationStatus.Pending)
                 .OrderBy(a => a.CreatedAt)
-                .Take(BatchSize)
+                .Take(batchSize)
                 .Select(a => new { a.AssetId, a.Url })
                 .ToListAsync(ct);
 
@@ -199,7 +225,7 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             await _db.SaveChangesAsync(ct);
             _logger.LogInformation("Created image_moderation_batch with {Count} items", pendingAssets.Count);
 
-            if (pendingAssets.Count < BatchSize)
+            if (pendingAssets.Count < batchSize)
                 break;
         }
     }
@@ -262,6 +288,9 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
             _logger.LogWarning(ex, "Failed to wake GPU worker");
         }
     }
+
+    private static int GetInt(Dictionary<string, string> configs, string key, int defaultValue)
+        => configs.TryGetValue(key, out var v) && int.TryParse(v, out var i) ? i : defaultValue;
 
     private record BatchItem(string EntityType, int EntityId, string Text);
 }

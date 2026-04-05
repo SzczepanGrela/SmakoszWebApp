@@ -110,6 +110,10 @@ public class StuckJobsRecoveryService
                         var restaurant = await _db.Restaurants.FirstOrDefaultAsync(r => r.RestaurantId == entityId, ct);
                         if (restaurant is not null) restaurant.ModerationStatus = ContentModerationStatus.Pending;
                         break;
+                    case "menu_section":
+                        var section = await _db.MenuSections.FirstOrDefaultAsync(ms => ms.SectionId == entityId, ct);
+                        if (section is not null) section.ModerationStatus = ContentModerationStatus.Pending;
+                        break;
                     case "media_asset":
                         var asset = await _db.MediaAssets.FirstOrDefaultAsync(a => a.AssetId == entityId, ct);
                         if (asset is not null) asset.ModerationStatus = ContentModerationStatus.Pending;

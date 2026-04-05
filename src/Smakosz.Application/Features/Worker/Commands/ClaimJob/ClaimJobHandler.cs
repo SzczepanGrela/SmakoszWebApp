@@ -40,7 +40,14 @@ public class ClaimJobHandler : IRequestHandler<ClaimJobCommand, ErrorOr<Success>
         if (node is not null)
             node.CurrentJobId = job.JobId;
 
-        await _db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Error.Conflict("JOB_ALREADY_CLAIMED", "Job was claimed by another worker");
+        }
 
         return Result.Success;
     }

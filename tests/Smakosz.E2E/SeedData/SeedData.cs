@@ -469,7 +469,11 @@ public static class SeedData
         db.SystemConfigs.AddRange(
             new SystemConfig { Key = "moderation.auto_approve_threshold", Value = "0.85", Description = "Prog auto-zatwierdzania tresci", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "moderation.max_reports_before_hide", Value = "3", Description = "Maks. zgloszenia przed ukryciem", IsSecret = false, IsPublic = true },
-            new SystemConfig { Key = "api.rate_limit_per_minute", Value = "60", Description = "Limit zapytan API/min", IsSecret = false, IsPublic = false });
+            new SystemConfig { Key = "api.rate_limit_per_minute", Value = "60", Description = "Limit zapytan API/min", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "moderation.text_batch_size", Value = "100", Description = "Rozmiar paczki moderacji tekstu", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "moderation.image_batch_size", Value = "10", Description = "Rozmiar paczki moderacji obrazow", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "moderation.auto_interval_minutes", Value = "5", Description = "Interwal automatycznej agregacji moderacji (minuty)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "moderation.auto_enabled", Value = "true", Description = "Włącz/wylacz automatyczna agregacje moderacji", IsSecret = false, IsPublic = false });
 
         db.SystemLogs.AddRange(
             new SystemLog { Source = "AuthService", Level = Domain.Enums.LogLevel.Info, Message = "User jan-kowalski logged in", CreatedAt = DateTime.UtcNow.AddHours(-1) },
