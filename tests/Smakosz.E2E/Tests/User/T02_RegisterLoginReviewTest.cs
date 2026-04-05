@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.User;
 
@@ -15,7 +15,6 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await NavigateAndWaitAsync("/register");
 
-        // Fill registration form
         await Page.Locator("input[type='text']").First.FillAsync(username);
         await Page.Locator("input[type='email']").FillAsync(email);
         await Page.Locator(".input-group input[type='password']").FillAsync(password);
@@ -52,7 +51,6 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await NavigateAndWaitAsync("/dishes/pizza-pepperoni");
 
-        // Assert "Ocen to danie" button is visible (requires User role)
         var addReviewLink = Page.GetByRole(AriaRole.Link, new() { Name = "Ocen to danie" });
         await Expect(addReviewLink).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
@@ -60,7 +58,6 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
         await Page.WaitForURLAsync(url => url.Contains("/review/add"), new PageWaitForURLOptions { Timeout = 10_000 });
         await WaitForBlazorLoadedAsync();
 
-        // Assert dish is pre-selected
         await AssertPageContainsTextAsync("Pizza Pepperoni");
         await AssertPageContainsTextAsync("Pizzeria Roma");
 
@@ -78,10 +75,8 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
         // Atmosfera: 7th star (index 6)
         await ratingContainers.Nth(3).Locator("i.interactive-star").Nth(6).ClickAsync();
 
-        // Fill review text
         await Page.Locator("textarea.form-control").FillAsync("Testowa recenzja z testu E2E. Pizza pepperoni byla swietna!");
 
-        // Fill visit date
         var today = DateTime.Today.ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(today);
 
@@ -103,6 +98,6 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        await AssertToastAsync("Recenzja zostala opublikowana!");
+        await AssertToastAsync("Recenzja została opublikowana!");
     }
 }

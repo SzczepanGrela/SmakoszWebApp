@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Features.Home.Queries.GetHomeData;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;

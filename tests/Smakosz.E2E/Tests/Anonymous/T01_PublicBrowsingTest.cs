@@ -11,11 +11,11 @@ public class T01_PublicBrowsingTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/");
         await Expect(Page).ToHaveTitleAsync(new System.Text.RegularExpressions.Regex("Smakosz"));
 
-        // Assert stats are visible
         await AssertPageContainsTextAsync("Dan");
         await AssertPageContainsTextAsync("Restauracji");
         await AssertPageContainsTextAsync("Ocen");
 
+        // Trigram similarity matches "Pizzeria Roma"
         var searchInput = Page.Locator("input[type='search']").First;
         await searchInput.FillAsync("pizza");
         await Page.WaitForTimeoutAsync(500); // let Blazor process @bind change event
@@ -40,7 +40,6 @@ public class T01_PublicBrowsingTest : SmakoszE2ETestBase
         }
         catch (TimeoutException) { /* continue to assertion */ }
 
-        // Assert results contain Pizzeria Roma
         var pageContent = await Page.ContentAsync();
         var hasPizzaResults = pageContent.Contains("Pizzeria Roma") || pageContent.Contains("pizza");
         Assert.That(hasPizzaResults, Is.True, "Search for 'pizza' should find Pizzeria Roma via trigram similarity");
@@ -65,9 +64,7 @@ public class T01_PublicBrowsingTest : SmakoszE2ETestBase
         await Expect(dishHeading).ToContainTextAsync("Pizza Margherita");
 
         await AssertPageContainsTextAsync("24.90");
-
         await AssertPageContainsTextAsync("Pizzeria Roma");
-
         await AssertPageContainsTextAsync("Swietna pizza, ciasto idealne!");
 
         var restaurantLink = Page.GetByRole(AriaRole.Link, new() { Name = "Pizzeria Roma" }).First;

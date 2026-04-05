@@ -35,7 +35,8 @@ public class SoftDeleteTests : IntegrationTestBase
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
             Email = "usuniety@smakosz.test",
-            Password = SeedHelpers.DefaultPassword
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

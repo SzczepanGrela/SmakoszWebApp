@@ -32,8 +32,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
 
     public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.TurnstileToken) ||
-            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
             return DomainErrors.Captcha.VerificationFailed;
         }

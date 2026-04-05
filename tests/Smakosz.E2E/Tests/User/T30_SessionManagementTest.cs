@@ -15,7 +15,6 @@ public class T30_SessionManagementTest : SmakoszE2ETestBase
 
         var pageContent = await Page.ContentAsync();
 
-        // Assert heading
         Assert.That(
             pageContent.Contains("Bezpieczeństwo") || pageContent.Contains("bezpieczeństwo") ||
             pageContent.Contains("Security") || pageContent.Contains("Sesje"),
@@ -30,7 +29,6 @@ public class T30_SessionManagementTest : SmakoszE2ETestBase
             Assert.Pass("No sessions section visible - API login may have used fallback token generation");
         }
 
-        // Try to find session entries
         var sessionItems = Page.Locator(".list-group-item, .session-item, tr");
         var sessionCount = await sessionItems.CountAsync();
 

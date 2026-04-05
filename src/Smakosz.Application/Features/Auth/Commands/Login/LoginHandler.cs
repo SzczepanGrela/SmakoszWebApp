@@ -29,8 +29,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.TurnstileToken) ||
-            !await _turnstile.VerifyAsync(request.TurnstileToken, cancellationToken))
+        if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
             return DomainErrors.Captcha.VerificationFailed;
         }

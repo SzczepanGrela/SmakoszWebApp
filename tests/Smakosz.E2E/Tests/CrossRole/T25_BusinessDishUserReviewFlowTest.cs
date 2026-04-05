@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.CrossRole;
 
@@ -31,6 +31,15 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
 
         await AssertPageContainsTextAsync("Panna Cotta");
+
+        // (newly created dishes have ModerationStatus=Pending)
+        using (var conn = new Npgsql.NpgsqlConnection(TestConstants.ConnectionString))
+        {
+            await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE dishes SET moderation_status = 'approved' WHERE slug = 'panna-cotta'";
+            await cmd.ExecuteNonQueryAsync();
+        }
 
         await Page.EvaluateAsync("localStorage.clear()");
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
@@ -67,7 +76,6 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await Page.WaitForURLAsync(url => url.Contains("/review/add"), new PageWaitForURLOptions { Timeout = 10_000 });
         await WaitForBlazorLoadedAsync();
 
-        // Fill review form
         var ratingContainers = Page.Locator(".rating-stars-interactive");
         await ratingContainers.Nth(0).Locator("i.interactive-star").Nth(8).ClickAsync(); // Danie: 9
         await ratingContainers.Nth(1).Locator("i.interactive-star").Nth(7).ClickAsync(); // Obsluga: 8
@@ -106,7 +114,6 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await WaitForBlazorLoadedAsync();
         await Page.WaitForTimeoutAsync(2000);
 
-        // Assert the new review is visible
         var reviewContent = await Page.ContentAsync();
         Assert.That(
             reviewContent.Contains("Panna") || reviewContent.Contains("panna") ||

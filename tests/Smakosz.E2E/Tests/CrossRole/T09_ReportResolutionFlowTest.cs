@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
 
@@ -70,7 +70,6 @@ public class T09_ReportResolutionFlowTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert reports page loaded
         var reportsHeading = Page.Locator("h2").First;
         await Expect(reportsHeading).ToContainTextAsync("Raporty",
             new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
@@ -83,8 +82,7 @@ public class T09_ReportResolutionFlowTest : SmakoszE2ETestBase
 
         if (rowCount == 0)
         {
-            // Default is "Wszystkie" - reports should be visible
-            // Try clicking "Oczekujace" in case default filter hides them
+            // Default filter is "Wszystkie" - try "Oczekujace" in case it hides them
             var pendingFilter = Page.Locator("button", new() { HasText = "Oczekujace" });
             if (await pendingFilter.IsVisibleAsync())
             {

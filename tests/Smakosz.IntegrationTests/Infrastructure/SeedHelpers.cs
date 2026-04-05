@@ -1,4 +1,4 @@
-using Smakosz.Domain.Entities;
+﻿using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 using Smakosz.Infrastructure.Persistence;
 

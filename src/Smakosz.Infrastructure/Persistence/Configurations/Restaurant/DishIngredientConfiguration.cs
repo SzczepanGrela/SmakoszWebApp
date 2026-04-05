@@ -11,7 +11,7 @@ public class DishIngredientConfiguration : IEntityTypeConfiguration<DishIngredie
         builder.HasKey(x => new { x.DishId, x.IngredientId });
 
         builder.HasOne(x => x.Dish)
-            .WithMany()
+            .WithMany(d => d.DishIngredients)
             .HasForeignKey(x => x.DishId)
             .OnDelete(DeleteBehavior.Cascade);
 

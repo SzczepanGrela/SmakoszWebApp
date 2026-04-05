@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Smakosz.API.Common;
 
 namespace Smakosz.IntegrationTests.Infrastructure;

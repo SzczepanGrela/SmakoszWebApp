@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Search.Queries.GetSearchFilters;
 using Smakosz.Domain.Entities;

@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.CrossRole;
 
@@ -93,7 +93,6 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Tiramisu");
 
-        // Fill ratings
         var ratingContainers = Page.Locator(".rating-stars-interactive");
 
         await ratingContainers.Nth(0).Locator("i.interactive-star").Nth(8).ClickAsync();
@@ -101,11 +100,10 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         await ratingContainers.Nth(2).Locator("i.interactive-star").Nth(7).ClickAsync();
         await ratingContainers.Nth(3).Locator("i.interactive-star").Nth(8).ClickAsync();
 
-        // Fill review text
         await Page.Locator("textarea.form-control").FillAsync(
             "Najlepsze tiramisu jakie jadlem! Test E2E full journey.");
 
-        // Fill visit date (use yesterday to avoid UTC timezone edge case)
+        // Use yesterday to avoid UTC timezone edge case
         var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(yesterday);
 
@@ -126,7 +124,7 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
         }
 
         await WaitForBlazorLoadedAsync();
-        await AssertToastAsync("Recenzja zostala opublikowana!");
+        await AssertToastAsync("Recenzja została opublikowana!");
 
         await NavigateAndWaitAsync("/recommendations");
         await WaitForBlazorLoadedAsync();

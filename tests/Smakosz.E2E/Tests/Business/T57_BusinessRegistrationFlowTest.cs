@@ -1,4 +1,4 @@
-using Smakosz.E2E.Infrastructure;
+﻿using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -13,14 +13,11 @@ public class T57_BusinessRegistrationFlowTest : SmakoszE2ETestBase
         await NavigateAndWaitAsync("/business/register");
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Zarejestruj restaurację");
 
-        // Assert step wizard is visible
         var stepWizard = Page.Locator(".step-wizard");
         await Expect(stepWizard).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
-        // Step 1 (Podstawowe): Restaurant name
         await AssertPageContainsTextAsync("Podstawowe informacje");
 
         var nameInput = Page.Locator("input[type='text'].form-control").First;
@@ -30,16 +27,13 @@ public class T57_BusinessRegistrationFlowTest : SmakoszE2ETestBase
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dalej" }).ClickAsync();
         await Page.WaitForTimeoutAsync(1000);
 
-        // Step 2 (Kontakt): Address and phone
         await AssertPageContainsTextAsync("Dane kontaktowe");
 
-        // Fill address
         var addressInput = Page.Locator("input[placeholder='ul. Przykładowa 1, Warszawa']").First;
         if (await addressInput.CountAsync() == 0)
             addressInput = Page.Locator("input[type='text'].form-control").First;
         await addressInput.FillAsync("ul. Testowa 1, Warszawa");
 
-        // Fill phone
         var phoneInput = Page.Locator("input[type='tel'].form-control").First;
         if (await phoneInput.CountAsync() > 0)
         {
@@ -49,8 +43,6 @@ public class T57_BusinessRegistrationFlowTest : SmakoszE2ETestBase
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dalej" }).ClickAsync();
         await Page.WaitForTimeoutAsync(1000);
 
-        // Step 3 (Podsumowanie): Description + summary
-        // Fill optional description
         var descriptionTextarea = Page.Locator("textarea.form-control").First;
         if (await descriptionTextarea.CountAsync() > 0)
         {

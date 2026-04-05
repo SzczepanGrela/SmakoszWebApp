@@ -61,7 +61,6 @@ public class MeEndpointsTests : IntegrationTestBase
 
         await client.PostAsync("/api/me/saved-dishes/pizza-margherita", null);
 
-        // Try saving again
         var response = await client.PostAsync("/api/me/saved-dishes/pizza-margherita", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -74,7 +73,6 @@ public class MeEndpointsTests : IntegrationTestBase
 
         await client.PostAsync("/api/me/saved-dishes/pizza-margherita", null);
 
-        // Unsave
         var response = await client.DeleteAsync("/api/me/saved-dishes/pizza-margherita");
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);

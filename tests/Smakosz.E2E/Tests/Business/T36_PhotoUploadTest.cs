@@ -20,7 +20,6 @@ public class T36_PhotoUploadTest : SmakoszE2ETestBase
 
         await WaitForBlazorLoadedAsync();
 
-        // Assert heading
         await AssertPageContainsTextAsync("Galeria zdjęć");
 
         var addButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new System.Text.RegularExpressions.Regex("Dodaj zdjęcie") }).First;
@@ -28,17 +27,14 @@ public class T36_PhotoUploadTest : SmakoszE2ETestBase
         await addButton.ClickAsync();
         await Page.WaitForTimeoutAsync(1000);
 
-        // Assert upload panel visible
         var uploadCard = Page.Locator(".card").First;
         await Expect(uploadCard).ToBeVisibleAsync();
 
-        // Try uploading the test image
         var fileInput = Page.Locator("input[type='file']").First;
         if (await fileInput.CountAsync() > 0)
         {
             var testImagePath = System.IO.Path.GetFullPath("tests/Smakosz.E2E/Assets/test-image.png");
 
-            // Try to find the image from the test execution directory
             if (!System.IO.File.Exists(testImagePath))
             {
                 testImagePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Assets", "test-image.png");

@@ -256,7 +256,6 @@ public class E2ETestFixture
             Log($"WARNING: Port {port} ({serviceName}) is already in use! Attempting to free it...");
             try
             {
-                // Use PowerShell to find and kill the process on this port
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell",
@@ -296,7 +295,6 @@ public class E2ETestFixture
                 Log($"WARNING: API may not be using E2E database! Filters response: {body[..Math.Min(300, body.Length)]}");
             }
 
-            // Also verify restaurants are visible via search
             var searchResponse = await http.GetAsync($"{TestConstants.ApiBaseUrl}/api/search?type=restaurants");
             var searchBody = await searchResponse.Content.ReadAsStringAsync();
             Log($"API search verification: {searchBody[..Math.Min(500, searchBody.Length)]}");

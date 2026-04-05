@@ -22,6 +22,14 @@ public class TurnstileService : ITurnstileService
 
     public async Task<bool> VerifyAsync(string token, CancellationToken cancellationToken = default)
     {
+        // Cloudflare test keys (1x000000...) always pass on siteverify, but the HTTP
+        // call may fail in offline/CI/E2E environments. Skip the round-trip entirely.
+        if (_secretKey.StartsWith("1x000000"))
+            return true;
+
+        if (string.IsNullOrEmpty(token))
+            return false;
+
         try
         {
             var response = await _httpClient.PostAsJsonAsync(

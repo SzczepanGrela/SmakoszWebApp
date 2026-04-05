@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -54,7 +54,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             // Also remove the generic DbContextOptions (non-generic fallback)
             services.RemoveAll<DbContextOptions>();
 
-            // Re-add with InMemory provider only
             services.AddDbContext<SmakoszDbContext>((sp, options) =>
             {
                 options.UseInMemoryDatabase(_dbName);
@@ -63,17 +62,17 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.AddScoped<ISmakoszDbContext>(sp =>
                 sp.GetRequiredService<SmakoszDbContext>());
 
-            // Replace NCF training service with stub
             services.RemoveAll<INcfTrainingService>();
             services.AddScoped<INcfTrainingService, StubNcfTrainingService>();
 
-            // Replace recommendation provider with stub
             services.RemoveAll<IRecommendationProvider>();
             services.AddSingleton<IRecommendationProvider, StubRecommendationProvider>();
 
-            // Replace moderation aggregation service with stub
             services.RemoveAll<IModerationAggregationService>();
             services.AddScoped<IModerationAggregationService, StubModerationAggregationService>();
+
+            services.RemoveAll<ITurnstileService>();
+            services.AddScoped<ITurnstileService, StubTurnstileService>();
 
         });
     }

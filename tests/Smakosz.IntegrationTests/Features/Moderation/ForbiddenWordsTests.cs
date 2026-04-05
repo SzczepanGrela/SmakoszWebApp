@@ -1,4 +1,4 @@
-using Smakosz.Application.Common.Interfaces;
+﻿using Smakosz.Application.Common.Interfaces;
 using Smakosz.IntegrationTests.Infrastructure;
 
 namespace Smakosz.IntegrationTests.Features.Moderation;

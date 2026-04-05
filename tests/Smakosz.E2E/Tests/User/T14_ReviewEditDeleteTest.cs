@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Smakosz.E2E.Infrastructure;
@@ -17,6 +17,15 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
         using var http = new HttpClient();
         var token = E2EAuthHelper.GenerateToken(2, TestConstants.User2Username, TestConstants.User2Email, "User");
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // (T64 may have created one earlier in the same test run)
+        using (var conn = new Npgsql.NpgsqlConnection(TestConstants.ConnectionString))
+        {
+            await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DELETE FROM reviews WHERE user_id = 2 AND dish_id = (SELECT dish_id FROM dishes WHERE slug = 'kebab-duzy')";
+            await cmd.ExecuteNonQueryAsync();
+        }
 
         var dishResponse = await http.GetAsync($"{TestConstants.ApiBaseUrl}/api/dishes/kebab-duzy");
         Assert.That(dishResponse.IsSuccessStatusCode, Is.True,
@@ -54,7 +63,6 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
         var createJson = await createResponse.Content.ReadAsStringAsync();
         using var createDoc = JsonDocument.Parse(createJson);
 
-        // Extract publicId from response
         Guid reviewPublicId;
         if (createDoc.RootElement.TryGetProperty("data", out var dataProp) &&
             dataProp.TryGetProperty("publicId", out var pidProp))
