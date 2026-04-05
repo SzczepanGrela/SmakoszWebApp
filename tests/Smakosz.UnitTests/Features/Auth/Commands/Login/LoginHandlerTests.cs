@@ -30,6 +30,7 @@ public class LoginHandlerTests
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
         _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
+        _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
         _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _currentUser, _turnstile);
     }

@@ -10,7 +10,7 @@ public class QuickActionsBarTests : BunitTestBase
         var cut = RenderComponent<QuickActionsBar>();
 
         cut.Markup.Should().Contain("Losowe danie");
-        cut.Markup.Should().Contain("W poblizu");
+        cut.Markup.Should().Contain("W pobliżu");
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class QuickActionsBarTests : BunitTestBase
     public void ClickNearby_NavigatesToSearch()
     {
         var cut = RenderComponent<QuickActionsBar>();
-        var nearbyBtn = cut.FindAll("button").First(b => b.TextContent.Contains("W poblizu"));
+        var nearbyBtn = cut.FindAll("button").First(b => b.TextContent.Contains("W pobliżu"));
         nearbyBtn.Click();
 
         var nav = Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
