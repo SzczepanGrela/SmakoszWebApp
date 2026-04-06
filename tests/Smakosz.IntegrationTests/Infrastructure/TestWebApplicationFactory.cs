@@ -27,9 +27,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             var testConfig = new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Host=localhost",
-                ["Jwt:Secret"] = TestAuthHelper.JwtSecret,
+                ["Jwt:PrivateKey"] = TestAuthHelper.JwtPrivateKey,
+                ["Jwt:PublicKey"] = TestAuthHelper.JwtPublicKey,
                 ["Jwt:Issuer"] = TestAuthHelper.JwtIssuer,
                 ["Jwt:Audience"] = TestAuthHelper.JwtAudience,
+                ["CodeHasher:Secret"] = "integration-test-code-hasher-secret-min-32-chars",
                 ["Brevo:ApiKey"] = "",
                 ["R2:AccountId"] = "",
                 ["Vapid:PublicKey"] = "",

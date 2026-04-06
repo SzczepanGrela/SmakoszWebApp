@@ -14,7 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
-builder.Services.AddInfrastructure(connectionString, builder.Configuration);
+builder.Services.AddInfrastructureCore(connectionString);
+builder.Services.AddInfrastructureStorage(builder.Configuration);
+builder.Services.AddInfrastructureMessaging(builder.Configuration);
+builder.Services.AddInfrastructureModels(builder.Configuration);
 
 builder.Services.AddMediatR(cfg =>
 {

@@ -1,4 +1,4 @@
-using System.Text;
+using System.Security.Cryptography;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,9 +18,12 @@ using Smakosz.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(
-    builder.Configuration.GetConnectionString("DefaultConnection")!,
-    builder.Configuration);
+builder.Services.AddInfrastructureCore(
+    builder.Configuration.GetConnectionString("DefaultConnection")!);
+builder.Services.AddInfrastructureAuth(builder.Configuration);
+builder.Services.AddInfrastructureStorage(builder.Configuration);
+builder.Services.AddInfrastructureRecommendations(builder.Configuration);
+builder.Services.AddInfrastructureMessaging(builder.Configuration);
 
 if (!builder.Environment.IsEnvironment("Testing"))
 {
@@ -46,6 +49,8 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
     .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
     {
         var jwt = jwtOptions.Value;
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(jwt.ResolvePublicKey());
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -54,7 +59,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwt.Issuer,
             ValidAudience = jwt.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
+            IssuerSigningKey = new RsaSecurityKey(rsa),
             ClockSkew = TimeSpan.Zero
         };
     });

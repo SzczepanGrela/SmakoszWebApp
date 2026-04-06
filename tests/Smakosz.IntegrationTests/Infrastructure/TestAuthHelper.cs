@@ -1,15 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Smakosz.IntegrationTests.Infrastructure;
 
 public static class TestAuthHelper
 {
-    public static string JwtSecret =>
-        Environment.GetEnvironmentVariable("SMAKOSZ_JWT_SECRET")
-        ?? "integration-test-jwt-secret-key-min-32-chars";
+    private static readonly RSA Rsa = RSA.Create(2048);
+
+    public static string JwtPrivateKey { get; } = Rsa.ExportRSAPrivateKeyPem();
+    public static string JwtPublicKey { get; } = Rsa.ExportRSAPublicKeyPem();
 
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
@@ -33,8 +34,13 @@ public static class TestAuthHelper
             new Claim(JwtRegisteredClaimNames.Name, username),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(JwtPrivateKey);
+        var key = new RsaSecurityKey(rsa);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256)
+        {
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+        };
 
         var token = new JwtSecurityToken(
             issuer: JwtIssuer,
@@ -56,8 +62,13 @@ public static class TestAuthHelper
             new Claim(JwtRegisteredClaimNames.Name, "expired-user"),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(JwtPrivateKey);
+        var key = new RsaSecurityKey(rsa);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256)
+        {
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+        };
 
         var token = new JwtSecurityToken(
             issuer: JwtIssuer,

@@ -1,6 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Smakosz.E2E.Infrastructure;
@@ -17,8 +17,13 @@ public static class E2EAuthHelper
             new Claim(JwtRegisteredClaimNames.Name, username),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestConstants.JwtSecret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(TestConstants.JwtPrivateKey);
+        var key = new RsaSecurityKey(rsa);
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256)
+        {
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+        };
 
         var token = new JwtSecurityToken(
             issuer: TestConstants.JwtIssuer,

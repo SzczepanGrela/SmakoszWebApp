@@ -3,9 +3,13 @@
     "DefaultConnection": "Host=localhost;Port=5432;Database=<DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>"
   },
   "Jwt": {
-    "Secret": "<MIN-32-CHAR-SECRET-KEY>",
+    "PrivateKeyPath": "/home/smakosz/keys/jwt_private.pem",
+    "PublicKeyPath": "/home/smakosz/keys/jwt_public.pem",
     "Issuer": "Smakosz.API",
     "Audience": "Smakosz.Client"
+  },
+  "CodeHasher": {
+    "Secret": "<MIN-32-CHAR-SECRET-KEY>"
   },
   "Cors": {
     "AllowedOrigins": [ "https://localhost:5002", "http://localhost:5003" ]
