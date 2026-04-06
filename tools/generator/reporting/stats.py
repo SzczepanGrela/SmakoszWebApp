@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 from datetime import datetime
 from pathlib import Path
 
@@ -27,6 +28,8 @@ class DatasetStatistics:
             "restaurant_distribution": self._restaurant_distribution(),
             "social_graph": self._social_graph_stats(),
             "moderation": self._moderation_stats(),
+            "ncf_dataset": self._ncf_dataset_profile(),
+            "generator_validation": self._generator_validation(),
             "temporal": self._temporal_stats(),
             "integrity": self._integrity_checks(),
         }
@@ -266,6 +269,270 @@ class DatasetStatistics:
             "moderation_verdict": dict(by_verdict),
         }
 
+    def _ncf_dataset_profile(self) -> dict:
+        return {
+            "distribution": self._ncf_distribution_metrics(),
+            "filtered": self._ncf_filtered_stats(),
+        }
+
+    def _ncf_distribution_metrics(self) -> dict:
+        restaurant_counts = self.db.fetch_all("""
+            SELECT COUNT(*) as cnt FROM reviews GROUP BY restaurant_id ORDER BY cnt DESC
+        """)
+        dish_counts = self.db.fetch_all("""
+            SELECT COUNT(*) as cnt FROM reviews GROUP BY dish_id ORDER BY cnt DESC
+        """)
+
+        rest_vals = [r[0] for r in restaurant_counts] if restaurant_counts else []
+        dish_vals = [r[0] for r in dish_counts] if dish_counts else []
+
+        rest_alpha, rest_r2 = _power_law_fit(rest_vals) if rest_vals else (0.0, 0.0)
+        dish_alpha, dish_r2 = _power_law_fit(dish_vals) if dish_vals else (0.0, 0.0)
+
+        total_reviews = sum(dish_vals)
+        threshold = total_reviews * 0.8
+        cumulative = 0
+        dishes_for_80 = 0
+        for cnt in dish_vals:
+            cumulative += cnt
+            dishes_for_80 += 1
+            if cumulative >= threshold:
+                break
+        coverage_80 = _r(dishes_for_80 / len(dish_vals) * 100) if dish_vals else 0
+
+        return {
+            "zipf_restaurant": {"alpha": _r(rest_alpha, 4), "r_squared": _r(rest_r2, 4)},
+            "zipf_dish": {"alpha": _r(dish_alpha, 4), "r_squared": _r(dish_r2, 4)},
+            "configured_alpha": 1.5,
+            "catalog_coverage_80pct": coverage_80,
+        }
+
+    def _ncf_filtered_stats(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT COUNT(*), COUNT(DISTINCT r.user_id), COUNT(DISTINCT r.dish_id)
+            FROM reviews r
+            JOIN users u ON r.user_id = u.user_id
+            WHERE r.is_visible AND NOT r.is_deleted
+                AND r.content_status != 'rejected'
+                AND NOT u.is_deleted
+        """)
+        total = self.db.fetch_val("SELECT COUNT(*) FROM reviews") or 0
+        breakdown = self.db.fetch_all("""
+            SELECT
+                COUNT(*) FILTER (WHERE NOT r.is_visible) as not_visible,
+                COUNT(*) FILTER (WHERE r.is_deleted) as deleted,
+                COUNT(*) FILTER (WHERE r.content_status = 'rejected') as rejected,
+                COUNT(*) FILTER (WHERE u.is_deleted) as user_deleted
+            FROM reviews r
+            JOIN users u ON r.user_id = u.user_id
+        """)
+        result = {
+            "eligible_reviews": row[0] if row else 0,
+            "eligible_users": row[1] if row else 0,
+            "eligible_dishes": row[2] if row else 0,
+            "total_reviews": total,
+            "filter_rate": _r((1 - row[0] / total) * 100) if row and total else 0,
+        }
+        if breakdown and breakdown[0]:
+            b = breakdown[0]
+            result["filtered_breakdown"] = {
+                "not_visible": b[0],
+                "deleted": b[1],
+                "rejected": b[2],
+                "user_deleted": b[3],
+            }
+        return result
+
+    def _generator_validation(self) -> dict:
+        return {
+            "geographic": self._geographic_consistency(),
+            "velocity": self._review_velocity(),
+            "lifetime": self._user_lifetime_stats(),
+            "visit_frequency": self._restaurant_visit_frequency(),
+            "cuisine_diversity": self._cuisine_diversity(),
+            "baseline_correlation": self._rating_baseline_correlation(),
+            "price_vs_rating": self._price_level_vs_rating(),
+            "day_of_week": self._day_of_week_distribution(),
+            "text_length": self._review_text_length(),
+        }
+
+    def _geographic_consistency(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE u.secret_home_city_id = rest.city_id) as home_city
+            FROM reviews r
+            JOIN users u ON r.user_id = u.user_id
+            JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+        """)
+        if not row or not row[0]:
+            return {}
+        return {
+            "total_reviews": row[0],
+            "home_city_reviews": row[1],
+            "home_city_pct": _r(row[1] / row[0] * 100),
+        }
+
+    def _review_velocity(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT AVG(monthly_rate)::float, STDDEV(monthly_rate)::float,
+                   PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY monthly_rate)::float
+            FROM (
+                SELECT user_id,
+                    COUNT(*)::float / GREATEST(
+                        (MAX(visit_date) - MIN(visit_date))::float / 30.0,
+                        1
+                    ) as monthly_rate
+                FROM reviews
+                GROUP BY user_id HAVING COUNT(*) > 1
+            ) t
+        """)
+        if not row:
+            return {}
+        return {
+            "avg_reviews_per_month": _r(row[0]),
+            "std": _r(row[1]),
+            "median": _r(row[2]),
+        }
+
+    def _user_lifetime_stats(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT
+                AVG(lifetime_days)::float,
+                STDDEV(lifetime_days)::float,
+                PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY lifetime_days)::float,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY lifetime_days)::float,
+                PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY lifetime_days)::float,
+                MIN(lifetime_days),
+                MAX(lifetime_days)
+            FROM (
+                SELECT user_id,
+                    (MAX(visit_date) - MIN(visit_date))::float as lifetime_days
+                FROM reviews
+                GROUP BY user_id HAVING COUNT(*) > 1
+            ) t
+        """)
+        if not row:
+            return {}
+        return {
+            "mean_days": _r(row[0]),
+            "std_days": _r(row[1]),
+            "p25_days": _r(row[2]),
+            "median_days": _r(row[3]),
+            "p75_days": _r(row[4]),
+            "min_days": _r(row[5]),
+            "max_days": _r(row[6]),
+        }
+
+    def _restaurant_visit_frequency(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT
+                AVG(visit_count)::float,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY visit_count)::float,
+                MAX(visit_count)
+            FROM (
+                SELECT user_id, restaurant_id, COUNT(*) as visit_count
+                FROM reviews
+                GROUP BY user_id, restaurant_id
+            ) t
+        """)
+        if not row:
+            return {}
+        return {
+            "avg_visits_per_restaurant": _r(row[0]),
+            "median": _r(row[1]),
+            "max": row[2],
+        }
+
+    def _cuisine_diversity(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT
+                AVG(cuisine_count)::float,
+                STDDEV(cuisine_count)::float,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY cuisine_count)::float
+            FROM (
+                SELECT r.user_id, COUNT(DISTINCT rest.cuisine_type) as cuisine_count
+                FROM reviews r
+                JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+                GROUP BY r.user_id
+            ) t
+        """)
+        if not row:
+            return {}
+        return {
+            "avg_cuisines_per_user": _r(row[0]),
+            "std": _r(row[1]),
+            "median": _r(row[2]),
+        }
+
+    def _rating_baseline_correlation(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT CORR(secret_rating_baseline, avg_rating)::float
+            FROM (
+                SELECT u.user_id, u.secret_rating_baseline,
+                    AVG(r.dish_rating)::float as avg_rating
+                FROM users u
+                JOIN reviews r ON u.user_id = r.user_id
+                GROUP BY u.user_id, u.secret_rating_baseline
+            ) t
+        """)
+        return {
+            "baseline_vs_actual_correlation":
+                _r(row[0], 4) if row and row[0] is not None else None,
+        }
+
+    def _price_level_vs_rating(self) -> dict:
+        rows = self.db.fetch_all("""
+            SELECT rest.price_level, AVG(r.dish_rating)::float, COUNT(*)
+            FROM reviews r
+            JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+            GROUP BY rest.price_level
+            ORDER BY rest.price_level
+        """)
+        if not rows:
+            return {}
+        return {
+            str(pl): {"avg_rating": _r(avg), "review_count": cnt}
+            for pl, avg, cnt in rows
+        }
+
+    def _day_of_week_distribution(self) -> dict:
+        rows = self.db.fetch_all("""
+            SELECT EXTRACT(DOW FROM visit_date)::int as dow, COUNT(*)
+            FROM reviews
+            GROUP BY EXTRACT(DOW FROM visit_date)
+            ORDER BY EXTRACT(DOW FROM visit_date)
+        """)
+        day_names = [
+            "Sunday", "Monday", "Tuesday", "Wednesday",
+            "Thursday", "Friday", "Saturday",
+        ]
+        if not rows:
+            return {}
+        return {day_names[dow]: cnt for dow, cnt in rows}
+
+    def _review_text_length(self) -> dict:
+        row = self.db.fetch_one("""
+            SELECT
+                AVG(LENGTH(content))::float,
+                STDDEV(LENGTH(content))::float,
+                PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY LENGTH(content))::float,
+                COUNT(*) FILTER (WHERE content IS NOT NULL AND LENGTH(content) > 0),
+                COUNT(*) FILTER (WHERE content IS NULL OR LENGTH(content) = 0),
+                COUNT(*)
+            FROM reviews
+        """)
+        if not row:
+            return {}
+        return {
+            "avg_length": _r(row[0]),
+            "std_length": _r(row[1]),
+            "median_length": _r(row[2]),
+            "with_text": row[3],
+            "without_text": row[4],
+            "pct_with_text": _r(row[3] / row[5] * 100) if row[5] else 0,
+        }
+
     def _temporal_stats(self) -> dict:
         rows = self.db.fetch_all("""
             SELECT TO_CHAR(DATE_TRUNC('month', visit_date), 'YYYY-MM') as month,
@@ -428,6 +695,61 @@ class DatasetStatistics:
                 "0",
                 "No user should like their own review",
             ),
+            (
+                "Visible reviews from deleted users (query-time filtered)",
+                """SELECT COUNT(*) FROM reviews r
+                   JOIN users u ON r.user_id = u.user_id
+                   WHERE r.is_visible AND (u.is_deleted OR u.is_banned)""",
+                f"< {int(num_reviews * 0.10)}",
+                "App filters at query time; expect some visible reviews from deleted users",
+            ),
+            (
+                "Reviews with future visit dates",
+                """SELECT COUNT(*) FROM reviews
+                   WHERE visit_date > CURRENT_DATE""",
+                "< 10",
+                "Reviews should not have visit dates in the future",
+            ),
+            (
+                "Ratings out of range (1-10)",
+                """SELECT COUNT(*) FROM reviews
+                   WHERE dish_rating < 1 OR dish_rating > 10
+                      OR service_rating < 1 OR service_rating > 10
+                      OR cleanliness_rating < 1 OR cleanliness_rating > 10
+                      OR ambiance_rating < 1 OR ambiance_rating > 10""",
+                "0",
+                "All ratings must be between 1 and 10",
+            ),
+            (
+                "Restaurant role without restaurant_id",
+                """SELECT COUNT(*) FROM users
+                   WHERE role = 'restaurant' AND restaurant_id IS NULL""",
+                "0",
+                "Users with restaurant role must have a restaurant_id",
+            ),
+            (
+                "Non-restaurant role with restaurant_id",
+                """SELECT COUNT(*) FROM users
+                   WHERE role != 'restaurant' AND restaurant_id IS NOT NULL""",
+                "0",
+                "Users without restaurant role should not have a restaurant_id",
+            ),
+            (
+                "Rejected but visible reviews",
+                """SELECT COUNT(*) FROM reviews
+                   WHERE content_status = 'rejected' AND is_visible""",
+                "0",
+                "Rejected reviews should not be visible",
+            ),
+            (
+                "Duplicate user-dish interactions",
+                """SELECT COUNT(*) FROM (
+                       SELECT user_id, dish_id FROM reviews
+                       GROUP BY user_id, dish_id HAVING COUNT(*) > 1
+                   ) t""",
+                "0",
+                "Each user should review each dish at most once",
+            ),
         ]
 
         results = []
@@ -483,7 +805,7 @@ class DatasetStatistics:
                 for rating in range(1, 11):
                     count = dist.get(str(rating), 0)
                     bar_len = int((count / max_count) * 20) if max_count else 0
-                    bar_parts.append(f"{rating}:{'█' * bar_len}")
+                    bar_parts.append(f"{rating}:{'#' * bar_len}")
                 lines.append(f"  Histogram: {' '.join(bar_parts)}")
 
         for col in ("service_rating", "cleanliness_rating", "ambiance_rating"):
@@ -583,6 +905,98 @@ class DatasetStatistics:
                 parts = [f"{s}: {c} ({c / total * 100:.1f}%)" for s, c in cs_data.items()]
                 lines.append(f"  Content status: {', '.join(parts)}")
 
+        nd = self.stats.get("ncf_dataset", {})
+        if nd:
+            lines.append("")
+            lines.append("NCF DATASET PROFILE")
+            dist = nd.get("distribution", {})
+            if dist:
+                zr = dist.get("zipf_restaurant", {})
+                zd = dist.get("zipf_dish", {})
+                cfg_alpha = dist.get("configured_alpha", "?")
+                lines.append(
+                    f"  Zipf fit (configured alpha={cfg_alpha}): "
+                    f"restaurants alpha={zr.get('alpha')} R2={zr.get('r_squared')}  |  "
+                    f"dishes alpha={zd.get('alpha')} R2={zd.get('r_squared')}"
+                )
+                lines.append(f"  Catalog coverage (80% reviews): {dist.get('catalog_coverage_80pct')}% of dishes")
+            filt = nd.get("filtered", {})
+            if filt:
+                lines.append(
+                    f"  NCF-eligible: {filt.get('eligible_reviews', 0):,} reviews "
+                    f"({filt.get('eligible_users', 0):,} users, "
+                    f"{filt.get('eligible_dishes', 0):,} dishes)  |  "
+                    f"filter_rate={filt.get('filter_rate', 0)}%"
+                )
+                bd = filt.get("filtered_breakdown", {})
+                if bd:
+                    lines.append(
+                        f"  Filter breakdown: not_visible={bd.get('not_visible', 0):,} "
+                        f"deleted={bd.get('deleted', 0):,} "
+                        f"rejected={bd.get('rejected', 0):,} "
+                        f"user_deleted={bd.get('user_deleted', 0):,}"
+                    )
+
+        real = self.stats.get("generator_validation", {})
+        if real:
+            lines.append("")
+            lines.append("GENERATOR VALIDATION")
+            geo = real.get("geographic", {})
+            if geo:
+                lines.append(
+                    f"  Geographic consistency: {geo.get('home_city_pct', 0)}% "
+                    f"reviews in home city ({geo.get('home_city_reviews', 0):,}/{geo.get('total_reviews', 0):,})"
+                )
+            vel = real.get("velocity", {})
+            if vel:
+                lines.append(
+                    f"  Review velocity: {vel.get('avg_reviews_per_month')} reviews/user/month "
+                    f"(std={vel.get('std')}, median={vel.get('median')})"
+                )
+            lt = real.get("lifetime", {})
+            if lt:
+                lines.append(
+                    f"  User lifetime: mean={lt.get('mean_days')}d "
+                    f"median={lt.get('median_days')}d "
+                    f"[{lt.get('p25_days')}d - {lt.get('p75_days')}d]  |  "
+                    f"range: {lt.get('min_days')}d - {lt.get('max_days')}d"
+                )
+            vf = real.get("visit_frequency", {})
+            if vf:
+                lines.append(
+                    f"  Restaurant visits: avg={vf.get('avg_visits_per_restaurant')} "
+                    f"median={vf.get('median')} max={vf.get('max')}"
+                )
+            cd = real.get("cuisine_diversity", {})
+            if cd:
+                lines.append(
+                    f"  Cuisine diversity: avg={cd.get('avg_cuisines_per_user')} "
+                    f"cuisines/user (std={cd.get('std')}, median={cd.get('median')})"
+                )
+            bc = real.get("baseline_correlation", {})
+            if bc:
+                lines.append(
+                    f"  Baseline correlation: "
+                    f"CORR(secret_baseline, avg_rating)={bc.get('baseline_vs_actual_correlation')}"
+                )
+            pvr = real.get("price_vs_rating", {})
+            if pvr:
+                parts = [f"L{pl}: {d['avg_rating']}" for pl, d in pvr.items()]
+                lines.append(f"  Price level vs rating: {', '.join(parts)}")
+            dow = real.get("day_of_week", {})
+            if dow:
+                dow_str = ", ".join(f"{d[:3]}={c:,}" for d, c in dow.items())
+                lines.append(f"  Day of week: {dow_str}")
+            tl = real.get("text_length", {})
+            if tl:
+                lines.append(
+                    f"  Review text: avg_len={tl.get('avg_length')} "
+                    f"median={tl.get('median_length')} "
+                    f"std={tl.get('std_length')}  |  "
+                    f"with_text={tl.get('pct_with_text')}% "
+                    f"({tl.get('with_text', 0):,}/{tl.get('with_text', 0) + tl.get('without_text', 0):,})"
+                )
+
         temporal = self.stats.get("temporal", {})
         rpm = temporal.get("reviews_per_month", {})
         if rpm:
@@ -590,7 +1004,7 @@ class DatasetStatistics:
             lines.append("TEMPORAL DISTRIBUTION (reviews per month)")
             for month, count in rpm.items():
                 bar_len = int((count / max(rpm.values())) * 30) if rpm else 0
-                lines.append(f"  {month}: {count:>8,}  {'█' * bar_len}")
+                lines.append(f"  {month}: {count:>8,}  {'#' * bar_len}")
 
         integrity = self.stats.get("integrity", [])
         if integrity:
@@ -640,3 +1054,25 @@ def _evaluate_check(actual: int, expected: str) -> str:
         threshold = int(expected[1:].strip())
         return "ok" if actual > threshold else "FAIL"
     return "ok" if actual == int(expected) else "FAIL"
+
+def _power_law_fit(counts: list[int]) -> tuple[float, float]:
+    filtered = [(i + 1, c) for i, c in enumerate(sorted(counts, reverse=True)) if c > 0]
+    if len(filtered) < 3:
+        return 0.0, 0.0
+    log_x = [math.log(rank) for rank, _ in filtered]
+    log_y = [math.log(cnt) for _, cnt in filtered]
+    n = len(log_x)
+    sum_x = sum(log_x)
+    sum_y = sum(log_y)
+    sum_xy = sum(x * y for x, y in zip(log_x, log_y))
+    sum_x2 = sum(x * x for x in log_x)
+    denom = n * sum_x2 - sum_x * sum_x
+    if denom == 0:
+        return 0.0, 0.0
+    slope = (n * sum_xy - sum_x * sum_y) / denom
+    intercept = (sum_y - slope * sum_x) / n
+    y_mean = sum_y / n
+    ss_tot = sum((y - y_mean) ** 2 for y in log_y)
+    ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(log_x, log_y))
+    r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+    return -slope, r_squared
