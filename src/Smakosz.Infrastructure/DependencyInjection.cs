@@ -27,11 +27,13 @@ public static class DependencyInjection
         services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<ICodeHasher>(sp =>
-            new HmacCodeHasher(configuration["Jwt:Secret"]
-                ?? throw new InvalidOperationException("Jwt:Secret is required for ICodeHasher")));
-        services.AddScoped<IJwtTokenService>(sp =>
-            new JwtTokenService(configuration));
+        {
+            var jwt = sp.GetRequiredService<IOptions<JwtOptions>>().Value;
+            return new HmacCodeHasher(jwt.Secret);
+        });
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
         var brevoApiKey = configuration.GetSection(BrevoOptions.SectionName)["ApiKey"];
         if (!string.IsNullOrEmpty(brevoApiKey))
         {

@@ -9,7 +9,9 @@ using Smakosz.API.Services;
 using Smakosz.Application;
 using Smakosz.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Smakosz.Infrastructure;
+using Smakosz.Infrastructure.Configuration;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 
@@ -41,18 +43,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-    .Configure<IConfiguration>((options, configuration) =>
+    .Configure<IOptions<JwtOptions>>((options, jwtOptions) =>
     {
+        var jwt = jwtOptions.Value;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = configuration["Jwt:Issuer"],
-            ValidAudience = configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!)),
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
             ClockSkew = TimeSpan.Zero
         };
     });
