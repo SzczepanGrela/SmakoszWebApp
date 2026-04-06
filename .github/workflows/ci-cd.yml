@@ -37,6 +37,8 @@ jobs:
 
       - name: Integration Tests
         run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
 
   build-images:
     name: Build & Push Images

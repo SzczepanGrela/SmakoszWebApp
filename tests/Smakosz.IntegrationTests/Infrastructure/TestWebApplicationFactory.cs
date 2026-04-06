@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
+using Smakosz.Infrastructure.Services;
 using Smakosz.IntegrationTests.Infrastructure.Stubs;
 
 namespace Smakosz.IntegrationTests.Infrastructure;
@@ -36,8 +40,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // This includes DbContextOptions<SmakoszDbContext>, the DbContext itself,
-            // and any IDbContextOptionsConfiguration<SmakoszDbContext>.
             var toRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SmakoszDbContext>) ||
                 d.ServiceType == typeof(SmakoszDbContext) ||
@@ -50,7 +52,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             foreach (var descriptor in toRemove)
                 services.Remove(descriptor);
 
-            // Also remove the generic DbContextOptions (non-generic fallback)
             services.RemoveAll<DbContextOptions>();
 
             services.AddDbContext<SmakoszDbContext>((sp, options) =>
@@ -73,6 +74,29 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<ITurnstileService>();
             services.AddScoped<ITurnstileService, StubTurnstileService>();
 
+            services.RemoveAll<IEmailService>();
+            services.AddScoped<IEmailService, StubEmailService>();
+
+            services.RemoveAll<IFileStorageService>();
+            services.AddScoped<IFileStorageService, StubFileStorageService>();
+
+            services.RemoveAll<IPushNotificationService>();
+            services.AddSingleton<IPushNotificationService, StubPushNotificationService>();
+
+            services.RemoveAll<IImageProcessingService>();
+            services.AddSingleton<IImageProcessingService, StubImageProcessingService>();
+
+            // Remove Hangfire services - no PostgreSQL in tests
+            services.RemoveAll<IBackgroundJobClient>();
+            services.RemoveAll<IRecurringJobManager>();
+
+            // Remove database logger - no real DB in tests
+            var dbLoggerDescriptor = services.FirstOrDefault(d =>
+                d.ImplementationType == typeof(DbLoggerProvider) ||
+                (d.ServiceType == typeof(ILoggerProvider) &&
+                 d.ImplementationType?.Name == "DbLoggerProvider"));
+            if (dbLoggerDescriptor != null)
+                services.Remove(dbLoggerDescriptor);
         });
     }
 
