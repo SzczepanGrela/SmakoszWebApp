@@ -104,9 +104,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
-          client-id: ${{ secrets.TS_CLIENT_ID_VPS }}
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID_VPS }}
+          audience: ${{ secrets.TS_AUDIENCE_VPS }}
           tags: tag:ci-vps
 
       - name: Setup SSH key
