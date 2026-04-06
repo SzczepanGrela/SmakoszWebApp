@@ -4,6 +4,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Smakosz.API.Common;
@@ -14,10 +15,13 @@ namespace Smakosz.UnitTests.API.Common;
 public class ExceptionHandlingMiddlewareTests
 {
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
     public ExceptionHandlingMiddlewareTests()
     {
         _logger = Substitute.For<ILogger<ExceptionHandlingMiddleware>>();
+        _env = Substitute.For<IHostEnvironment>();
+        _env.EnvironmentName.Returns("Production");
     }
 
     [Fact]
@@ -25,7 +29,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var nextCalled = false;
         RequestDelegate next = _ => { nextCalled = true; return Task.CompletedTask; };
-        var middleware = new ExceptionHandlingMiddleware(next, _logger);
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
         var context = new DefaultHttpContext();
 
         await middleware.InvokeAsync(context);
@@ -38,7 +42,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var failures = new[] { new ValidationFailure("Email", "Email is required") };
         RequestDelegate next = _ => throw new ValidationException(failures);
-        var middleware = new ExceptionHandlingMiddleware(next, _logger);
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
 
@@ -58,7 +62,7 @@ public class ExceptionHandlingMiddlewareTests
     public async Task InvokeAsync_WhenDbUpdateConcurrencyException_Returns409Conflict()
     {
         RequestDelegate next = _ => throw new DbUpdateConcurrencyException("Concurrency conflict");
-        var middleware = new ExceptionHandlingMiddleware(next, _logger);
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
 
@@ -78,7 +82,7 @@ public class ExceptionHandlingMiddlewareTests
     public async Task InvokeAsync_UnhandledException_Returns500()
     {
         RequestDelegate next = _ => throw new InvalidOperationException("Something broke");
-        var middleware = new ExceptionHandlingMiddleware(next, _logger);
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
 
