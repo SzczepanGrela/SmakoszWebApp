@@ -321,7 +321,6 @@ __pycache__/
 # Environment variables (contains sensitive data)
 .env
 *.env
-!.env.example
 !.env.template
 
 # ASP.NET Core secrets (real keys in appsettings.json, template committed)
@@ -383,7 +382,6 @@ FodyWeavers.xsd
 
 
 
-tools/generator/config/db_config.ini
 /venv/
 .venv/
 

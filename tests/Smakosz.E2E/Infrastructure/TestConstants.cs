@@ -1,13 +1,21 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Smakosz.E2E.Infrastructure;
 
 public static class TestConstants
 {
+    private static readonly IConfiguration Config = new ConfigurationBuilder()
+        .SetBasePath(AppContext.BaseDirectory)
+        .AddJsonFile("appsettings.json", optional: false)
+        .Build();
+
     public const string ApiBaseUrl = "http://localhost:5000";
     public const string ClientBaseUrl = "http://localhost:5003";
 
     public static string ConnectionString =>
-        Environment.GetEnvironmentVariable("SMAKOSZ_E2E_CONNECTION_STRING")
-        ?? "Host=localhost;Port=5432;Database=smakosz_e2e;Username=postgres;Password=***REMOVED***";
+        Config["ConnectionStrings:E2E"]
+        ?? throw new InvalidOperationException(
+            "ConnectionStrings:E2E is not configured in tests/Smakosz.E2E/appsettings.json");
 
     public const string UserEmail = "jan.kowalski@gmail.com";
     public const string UserPassword = "TestHaslo123!";
@@ -32,8 +40,9 @@ public static class TestConstants
     public const int BannedUserId = 5;
 
     public static string JwtSecret =>
-        Environment.GetEnvironmentVariable("SMAKOSZ_JWT_SECRET")
-        ?? "***REMOVED***";
+        Config["Jwt:Secret"]
+        ?? throw new InvalidOperationException(
+            "Jwt:Secret is not configured in tests/Smakosz.E2E/appsettings.json");
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
 }
