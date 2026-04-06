@@ -391,7 +391,6 @@ tools/generator/config/db_config.ini
 .idea/
 
 # MONOREPO - Removed / obsolete paths
-/MockDataFactory/
 # Windows nul artifact
 /nul
 

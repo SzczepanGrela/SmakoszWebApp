@@ -58,7 +58,7 @@ public static class DependencyInjection
                 AccountId = r2AccountId,
                 AccessKey = r2Section["AccessKey"] ?? string.Empty,
                 SecretKey = r2Section["SecretKey"] ?? string.Empty,
-                BucketName = r2Section["BucketName"] ?? "smakosz-photos",
+                BucketName = r2Section["BucketName"] ?? string.Empty,
                 PublicUrl = r2Section["PublicUrl"] ?? string.Empty
             };
             services.AddSingleton(Microsoft.Extensions.Options.Options.Create(r2Options));
@@ -89,7 +89,7 @@ public static class DependencyInjection
             {
                 PublicKey = vapidPublicKey,
                 PrivateKey = vapidSection["PrivateKey"] ?? string.Empty,
-                Subject = vapidSection["Subject"] ?? "mailto:push@smakosz.xyz"
+                Subject = vapidSection["Subject"] ?? string.Empty
             };
             services.AddSingleton(vapidOptions);
             services.AddSingleton<IPushNotificationService, WebPushNotificationService>();

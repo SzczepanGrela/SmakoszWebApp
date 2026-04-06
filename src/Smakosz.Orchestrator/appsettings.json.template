@@ -4,14 +4,14 @@
   },
   "Brevo": {
     "ApiKey": "<BREVO_API_KEY>",
-    "SenderEmail": "noreply@smakosz.xyz",
-    "SenderName": "Smakosz"
+    "SenderEmail": "<SENDER_EMAIL>",
+    "SenderName": "<SENDER_NAME>"
   },
   "R2": {
     "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
     "AccessKey": "<R2_ACCESS_KEY_ID>",
     "SecretKey": "<R2_SECRET_ACCESS_KEY>",
-    "BucketName": "smakosz-photos",
+    "BucketName": "<R2_BUCKET_NAME>",
     "PublicUrl": "<R2_PUBLIC_DOMAIN>"
   },
   "GpuWorker": {
@@ -31,12 +31,12 @@
     "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
     "AccessKey": "<R2_ACCESS_KEY_ID>",
     "SecretKey": "<R2_SECRET_ACCESS_KEY>",
-    "BucketName": "smakosz-models"
+    "BucketName": "<R2_MODELS_BUCKET_NAME>"
   },
   "Vapid": {
     "PublicKey": "<VAPID_PUBLIC_KEY>",
     "PrivateKey": "<VAPID_PRIVATE_KEY>",
-    "Subject": "mailto:push@smakosz.xyz"
+    "Subject": "mailto:<YOUR_EMAIL>"
   },
   "Onnx": {
     "ModelBasePath": "/models/ncf"

@@ -24,7 +24,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Host=localhost",
                 ["Jwt:Secret"] = TestAuthHelper.JwtSecret,
-                ["Jwt:Key"] = TestAuthHelper.JwtSecret,
                 ["Jwt:Issuer"] = TestAuthHelper.JwtIssuer,
                 ["Jwt:Audience"] = TestAuthHelper.JwtAudience,
                 ["Brevo:ApiKey"] = "",

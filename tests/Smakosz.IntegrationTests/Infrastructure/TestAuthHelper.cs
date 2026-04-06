@@ -7,11 +7,16 @@ namespace Smakosz.IntegrationTests.Infrastructure;
 
 public static class TestAuthHelper
 {
-    // Must match the secret in appsettings.json since Program.cs reads it at build time
-    public const string JwtSecret = "***REMOVED***";
+    public static string JwtSecret =>
+        Environment.GetEnvironmentVariable("SMAKOSZ_JWT_SECRET")
+        ?? "***REMOVED***";
+
     public const string JwtIssuer = "Smakosz.API";
     public const string JwtAudience = "Smakosz.Client";
-    public const string WorkerApiKey = "test-worker-api-key-for-integration-tests";
+
+    public static string WorkerApiKey =>
+        Environment.GetEnvironmentVariable("SMAKOSZ_WORKER_API_KEY")
+        ?? "test-worker-api-key-for-integration-tests";
 
     public static string GenerateJwtToken(
         int userId,

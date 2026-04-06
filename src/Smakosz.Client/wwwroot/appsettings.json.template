@@ -1,0 +1,6 @@
+{
+  "ApiBaseUrl": "http://localhost:5000",
+  "GoogleMaps": {
+    "EmbedApiKey": "<your-google-maps-embed-api-key>"
+  }
+}

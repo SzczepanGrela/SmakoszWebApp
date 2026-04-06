@@ -578,7 +578,7 @@ class HeroImagesPhase(BasePhase):
                 hero_index = json.load(f)
 
             images = hero_index.get("images", [])
-            r2_base = os.getenv("R2_PUBLIC_DOMAIN", "https://assets.smakosz.xyz").rstrip("/")
+            r2_base = os.getenv("R2_PUBLIC_DOMAIN", "").rstrip("/")
             r2_mock_prefix = PHOTO_CONFIG.get("r2_mock_prefix", "seed")
 
             hero_data = []

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DebugType>embedded</DebugType>
+    <RootNamespace>Smakosz.Client</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

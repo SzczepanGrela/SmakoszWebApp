@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     r2_endpoint: str = ""
     r2_access_key: str = ""
     r2_secret_key: str = ""
-    r2_bucket: str = "smakosz-models"
+    r2_bucket: str = ""
 
     herbert_model_version: str = "v1"
     nsfw_model_version: str = "v1"
