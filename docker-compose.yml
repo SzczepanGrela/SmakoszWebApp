@@ -21,9 +21,7 @@ services:
         max-file: "3"
 
   api:
-    build:
-      context: .
-      dockerfile: src/Smakosz.API/Dockerfile
+    image: ghcr.io/szczepangrela/smakoszwebapp/api:latest
     restart: unless-stopped
     depends_on:
       postgres:
@@ -31,8 +29,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=smakosz_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     volumes:
+      - ./config/api-appsettings.json:/app/appsettings.json:ro
       - ncf-models:/models/ncf:ro
     ports:
       - "127.0.0.1:5000:8080"
@@ -43,9 +41,7 @@ services:
         max-file: "5"
 
   orchestrator:
-    build:
-      context: .
-      dockerfile: src/Smakosz.Orchestrator/Dockerfile
+    image: ghcr.io/szczepangrela/smakoszwebapp/orchestrator:latest
     restart: unless-stopped
     depends_on:
       postgres:
@@ -53,8 +49,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=smakosz_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     volumes:
+      - ./config/orchestrator-appsettings.json:/app/appsettings.json:ro
       - ncf-models:/models/ncf
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -66,10 +62,10 @@ services:
         max-file: "3"
 
   client:
-    build:
-      context: .
-      dockerfile: src/Smakosz.Client/Dockerfile
+    image: ghcr.io/szczepangrela/smakoszwebapp/client:latest
     restart: unless-stopped
+    volumes:
+      - ./config/client-appsettings.json:/usr/share/nginx/html/appsettings.json:ro
     ports:
       - "127.0.0.1:5003:80"
     logging:
@@ -84,5 +80,5 @@ volumes:
 
 networks:
   default:
-    name: smakosz-net
+    name: smakosz_network
     external: true

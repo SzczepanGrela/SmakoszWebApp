@@ -330,6 +330,9 @@ appsettings.E2E.json
 !appsettings.json.template
 !appsettings.E2E.json.template
 
+# VPS deployment config (contains production secrets)
+vps-config/
+
 # Launch settings (local dev only)
 **/Properties/launchSettings.json
 
