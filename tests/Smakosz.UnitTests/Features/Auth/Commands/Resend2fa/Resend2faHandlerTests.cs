@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.Resend2fa;
@@ -13,16 +13,17 @@ public class Resend2faHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly Resend2faHandler _handler;
 
     public Resend2faHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _emailService = Substitute.For<IEmailService>();
-        _codeHasher = Substitute.For<ICodeHasher>();
-        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
-        _handler = new Resend2faHandler(_db, _emailService, _codeHasher);
+        _verificationCodeService = Substitute.For<IVerificationCodeService>();
+        _verificationCodeService.CreateCodeAsync(Arg.Any<int>(), Arg.Any<Domain.Enums.VerificationCodeType>(), Arg.Any<CancellationToken>())
+            .Returns("123456");
+        _handler = new Resend2faHandler(_db, _emailService, _verificationCodeService);
     }
 
     [Fact]
@@ -55,7 +56,7 @@ public class Resend2faHandlerTests
     [Fact]
     public async Task Handle_2faNotEnabled_ReturnsSilentSuccess()
     {
-        var user = new UserBuilder().WithId(1).WithEmail("test@example.com").Build(); // Is2faEnabled = false
+        var user = new UserBuilder().WithId(1).WithEmail("test@example.com").Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
         var command = new Resend2faCommand("test@example.com");

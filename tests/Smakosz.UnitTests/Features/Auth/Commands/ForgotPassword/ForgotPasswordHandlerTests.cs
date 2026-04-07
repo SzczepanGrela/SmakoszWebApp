@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.ForgotPassword;
@@ -13,7 +13,7 @@ public class ForgotPasswordHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly ITurnstileService _turnstile;
     private readonly ForgotPasswordHandler _handler;
 
@@ -21,12 +21,13 @@ public class ForgotPasswordHandlerTests
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _emailService = Substitute.For<IEmailService>();
-        _codeHasher = Substitute.For<ICodeHasher>();
+        _verificationCodeService = Substitute.For<IVerificationCodeService>();
         _turnstile = Substitute.For<ITurnstileService>();
-        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
+        _verificationCodeService.CreateCodeAsync(Arg.Any<int>(), Arg.Any<Domain.Enums.VerificationCodeType>(), Arg.Any<CancellationToken>())
+            .Returns("123456");
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
-        _handler = new ForgotPasswordHandler(_db, _emailService, _codeHasher, _turnstile);
+        _handler = new ForgotPasswordHandler(_db, _emailService, _verificationCodeService, _turnstile);
     }
 
     [Fact]

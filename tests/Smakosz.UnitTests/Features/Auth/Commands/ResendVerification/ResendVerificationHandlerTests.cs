@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.ResendVerification;
@@ -13,16 +13,17 @@ public class ResendVerificationHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly ResendVerificationHandler _handler;
 
     public ResendVerificationHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _emailService = Substitute.For<IEmailService>();
-        _codeHasher = Substitute.For<ICodeHasher>();
-        _codeHasher.Hash(Arg.Any<string>()).Returns("hashed_code");
-        _handler = new ResendVerificationHandler(_db, _emailService, _codeHasher);
+        _verificationCodeService = Substitute.For<IVerificationCodeService>();
+        _verificationCodeService.CreateCodeAsync(Arg.Any<int>(), Arg.Any<Domain.Enums.VerificationCodeType>(), Arg.Any<CancellationToken>())
+            .Returns("123456");
+        _handler = new ResendVerificationHandler(_db, _emailService, _verificationCodeService);
     }
 
     [Fact]
@@ -43,7 +44,6 @@ public class ResendVerificationHandlerTests
     [Fact]
     public async Task Handle_UserNotFound_ReturnsSilentSuccess()
     {
-        // Arrange - security: don't reveal if email exists
         var command = new ResendVerificationCommand("nonexistent@example.com");
 
         var result = await _handler.Handle(command, CancellationToken.None);

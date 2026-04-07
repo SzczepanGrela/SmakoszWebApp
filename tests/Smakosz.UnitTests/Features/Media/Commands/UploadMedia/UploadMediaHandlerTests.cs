@@ -14,6 +14,7 @@ public class UploadMediaHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly IFileStorageService _storage;
+    private readonly IPublicConfigProvider _configProvider;
     private readonly UploadMediaHandler _handler;
 
     public UploadMediaHandlerTests()
@@ -21,10 +22,13 @@ public class UploadMediaHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
         _storage = Substitute.For<IFileStorageService>();
+        _configProvider = Substitute.For<IPublicConfigProvider>();
+        _configProvider.GetIntAsync("upload.max_size_mb", 5, Arg.Any<CancellationToken>()).Returns(5);
+        _configProvider.GetValueAsync("upload.allowed_types", Arg.Any<CancellationToken>()).Returns(".jpg,.jpeg,.png,.webp");
         _storage.UploadAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(),
                 Arg.Any<IReadOnlyList<ImageVariant>>(), Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult("key", "http://img.jpg", null, null, null, "blurhash", 800, 600));
-        _handler = new UploadMediaHandler(_db, _currentUser, _storage);
+        _handler = new UploadMediaHandler(_db, _currentUser, _storage, _configProvider);
     }
 
     [Fact]
@@ -68,7 +72,7 @@ public class UploadMediaHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymous = MockExtensions.CreateAnonymousUser();
-        var handler = new UploadMediaHandler(_db, anonymous, _storage);
+        var handler = new UploadMediaHandler(_db, anonymous, _storage, _configProvider);
 
         using var stream = new MemoryStream(new byte[1024]);
         var command = new UploadMediaCommand(stream, "photo.jpg", "Dish", 1);
