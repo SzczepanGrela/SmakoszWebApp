@@ -61,3 +61,9 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# Force LF line endings for infrastructure files deployed to Linux servers
+###############################################################################
+infra/scripts/*.sh text eol=lf
+infra/nginx/*.conf text eol=lf
