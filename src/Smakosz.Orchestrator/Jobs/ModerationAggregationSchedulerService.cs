@@ -28,9 +28,12 @@ public class ModerationAggregationSchedulerService
     {
         var enabled = await GetConfigBoolAsync("moderation.auto_enabled", true, ct);
         if (!enabled)
+        {
+            await CancelPendingModerationJobsAsync(ct);
             return;
+        }
 
-        var intervalMinutes = await GetConfigIntAsync("moderation.auto_interval_minutes", 5, ct);
+        var intervalMinutes = await GetConfigIntAsync("moderation.auto_interval_min", 5, ct);
         var lastRun = await GetConfigDateTimeAsync("moderation.last_aggregation_utc", ct);
         var intervalElapsed = !lastRun.HasValue
             || (_clock.UtcNow - lastRun.Value).TotalMinutes >= intervalMinutes;
@@ -52,9 +55,68 @@ public class ModerationAggregationSchedulerService
             "Moderation auto-aggregation triggered (interval={IntervalElapsed}, threshold={ThresholdReached}, text={TextCount}, image={ImageCount})",
             intervalElapsed, thresholdReached, pendingTextCount, pendingImageCount);
 
-        await _aggregator.AggregateAsync(ct);
+        await _aggregator.AggregateAsync(textBatchSize, imageBatchSize, ct);
 
         await UpsertConfigAsync("moderation.last_aggregation_utc", _clock.UtcNow.ToString("O"), ct);
+    }
+
+    private async Task CancelPendingModerationJobsAsync(CancellationToken ct)
+    {
+        var jobTypes = new[] { "text_moderation_batch", "image_moderation_batch" };
+        var jobStatuses = new[] { JobStatus.Pending, JobStatus.Processing };
+
+        var jobs = await _db.SystemJobs
+            .Where(j => jobTypes.Contains(j.Type) && jobStatuses.Contains(j.Status))
+            .ToListAsync(ct);
+
+        foreach (var job in jobs)
+            job.Status = JobStatus.Cancelled;
+
+        var reviews = await _db.Reviews
+            .Where(r => r.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var r in reviews)
+            r.ModerationStatus = ContentModerationStatus.Pending;
+
+        var edits = await _db.RestaurantEditRequests
+            .Where(e => e.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var e in edits)
+            e.ModerationStatus = ContentModerationStatus.Pending;
+
+        var dishes = await _db.Dishes
+            .Where(d => d.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var d in dishes)
+            d.ModerationStatus = ContentModerationStatus.Pending;
+
+        var restaurants = await _db.Restaurants
+            .Where(r => r.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var r in restaurants)
+            r.ModerationStatus = ContentModerationStatus.Pending;
+
+        var sections = await _db.MenuSections
+            .Where(ms => ms.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var ms in sections)
+            ms.ModerationStatus = ContentModerationStatus.Pending;
+
+        var assets = await _db.MediaAssets
+            .Where(a => a.ModerationStatus == ContentModerationStatus.Processing)
+            .ToListAsync(ct);
+        foreach (var a in assets)
+            a.ModerationStatus = ContentModerationStatus.Pending;
+
+        var contentCount = reviews.Count + edits.Count + dishes.Count + restaurants.Count + sections.Count + assets.Count;
+
+        if (jobs.Count > 0 || contentCount > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation(
+                "Moderation kill-switch: cancelled {JobCount} jobs, reverted {ContentCount} items to Pending",
+                jobs.Count, contentCount);
+        }
     }
 
     private async Task<int> CountPendingTextAsync(CancellationToken ct)

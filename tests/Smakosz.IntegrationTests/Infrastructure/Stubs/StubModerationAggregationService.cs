@@ -4,5 +4,5 @@ namespace Smakosz.IntegrationTests.Infrastructure.Stubs;
 
 public class StubModerationAggregationService : IModerationAggregationService
 {
-    public Task AggregateAsync(CancellationToken ct) => Task.CompletedTask;
+    public Task AggregateAsync(int textBatchSize, int imageBatchSize, CancellationToken ct) => Task.CompletedTask;
 }
