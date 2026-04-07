@@ -12,13 +12,13 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
 
-    public ResendVerificationHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
+    public ResendVerificationHandler(ISmakoszDbContext db, IEmailService emailService, IVerificationCodeService verificationCodeService)
     {
         _db = db;
         _emailService = emailService;
-        _codeHasher = codeHasher;
+        _verificationCodeService = verificationCodeService;
     }
 
     public async Task<ErrorOr<Success>> Handle(ResendVerificationCommand request, CancellationToken cancellationToken)
@@ -34,18 +34,7 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
             .ToListAsync(cancellationToken);
         _db.VerificationCodes.RemoveRange(oldCodes);
 
-        var code = GenerateCode();
-
-        var verificationCode = new VerificationCode
-        {
-            UserId = user.UserId,
-            CodeHash = _codeHasher.Hash(code),
-            Type = VerificationCodeType.Register,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
-        };
-
-        _db.VerificationCodes.Add(verificationCode);
-        await _db.SaveChangesAsync(cancellationToken);
+        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.Register, cancellationToken);
 
         await _emailService.SendVerificationCodeAsync(user.Email, code, cancellationToken);
 
@@ -62,6 +51,4 @@ public class ResendVerificationHandler : IRequestHandler<ResendVerificationComma
 
         return Result.Success;
     }
-
-    private static string GenerateCode() => Random.Shared.Next(100000, 999999).ToString();
 }

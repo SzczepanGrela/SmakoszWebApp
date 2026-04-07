@@ -12,13 +12,13 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
 {
     private readonly ISmakoszDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
 
-    public Resend2faHandler(ISmakoszDbContext db, IEmailService emailService, ICodeHasher codeHasher)
+    public Resend2faHandler(ISmakoszDbContext db, IEmailService emailService, IVerificationCodeService verificationCodeService)
     {
         _db = db;
         _emailService = emailService;
-        _codeHasher = codeHasher;
+        _verificationCodeService = verificationCodeService;
     }
 
     public async Task<ErrorOr<Success>> Handle(Resend2faCommand request, CancellationToken cancellationToken)
@@ -31,18 +31,7 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
         if (user is null)
             return Result.Success;
 
-        var code = GenerateCode();
-
-        var verificationCode = new VerificationCode
-        {
-            UserId = user.UserId,
-            CodeHash = _codeHasher.Hash(code),
-            Type = VerificationCodeType.TwoFactorAuth,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(10)
-        };
-
-        _db.VerificationCodes.Add(verificationCode);
-        await _db.SaveChangesAsync(cancellationToken);
+        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.TwoFactorAuth, cancellationToken);
 
         await _emailService.Send2faCodeAsync(user.Email, code, cancellationToken);
 
@@ -59,6 +48,4 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
 
         return Result.Success;
     }
-
-    private static string GenerateCode() => Random.Shared.Next(100000, 999999).ToString();
 }

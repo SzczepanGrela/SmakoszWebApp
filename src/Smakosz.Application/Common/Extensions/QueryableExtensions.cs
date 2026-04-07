@@ -37,4 +37,15 @@ public static class QueryableExtensions
             }
         };
     }
+
+    public static async Task<PagedResult<T>> ToPagedResultAsync<T>(
+        this IQueryable<T> query,
+        PaginationParams pagination,
+        int maxPageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var pageSize = Math.Clamp(pagination.PageSize, 1, maxPageSize);
+        var clamped = new PaginationParams(Math.Max(1, pagination.Page), pageSize);
+        return await query.ToPagedResultAsync(clamped, cancellationToken);
+    }
 }

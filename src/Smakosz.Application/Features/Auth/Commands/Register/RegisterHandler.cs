@@ -13,17 +13,17 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
 {
     private readonly ISmakoszDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly ICodeHasher _codeHasher;
+    private readonly IVerificationCodeService _verificationCodeService;
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
     private readonly ITurnstileService _turnstile;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, ICodeHasher codeHasher, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords, ITurnstileService turnstile)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IVerificationCodeService verificationCodeService, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords, ITurnstileService turnstile)
     {
         _db = db;
         _passwordHasher = passwordHasher;
-        _codeHasher = codeHasher;
+        _verificationCodeService = verificationCodeService;
         _currentUser = currentUser;
         _emailService = emailService;
         _forbiddenWords = forbiddenWords;
@@ -94,15 +94,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
         _db.Users.Add(user);
         await _db.SaveChangesAsync(cancellationToken);
 
-        var code = Random.Shared.Next(100000, 999999).ToString();
-        _db.VerificationCodes.Add(new VerificationCode
-        {
-            UserId = user.UserId,
-            CodeHash = _codeHasher.Hash(code),
-            Type = VerificationCodeType.Register,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
-        });
-        await _db.SaveChangesAsync(cancellationToken);
+        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.Register, cancellationToken);
 
         await _emailService.SendVerificationCodeAsync(user.Email, code, cancellationToken);
 

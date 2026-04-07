@@ -30,12 +30,14 @@ public class UpdateSystemConfigHandler : IRequestHandler<UpdateSystemConfigComma
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IDateTimeProvider _dateTime;
+    private readonly IPublicConfigProvider _configProvider;
 
-    public UpdateSystemConfigHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IDateTimeProvider dateTime)
+    public UpdateSystemConfigHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IDateTimeProvider dateTime, IPublicConfigProvider configProvider)
     {
         _db = db;
         _currentUser = currentUser;
         _dateTime = dateTime;
+        _configProvider = configProvider;
     }
 
     public async Task<ErrorOr<Success>> Handle(UpdateSystemConfigCommand request, CancellationToken cancellationToken)
@@ -79,6 +81,8 @@ public class UpdateSystemConfigHandler : IRequestHandler<UpdateSystemConfigComma
         });
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        _configProvider.InvalidateCache();
 
         return Result.Success;
     }

@@ -1,6 +1,7 @@
 @page "/profile/security"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IUserProfileService UserProfileService
+@inject Smakosz.Client.Services.IPublicConfigService ConfigService
 @inject ToastService Toast
 
 <PageTitle>Bezpieczeństwo - Smakosz</PageTitle>
@@ -57,7 +58,7 @@
                             <PasswordInput Value="@_passwordModel.NewPassword"
                                            ValueChanged="v => _passwordModel.NewPassword = v"
                                            Placeholder="Wprowadź nowe hasło" />
-                            <small class="text-muted">Minimum 8 znaków, wielka litera, cyfra i znak specjalny.</small>
+                            <small class="text-muted">Minimum @_passwordMin znaków, wielka litera, cyfra i znak specjalny.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Potwierdź nowe hasło</label>
@@ -144,9 +145,11 @@
     private string? _passwordError;
 
     private ChangePasswordModel _passwordModel = new();
+    private int _passwordMin = 8;
 
     protected override async Task OnInitializedAsync()
     {
+        _passwordMin = await ConfigService.GetIntAsync("auth.password_min_length", 8);
         await LoadSessions();
     }
 
@@ -172,9 +175,9 @@
             _passwordError = "Wprowadź nowe hasło.";
             return;
         }
-        if (_passwordModel.NewPassword.Length < 8)
+        if (_passwordModel.NewPassword.Length < _passwordMin)
         {
-            _passwordError = "Nowe hasło musi mieć co najmniej 8 znaków.";
+            _passwordError = $"Nowe hasło musi mieć co najmniej {_passwordMin} znaków.";
             return;
         }
         if (_passwordModel.NewPassword != _passwordModel.ConfirmPassword)

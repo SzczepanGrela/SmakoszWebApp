@@ -23,7 +23,8 @@ public class UserReaperService
 
     public async Task ReapAsync(CancellationToken ct)
     {
-        var cutoff = _clock.UtcNow.AddDays(-30);
+        var graceDays = await GetIntConfigAsync("retention.user_deletion_grace_days", 30, ct);
+        var cutoff = _clock.UtcNow.AddDays(-graceDays);
 
         var usersToDelete = await _db.Users
             .IgnoreQueryFilters()
@@ -44,7 +45,7 @@ public class UserReaperService
                 .Where(n => n.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.UserSessions
                 .Where(s => s.UserId == userId).ExecuteDeleteAsync(ct);
-await _db.VerificationCodes
+            await _db.VerificationCodes
                 .Where(c => c.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.SavedDishes
                 .Where(sd => sd.UserId == userId).ExecuteDeleteAsync(ct);
@@ -64,5 +65,12 @@ await _db.VerificationCodes
         }
 
         _logger.LogInformation("user-reaper: deleted {Count} users", usersToDelete.Count);
+    }
+
+    private async Task<int> GetIntConfigAsync(string key, int defaultValue, CancellationToken ct)
+    {
+        var config = await _db.SystemConfigs
+            .FirstOrDefaultAsync(c => c.Key == key, ct);
+        return config is not null && int.TryParse(config.Value, out var v) ? v : defaultValue;
     }
 }

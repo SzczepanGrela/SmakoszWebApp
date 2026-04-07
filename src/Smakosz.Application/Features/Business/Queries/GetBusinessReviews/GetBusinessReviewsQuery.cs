@@ -14,11 +14,13 @@ public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
 
-    public GetBusinessReviewsHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetBusinessReviewsHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IValidationConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<PagedResult<BusinessReviewDto>>> Handle(
@@ -41,8 +43,10 @@ public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        var defaultPageSize = _config.GetInt("search.default_page_size", 20);
+        var maxPageSize = _config.GetInt("search.max_page_size", 100);
         var page = Math.Max(1, request.Pagination.Page);
-        var pageSize = Math.Clamp(request.Pagination.PageSize, 1, 100);
+        var pageSize = Math.Clamp(request.Pagination.PageSize > 0 ? request.Pagination.PageSize : defaultPageSize, 1, maxPageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         var reviews = await query
