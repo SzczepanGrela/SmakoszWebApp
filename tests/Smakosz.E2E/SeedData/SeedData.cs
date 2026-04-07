@@ -467,16 +467,13 @@ public static class SeedData
         await db.SaveChangesAsync();
 
         db.SystemConfigs.AddRange(
-            new SystemConfig { Key = "moderation.auto_approve_threshold", Value = "0.85", Description = "Prog auto-zatwierdzania tresci", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "moderation.max_reports_before_hide", Value = "3", Description = "Maks. zgloszenia przed ukryciem", IsSecret = false, IsPublic = true },
-            new SystemConfig { Key = "api.rate_limit_per_minute", Value = "60", Description = "Limit zapytan API/min", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "moderation.text_batch_size", Value = "100", Description = "Rozmiar paczki moderacji tekstu", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "moderation.image_batch_size", Value = "10", Description = "Rozmiar paczki moderacji obrazow", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "moderation.auto_interval_minutes", Value = "5", Description = "Interwal automatycznej agregacji moderacji (minuty)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "moderation.auto_interval_min", Value = "5", Description = "Interwal automatycznej agregacji moderacji (minuty)", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "moderation.auto_enabled", Value = "true", Description = "Włącz/wylacz automatyczna agregacje moderacji", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "jwt_refresh_ttl_days", Value = "7", Description = "Czas zycia refresh tokena w dniach", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "jwt_refresh_ttl_days_remember_me", Value = "30", Description = "Czas zycia refresh tokena (Zapamietaj mnie) w dniach", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "jwt_access_ttl_sec", Value = "900", Description = "Czas zycia access tokena w sekundach", IsSecret = false, IsPublic = false });
+            new SystemConfig { Key = "auth.refresh_ttl_days", Value = "7", Description = "Czas zycia refresh tokena w dniach", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "auth.refresh_ttl_days_remember", Value = "30", Description = "Czas zycia refresh tokena (Zapamietaj mnie) w dniach", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "auth.access_ttl_sec", Value = "900", Description = "Czas zycia access tokena w sekundach", IsSecret = false, IsPublic = false });
 
         db.SystemLogs.AddRange(
             new SystemLog { Source = "AuthService", Level = Domain.Enums.LogLevel.Info, Message = "User jan-kowalski logged in", CreatedAt = DateTime.UtcNow.AddHours(-1) },

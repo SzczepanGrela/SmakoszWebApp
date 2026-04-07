@@ -19,14 +19,14 @@ public class GetWorkerConfigHandler : IRequestHandler<GetWorkerConfigQuery, Erro
     {
         var configKeys = new[]
         {
-            "moderation_toxic_threshold_approve",
-            "moderation_toxic_threshold_reject",
-            "moderation_nsfw_threshold_approve",
-            "moderation_nsfw_threshold_reject",
-            "moderation_on_topic_threshold",
-            "herbert_model_version",
-            "nsfw_model_version",
-            "clip_model_version"
+            "moderation.toxic_threshold_approve",
+            "moderation.toxic_threshold_reject",
+            "moderation.nsfw_threshold_approve",
+            "moderation.nsfw_threshold_reject",
+            "moderation.on_topic_threshold",
+            "moderation.herbert_version",
+            "moderation.nsfw_version",
+            "moderation.clip_version"
         };
 
         var configs = await _db.SystemConfigs
@@ -35,14 +35,14 @@ public class GetWorkerConfigHandler : IRequestHandler<GetWorkerConfigQuery, Erro
 
         return new WorkerConfigDto
         {
-            ToxicThresholdApprove = GetDecimal(configs, "moderation_toxic_threshold_approve", 0.3m),
-            ToxicThresholdReject = GetDecimal(configs, "moderation_toxic_threshold_reject", 0.8m),
-            NsfwThresholdApprove = GetDecimal(configs, "moderation_nsfw_threshold_approve", 0.2m),
-            NsfwThresholdReject = GetDecimal(configs, "moderation_nsfw_threshold_reject", 0.7m),
-            OnTopicThreshold = GetDecimal(configs, "moderation_on_topic_threshold", 0.3m),
-            HerbertModelVersion = GetString(configs, "herbert_model_version", "v1"),
-            NsfwModelVersion = GetString(configs, "nsfw_model_version", "v1"),
-            ClipModelVersion = GetString(configs, "clip_model_version", "v1")
+            ToxicThresholdApprove = GetDecimal(configs, "moderation.toxic_threshold_approve", 0.3m),
+            ToxicThresholdReject = GetDecimal(configs, "moderation.toxic_threshold_reject", 0.8m),
+            NsfwThresholdApprove = GetDecimal(configs, "moderation.nsfw_threshold_approve", 0.2m),
+            NsfwThresholdReject = GetDecimal(configs, "moderation.nsfw_threshold_reject", 0.7m),
+            OnTopicThreshold = GetDecimal(configs, "moderation.on_topic_threshold", 0.3m),
+            HerbertModelVersion = GetString(configs, "moderation.herbert_version", "v1"),
+            NsfwModelVersion = GetString(configs, "moderation.nsfw_version", "v1"),
+            ClipModelVersion = GetString(configs, "moderation.clip_version", "v1")
         };
     }
 
