@@ -4,6 +4,6 @@ namespace Smakosz.Application.Common.Interfaces;
 
 public interface IJwtTokenService
 {
-    string GenerateAccessToken(User user);
+    string GenerateAccessToken(User user, TimeSpan lifetime);
     string GenerateRefreshToken();
 }

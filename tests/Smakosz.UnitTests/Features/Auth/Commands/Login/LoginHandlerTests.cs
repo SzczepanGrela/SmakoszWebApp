@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.Login;
@@ -14,6 +14,7 @@ public class LoginHandlerTests
     private readonly MockDbSets _sets;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ISessionService _sessionService;
     private readonly ICurrentUserService _currentUser;
     private readonly ITurnstileService _turnstile;
     private readonly LoginHandler _handler;
@@ -23,16 +24,18 @@ public class LoginHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
+        _sessionService = Substitute.For<ISessionService>();
         _currentUser = Substitute.For<ICurrentUserService>();
         _turnstile = Substitute.For<ITurnstileService>();
 
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
-        _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>()).Returns("access_token");
-        _jwtTokenService.GenerateRefreshToken().Returns("refresh_token");
+        _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>(), Arg.Any<TimeSpan>()).Returns("access_token");
+        _sessionService.CreateSessionAsync(Arg.Any<int>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns("refresh_token");
+        _sessionService.GetAccessTokenLifetimeSecondsAsync(Arg.Any<CancellationToken>()).Returns(900);
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _currentUser, _turnstile);
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile);
     }
 
     [Fact]
@@ -131,7 +134,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_DeletedUser_ReturnsInvalidCredentials()
     {
-        // Arrange - deleted users are excluded by the query (u.IsDeleted == false)
         var user = new UserBuilder().WithEmail("user@example.com").AsDeleted().Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -144,19 +146,16 @@ public class LoginHandlerTests
     }
 
     [Fact]
-    public async Task Handle_RememberMe_SessionExpires30Days()
+    public async Task Handle_RememberMe_CreatesSessionWithRememberMe()
     {
         var user = new UserBuilder().WithEmail("user@example.com").Build();
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
         var command = new LoginCommand("user@example.com", "password", RememberMe: true, TurnstileToken: "valid-token");
 
-        var before = DateTime.UtcNow;
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        // The session was added to the backing list
-        _sets.UserSessions.Should().ContainSingle();
-        _sets.UserSessions[0].ExpiresAt.Should().BeCloseTo(before.AddDays(30), TimeSpan.FromSeconds(5));
+        await _sessionService.Received(1).CreateSessionAsync(user.UserId, true, Arg.Any<CancellationToken>());
     }
 }

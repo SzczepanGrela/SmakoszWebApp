@@ -11,6 +11,7 @@ public class UserSessionBuilder
         RefreshTokenHash = "valid-refresh-token",
         ExpiresAt = DateTime.UtcNow.AddDays(7),
         IsRevoked = false,
+        IsRememberMe = false,
         CreatedAt = DateTime.UtcNow,
         User = null!
     };
@@ -18,10 +19,11 @@ public class UserSessionBuilder
     public UserSessionBuilder WithId(long id) { _session.UserSessionId = id; return this; }
     public UserSessionBuilder WithUserId(int userId) { _session.UserId = userId; return this; }
     public UserSessionBuilder WithUser(User user) { _session.User = user; _session.UserId = user.UserId; return this; }
-    public UserSessionBuilder WithRefreshToken(string token) { _session.RefreshTokenHash = token; return this; }
+    public UserSessionBuilder WithRefreshTokenHash(string hash) { _session.RefreshTokenHash = hash; return this; }
     public UserSessionBuilder WithExpiresAt(DateTime expiresAt) { _session.ExpiresAt = expiresAt; return this; }
     public UserSessionBuilder AsRevoked() { _session.IsRevoked = true; return this; }
     public UserSessionBuilder AsExpired() { _session.ExpiresAt = DateTime.UtcNow.AddDays(-1); return this; }
+    public UserSessionBuilder AsRememberMe() { _session.IsRememberMe = true; return this; }
 
     public UserSession Build() => _session;
 }

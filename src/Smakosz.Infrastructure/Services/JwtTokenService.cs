@@ -18,7 +18,7 @@ public class JwtTokenService : IJwtTokenService
         _jwt = options.Value;
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, TimeSpan lifetime)
     {
         var claims = new[]
         {
@@ -29,7 +29,7 @@ public class JwtTokenService : IJwtTokenService
         };
 
         using var rsa = RSA.Create();
-        rsa.ImportFromPem(_jwt.PrivateKey);
+        rsa.ImportFromPem(_jwt.ResolvePrivateKey());
         var key = new RsaSecurityKey(rsa);
         var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256)
         {
@@ -40,7 +40,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _jwt.Issuer,
             audience: _jwt.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
+            expires: DateTime.UtcNow.Add(lifetime),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

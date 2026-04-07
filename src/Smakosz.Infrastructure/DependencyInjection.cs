@@ -55,6 +55,7 @@ public static class DependencyInjection
             return new HmacCodeHasher(opts.Secret);
         });
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
         services.AddHttpClient<ITurnstileService, TurnstileService>();
