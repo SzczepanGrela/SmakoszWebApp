@@ -88,6 +88,7 @@ public class GetRecommendationsHandlerTests
     public async Task Handle_ProviderAvailable_EnoughReviews_ReturnsPersonalized()
     {
         _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(true);
         _provider.GetPersonalizedAsync(1, 12, Arg.Any<CancellationToken>())
             .Returns(new List<(int DishId, float Score)>
             {
@@ -128,6 +129,7 @@ public class GetRecommendationsHandlerTests
     public async Task Handle_ProviderThrowsException_ReturnsFallbackGracefully()
     {
         _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(true);
         _provider.GetPersonalizedAsync(1, 12, Arg.Any<CancellationToken>())
             .Returns<List<(int DishId, float Score)>>(x => throw new InvalidOperationException("ONNX error"));
 

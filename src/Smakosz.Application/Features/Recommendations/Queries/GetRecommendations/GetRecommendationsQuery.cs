@@ -87,20 +87,18 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
 
         if (_currentUser.UserId.HasValue && _provider.IsAvailable)
         {
-            var minReviewsConfig = await _db.SystemConfigs
-                .FirstOrDefaultAsync(c => c.Key == "min_reviews_for_recommendations", cancellationToken);
-            var minReviews = minReviewsConfig is not null
-                ? int.TryParse(minReviewsConfig.Value, out var mr) ? mr : 10
-                : 10;
+            var ncfEnabled = await _db.SystemConfigs
+                .Where(c => c.Key == "ncf.available")
+                .Select(c => c.Value)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            var userReviewCount = reviewedDishIds?.Count
-                ?? await _db.Reviews
-                    .CountAsync(r => r.UserId == _currentUser.UserId.Value && !r.IsDeleted, cancellationToken);
-
-            if (userReviewCount < minReviews)
+            if (ncfEnabled == "false")
             {
-                var remaining = minReviews - userReviewCount;
-                result.FallbackReason = $"Wystaw jeszcze {remaining} recenzji, aby otrzymać personalizowane rekomendacje.";
+                result.FallbackReason = "System rekomendacji jest tymczasowo wyłączony.";
+            }
+            else if (!_provider.IsUserInMapping(_currentUser.UserId.Value))
+            {
+                result.FallbackReason = "Wystawiłeś za mało recenzji. Wystaw więcej i spróbuj ponownie jutro.";
             }
             else
             {
