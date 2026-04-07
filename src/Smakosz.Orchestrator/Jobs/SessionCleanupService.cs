@@ -28,16 +28,12 @@ public class SessionCleanupService
             .Where(s => s.ExpiresAt < now || s.IsRevoked)
             .ExecuteDeleteAsync(ct);
 
-        var tokens = await _db.RefreshTokens
-            .Where(t => t.ExpiresAt < now || t.RevokedAt != null)
-            .ExecuteDeleteAsync(ct);
-
         var codes = await _db.VerificationCodes
             .Where(c => c.ExpiresAt < now)
             .ExecuteDeleteAsync(ct);
 
         _logger.LogInformation(
-            "session-cleanup: deleted {Sessions} sessions, {Tokens} refresh tokens, {Codes} verification codes",
-            sessions, tokens, codes);
+            "session-cleanup: deleted {Sessions} sessions, {Codes} verification codes",
+            sessions, codes);
     }
 }

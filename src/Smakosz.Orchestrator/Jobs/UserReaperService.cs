@@ -44,9 +44,7 @@ public class UserReaperService
                 .Where(n => n.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.UserSessions
                 .Where(s => s.UserId == userId).ExecuteDeleteAsync(ct);
-            await _db.RefreshTokens
-                .Where(t => t.UserId == userId).ExecuteDeleteAsync(ct);
-            await _db.VerificationCodes
+await _db.VerificationCodes
                 .Where(c => c.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.SavedDishes
                 .Where(sd => sd.UserId == userId).ExecuteDeleteAsync(ct);

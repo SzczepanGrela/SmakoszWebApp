@@ -47,7 +47,6 @@ public interface ISmakoszDbContext
 
     DbSet<AuditLog> AuditLogs { get; }
 
-    DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<SystemConfig> SystemConfigs { get; }
     DbSet<SystemNode> SystemNodes { get; }
     DbSet<ServiceAccount> ServiceAccounts { get; }
