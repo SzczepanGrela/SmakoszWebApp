@@ -6,6 +6,7 @@ using Smakosz.Application.Features.Worker.Commands.CompleteJob;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
+using Microsoft.Extensions.Logging;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -26,7 +27,8 @@ public class CompleteJobBatchTests
         _clock = Substitute.For<IDateTimeProvider>();
         _clock.UtcNow.Returns(Now);
         var mediator = Substitute.For<MediatR.IMediator>();
-        _handler = new CompleteJobHandler(_db, _clock, mediator);
+        var logger = Substitute.For<ILogger<CompleteJobHandler>>();
+        _handler = new CompleteJobHandler(_db, _clock, mediator, logger);
     }
 
     [Fact]
