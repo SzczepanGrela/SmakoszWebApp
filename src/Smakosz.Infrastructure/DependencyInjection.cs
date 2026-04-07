@@ -39,6 +39,9 @@ public static class DependencyInjection
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
         services.AddMemoryCache();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<CachedConfigProvider>();
+        services.AddSingleton<IPublicConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
+        services.AddSingleton<IValidationConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
 
         return services;
     }
@@ -58,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
+        services.AddScoped<IVerificationCodeService, VerificationCodeService>();
         services.AddHttpClient<ITurnstileService, TurnstileService>();
 
         return services;
