@@ -1,0 +1,169 @@
+@page "/admin/tags"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Tagi - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-tags me-2"></i>Tagi</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj tag
+    </button>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_editingId.HasValue ? "Edytuj" : "Nowy") tag</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Nazwa *</label>
+                    <input type="text" class="form-control" @bind="_form.TagName" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-medium">Kategoria *</label>
+                    <select class="form-select" @bind="_form.Category">
+                        <option value="">-- wybierz --</option>
+                        @foreach (var cat in _categories)
+                        {
+                            <option value="@cat.Value">@cat.Label</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label fw-medium">Cel</label>
+                    <select class="form-select" @bind="_form.TargetEntity">
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Dish">Dish</option>
+                        <option value="Both">Both</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-medium">Kolor</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind="_form.DisplayColor" placeholder="#hex" />
+                        @if (!string.IsNullOrWhiteSpace(_form.DisplayColor))
+                        {
+                            <span class="input-group-text p-1">
+                                <span style="display:inline-block;width:28px;height:28px;border-radius:4px;background-color:@_form.DisplayColor;"></span>
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveTag">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_tags == null || !_tags.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-tags" Title="Brak tagów" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Nazwa</th><th>Kategoria</th><th>Cel</th><th>Kolor</th><th>Użycia</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var tag in _tags.Data)
+                {
+                    <tr>
+                        <td class="fw-medium">@tag.TagName</td>
+                        <td>@tag.Category</td>
+                        <td>@tag.TargetEntity</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(tag.DisplayColor))
+                            {
+                                <span class="badge" style="background-color:@tag.DisplayColor;">@tag.DisplayColor</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td>@tag.UsageCount</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditTag(tag)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteTag(tag)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_tags.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_tags.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminTagDto>? _tags;
+    private bool _loading = true;
+    private bool _showForm;
+    private int? _editingId;
+    private AdminTagDto _form = new() { TargetEntity = "Both", Category = "" };
+
+    private static readonly (string Value, string Label)[] _categories =
+    [
+        ("cuisine", "cuisine - kuchnia"),
+        ("dietary", "dietary - dietetyczne"),
+        ("spice", "spice - ostrość"),
+        ("mood", "mood - klimat"),
+        ("feature", "feature - cecha"),
+        ("occasion", "occasion - okazja")
+    ];
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _tags = await AdminService.GetTagsAsync(page);
+        _loading = false;
+    }
+
+    private void ShowAddForm() { _form = new() { TargetEntity = "Both", Category = "" }; _editingId = null; _showForm = true; }
+    private void EditTag(AdminTagDto tag) { _form = new() { TagId = tag.TagId, TagName = tag.TagName, Category = tag.Category, TargetEntity = tag.TargetEntity, DisplayColor = tag.DisplayColor }; _editingId = tag.TagId; _showForm = true; }
+    private void CancelForm() { _showForm = false; _editingId = null; }
+
+    private async Task SaveTag()
+    {
+        if (string.IsNullOrWhiteSpace(_form.TagName) || string.IsNullOrWhiteSpace(_form.Category)) return;
+        bool success;
+        if (_editingId.HasValue)
+            success = await AdminService.UpdateTagAsync(_editingId.Value, _form);
+        else
+            success = await AdminService.CreateTagAsync(_form);
+
+        if (success) { Toast.ShowSuccess("Tag zapisany."); _showForm = false; await LoadPage(1); }
+        else Toast.ShowError("Nie udało się zapisać.");
+    }
+
+    private async Task DeleteTag(AdminTagDto tag)
+    {
+        var success = await AdminService.DeleteTagAsync(tag.TagId);
+        if (success) { Toast.ShowSuccess("Tag usunięty."); await LoadPage(1); }
+        else Toast.ShowError("Nie udało się usunąć tagu.");
+    }
+}

@@ -105,6 +105,17 @@ public class AdminCityDto
     public int RestaurantCount { get; set; }
 }
 
+public class AdminTagDto
+{
+    public int TagId { get; set; }
+    public string TagName { get; set; } = default!;
+    public string Category { get; set; } = default!;
+    public string TargetEntity { get; set; } = default!;
+    public string? DisplayColor { get; set; }
+    public int UsageCount { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminAiModelDto
 {
     public string ModelType { get; set; } = default!;

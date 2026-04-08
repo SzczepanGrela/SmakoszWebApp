@@ -8,12 +8,16 @@ using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
+using Smakosz.Application.Features.Admin.Commands.CreateTag;
+using Smakosz.Application.Features.Admin.Commands.DeleteTag;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
+using Smakosz.Application.Features.Admin.Commands.UpdateTag;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
 using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
+using Smakosz.Application.Features.Admin.Queries.GetTags;
 using Smakosz.Application.Features.Admin.Queries.GetUserDetail;
 using Smakosz.Application.Features.Admin.Queries.GetUsers;
 
@@ -143,6 +147,37 @@ public class AdminController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpGet("tags")]
+    public async Task<IActionResult> GetTags(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null)
+    {
+        var result = await _mediator.Send(new GetTagsQuery(new PaginationParams(page, pageSize), search));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("tags")]
+    public async Task<IActionResult> CreateTag([FromBody] CreateTagRequest request)
+    {
+        var result = await _mediator.Send(new CreateTagCommand(request.Name, request.Category, request.TargetEntity, request.DisplayColor));
+        return ToCreatedResult(result);
+    }
+
+    [HttpPut("tags/{tagId:int}")]
+    public async Task<IActionResult> UpdateTag(int tagId, [FromBody] UpdateTagRequest request)
+    {
+        var result = await _mediator.Send(new UpdateTagCommand(tagId, request.Name, request.Category, request.TargetEntity, request.DisplayColor));
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("tags/{tagId:int}")]
+    public async Task<IActionResult> DeleteTag(int tagId)
+    {
+        var result = await _mediator.Send(new DeleteTagCommand(tagId));
+        return ToNoContentResult(result);
+    }
+
     [HttpGet("ingredient-suggestions")]
     public async Task<IActionResult> GetIngredientSuggestions(
         [FromQuery] int page = 1,
@@ -174,6 +209,8 @@ public record CreateIngredientRequest(
     bool IsGlutenFree,
     bool IsLactoseFree);
 public record UpdateIngredientRequest(string? Name, bool? IsAllergen, bool? IsVegetarian, bool? IsVegan, bool? IsGlutenFree, bool? IsLactoseFree);
+public record CreateTagRequest(string Name, string Category, string TargetEntity, string? DisplayColor);
+public record UpdateTagRequest(string? Name, string? Category, string? TargetEntity, string? DisplayColor);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
 public record ReviewIngredientSuggestionRequest(
