@@ -57,21 +57,6 @@
 
     <!-- App JS -->
     <script src="js/blurhash.js"></script>
-    <script>
-        window.smakoszGeo = {
-            getPosition: function () {
-                return new Promise(function (resolve, reject) {
-                    if (!navigator.geolocation) { reject('Geolocation not supported'); return; }
-                    navigator.geolocation.getCurrentPosition(
-                        function (pos) { resolve([pos.coords.latitude, pos.coords.longitude]); },
-                        function () { reject('Permission denied'); },
-                        { timeout: 8000 }
-                    );
-                });
-            }
-        };
-    </script>
-
     <script src="js/turnstile.js"></script>
     <script src="js/push.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
