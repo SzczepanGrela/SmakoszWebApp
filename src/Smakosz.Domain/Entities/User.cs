@@ -33,6 +33,8 @@ public class User : IAuditableEntity, ISoftDeletable, IHasPublicId
     public bool Is2faEnabled { get; set; }
     public int ReviewCount { get; set; }
     public int PhotoCount { get; set; }
+    public int FailedLoginCount { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
 
     #region Generator-Only Fields
     public int? SecretHomeCityId { get; set; }

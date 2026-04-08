@@ -27,6 +27,9 @@ public static class DomainErrors
         public static readonly Error AccountInactive =
             Error.Forbidden("AUTH_ACCOUNT_INACTIVE", "Konto jest nieaktywne");
 
+        public static readonly Error AccountLocked =
+            Error.Forbidden("AUTH_ACCOUNT_LOCKED", "Konto zostało tymczasowo zablokowane z powodu zbyt wielu nieudanych prób logowania");
+
         public static readonly Error InvalidRefreshToken =
             Error.Unauthorized("AUTH_INVALID_REFRESH_TOKEN", "Nieprawidłowy lub wygasły refresh token");
 
