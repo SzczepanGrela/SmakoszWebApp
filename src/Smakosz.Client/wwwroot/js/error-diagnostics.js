@@ -13,9 +13,13 @@
 
         var apiUrl = window.__smakoszApiUrl || 'https://localhost:5001';
 
-        fetch(apiUrl, { method: 'HEAD', mode: 'no-cors' })
-            .then(function () {
-                msgEl.textContent = 'Wystąpił nieoczekiwany błąd w aplikacji.';
+        fetch(apiUrl + '/health', { method: 'GET', mode: 'cors' })
+            .then(function (r) {
+                if (r.ok) {
+                    msgEl.textContent = 'Wystąpił nieoczekiwany błąd w aplikacji.';
+                } else {
+                    throw new Error('API returned ' + r.status);
+                }
             })
             .catch(function () {
                 return fetch('https://cloudflare.com/cdn-cgi/trace', { mode: 'no-cors' })
