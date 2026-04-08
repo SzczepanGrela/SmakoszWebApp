@@ -31,6 +31,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
     volumes:
       - ./config/api-appsettings.json:/app/appsettings.json:ro
+      - ./keys:/app/keys:ro
       - ncf-models:/models/ncf:ro
     ports:
       - "127.0.0.1:5000:8080"
