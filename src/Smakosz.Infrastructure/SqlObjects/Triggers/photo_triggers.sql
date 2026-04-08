@@ -8,6 +8,22 @@ CREATE OR REPLACE FUNCTION enforce_primary_photo()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.is_primary = TRUE THEN
+        -- Queue old primary photo files for R2 cleanup
+        INSERT INTO files_to_delete (r2_key, bucket, reason, source_entity, source_id, queued_at)
+        SELECT
+            substring(url FROM 'https?://[^/]+/(.+)'),
+            'smakosz-photos',
+            'primary_photo_replaced',
+            NEW.entity_type || ':' || NEW.entity_id,
+            asset_id::int,
+            NOW()
+        FROM media_assets
+        WHERE entity_type = NEW.entity_type
+          AND entity_id = NEW.entity_id
+          AND asset_id != NEW.asset_id
+          AND is_primary = TRUE
+          AND url IS NOT NULL;
+
         UPDATE media_assets
         SET is_primary = FALSE
         WHERE entity_type = NEW.entity_type
