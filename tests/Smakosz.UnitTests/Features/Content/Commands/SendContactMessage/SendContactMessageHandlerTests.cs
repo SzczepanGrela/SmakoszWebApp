@@ -59,10 +59,10 @@ public class SendContactMessageHandlerTests
 
         await _handler.Handle(command, CancellationToken.None);
 
-        await _email.Received(1).SendDigestAsync(
+        await _email.Received(1).SendContactConfirmationAsync(
             "jan@example.com",
-            Arg.Is<string>(s => s.Contains("potwierdzenie")),
-            Arg.Any<string>(),
+            "Jan",
+            "Pytanie",
             Arg.Any<CancellationToken>());
     }
 }
