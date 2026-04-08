@@ -60,10 +60,7 @@
 
     <!-- App JS -->
     <script>
-        Promise.all([
-            fetch('appsettings.json').then(function(r){return r.ok?r.json():{}}).catch(function(){return {};}),
-            fetch('appsettings.Production.json').then(function(r){return r.ok?r.json():{}}).catch(function(){return {};})
-        ]).then(function(c){window.__smakoszApiUrl=c[1].ApiBaseUrl||c[0].ApiBaseUrl||'';});
+        fetch('appsettings.json').then(function(r){return r.ok?r.json():{}}).then(function(c){window.__smakoszApiUrl=c.ApiBaseUrl||'';}).catch(function(){});
     </script>
     <script src="js/blurhash.js"></script>
     <script src="js/turnstile.js"></script>
