@@ -2,6 +2,8 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IUserProfileService UserProfileService
 @inject Smakosz.Client.Services.IPublicConfigService ConfigService
+@inject Smakosz.Client.Services.IAuthService AuthService
+@inject NavigationManager Navigation
 @inject ToastService Toast
 
 <PageTitle>Bezpieczeństwo - Smakosz</PageTitle>
@@ -133,9 +135,94 @@
                     }
                 </div>
             </div>
+
+            <div class="card shadow-sm mt-4 border-danger">
+                <div class="card-header bg-danger bg-opacity-10">
+                    <h5 class="mb-0 text-danger"><i class="fa-solid fa-trash-can me-2"></i>Usunięcie konta</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <strong>Uwaga:</strong> Usunięcie konta jest nieodwracalne. Twoje dane osobowe zostaną zanonimizowane natychmiast,
+                        a konto zostanie trwale usunięte po 30 dniach. Wszystkie recenzje, zapisane dania i obserwacje zostaną usunięte.
+                    </div>
+                    <button class="btn btn-danger" @onclick="() => _showDeleteModal = true">
+                        <i class="fa-solid fa-trash-can me-1"></i>Usuń konto
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+@if (_showDeleteModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger bg-opacity-10">
+                    <h5 class="modal-title text-danger">
+                        <i class="fa-solid fa-trash-can me-2"></i>Usunięcie konta
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_deleteError))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@_deleteError
+                        </div>
+                    }
+
+                    @if (_deleteStep == 1)
+                    {
+                        <p>Aby kontynuować, wprowadź swoje hasło. Wyślemy kod potwierdzający na Twój adres email.</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Hasło</label>
+                            <PasswordInput Value="@_deletePassword"
+                                           ValueChanged="v => _deletePassword = v"
+                                           Placeholder="Wprowadź hasło" />
+                        </div>
+                    }
+                    else if (_deleteStep == 2)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fa-solid fa-envelope me-2"></i>Kod weryfikacyjny został wysłany na Twój adres email.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Kod weryfikacyjny</label>
+                            <input type="text" class="form-control" @bind="_deleteCode"
+                                   placeholder="Wprowadź 6-cyfrowy kod" maxlength="6" />
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDeleteModal" disabled="@_deleting">Anuluj</button>
+                    @if (_deleteStep == 1)
+                    {
+                        <button type="button" class="btn btn-danger" @onclick="HandleRequestDeletion" disabled="@_deleting">
+                            @if (_deleting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Wyślij kod potwierdzający
+                        </button>
+                    }
+                    else if (_deleteStep == 2)
+                    {
+                        <button type="button" class="btn btn-danger" @onclick="HandleConfirmDeletion" disabled="@_deleting">
+                            @if (_deleting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            Potwierdź usunięcie
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private List<SessionDto>? _sessions;
@@ -229,6 +316,72 @@
         {
             Toast.ShowError("Nie udało się wylogować sesji.");
         }
+    }
+
+    private bool _showDeleteModal;
+    private int _deleteStep = 1;
+    private string _deletePassword = "";
+    private string _deleteCode = "";
+    private bool _deleting;
+    private string? _deleteError;
+
+    private async Task HandleRequestDeletion()
+    {
+        _deleteError = null;
+
+        if (string.IsNullOrWhiteSpace(_deletePassword))
+        {
+            _deleteError = "Wprowadź hasło.";
+            return;
+        }
+
+        _deleting = true;
+        var success = await UserProfileService.RequestAccountDeletionAsync(_deletePassword);
+
+        if (success)
+        {
+            _deleteStep = 2;
+            _deleteError = null;
+        }
+        else
+        {
+            _deleteError = "Nieprawidłowe hasło lub nie można usunąć konta.";
+        }
+        _deleting = false;
+    }
+
+    private async Task HandleConfirmDeletion()
+    {
+        _deleteError = null;
+
+        if (string.IsNullOrWhiteSpace(_deleteCode))
+        {
+            _deleteError = "Wprowadź kod weryfikacyjny.";
+            return;
+        }
+
+        _deleting = true;
+        var success = await UserProfileService.ConfirmAccountDeletionAsync(_deleteCode);
+
+        if (success)
+        {
+            await AuthService.LogoutAsync();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            _deleteError = "Nieprawidłowy lub wygasły kod weryfikacyjny.";
+        }
+        _deleting = false;
+    }
+
+    private void CloseDeleteModal()
+    {
+        _showDeleteModal = false;
+        _deleteStep = 1;
+        _deletePassword = "";
+        _deleteCode = "";
+        _deleteError = null;
     }
 
     private class ChangePasswordModel
