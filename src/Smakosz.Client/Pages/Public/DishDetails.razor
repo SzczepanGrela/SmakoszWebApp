@@ -134,11 +134,14 @@ else
                         </div>
                     }
                     <ShareButton Url="@Navigation.Uri" Title="@_dish.DishName" />
-                    <div class="mt-3">
-                        <button class="btn btn-outline-primary w-100" @onclick="GetRandomDish">
-                            <i class="fa-solid fa-shuffle me-1"></i>Nowe losowe danie
-                        </button>
-                    </div>
+                    @if (FromRandom)
+                    {
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary w-100" @onclick="GetRandomDish">
+                                <i class="fa-solid fa-shuffle me-1"></i>Nowe losowe danie
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -184,6 +187,7 @@ else
 
 @code {
     [Parameter] public string Slug { get; set; } = default!;
+    [SupplyParameterFromQuery(Name = "fromRandom")] public bool FromRandom { get; set; }
     @inject NavigationManager Navigation
 
     private Models.DishDetailDto? _dish;
@@ -229,7 +233,7 @@ else
     {
         var dish = await DishService.GetRandomAsync();
         if (dish != null)
-            Navigation.NavigateTo($"/dishes/{dish.Slug}");
+            Navigation.NavigateTo($"/dishes/{dish.Slug}?fromRandom=true");
     }
 
     private async Task ToggleSaveDish()

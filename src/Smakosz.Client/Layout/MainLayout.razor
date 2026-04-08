@@ -2,6 +2,7 @@
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
 @inject ToastService ToastService
+@inject IDishService DishService
 
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
@@ -18,6 +19,11 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/search">Szukaj</a>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link btn btn-link" @onclick="GetRandomDish">
+                        <i class="fa-solid fa-dice me-1"></i>Losowe danie
+                    </button>
                 </li>
                 <AuthorizeView>
                     <Authorized>
@@ -84,3 +90,12 @@
 </footer>
 
 <ToastContainer />
+
+@code {
+    private async Task GetRandomDish()
+    {
+        var dish = await DishService.GetRandomAsync();
+        if (dish != null)
+            Navigation.NavigateTo($"/dishes/{dish.Slug}?fromRandom=true");
+    }
+}
