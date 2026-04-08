@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Infrastructure.Persistence;
 
 namespace Smakosz.Orchestrator.Jobs;
@@ -57,6 +58,29 @@ public class UserReaperService
                 .Where(sh => sh.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.UserNotificationSettings
                 .Where(uns => uns.UserId == userId).ExecuteDeleteAsync(ct);
+            await _db.PushSubscriptions
+                .Where(p => p.UserId == userId).ExecuteDeleteAsync(ct);
+
+            var mediaUrls = await _db.MediaAssets
+                .Where(ma => ma.UploadedBy == userId)
+                .Select(ma => new { ma.AssetId, ma.Url })
+                .ToListAsync(ct);
+
+            foreach (var asset in mediaUrls)
+            {
+                _db.FilesToDelete.Add(new FileToDelete
+                {
+                    R2Key = ExtractR2Key(asset.Url),
+                    Bucket = "smakosz-photos",
+                    Reason = "user_hard_delete",
+                    SourceEntity = "MediaAsset",
+                    SourceId = (int)asset.AssetId,
+                    QueuedAt = _clock.UtcNow
+                });
+            }
+            if (mediaUrls.Count > 0)
+                await _db.SaveChangesAsync(ct);
+
             await _db.MediaAssets
                 .Where(ma => ma.UploadedBy == userId).ExecuteDeleteAsync(ct);
 
@@ -66,6 +90,8 @@ public class UserReaperService
 
         _logger.LogInformation("user-reaper: deleted {Count} users", usersToDelete.Count);
     }
+
+    private static string ExtractR2Key(string url) => new Uri(url).AbsolutePath.TrimStart('/');
 
     private async Task<int> GetIntConfigAsync(string key, int defaultValue, CancellationToken ct)
     {
