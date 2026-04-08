@@ -118,30 +118,7 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy
+      - name: Deploy & verify health
         run: |
           ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_SSH_PORT }} \
             smakosz@${{ secrets.VPS_HOST }} deploy
-
-      - name: Verify health
-        run: |
-          check_health() {
-            local name=$1 url=$2
-            for i in $(seq 1 10); do
-              status=$(ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_SSH_PORT }} \
-                smakosz@${{ secrets.VPS_HOST }} \
-                "curl -sf -o /dev/null -w '%{http_code}' $url" 2>/dev/null)
-              [ "$status" = "200" ] && break
-              echo "Attempt $i: waiting for $name..."
-              sleep 5
-            done
-            if [ "$status" != "200" ]; then
-              echo "::error::$name health check failed (HTTP $status)"
-              return 1
-            fi
-            echo "$name is healthy"
-          }
-
-          check_health "API" "http://localhost:5000/health" && \
-          check_health "Orchestrator" "http://localhost:8081/health" && \
-          check_health "Client" "http://localhost:5003/" || exit 1
