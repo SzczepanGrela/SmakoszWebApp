@@ -93,6 +93,25 @@ public static class SeedHelpers
         };
     }
 
+    public static User CreateLockedUser(int userId = 11, string? passwordHash = null, DateTime? lockedUntil = null)
+    {
+        return new User
+        {
+            UserId = userId,
+            PublicId = Guid.NewGuid(),
+            Username = "zablokowany",
+            Email = "zablokowany@smakosz.test",
+            PasswordHash = passwordHash ?? "placeholder-will-be-set",
+            EmailVerified = true,
+            Role = UserRole.User,
+            IsActive = true,
+            FailedLoginCount = 5,
+            LockedUntilUtc = lockedUntil ?? DateTime.UtcNow.AddMinutes(15),
+            Slug = "zablokowany",
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
+
     public static Restaurant CreateRestaurant(
         int restaurantId = 1,
         string name = "Pizzeria Roma",

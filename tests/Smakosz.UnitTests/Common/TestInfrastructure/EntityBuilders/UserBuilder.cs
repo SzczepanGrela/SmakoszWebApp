@@ -38,6 +38,8 @@ public class UserBuilder
     public UserBuilder AsDeleted() { _user.IsDeleted = true; _user.DeletedAt = DateTime.UtcNow; return this; }
     public UserBuilder AsEmailNotVerified() { _user.EmailVerified = false; return this; }
     public UserBuilder With2faEnabled() { _user.Is2faEnabled = true; return this; }
+    public UserBuilder WithFailedLoginCount(int count) { _user.FailedLoginCount = count; return this; }
+    public UserBuilder AsLocked(DateTime until) { _user.LockedUntilUtc = until; return this; }
 
     public User Build() => _user;
 }
