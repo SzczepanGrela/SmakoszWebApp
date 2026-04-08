@@ -41,6 +41,8 @@ async function onActivate(event) {
 
     // One-time migration: remove old hardcoded cache from previous SW version
     await caches.delete('smakosz-cache-v1');
+
+    await self.clients.claim();
 }
 
 async function onFetch(event) {

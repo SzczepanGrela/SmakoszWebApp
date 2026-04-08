@@ -24,7 +24,9 @@ function showUpdateToast(worker) {
         + '<button id="pwa-update-btn" style="background:linear-gradient(45deg,#D4A574,#B8860B);border:none;color:#E8DDD0;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:500;width:100%;min-height:44px;">Zaktualizuj</button></div>';
     document.body.appendChild(t);
     document.getElementById('pwa-update-btn').addEventListener('click', function () {
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            location.reload();
+        });
         worker.postMessage({ type: 'SKIP_WAITING' });
-        location.reload();
     });
 }
