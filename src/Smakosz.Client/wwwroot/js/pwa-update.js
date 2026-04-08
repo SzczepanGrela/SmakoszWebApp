@@ -1,0 +1,30 @@
+navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
+    .then(function (reg) {
+        setInterval(function () { reg.update(); }, 60 * 60 * 1000);
+        if (reg.waiting) { showUpdateToast(reg.waiting); return; }
+        reg.addEventListener('updatefound', function () {
+            var w = reg.installing;
+            w.addEventListener('statechange', function () {
+                if (w.state === 'installed' && navigator.serviceWorker.controller) showUpdateToast(w);
+            });
+        });
+    });
+
+function showUpdateToast(worker) {
+    if (document.getElementById('pwa-update-toast')) return;
+    var t = document.createElement('div');
+    t.id = 'pwa-update-toast';
+    t.className = 'toast show animate-in';
+    t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:1060;min-width:320px;border-radius:0.5rem;box-shadow:0 0.5rem 1rem rgba(0,0,0,0.15);overflow:hidden;background:#F2EDE6;border:1px solid #D4A574;';
+    t.innerHTML = '<div style="background:linear-gradient(135deg,#D4A574,#B8860B);color:white;padding:0.6rem 1rem;display:flex;justify-content:space-between;align-items:center;">'
+        + '<strong><i class="fa-solid fa-arrows-rotate me-2"></i>Aktualizacja</strong>'
+        + '<button onclick="this.closest(\'#pwa-update-toast\').remove()" style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;padding:0 0.25rem;">&times;</button></div>'
+        + '<div style="padding:1rem;color:#4A3428;">'
+        + '<p style="margin:0 0 0.75rem;">Nowa wersja aplikacji jest dostepna.</p>'
+        + '<button id="pwa-update-btn" style="background:linear-gradient(45deg,#D4A574,#B8860B);border:none;color:#E8DDD0;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:500;width:100%;min-height:44px;">Zaktualizuj</button></div>';
+    document.body.appendChild(t);
+    document.getElementById('pwa-update-btn').addEventListener('click', function () {
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        location.reload();
+    });
+}
