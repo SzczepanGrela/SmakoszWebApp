@@ -42,9 +42,12 @@
     </div>
 
     <div id="blazor-error-ui" style="display:none;position:fixed;bottom:0;width:100%;z-index:9999;">
-        <div class="alert alert-danger m-3" role="alert">
+        <div id="blazor-error-content" class="alert alert-danger m-3" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>
-            Wystąpił nieoczekiwany błąd. <a href="" class="alert-link">Odśwież stronę</a>
+            <span id="blazor-error-msg">Wystąpił nieoczekiwany błąd.</span>
+            <button onclick="location.reload()" class="btn btn-sm btn-outline-danger ms-3">
+                <i class="fa-solid fa-arrows-rotate me-1"></i>Odśwież
+            </button>
         </div>
     </div>
 
@@ -56,10 +59,14 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
     <!-- App JS -->
+    <script>
+        fetch('appsettings.json').then(function(r){return r.json()}).then(function(c){window.__smakoszApiUrl=c.ApiBaseUrl||''}).catch(function(){});
+    </script>
     <script src="js/blurhash.js"></script>
     <script src="js/turnstile.js"></script>
     <script src="js/push.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="js/error-diagnostics.js"></script>
     <script src="js/pwa-update.js"></script>
 </body>
 </html>
