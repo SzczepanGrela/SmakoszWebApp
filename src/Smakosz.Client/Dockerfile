@@ -17,6 +17,7 @@ COPY src/Smakosz.Client/ src/Smakosz.Client/
 RUN dotnet publish src/Smakosz.Client/Smakosz.Client.csproj -c Release -o /app/publish --no-restore
 
 FROM nginx:alpine AS runtime
+RUN apk add --no-cache curl
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 COPY src/Smakosz.Client/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
