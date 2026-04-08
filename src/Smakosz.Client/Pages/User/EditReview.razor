@@ -186,7 +186,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udało się zaktualizować recenzji. Spróbuj ponownie.";
+            _error = result.Error?.GetDisplayMessage() ?? "Nie udało się zaktualizować recenzji. Spróbuj ponownie.";
         }
         _submitting = false;
     }

@@ -61,7 +61,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nieprawidłowy kod.";
+            _error = result.Error?.GetDisplayMessage() ?? "Nieprawidłowy kod.";
         }
         _loading = false;
     }
@@ -76,7 +76,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Nie udało się wysłać kodu.";
+            _error = result.Error?.GetDisplayMessage() ?? "Nie udało się wysłać kodu.";
         }
     }
 

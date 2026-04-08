@@ -27,7 +27,7 @@ body {
     }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus, .btn:active:focus, .form-control:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem var(--background-color), 0 0 0 0.25rem var(--primary-color);
 }
 
@@ -446,6 +446,12 @@ main {
     color: var(--text-color) !important;
     font-weight: bold;
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+button.nav-link {
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 /* Button styles */
@@ -1193,14 +1199,17 @@ a[href^="tel:"]:hover {
 /* Notification bell */
 .notification-bell {
     position: relative;
+    display: flex;
+    align-items: center;
+    font-size: 1.15rem;
 }
 
 .notification-bell .badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    font-size: 0.65rem;
-    padding: 0.25rem 0.4rem;
+    top: 2px;
+    right: -2px;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.35rem;
 }
 
 /* Empty state */
@@ -1231,10 +1240,8 @@ a[href^="tel:"]:hover {
 }
 
 /* Navbar register button */
-.navbar .btn-primary.nav-link {
+.navbar .btn-primary {
     color: var(--background-color) !important;
-    padding: 0.4rem 1rem;
-    line-height: 1.5;
 }
 
 /* Compact rating stars */

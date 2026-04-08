@@ -15,13 +15,17 @@
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">Strona główna</a>
+                    <a class="nav-link" href="/">
+                        <i class="fa-solid fa-house me-1"></i>Strona główna
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/search">Szukaj</a>
+                    <a class="nav-link" href="/search">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i>Szukaj
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link btn btn-link" @onclick="GetRandomDish">
+                    <button class="nav-link" @onclick="GetRandomDish">
                         <i class="fa-solid fa-dice me-1"></i>Losowe danie
                     </button>
                 </li>
@@ -37,8 +41,8 @@
             </ul>
             <AuthorizeView>
                 <Authorized>
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
+                    <ul class="navbar-nav align-items-center">
+                        <li class="nav-item d-flex align-items-center">
                             <NotificationBell />
                         </li>
                         <li class="nav-item">
@@ -47,14 +51,14 @@
                     </ul>
                 </Authorized>
                 <NotAuthorized>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav align-items-center">
                         <li class="nav-item">
                             <a class="nav-link" href="/login">
                                 <i class="fa-solid fa-right-to-bracket me-1"></i>Zaloguj
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-primary btn-sm ms-2 d-flex align-items-center" href="/register">Rejestracja</a>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-primary btn-sm" href="/register">Rejestracja</a>
                         </li>
                     </ul>
                 </NotAuthorized>

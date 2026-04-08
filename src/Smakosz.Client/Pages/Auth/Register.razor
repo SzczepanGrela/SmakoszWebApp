@@ -67,7 +67,7 @@
         }
         else
         {
-            _error = result.Error?.Message ?? "Błąd rejestracji.";
+            _error = result.Error?.GetDisplayMessage() ?? "Błąd rejestracji.";
         }
         _loading = false;
     }

@@ -11,7 +11,7 @@
         var msgEl = document.getElementById('blazor-error-msg');
         if (!msgEl) return;
 
-        var apiUrl = window.__smakoszApiUrl || 'https://localhost:5001';
+        var apiUrl = window.__smakoszApiUrl || (window.location.origin + '/api');
 
         fetch(apiUrl + '/health', { method: 'GET', mode: 'cors' })
             .then(function (r) {
