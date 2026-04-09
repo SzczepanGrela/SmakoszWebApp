@@ -49,6 +49,7 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, ErrorOr<PagedResul
                 Role = u.Role.ToString(),
                 Status = u.IsBanned ? "Banned" : u.IsActive ? "Active" : "Inactive",
                 EmailVerified = u.EmailVerified,
+                Is2faEnabled = u.Is2faEnabled,
                 CreatedAt = u.CreatedAt
             })
             .ToListAsync(cancellationToken);
