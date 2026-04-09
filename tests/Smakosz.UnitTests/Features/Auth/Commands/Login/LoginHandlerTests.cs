@@ -18,6 +18,8 @@ public class LoginHandlerTests
     private readonly ICurrentUserService _currentUser;
     private readonly ITurnstileService _turnstile;
     private readonly IValidationConfigProvider _config;
+    private readonly IVerificationCodeService _verificationCodeService;
+    private readonly IEmailService _emailService;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -29,6 +31,8 @@ public class LoginHandlerTests
         _currentUser = Substitute.For<ICurrentUserService>();
         _turnstile = Substitute.For<ITurnstileService>();
         _config = Substitute.For<IValidationConfigProvider>();
+        _verificationCodeService = Substitute.For<IVerificationCodeService>();
+        _emailService = Substitute.For<IEmailService>();
 
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>(), Arg.Any<TimeSpan>()).Returns("access_token");
@@ -39,7 +43,7 @@ public class LoginHandlerTests
         _config.GetInt("auth.max_login_attempts", 5).Returns(5);
         _config.GetInt("auth.lockout_duration_min", 15).Returns(15);
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config);
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService);
     }
 
     [Fact]
@@ -255,5 +259,38 @@ public class LoginHandlerTests
         _sets.SecurityLogs.Should().ContainSingle(l =>
             l.EventType == Smakosz.Domain.Enums.SecurityEventType.FailedLogin &&
             l.Details != null && l.Details.Contains("account_locked"));
+    }
+
+    [Fact]
+    public async Task Handle_UserWith2faEnabled_ReturnsTwoFactorRequired()
+    {
+        var user = new UserBuilder().WithEmail("user@example.com").With2faEnabled().Build();
+        _sets.Users.Add(user);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _verificationCodeService
+            .CreateCodeAsync(user.UserId, Smakosz.Domain.Enums.VerificationCodeType.TwoFactorAuth, Arg.Any<CancellationToken>())
+            .Returns("123456");
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("AUTH_2FA_REQUIRED");
+        await _emailService.Received(1).Send2faCodeAsync(user.Email, "123456", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_UserWithout2fa_ReturnsTokenDirectly()
+    {
+        var user = new UserBuilder().WithEmail("user@example.com").Build();
+        _sets.Users.Add(user);
+        DbContextMockFactory.Refresh(_db, _sets);
+        var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.AccessToken.Should().Be("access_token");
+        await _emailService.DidNotReceive().Send2faCodeAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }
