@@ -3,8 +3,10 @@ CREATE OR REPLACE VIEW search_autocomplete AS
         'cuisine'::text AS type,
         0 AS id,
         cuisine_type AS name,
+        NULL::text AS slug,
         'Kategoria'::text AS subtitle,
         NULL::text AS icon,
+        NULL::text AS image_blurhash,
         f_unaccent(lower(cuisine_type)) AS name_normalized,
         1 AS priority
     FROM restaurants
@@ -16,8 +18,10 @@ CREATE OR REPLACE VIEW search_autocomplete AS
         'restaurant'::text AS type,
         restaurant_id AS id,
         restaurant_name AS name,
+        slug,
         cuisine_type AS subtitle,
         image_url AS icon,
+        image_blurhash,
         f_unaccent(lower(restaurant_name || ' ' || COALESCE(cuisine_type, ''))) AS name_normalized,
         2 AS priority
     FROM restaurants
@@ -29,8 +33,10 @@ CREATE OR REPLACE VIEW search_autocomplete AS
         'dish'::text AS type,
         d.dish_id AS id,
         d.dish_name AS name,
+        d.slug,
         r.restaurant_name AS subtitle,
         d.image_url AS icon,
+        d.image_blurhash,
         f_unaccent(lower(d.dish_name)) AS name_normalized,
         3 AS priority
     FROM dishes d
