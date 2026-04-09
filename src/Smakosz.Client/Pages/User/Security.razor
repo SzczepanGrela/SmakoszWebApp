@@ -79,6 +79,74 @@
                 </div>
             </div>
 
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Weryfikacja dwuetapowa (2FA)</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(_2faError))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@_2faError
+                        </div>
+                    }
+                    @if (_2faSuccess)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-check me-2"></i>@_2faSuccessMessage
+                        </div>
+                    }
+
+                    @if (_profile?.Is2faEnabled == true)
+                    {
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Włączone</span>
+                            <span class="text-muted">Przy każdym logowaniu wymagany jest kod wysyłany na Twój adres email.</span>
+                        </div>
+                        <button class="btn btn-outline-danger" @onclick="() => _showDisable2faModal = true">
+                            <i class="fa-solid fa-shield-halved me-1"></i>Wyłącz 2FA
+                        </button>
+                    }
+                    else if (_2faStep == 0)
+                    {
+                        <p class="text-muted mb-3">
+                            Weryfikacja dwuetapowa dodaje dodatkową warstwę bezpieczeństwa. Po jej włączeniu,
+                            przy każdym logowaniu będziesz musiał podać kod wysłany na Twój adres email.
+                        </p>
+                        <button class="btn btn-primary" @onclick="HandleEnable2fa" disabled="@_2faProcessing">
+                            @if (_2faProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="fa-solid fa-shield-halved me-1"></i>Włącz 2FA
+                        </button>
+                    }
+                    else if (_2faStep == 1)
+                    {
+                        <div class="alert alert-info mb-3">
+                            <i class="fa-solid fa-envelope me-2"></i>Kod weryfikacyjny został wysłany na Twój adres email.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Kod weryfikacyjny</label>
+                            <input type="text" class="form-control" @bind="_2faCode"
+                                   placeholder="Wprowadź 6-cyfrowy kod" maxlength="6" style="max-width: 200px;" />
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" @onclick="HandleConfirm2fa" disabled="@_2faProcessing">
+                                @if (_2faProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Potwierdź
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="Cancel2faSetup" disabled="@_2faProcessing">
+                                Anuluj
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fa-solid fa-desktop me-2"></i>Aktywne sesje</h5>
@@ -155,6 +223,47 @@
     </div>
 </div>
 
+@if (_showDisable2faModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-shield-halved me-2"></i>Wyłącz weryfikację dwuetapową
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseDisable2faModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_disable2faError))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@_disable2faError
+                        </div>
+                    }
+                    <p>Aby wyłączyć weryfikację dwuetapową, wprowadź swoje hasło.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Hasło</label>
+                        <PasswordInput Value="@_disable2faPassword"
+                                       ValueChanged="v => _disable2faPassword = v"
+                                       Placeholder="Wprowadź hasło" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDisable2faModal" disabled="@_disable2faProcessing">Anuluj</button>
+                    <button type="button" class="btn btn-danger" @onclick="HandleDisable2fa" disabled="@_disable2faProcessing">
+                        @if (_disable2faProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Wyłącz 2FA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (_showDeleteModal)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -225,6 +334,7 @@
 }
 
 @code {
+    private MyProfileDto? _profile;
     private List<SessionDto>? _sessions;
     private bool _loadingSessions = true;
     private bool _changingPassword;
@@ -234,9 +344,22 @@
     private ChangePasswordModel _passwordModel = new();
     private int _passwordMin = 8;
 
+    private int _2faStep;
+    private string _2faCode = "";
+    private bool _2faProcessing;
+    private string? _2faError;
+    private bool _2faSuccess;
+    private string? _2faSuccessMessage;
+
+    private bool _showDisable2faModal;
+    private string _disable2faPassword = "";
+    private bool _disable2faProcessing;
+    private string? _disable2faError;
+
     protected override async Task OnInitializedAsync()
     {
         _passwordMin = await ConfigService.GetIntAsync("auth.password_min_length", 8);
+        _profile = await UserProfileService.GetMyProfileAsync();
         await LoadSessions();
     }
 
@@ -316,6 +439,95 @@
         {
             Toast.ShowError("Nie udało się wylogować sesji.");
         }
+    }
+
+    private async Task HandleEnable2fa()
+    {
+        _2faError = null;
+        _2faSuccess = false;
+        _2faProcessing = true;
+
+        var success = await UserProfileService.Enable2faAsync();
+        if (success)
+        {
+            _2faStep = 1;
+        }
+        else
+        {
+            _2faError = "Nie udało się rozpocząć aktywacji 2FA.";
+        }
+        _2faProcessing = false;
+    }
+
+    private async Task HandleConfirm2fa()
+    {
+        _2faError = null;
+
+        if (string.IsNullOrWhiteSpace(_2faCode) || _2faCode.Length != 6)
+        {
+            _2faError = "Wprowadź 6-cyfrowy kod.";
+            return;
+        }
+
+        _2faProcessing = true;
+        var success = await UserProfileService.Confirm2faAsync(_2faCode);
+
+        if (success)
+        {
+            _2faStep = 0;
+            _2faCode = "";
+            _2faSuccess = true;
+            _2faSuccessMessage = "Weryfikacja dwuetapowa została włączona.";
+            _profile = await UserProfileService.GetMyProfileAsync();
+            Toast.ShowSuccess("Weryfikacja dwuetapowa została włączona.");
+        }
+        else
+        {
+            _2faError = "Nieprawidłowy lub wygasły kod weryfikacyjny.";
+        }
+        _2faProcessing = false;
+    }
+
+    private void Cancel2faSetup()
+    {
+        _2faStep = 0;
+        _2faCode = "";
+        _2faError = null;
+    }
+
+    private async Task HandleDisable2fa()
+    {
+        _disable2faError = null;
+
+        if (string.IsNullOrWhiteSpace(_disable2faPassword))
+        {
+            _disable2faError = "Wprowadź hasło.";
+            return;
+        }
+
+        _disable2faProcessing = true;
+        var success = await UserProfileService.Disable2faAsync(_disable2faPassword);
+
+        if (success)
+        {
+            CloseDisable2faModal();
+            _2faSuccess = true;
+            _2faSuccessMessage = "Weryfikacja dwuetapowa została wyłączona.";
+            _profile = await UserProfileService.GetMyProfileAsync();
+            Toast.ShowSuccess("Weryfikacja dwuetapowa została wyłączona.");
+        }
+        else
+        {
+            _disable2faError = "Nieprawidłowe hasło lub nie można wyłączyć 2FA.";
+        }
+        _disable2faProcessing = false;
+    }
+
+    private void CloseDisable2faModal()
+    {
+        _showDisable2faModal = false;
+        _disable2faPassword = "";
+        _disable2faError = null;
     }
 
     private bool _showDeleteModal;

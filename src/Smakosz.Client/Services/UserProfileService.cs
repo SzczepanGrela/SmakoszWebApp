@@ -109,4 +109,22 @@ public class UserProfileService : IUserProfileService
         var response = await _api.PostApiResponseAsync<object>("/api/me/delete-account/confirm", new { Code = code });
         return response.Success;
     }
+
+    public async Task<bool> Enable2faAsync()
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/me/2fa/enable", null);
+        return response.Success;
+    }
+
+    public async Task<bool> Confirm2faAsync(string code)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/me/2fa/confirm", new { Code = code });
+        return response.Success;
+    }
+
+    public async Task<bool> Disable2faAsync(string password)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/me/2fa/disable", new { Password = password });
+        return response.Success;
+    }
 }

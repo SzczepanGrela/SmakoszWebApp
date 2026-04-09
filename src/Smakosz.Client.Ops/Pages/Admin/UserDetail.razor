@@ -24,6 +24,12 @@ else
             <h2 class="fw-bold d-inline">@_user.Username</h2>
         </div>
         <div class="d-flex gap-2">
+            @if (_user.Is2faEnabled)
+            {
+                <button class="btn btn-warning btn-sm" @onclick="HandleDisable2fa">
+                    <i class="fa-solid fa-shield-halved me-1"></i>Wyłącz 2FA
+                </button>
+            }
             @if (_user.Status == "Banned")
             {
                 <button class="btn btn-success btn-sm" @onclick='() => UserAction("unban")'>
@@ -50,6 +56,12 @@ else
 
                         <dt class="col-sm-4">Rola</dt>
                         <dd class="col-sm-8"><span class="badge bg-info">@_user.Role</span></dd>
+
+                        <dt class="col-sm-4">2FA</dt>
+                        <dd class="col-sm-8">
+                            @if (_user.Is2faEnabled) { <span class="badge bg-success">Włączone</span> }
+                            else { <span class="badge bg-secondary">Wyłączone</span> }
+                        </dd>
 
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8">
@@ -88,5 +100,16 @@ else
             _user = await AdminService.GetUserAsync(Id);
         }
         else Toast.ShowError("Operacja nieudana.");
+    }
+
+    private async Task HandleDisable2fa()
+    {
+        var success = await AdminService.Disable2faForUserAsync(_user!.PublicId);
+        if (success)
+        {
+            Toast.ShowSuccess("Weryfikacja dwuetapowa wyłączona.");
+            _user = await AdminService.GetUserAsync(Id);
+        }
+        else Toast.ShowError("Nie udało się wyłączyć 2FA.");
     }
 }

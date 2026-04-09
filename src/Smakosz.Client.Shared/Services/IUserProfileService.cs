@@ -26,4 +26,7 @@ public interface IUserProfileService
     Task<PagedResult<ReviewCardDto>?> GetMyReviewsAsync(int page = 1);
     Task<bool> RequestAccountDeletionAsync(string password);
     Task<bool> ConfirmAccountDeletionAsync(string code);
+    Task<bool> Enable2faAsync();
+    Task<bool> Confirm2faAsync(string code);
+    Task<bool> Disable2faAsync(string password);
 }

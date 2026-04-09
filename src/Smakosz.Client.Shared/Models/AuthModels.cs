@@ -69,7 +69,13 @@ public class ResetPasswordRequest
 
 public class Verify2faRequest
 {
+    public string Email { get; set; } = default!;
     public string Code { get; set; } = default!;
+}
+
+public class Resend2faRequest
+{
+    public string Email { get; set; } = default!;
 }
 
 public class ResendVerificationRequest

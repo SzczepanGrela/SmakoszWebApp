@@ -21,6 +21,7 @@ public class AdminUserDto
     public string Role { get; set; } = default!;
     public string Status { get; set; } = default!;
     public bool EmailVerified { get; set; }
+    public bool Is2faEnabled { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 
