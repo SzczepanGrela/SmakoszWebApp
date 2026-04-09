@@ -14,8 +14,10 @@
                     </div>
 
                     <div class="review-detail-header">
-                        <img src="@ImageHelper.GetAvatarUrl(Review.Author.AvatarUrl, Review.Author.Username)"
-                             alt="@Review.Author.Username" class="review-detail-avatar" />
+                        <BlurHashImage Src="@ImageHelper.GetAvatarUrl(Review.Author.AvatarUrl, Review.Author.Username)"
+                                       Alt="@Review.Author.Username" BlurHash="@Review.Author.AvatarBlurhash"
+                                       ContainerStyle="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;"
+                                       ImgStyle="object-fit:cover;width:100%;height:100%;" />
                         <div class="review-detail-meta">
                             <a href="/users/@Review.Author.Slug" class="review-detail-username">@Review.Author.Username</a>
                             <a href="/dishes/@Review.DishSlug" class="review-detail-dish d-block">@Review.DishName</a>

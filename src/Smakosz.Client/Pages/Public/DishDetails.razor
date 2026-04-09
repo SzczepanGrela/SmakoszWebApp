@@ -21,8 +21,9 @@ else
         <div class="row">
             <div class="col-lg-8">
                 <div class="mb-4">
-                    <img src="@Helpers.ImageHelper.GetDishImage(_dish.ImageUrl)" alt="@_dish.DishName"
-                         class="img-fluid rounded-3 w-100" style="max-height:450px;object-fit:cover;" />
+                    <BlurHashImage Src="@Helpers.ImageHelper.GetDishImage(_dish.ImageUrl)" Alt="@_dish.DishName"
+                                   BlurHash="@_dish.ImageBlurhash" CssClass="img-fluid rounded-3 w-100"
+                                   ImgStyle="max-height:450px;object-fit:cover;" />
                 </div>
 
                 <div class="d-flex justify-content-between align-items-start mb-3">

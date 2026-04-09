@@ -37,6 +37,7 @@ public class GetMyProfileHandler : IRequestHandler<GetMyProfileQuery, ErrorOr<My
             Username = user.Username,
             Email = user.Email,
             AvatarUrl = user.AvatarUrl,
+            AvatarBlurhash = user.AvatarBlurhash,
             Role = user.Role.ToString(),
             EmailVerified = user.EmailVerified,
             Is2faEnabled = user.Is2faEnabled,
