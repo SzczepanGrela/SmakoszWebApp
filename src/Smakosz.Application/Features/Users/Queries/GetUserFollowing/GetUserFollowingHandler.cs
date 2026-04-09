@@ -11,8 +11,13 @@ namespace Smakosz.Application.Features.Users.Queries.GetUserFollowing;
 public class GetUserFollowingHandler : IRequestHandler<GetUserFollowingQuery, ErrorOr<PagedResult<UserListItemDto>>>
 {
     private readonly ISmakoszDbContext _db;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetUserFollowingHandler(ISmakoszDbContext db) => _db = db;
+    public GetUserFollowingHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    {
+        _db = db;
+        _currentUser = currentUser;
+    }
 
     public async Task<ErrorOr<PagedResult<UserListItemDto>>> Handle(GetUserFollowingQuery request, CancellationToken cancellationToken)
     {
@@ -22,6 +27,8 @@ public class GetUserFollowingHandler : IRequestHandler<GetUserFollowingQuery, Er
 
         if (user is null)
             return DomainErrors.User.NotFound;
+
+        var currentUserId = _currentUser.UserId;
 
         var query = _db.UserFollows
             .AsNoTracking()
@@ -34,6 +41,7 @@ public class GetUserFollowingHandler : IRequestHandler<GetUserFollowingQuery, Er
                 Username = f.Followed.Username,
                 AvatarUrl = f.Followed.AvatarUrl,
                 ReviewCount = f.Followed.ReviewCount,
+                IsFollowing = currentUserId.HasValue && _db.UserFollows.Any(uf => uf.FollowerId == currentUserId.Value && uf.FollowedId == f.FollowedId),
                 FollowedAt = f.CreatedAt
             });
 

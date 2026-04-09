@@ -20,5 +20,6 @@ public class UserListItemDto
     public string Username { get; init; } = default!;
     public string? AvatarUrl { get; init; }
     public int ReviewCount { get; init; }
+    public bool IsFollowing { get; init; }
     public DateTime? FollowedAt { get; init; }
 }
