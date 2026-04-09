@@ -40,6 +40,7 @@ public static class RestaurantMappingExtensions
             ReviewCount = reviewCount,
             TrendingScore = r.TrendingScore,
             ImageUrl = r.ImageUrl,
+            HeroImageUrl = r.ImageUrl != null ? r.ImageUrl.Replace(".webp", "_hero.webp") : null,
             ImageBlurhash = r.ImageBlurhash,
             Description = r.Description,
             Address = r.Address,

@@ -19,7 +19,7 @@ else if (_restaurant == null)
 else
 {
     <div class="restaurant-header position-relative" style="overflow:hidden;">
-        <BlurHashImage Src="@Helpers.ImageHelper.GetRestaurantImage(_restaurant.ImageUrl)"
+        <BlurHashImage Src="@Helpers.ImageHelper.GetRestaurantImage(_restaurant.HeroImageUrl ?? _restaurant.ImageUrl)"
                        BlurHash="@_restaurant.ImageBlurhash"
                        ContainerStyle="position:absolute;inset:0;"
                        CssClass="w-100 h-100" ImgStyle="object-fit:cover;width:100%;height:100%;" />
