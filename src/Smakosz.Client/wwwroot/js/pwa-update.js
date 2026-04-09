@@ -15,7 +15,7 @@ function showUpdateToast(worker) {
     var t = document.createElement('div');
     t.id = 'pwa-update-toast';
     t.className = 'toast show animate-in';
-    t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:1060;min-width:320px;border-radius:0.5rem;box-shadow:0 0.5rem 1rem rgba(0,0,0,0.15);overflow:hidden;background:#F2EDE6;border:1px solid #D4A574;';
+    t.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1060;min-width:320px;max-width:90vw;border-radius:0.75rem;box-shadow:0 1rem 3rem rgba(0,0,0,0.25);overflow:hidden;background:#F2EDE6;border:1px solid #D4A574;';
     t.innerHTML = '<div style="background:linear-gradient(135deg,#D4A574,#B8860B);color:white;padding:0.6rem 1rem;display:flex;justify-content:space-between;align-items:center;">'
         + '<strong><i class="fa-solid fa-arrows-rotate me-2"></i>Aktualizacja</strong>'
         + '<button onclick="this.closest(\'#pwa-update-toast\').remove()" style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;padding:0 0.25rem;">&times;</button></div>'
