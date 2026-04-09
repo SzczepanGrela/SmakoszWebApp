@@ -1,0 +1,232 @@
+@using Smakosz.Client.Helpers
+@inject IReviewService ReviewService
+@inject ToastService Toast
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);"
+         @onclick="CloseFromBackdrop" @onkeydown="HandleKeyDown">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:540px;" @onclick:stopPropagation="true">
+            <div class="modal-content" style="background:var(--card-bg);border:1px solid var(--secondary-color);border-left:4px solid var(--primary-color);">
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-end" style="margin:-8px -8px 8px 0;">
+                        <button type="button" class="btn-close" @onclick="Close"></button>
+                    </div>
+
+                    <div class="review-detail-header">
+                        <img src="@ImageHelper.GetAvatarUrl(Review.Author.AvatarUrl, Review.Author.Username)"
+                             alt="@Review.Author.Username" class="review-detail-avatar" />
+                        <div class="review-detail-meta">
+                            <a href="/users/@Review.Author.Slug" class="review-detail-username">@Review.Author.Username</a>
+                            <a href="/dishes/@Review.DishSlug" class="review-detail-dish d-block">@Review.DishName</a>
+                            <div class="review-detail-restaurant">@Review.RestaurantName</div>
+                            <div class="review-detail-date">Wizyta: @DateTimeHelper.FormatDateOnly(Review.VisitDate)</div>
+                        </div>
+                        <div class="review-detail-badge">@Average.ToString("0.#")</div>
+                    </div>
+
+                    <div class="review-ratings-grid">
+                        <div class="review-rating-item">
+                            <span class="review-rating-label">Danie</span>
+                            <div class="review-rating-bar">
+                                <div class="review-rating-bar-fill" style="width:@(Review.DishRating * 10)%;"></div>
+                            </div>
+                            <span class="review-rating-value">@Review.DishRating</span>
+                        </div>
+                        <div class="review-rating-item">
+                            <span class="review-rating-label">Obsługa</span>
+                            <div class="review-rating-bar">
+                                <div class="review-rating-bar-fill" style="width:@(Review.ServiceRating * 10)%;"></div>
+                            </div>
+                            <span class="review-rating-value">@Review.ServiceRating</span>
+                        </div>
+                        <div class="review-rating-item">
+                            <span class="review-rating-label">Czystość</span>
+                            <div class="review-rating-bar">
+                                <div class="review-rating-bar-fill" style="width:@(Review.CleanlinessRating * 10)%;"></div>
+                            </div>
+                            <span class="review-rating-value">@Review.CleanlinessRating</span>
+                        </div>
+                        <div class="review-rating-item">
+                            <span class="review-rating-label">Atmosfera</span>
+                            <div class="review-rating-bar">
+                                <div class="review-rating-bar-fill" style="width:@(Review.AmbianceRating * 10)%;"></div>
+                            </div>
+                            <span class="review-rating-value">@Review.AmbianceRating</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Review.Content))
+                    {
+                        <div class="review-detail-content @(_contentExpanded ? "" : "review-detail-content--clamped")">
+                            @Review.Content
+                        </div>
+                        @if (!_contentExpanded && Review.Content.Length > 150)
+                        {
+                            <button class="review-detail-readmore" @onclick="() => _contentExpanded = true">
+                                Czytaj więcej &#8595;
+                            </button>
+                        }
+                    }
+
+                    <div class="review-detail-footer">
+                        <div class="d-flex align-items-center gap-2">
+                            <AuthorizeView Roles="User">
+                                <Authorized>
+                                    <button class="review-like-pill @(_isLiked ? "review-like-pill--active" : "")"
+                                            style="font-size:14px;padding:4px 14px;"
+                                            @onclick="ToggleLike" disabled="@_likeSubmitting">
+                                        @if (_isLiked) { <span>&#9829;</span> } else { <span>&#9825;</span> }
+                                        <span>@_helpfulCount</span>
+                                    </button>
+                                    @if (ShowActions)
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm" title="Zgłoś recenzję"
+                                                @onclick="OpenReportModal">
+                                            <i class="fa-solid fa-flag"></i>
+                                        </button>
+                                    }
+                                </Authorized>
+                                <NotAuthorized>
+                                    <span class="review-like-pill" style="cursor:default;font-size:14px;padding:4px 14px;">
+                                        <span>&#9825;</span> <span>@Review.HelpfulCount</span>
+                                    </span>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </div>
+                        <span>dodano @DateTimeHelper.TimeAgo(Review.CreatedAt ?? DateTime.UtcNow)</span>
+                    </div>
+
+                    @if (_showReportModal)
+                    {
+                        <div class="mt-3 p-3" style="background:var(--bg-color);border-radius:8px;">
+                            <h6 class="mb-2">Zgłoś recenzję</h6>
+                            @if (_reportReasons != null)
+                            {
+                                @foreach (var reason in _reportReasons)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="@($"reason-{reason.ReasonCode}")"
+                                               checked="@_selectedReasonCodes.Contains(reason.ReasonCode)"
+                                               @onchange="e => ToggleReason(reason.ReasonCode, (bool)e.Value!)" />
+                                        <label class="form-check-label" for="@($"reason-{reason.ReasonCode}")">@reason.LabelPl</label>
+                                    </div>
+                                }
+                                <textarea class="form-control form-control-sm mt-2" rows="2"
+                                          placeholder="Dodatkowy opis (opcjonalnie)"
+                                          @bind="_reportDescription"></textarea>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="btn btn-danger btn-sm" disabled="@(!_selectedReasonCodes.Any() || _reportSubmitting)"
+                                            @onclick="SubmitReport">Wyślij zgłoszenie</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => _showReportModal = false">Anuluj</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Smakosz.Client.Models.ReviewCardDto Review { get; set; } = default!;
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool IsLiked { get; set; }
+    [Parameter] public int HelpfulCount { get; set; }
+    [Parameter] public EventCallback<(bool isLiked, int count)> OnLikeToggled { get; set; }
+    [Parameter] public bool ShowActions { get; set; }
+
+    private bool _isLiked;
+    private int _helpfulCount;
+    private bool _likeSubmitting;
+    private bool _contentExpanded;
+
+    private bool _showReportModal;
+    private List<Smakosz.Client.Models.ReportReasonDto>? _reportReasons;
+    private HashSet<string> _selectedReasonCodes = new();
+    private string? _reportDescription;
+    private bool _reportSubmitting;
+
+    private double Average => (Review.DishRating + Review.ServiceRating + Review.CleanlinessRating + Review.AmbianceRating) / 4.0;
+
+    protected override void OnParametersSet()
+    {
+        _isLiked = IsLiked;
+        _helpfulCount = HelpfulCount;
+        _contentExpanded = false;
+        _showReportModal = false;
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task CloseFromBackdrop()
+    {
+        await Close();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+            _ = Close();
+    }
+
+    private async Task ToggleLike()
+    {
+        _likeSubmitting = true;
+        var response = await ReviewService.ToggleLikeAsync(Review.PublicId);
+        _likeSubmitting = false;
+
+        if (response.Success && response.Data != null)
+        {
+            _isLiked = response.Data.IsLiked;
+            _helpfulCount = response.Data.HelpfulCount;
+            await OnLikeToggled.InvokeAsync((_isLiked, _helpfulCount));
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zmienić polubienia.");
+        }
+    }
+
+    private async Task OpenReportModal()
+    {
+        _showReportModal = true;
+        _selectedReasonCodes.Clear();
+        _reportDescription = null;
+        _reportReasons ??= await ReviewService.GetReportReasonsAsync();
+    }
+
+    private void ToggleReason(string code, bool isChecked)
+    {
+        if (isChecked)
+            _selectedReasonCodes.Add(code);
+        else
+            _selectedReasonCodes.Remove(code);
+    }
+
+    private async Task SubmitReport()
+    {
+        if (!_selectedReasonCodes.Any()) return;
+
+        _reportSubmitting = true;
+        var success = await ReviewService.ReportReviewAsync(Review.PublicId, _selectedReasonCodes.ToList(), _reportDescription);
+        _reportSubmitting = false;
+
+        if (success)
+        {
+            Toast.ShowSuccess("Zgłoszenie zostało wysłane.");
+            _showReportModal = false;
+            _selectedReasonCodes.Clear();
+            _reportDescription = null;
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się wysłać zgłoszenia.");
+        }
+    }
+}

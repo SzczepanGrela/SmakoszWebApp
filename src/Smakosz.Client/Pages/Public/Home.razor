@@ -87,14 +87,9 @@ else if (_data != null)
         {
             <section class="mb-5">
                 <SectionHeader Title="Najnowsze opinie" Icon="fa-solid fa-comments" />
-                <div class="row">
-                    @foreach (var review in _data.RecentReviews.Take(3))
-                    {
-                        <div class="col-md-4 mb-3">
-                            <ReviewCard Review="@review" Compact="true" />
-                        </div>
-                    }
-                </div>
+                <HorizontalCarousel Items="@_data.RecentReviews" Context="review">
+                    <ReviewCard Review="@review" Compact="true" />
+                </HorizontalCarousel>
             </section>
         }
     </div>
