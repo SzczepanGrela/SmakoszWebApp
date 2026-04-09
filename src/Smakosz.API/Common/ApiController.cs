@@ -1,8 +1,10 @@
 using ErrorOr;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Smakosz.API.Common;
 
 [ApiController]
+[EnableRateLimiting("general")]
 public abstract class ApiController : ControllerBase
 {
     protected IActionResult ToActionResult<T>(ErrorOr<T> result)

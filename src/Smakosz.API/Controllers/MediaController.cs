@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Features.Media.Commands.DeleteMedia;
 using Smakosz.Application.Features.Media.Commands.UploadMedia;
 
@@ -17,6 +18,7 @@ public class MediaController : ApiController
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("upload")]
     public async Task<IActionResult> Upload(
         IFormFile file,
         [FromForm] string entityType,

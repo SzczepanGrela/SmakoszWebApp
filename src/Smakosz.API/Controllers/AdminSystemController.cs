@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.CancelJob;
 using Smakosz.Application.Features.Admin.Commands.CreateJob;
@@ -19,6 +20,7 @@ namespace Smakosz.API.Controllers;
 
 [Authorize(Roles = "Admin")]
 [Route("api/admin")]
+[DisableRateLimiting]
 public class AdminSystemController : ApiController
 {
     private readonly IMediator _mediator;

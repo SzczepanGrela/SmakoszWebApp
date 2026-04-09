@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Search.Queries.GetSearchFilters;
 using Smakosz.Application.Features.Search.Queries.SearchSuggest;
@@ -6,6 +7,7 @@ using SearchQueryRequest = Smakosz.Application.Features.Search.Queries.SearchQue
 namespace Smakosz.API.Controllers;
 
 [Route("api/search")]
+[EnableRateLimiting("search")]
 public class SearchController : ApiController
 {
     private readonly IMediator _mediator;

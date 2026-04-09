@@ -74,10 +74,20 @@ public class SmakoszApiClient
         return apiResponse is { Success: true } ? apiResponse.Data : default;
     }
 
+    private static bool IsRateLimited(HttpResponseMessage response)
+        => response.StatusCode == System.Net.HttpStatusCode.TooManyRequests;
+
     private static async Task<ApiResponse<T>> ParseApiResponse<T>(HttpResponseMessage response)
     {
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
             return new ApiResponse<T> { Success = true };
+
+        if (IsRateLimited(response))
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Error = new ApiError { Code = "RATE_LIMIT_EXCEEDED", Message = "Zbyt wiele zapytan. Sprobuj ponownie pozniej." }
+            };
 
         try
         {
