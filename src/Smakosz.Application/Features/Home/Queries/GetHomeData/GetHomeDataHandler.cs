@@ -171,7 +171,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Where(r => !r.IsDeleted && r.IsVisible
                 && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(r => r.CreatedAt)
-            .Take(6)
+            .Take(10)
             .Select(r => new ReviewCardDto
             {
                 PublicId = r.PublicId,
