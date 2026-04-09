@@ -37,4 +37,7 @@ public class SearchService : ISearchService
 
     public Task<SearchFiltersDto?> GetFiltersAsync()
         => _api.GetAsync<SearchFiltersDto>("/api/search/filters");
+
+    public Task<List<SuggestItemDto>?> SuggestAsync(string query, int limit = 7)
+        => _api.GetAsync<List<SuggestItemDto>>($"/api/search/suggest?q={Uri.EscapeDataString(query)}&limit={limit}");
 }

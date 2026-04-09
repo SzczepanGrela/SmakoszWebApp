@@ -10,8 +10,10 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="input-group">
-                <input class="form-control" type="search" @bind="_query" @bind:event="oninput"
-                       @onkeydown="HandleKey" placeholder="Szukaj dań lub restauracji..." />
+                <SearchAutocomplete @bind-Value="_query"
+                                    OnSearch="_ => DoSearch()"
+                                    CssClass="form-control"
+                                    Placeholder="Szukaj dan lub restauracji..." />
                 <button class="btn btn-primary" @onclick="DoSearch">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
@@ -222,7 +224,6 @@
     private async Task ChangeType(string type) { _type = type; _page = 1; await LoadResults(); UpdateUrl(); }
     private async Task ChangeSort(string sort) { _sortBy = sort; _page = 1; await LoadResults(); UpdateUrl(); }
     private async Task GoToPage(int page) { _page = page; await LoadResults(); UpdateUrl(); }
-    private async Task HandleKey(KeyboardEventArgs e) { if (e.Key == "Enter") await DoSearch(); }
 
     private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); }
     private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); }
