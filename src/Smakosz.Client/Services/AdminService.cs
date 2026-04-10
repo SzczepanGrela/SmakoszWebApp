@@ -60,8 +60,12 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    public Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1)
-        => _api.GetAsync<PagedResult<AdminEditRequestDto>>($"/api/admin/edit-requests?page={page}");
+    public Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1, int? restaurantId = null)
+    {
+        var url = $"/api/admin/edit-requests?page={page}";
+        if (restaurantId.HasValue) url += $"&restaurantId={restaurantId.Value}";
+        return _api.GetAsync<PagedResult<AdminEditRequestDto>>(url);
+    }
 
     public async Task<bool> ProcessEditRequestAsync(int id, string action, string? reason = null)
     {
@@ -95,6 +99,25 @@ public class AdminService : IAdminService
 
     public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
+
+    public Task<AdminRestaurantDetailDto?> GetRestaurantDetailAsync(int id)
+        => _api.GetAsync<AdminRestaurantDetailDto>($"/api/admin/restaurants/by-id/{id}");
+
+    public async Task<bool> UpdateRestaurantAsync(Guid publicId, AdminRestaurantUpdateDto dto)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/restaurants/{publicId}", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> ChangeRestaurantStatusAsync(Guid publicId, string status, string? reason)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/restaurants/{publicId}/status",
+            new { status, reason });
+        return response.Success;
+    }
+
+    public Task<PagedResult<AdminModerationLogDto>?> GetRestaurantModerationHistoryAsync(int restaurantId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminModerationLogDto>>($"/api/admin/restaurants/by-id/{restaurantId}/moderation-history?page={page}");
 
     public async Task<bool> VerifyRestaurantAsync(Guid publicId)
     {
@@ -219,8 +242,12 @@ public class AdminService : IAdminService
     public async Task<bool> DeleteHeroImageAsync(Guid publicId)
         => await _api.DeleteAsync($"/api/media/{publicId}");
 
-    public Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null)
-        => _api.GetAsync<PagedResult<AdminAuditLogDto>>($"/api/admin/audit-logs?page={page}&tableName={tableName}");
+    public Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null)
+    {
+        var url = $"/api/admin/audit-logs?page={page}&tableName={tableName}";
+        if (recordId.HasValue) url += $"&recordId={recordId.Value}";
+        return _api.GetAsync<PagedResult<AdminAuditLogDto>>(url);
+    }
 
     public Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null)
         => _api.GetAsync<PagedResult<AdminSecurityLogDto>>($"/api/admin/security-logs?page={page}&eventType={eventType}");

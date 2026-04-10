@@ -9,13 +9,18 @@ using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
+using Smakosz.Application.Features.Admin.Commands.ChangeRestaurantStatus;
+using Smakosz.Application.Features.Admin.Commands.UpdateRestaurantAdmin;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
+using Smakosz.Application.Features.Admin.Queries.GetRestaurantModerationHistory;
+using Smakosz.Domain.Enums;
 using Smakosz.Application.Features.Admin.Commands.CreateTag;
 using Smakosz.Application.Features.Admin.Commands.DeleteTag;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
 using Smakosz.Application.Features.Admin.Commands.UpdateTag;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
+using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurantDetail;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
 using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
@@ -83,6 +88,44 @@ public class AdminController : ApiController
     {
         var result = await _mediator.Send(new GetAdminRestaurantsQuery(new PaginationParams(page, pageSize), search));
         return ToActionResult(result);
+    }
+
+    [HttpGet("restaurants/by-id/{id:int}")]
+    public async Task<IActionResult> GetRestaurantDetail(int id)
+    {
+        var result = await _mediator.Send(new GetAdminRestaurantDetailQuery(id));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("restaurants/{publicId:guid}")]
+    public async Task<IActionResult> UpdateRestaurant(Guid publicId, [FromBody] UpdateRestaurantAdminRequest request)
+    {
+        var result = await _mediator.Send(new UpdateRestaurantAdminCommand(
+            publicId, request.Name, request.Description, request.CuisineType,
+            request.PriceLevel, request.Address, request.PostalCode,
+            request.Phone, request.Email, request.Website,
+            request.CityId, request.ExpectedVersion));
+        return ToNoContentResult(result);
+    }
+
+    [HttpGet("restaurants/by-id/{id:int}/moderation-history")]
+    public async Task<IActionResult> GetRestaurantModerationHistory(
+        int id,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await _mediator.Send(new GetRestaurantModerationHistoryQuery(id, new PaginationParams(page, pageSize)));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("restaurants/{publicId:guid}/status")]
+    public async Task<IActionResult> ChangeRestaurantStatus(Guid publicId, [FromBody] ChangeRestaurantStatusRequest request)
+    {
+        if (!Enum.TryParse<RestaurantStatus>(request.Status, true, out var status))
+            return BadRequest(new { error = "Nieprawidłowy status" });
+
+        var result = await _mediator.Send(new ChangeRestaurantStatusCommand(publicId, status, request.Reason));
+        return ToNoContentResult(result);
     }
 
     [HttpPost("restaurants/{publicId:guid}/verify")]
@@ -223,6 +266,19 @@ public record CreateTagRequest(string Name, string Category, string TargetEntity
 public record UpdateTagRequest(string? Name, string? Category, string? TargetEntity, string? DisplayColor);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
+public record ChangeRestaurantStatusRequest(string Status, string? Reason);
+public record UpdateRestaurantAdminRequest(
+    string? Name,
+    string? Description,
+    string? CuisineType,
+    int? PriceLevel,
+    string? Address,
+    string? PostalCode,
+    string? Phone,
+    string? Email,
+    string? Website,
+    int? CityId,
+    int ExpectedVersion);
 public record ReviewIngredientSuggestionRequest(
     bool Approve,
     string? AdminNote,

@@ -50,6 +50,15 @@ public static class DomainErrors
     {
         public static readonly Error NotFound =
             Error.NotFound("RESTAURANT_NOT_FOUND", "Restauracja nie została znaleziona");
+
+        public static readonly Error VersionMismatch =
+            Error.Conflict("RESTAURANT_VERSION_MISMATCH", "Dane restauracji zostały zmienione przez innego użytkownika. Odśwież stronę i spróbuj ponownie.");
+
+        public static readonly Error InvalidStatusTransition =
+            Error.Validation("RESTAURANT_INVALID_STATUS_TRANSITION", "Niedozwolona zmiana statusu restauracji");
+
+        public static readonly Error SameStatus =
+            Error.Validation("RESTAURANT_SAME_STATUS", "Restauracja ma już ten status");
     }
 
     public static class Dish

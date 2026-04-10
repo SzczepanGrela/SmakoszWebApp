@@ -8,7 +8,7 @@ using Smakosz.Application.Features.Admin.Dtos;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetAuditLogs;
 
-public record GetAuditLogsQuery(PaginationParams Pagination, string? TableName = null)
+public record GetAuditLogsQuery(PaginationParams Pagination, string? TableName = null, int? RecordId = null)
     : IRequest<ErrorOr<PagedResult<AuditLogDto>>>;
 
 public class GetAuditLogsHandler : IRequestHandler<GetAuditLogsQuery, ErrorOr<PagedResult<AuditLogDto>>>
@@ -32,6 +32,11 @@ public class GetAuditLogsHandler : IRequestHandler<GetAuditLogsQuery, ErrorOr<Pa
         if (!string.IsNullOrWhiteSpace(request.TableName))
         {
             query = query.Where(l => l.TableName == request.TableName);
+        }
+
+        if (request.RecordId.HasValue)
+        {
+            query = query.Where(l => l.RecordId == request.RecordId.Value);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

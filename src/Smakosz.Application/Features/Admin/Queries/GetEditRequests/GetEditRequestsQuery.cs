@@ -9,7 +9,7 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetEditRequests;
 
-public record GetEditRequestsQuery(PaginationParams Pagination)
+public record GetEditRequestsQuery(PaginationParams Pagination, int? RestaurantId = null)
     : IRequest<ErrorOr<PagedResult<EditRequestDto>>>;
 
 public class GetEditRequestsHandler : IRequestHandler<GetEditRequestsQuery, ErrorOr<PagedResult<EditRequestDto>>>
@@ -30,7 +30,12 @@ public class GetEditRequestsHandler : IRequestHandler<GetEditRequestsQuery, Erro
 
         var query = _db.RestaurantEditRequests
             .AsNoTracking()
-            .Where(r => r.Status == EditRequestStatus.Pending);
+            .AsQueryable();
+
+        if (request.RestaurantId.HasValue)
+            query = query.Where(r => r.RestaurantId == request.RestaurantId.Value);
+        else
+            query = query.Where(r => r.Status == EditRequestStatus.Pending);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
