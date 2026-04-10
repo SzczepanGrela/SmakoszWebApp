@@ -290,19 +290,23 @@ def refresh_index(generate_hash: bool = True, rename_files: bool = False):
         for k in keys_to_remove:
             del index_data["ingredients"][k]
 
-        for img_file in ingredients_dir.iterdir():
-            if img_file.suffix.lower() in IMAGE_EXTENSIONS:
-                rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
-                if rel_path not in indexed_ing_paths:
-                    ing_name = img_file.stem
-                    if ing_name not in index_data["ingredients"]:
-                        new_entry = {"path": rel_path, "blurhash": None, "width": None, "height": None}
-                        if generate_hash:
-                            hash_val, w, h = generate_blurhash(img_file)
-                            new_entry.update({"blurhash": hash_val, "width": w, "height": h})
-                        index_data["ingredients"][ing_name] = new_entry
-                        logger.info(f"Added: {rel_path} (as '{ing_name}')")
-                        added_count += 1
+        for ing_folder in ingredients_dir.iterdir():
+            if not ing_folder.is_dir():
+                continue
+            ing_name = ing_folder.name
+            if ing_name in index_data["ingredients"]:
+                continue
+            for img_file in sorted(ing_folder.iterdir()):
+                if img_file.suffix.lower() in IMAGE_EXTENSIONS and is_original(img_file):
+                    rel_path = str(img_file.relative_to(output_root)).replace("\\", "/")
+                    new_entry = {"path": rel_path, "blurhash": None, "width": None, "height": None}
+                    if generate_hash:
+                        hash_val, w, h = generate_blurhash(img_file)
+                        new_entry.update({"blurhash": hash_val, "width": w, "height": h})
+                    index_data["ingredients"][ing_name] = new_entry
+                    logger.info(f"Added: {rel_path} (as '{ing_name}')")
+                    added_count += 1
+                    break
 
     hero_dir = output_root / "hero"
     hero_index_path = hero_dir / "hero_index.json"

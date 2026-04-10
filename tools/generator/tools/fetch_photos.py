@@ -401,7 +401,7 @@ class PixabayDownloader:
         for ing_name in tqdm(
             ingredients, desc="Preparing ingredient tasks", mininterval=1.0, disable=LoggingConfig.is_quiet()
         ):
-            safe_name = "".join(c for c in ing_name if c.isalnum() or c in ("_", "-")).lower()
+            safe_name = slugify(ing_name)
 
             ing_sub_dir = ing_dir / safe_name
             filename = f"{safe_name}_001.{IMAGE_FORMAT.lower()}"
