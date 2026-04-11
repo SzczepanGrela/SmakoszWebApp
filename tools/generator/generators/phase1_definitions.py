@@ -11,6 +11,7 @@ from tqdm import tqdm
 from config import PHOTO_CONFIG
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
+from utils.blueprint_db import BlueprintDB
 from utils.blueprint_loader import BlueprintLoader
 from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
@@ -138,27 +139,6 @@ class CitiesPhase(BasePhase):
             if not city_config:
                 raise ValueError("cities.json must contain CITY_CONFIG key")
 
-            POSTAL_CODE_PREFIXES = {
-                "Warszawa": "00",
-                "Kraków": "30",
-                "Wrocław": "50",
-                "Łódź": "90",
-                "Poznań": "60",
-                "Gdańsk": "80",
-                "Szczecin": "70",
-                "Bydgoszcz": "85",
-                "Lublin": "20",
-                "Białystok": "15",
-                "Katowice": "40",
-                "Gdynia": "81",
-                "Toruń": "87",
-                "Rzeszów": "35",
-                "Kielce": "25",
-                "Olsztyn": "10",
-                "Opole": "45",
-                "Gorzów Wlkp.": "66",
-            }
-
             city_data = []
             for city_name in city_config:
                 city_data.append({"city_name": city_name})
@@ -210,70 +190,17 @@ class CuisineTypesPhase(BasePhase):
         logger.info("Generating cuisine types...")
 
         try:
-            loader = BlueprintLoader(self.blueprints_dir)
-            restaurant_rules = loader.load_blueprint("restaurant_types.json")
-            themes = restaurant_rules.get("RESTAURANT_THEMES", {})
-
-            CUISINE_DISPLAY_NAMES = {
-                "Pizzeria": "Włoska",
-                "Kebab": "Turecka",
-                "Burgerownia": "Amerykańska",
-                "Kuchnia Polska": "Polska",
-                "Sushi Bar": "Japońska",
-                "Wegańska Kawiarnia": "Wegańska",
-                "Kuchnia Chińska": "Chińska",
-                "Kuchnia Indyjska": "Indyjska",
-                "Kuchnia Meksykańska": "Meksykańska",
-                "Kuchnia Francuska": "Francuska",
-                "Kuchnia Włoska": "Włoska",
-                "Kuchnia Tajska": "Tajska",
-                "Ramen Bar": "Japońska",
-                "Kawiarnia": "Kawiarnia",
-                "Food Truck": "Street Food",
-                "Smażalnia Ryb": "Ryby",
-                "BBQ & Grill": "BBQ",
-                "Taqueria": "Meksykańska",
-                "Creperie": "Naleśnikarnia",
-                "Piekarnia": "Piekarnia",
-            }
-
-            CUISINE_ICONS = {
-                "Amerykański Diner": "\U0001f32d",
-                "Bar Meksykański": "\U0001f32e",
-                "Bar Tapas": "\U0001f372",
-                "Burgerownia": "\U0001f354",
-                "Francuskie Bistro": "\U0001f950",
-                "Grecka Taverna": "\U0001f957",
-                "Kanapkownia": "\U0001f96a",
-                "Kawiarnia": "\u2615",
-                "Kebab": "\U0001f959",
-                "Korean BBQ": "\U0001f969",
-                "Kuchnia Azjatycka": "\U0001f961",
-                "Kuchnia Bliskowschodnia": "\U0001f9c6",
-                "Kuchnia Indyjska": "\U0001f35b",
-                "Kuchnia Polska": "\U0001f95f",
-                "Kuchnia Turecka": "\U0001f959",
-                "Kuchnia Wietnamska": "\U0001f35c",
-                "Kuchnia Włoska": "\U0001f35d",
-                "Lodziarnia": "\U0001f366",
-                "Niemiecki Pub": "\U0001f37a",
-                "Piekarnia z Kawiarnią": "\U0001f35e",
-                "Ramen Bar": "\U0001f35c",
-                "Restauracja z Owocami Morza": "\U0001f99e",
-                "Steakhouse": "\U0001f969",
-                "Sushi Bar": "\U0001f363",
-                "Wykwintna Restauracja": "\U0001f377",
-                "Wędzarnia BBQ": "\U0001f525",
-            }
+            bdb = BlueprintDB()
+            themes = bdb.get_themes()
+            bdb.close()
 
             cuisine_data = []
-            for theme_name in themes:
-                display_name = CUISINE_DISPLAY_NAMES.get(theme_name, theme_name)
+            for theme in themes:
                 cuisine_data.append(
                     {
-                        "name": theme_name.lower().replace(" ", "_"),
-                        "display_name": display_name,
-                        "icon": CUISINE_ICONS.get(theme_name),
+                        "name": theme["name"].lower().replace(" ", "_"),
+                        "display_name": theme["display_name"] or theme["name"],
+                        "icon": theme["icon"],
                     }
                 )
 
@@ -322,96 +249,53 @@ class IngredientsPhase(BasePhase):
         logger.info("Generating ingredients...")
 
         try:
-            loader = BlueprintLoader(self.blueprints_dir)
-            dish_variants = loader.load_blueprint("dishes.json")
+            bdb = BlueprintDB()
+            db_ingredients = bdb.get_all_ingredients()
+            bdb.close()
 
             photo_pools = PhotoPools()
 
-            all_ingredients = set()
-            for _, category_data in dish_variants.items():
-                if not isinstance(category_data, dict):
-                    continue
-                variants = category_data.get("variants", {})
-                for _, variant_data in variants.items():
-                    if isinstance(variant_data, dict):
-                        ingredients = variant_data.get("ingredients", [])
-                        all_ingredients.update(ingredients)
-
-            logger.debug(f"Found {len(all_ingredients)} unique ingredients")
-
-            if not all_ingredients:
-                logger.warning("No ingredients found in dishes.json")
+            logger.debug(f"Found {len(db_ingredients)} unique ingredients")
 
             allergens = {
-                "orzechy",
-                "krewetki",
-                "mleko",
-                "gluten",
-                "jaja",
-                "soja",
-                "ryby",
-                "seler",
-                "gorczyca",
-                "sezam",
-                "łupin",
+                "orzechy", "krewetki", "mleko", "gluten", "jaja",
+                "soja", "ryby", "seler", "gorczyca", "sezam", "łupin",
             }
 
-            global_config = loader.load_blueprint("global_config.json")
-            dietary_keywords = global_config.get("DIETARY_KEYWORDS", {})
-            meat_keywords = dietary_keywords.get("meat", [])
-            dairy_keywords = dietary_keywords.get("dairy", [])
-            egg_keywords = dietary_keywords.get("eggs", [])
-            gluten_keywords = dietary_keywords.get("gluten", [])
-
             ingredient_data = []
-            for ingredient in tqdm(
-                sorted(all_ingredients),
+            for ing in tqdm(
+                db_ingredients,
                 desc="Generating ingredients",
                 unit=" ingredient",
                 mininterval=1.0,
                 disable=LoggingConfig.is_quiet(),
             ):
-                ing_lower = ingredient.lower()
+                name = ing["name"]
+                ing_lower = name.lower()
 
                 is_allergen = any(allergen in ing_lower for allergen in allergens)
 
-                is_vegetarian = True
-                is_vegan = True
-                is_gluten_free = True
-                is_lactose_free = True
+                is_meat = bool(ing["is_meat"])
+                is_dairy = bool(ing["is_dairy"])
+                is_egg = bool(ing["is_egg"])
+                is_gluten = bool(ing["is_gluten"])
 
-                if any(kw in ing_lower for kw in meat_keywords):
-                    is_vegetarian = False
-                    is_vegan = False
+                is_vegetarian = not is_meat
+                is_vegan = not (is_meat or is_dairy or is_egg)
+                is_gluten_free = not is_gluten
+                is_lactose_free = not is_dairy
 
-                if any(kw in ing_lower for kw in dairy_keywords):
-                    is_vegan = False
-                    is_lactose_free = False
-
-                if any(kw in ing_lower for kw in egg_keywords):
-                    is_vegan = False
-
-                if any(kw in ing_lower for kw in gluten_keywords) or "gluten" in ing_lower:
-                    is_gluten_free = False
-
-                if "tofu" in ing_lower:
-                    is_vegetarian = True
-                    is_vegan = True
-
-                if "miód" in ing_lower:
-                    is_vegan = False
-
-                photo_data = photo_pools.get_ingredient_photo(ingredient)
+                photo_data = photo_pools.get_ingredient_photo(name)
                 icon_url = photo_data.get("url")
                 icon_blurhash = photo_data.get("blurhash")
 
                 if not icon_url:
-                    icon_url = generate_ingredient_icon_url(ingredient)
+                    icon_url = generate_ingredient_icon_url(name)
                     icon_blurhash = None
 
                 ingredient_data.append(
                     {
-                        "ingredient_name": ingredient.replace("_", " "),
+                        "ingredient_name": name.replace("_", " "),
                         "icon_url": icon_url,
                         "icon_blurhash": icon_blurhash,
                         "is_allergen": is_allergen,

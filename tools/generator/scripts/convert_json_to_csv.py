@@ -135,7 +135,7 @@ def classify_ingredient(name, meat_kw, dairy_kw, egg_kw, gluten_kw):
     if "tofu" in lower:
         is_meat = 0
     if "miod" in lower or "miód" in lower:
-        pass
+        is_egg = 1
 
     return is_meat, is_dairy, is_egg, is_gluten
 

@@ -6,13 +6,12 @@ import uuid
 
 from tqdm import tqdm
 
-from algorithms.preference_calculator import DIMENSIONS, add_dish_variance, apply_restaurant_bias, merge_vectors
+from algorithms.preference_calculator import DIMENSIONS, add_dish_variance, apply_restaurant_bias
 from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
-from generators.constants import DAIRY_KEYWORDS, EGG_KEYWORDS, GLUTEN_KEYWORDS, MEAT_KEYWORDS, MENU_BLUEPRINTS
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
-from utils.blueprint_loader import BlueprintLoader
+from utils.blueprint_db import BlueprintDB
 from utils.db_connection import DatabaseConnection
 from utils.dish_helpers import generate_dish_calories, generate_dish_description
 from utils.distributions import sample_beta, zipf_distribution
@@ -32,30 +31,13 @@ def _unique_slug(dish_name: str, used_slugs: set[str]) -> str:
     return slug
 
 def generate_dish_vector(
-    archetype_name: str, archetype_data: dict, variant_name: str, variant_data: dict, restaurant_modifiers: dict
+    archetype_name: str, characteristics: dict, weights: dict | None, restaurant_modifiers: dict
 ) -> tuple:
-    base_data = archetype_data.get("archetype_base", {})
-    base_chars = base_data.get("characteristics", {})
-    base_weights = base_data.get("default_weights", None)
-
-    variant_chars = variant_data.get("characteristics", {})
-    variant_weights = variant_data.get("weights")
-
-    characteristics = merge_vectors(base_chars, variant_chars)
-
     if not characteristics:
         characteristics = {dim: round(random.uniform(0.1, 0.9), 2) for dim in DIMENSIONS}
-        if "ostry" in variant_name.lower() or "pikant" in variant_name.lower():
-            characteristics["flavor_spiciness"] = round(random.uniform(0.7, 0.9), 2)
-        if "słod" in variant_name.lower() or "deser" in variant_name.lower():
-            characteristics["flavor_sweetness"] = round(random.uniform(0.7, 0.9), 2)
 
-    if archetype_name != "Inne" and not base_chars.get("_neutral", False):
-        characteristics = apply_restaurant_bias(characteristics, archetype_name, restaurant_modifiers)
-
+    characteristics = apply_restaurant_bias(characteristics, archetype_name, restaurant_modifiers)
     characteristics = add_dish_variance(characteristics, variance=0.25)
-
-    weights = variant_weights if variant_weights is not None else base_weights
 
     return (characteristics, weights)
 
@@ -79,15 +61,19 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             db.rollback()
             raise e
 
-    loader = BlueprintLoader(blueprints_dir)
-    dish_variants = loader.load_blueprint("dishes.json")
+    bdb = BlueprintDB()
+
+    all_bdb_variants = bdb.get_all_variants_with_details()
+    variant_ingredients_cache = {}
+    for v in all_bdb_variants:
+        variant_ingredients_cache[v["id"]] = bdb.get_variant_ingredients(v["id"])
 
     restaurants_objs = RestaurantDAO.get_all_restaurants_for_dishes(db)
 
     restaurants_list = [
         {
             "restaurant_id": r.restaurant_id,
-            "secret_menu_blueprint": r.secret_menu_blueprint,
+            "cuisine_type": r.cuisine_type,
             "secret_price_multiplier": r.secret_price_multiplier,
             "secret_archetype_modifiers": r.secret_archetype_modifiers,
             "status": r.status,
@@ -118,8 +104,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             restaurant_sections_map[rest_id] = []
         restaurant_sections_map[rest_id].append({"id": sec_id, "section_name": sec_name})
 
-    global_config = loader.load_blueprint("global_config.json")
-    dish_section_mapping = global_config.get("DISH_SECTION_MAPPING", {})
+    ingredient_flags_cache = {ing["name"]: ing for ing in bdb.get_all_ingredients()}
 
     all_tags = db.fetch_all("SELECT tag_id, tag_name, category FROM tags")
     tag_map = {tag_name: tag_id for tag_id, tag_name, _ in all_tags}
@@ -133,12 +118,8 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
     db.execute_query("TRUNCATE TABLE dish_archetypes RESTART IDENTITY CASCADE")
 
-    unique_archetypes = set()
-    for category_name, category_data in dish_variants.items():
-        if isinstance(category_data, dict):
-            unique_archetypes.add(category_name)
-
-    archetype_insert_data = [{"archetype_name": a} for a in sorted(unique_archetypes)]
+    archetype_names = bdb.get_archetype_names()
+    archetype_insert_data = [{"archetype_name": a} for a in archetype_names]
     if archetype_insert_data:
         db.insert_bulk("dish_archetypes", archetype_insert_data)
 
@@ -147,20 +128,15 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     logger.info(f"Loaded {len(archetype_map)} archetypes.")
 
     logger.info("Populating dish variants dictionary...")
-    unique_variants = set()
-    for category_name, category_data in dish_variants.items():
-        if not isinstance(category_data, dict):
-            continue
-        variants = category_data.get("variants", {})
-        for variant_name in variants:
-            unique_variants.add((variant_name, category_name))
+    variant_insert_data = []
+    for v in all_bdb_variants:
+        if v["archetype_name"] in archetype_map:
+            variant_insert_data.append(
+                {"variant_name": v["name"], "archetype_id": archetype_map[v["archetype_name"]]}
+            )
 
-    variant_insert_data = [
-        {"variant_name": v, "archetype_id": archetype_map[a]} for v, a in unique_variants if a in archetype_map
-    ]
-
+    variant_insert_data.sort(key=lambda x: (x["archetype_id"], x["variant_name"]))
     if variant_insert_data:
-        variant_insert_data.sort(key=lambda x: (x["archetype_id"], x["variant_name"]))
         db.insert_bulk("dish_variants", variant_insert_data)
 
     variant_rows = db.fetch_all("""
@@ -170,6 +146,10 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     """)
     variant_map = {(row[1], row[2]): row[0] for row in variant_rows}
     logger.info(f"Loaded {len(variant_map)} variants.")
+
+    bdb_variant_lookup = {}
+    for v in all_bdb_variants:
+        bdb_variant_lookup[(v["name"], v["archetype_name"])] = v
 
     photo_pools = PhotoPools()
 
@@ -250,12 +230,12 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
     for restaurant in tqdm(restaurants_list, desc="Generating dishes", unit=" restaurant", mininterval=1.0):
         restaurant_id = restaurant["restaurant_id"]
-        menu_blueprint = restaurant["secret_menu_blueprint"]
+        cuisine_type = restaurant["cuisine_type"]
         price_multiplier = restaurant["secret_price_multiplier"]
         restaurant_status = restaurant.get("status", "active")
         restaurant_quality_skill = restaurant.get("secret_overall_food_quality", 0.5)
 
-        menu_dishes = _select_dishes_for_menu(menu_blueprint, dish_variants, scaling_factor)
+        menu_dishes = _select_dishes_for_menu(cuisine_type, all_bdb_variants, variant_ingredients_cache, bdb, scaling_factor)
 
         if not menu_dishes:
             continue
@@ -276,14 +256,12 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 logger.warning(f"Variant ID not found for {dish_name} ({archetype})")
                 continue
 
-            archetype_full_data = dish_variants.get(archetype, {})
-            variant_full_data = archetype_full_data.get("variants", {}).get(dish_name, {})
+            bdb_variant = bdb_variant_lookup.get((dish_name, archetype), {})
 
             characteristics_vec, weights_vec = generate_dish_vector(
                 archetype_name=archetype,
-                archetype_data=archetype_full_data,
-                variant_name=dish_name,
-                variant_data=variant_full_data,
+                characteristics=dict(bdb_variant.get("characteristics", {})),
+                weights=bdb_variant.get("weights"),
                 restaurant_modifiers=restaurant_modifiers,
             )
 
@@ -315,9 +293,10 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             calories = generate_dish_calories(archetype=archetype, price=0, richness=secret_richness_val)
 
             dish_tag_ids = _get_tags_for_dish(
-                archetype=archetype,
+                cuisine_tag=bdb_variant.get("cuisine_tag"),
                 spiciness=secret_spiciness_val,
                 ingredients=dish_ingredients,
+                ingredient_flags_cache=ingredient_flags_cache,
                 tag_map=tag_map,
                 tag_by_category=tag_by_category,
             )
@@ -365,28 +344,15 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
             assigned_sections: list[int] = []
             if available_sections:
-                preferred_keywords = dish_section_mapping.get(archetype, [])
-                if not preferred_keywords:
-                    preferred_keywords = ["Dania Główne"]
+                routed_section_names = bdb.get_sections_for_dish(cuisine_type, archetype)
 
                 for sec in available_sections:
-                    sec_name_lower = sec["section_name"].lower()
-                    for keyword in preferred_keywords:
-                        if keyword.lower() in sec_name_lower:
-                            assigned_sections.append(sec["id"])
-                            break
-                    if assigned_sections:
+                    if sec["section_name"] in routed_section_names:
+                        assigned_sections.append(sec["id"])
                         break
 
                 if not assigned_sections:
-                    for sec in available_sections:
-                        if archetype.lower() in sec["section_name"].lower():
-                            assigned_sections.append(sec["id"])
-                            break
-
-                if not assigned_sections:
                     assigned_sections.append(random.choice(available_sections)["id"])
-                    logger.warning(f"Random section fallback: archetype='{archetype}' restaurant={restaurant_id}")
 
             dish_meta_buffer.append(
                 {
@@ -418,6 +384,8 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     if dish_sections_buffer:
         db.insert_bulk("dish_section_assignments", dish_sections_buffer)
 
+    bdb.close()
+
     duration = time.time() - start_time
     logger.info(f"Generated {total_dishes} dishes in {duration:.2f}s")
     logger.info(f"  - Linked {total_ingredients_links} ingredients")
@@ -425,37 +393,11 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
     logger.info(f"  - Assigned {total_dish_tags} tags")
 
 def _get_tags_for_dish(
-    archetype: str, spiciness: float, ingredients: list, tag_map: dict, tag_by_category: dict
+    cuisine_tag: str | None, spiciness: float, ingredients: list,
+    ingredient_flags_cache: dict, tag_map: dict, tag_by_category: dict
 ) -> list:
     tag_ids = set()
 
-    archetype_cuisine_map = {
-        "Pizza": "Włoska",
-        "Pasta": "Włoska",
-        "Risotto": "Włoska",
-        "Gnocchi": "Włoska",
-        "Burger": "Amerykańska",
-        "Steak": "Amerykańska",
-        "BBQ": "Amerykańska",
-        "Sushi": "Japońska",
-        "Ramen": "Japońska",
-        "Pho": "Wietnamska",
-        "Noodles": "Azjatycka",
-        "Dim Sum": "Azjatycka",
-        "Curry": "Indyjska",
-        "Tacos": "Meksykańska",
-        "Quesadilla": "Meksykańska",
-        "Nachos": "Meksykańska",
-        "Kebab": "Bliskowschodnia",
-        "Salad": "Śródziemnomorska",
-        "Seafood": "Śródziemnomorska",
-        "Oysters": "Francuska",
-        "Fondue": "Francuska",
-        "Soup": "Polska",
-        "Vegan": "Śródziemnomorska",
-    }
-
-    cuisine_tag = archetype_cuisine_map.get(archetype)
     if cuisine_tag and cuisine_tag in tag_map:
         tag_ids.add(tag_map[cuisine_tag])
 
@@ -470,11 +412,21 @@ def _get_tags_for_dish(
         if spice_tag in tag_map:
             tag_ids.add(tag_map[spice_tag])
 
-    ingredients_lower = [i.lower() for i in ingredients]
+    has_meat = False
+    has_dairy = False
+    has_egg = False
+    has_gluten = False
 
-    has_meat = any(any(kw in ing for kw in MEAT_KEYWORDS) for ing in ingredients_lower)
-    has_dairy = any(any(kw in ing for kw in DAIRY_KEYWORDS) for ing in ingredients_lower)
-    has_egg = any(any(kw in ing for kw in EGG_KEYWORDS) for ing in ingredients_lower)
+    for ing_name in ingredients:
+        flags = ingredient_flags_cache.get(ing_name, {})
+        if flags.get("is_meat"):
+            has_meat = True
+        if flags.get("is_dairy"):
+            has_dairy = True
+        if flags.get("is_egg"):
+            has_egg = True
+        if flags.get("is_gluten"):
+            has_gluten = True
 
     if not has_meat and not has_dairy and not has_egg:
         if "Wegańskie" in tag_map:
@@ -482,7 +434,6 @@ def _get_tags_for_dish(
     elif not has_meat and "Wegetariańskie" in tag_map:
         tag_ids.add(tag_map["Wegetariańskie"])
 
-    has_gluten = any(any(kw in ing for kw in GLUTEN_KEYWORDS) for ing in ingredients_lower)
     if not has_gluten and "Bezglutenowe" in tag_map:
         tag_ids.add(tag_map["Bezglutenowe"])
 
@@ -494,53 +445,34 @@ def _get_tags_for_dish(
 
     return list(tag_ids)
 
-def _select_dishes_for_menu(menu_blueprint: str, dish_variants: dict, scaling_factor: float = 1.0) -> list:
+def _select_dishes_for_menu(
+    cuisine_type: str, all_bdb_variants: list, variant_ingredients_cache: dict,
+    bdb: BlueprintDB, scaling_factor: float = 1.0
+) -> list:
     all_variants = []
-    for category_name, category_data in dish_variants.items():
-        if not isinstance(category_data, dict):
-            continue
+    for v in all_bdb_variants:
+        final_price = round(v["base_price_mean"] * v["price_multiplier_mean"], 2)
+        spiciness = v["characteristics"].get("flavor_spiciness", 0.0) * 10.0
 
-        base_price_info = category_data.get("base_price", {"mean": 35.0, "stdev": 5.0})
-        base_price = base_price_info.get("mean", 35.0)
+        all_variants.append(
+            {
+                "variant_name": v["name"],
+                "archetype": v["archetype_name"],
+                "price": final_price,
+                "ingredients": variant_ingredients_cache.get(v["id"], []),
+                "spiciness": spiciness,
+            }
+        )
 
-        variants = category_data.get("variants", {})
-        for variant_name, variant_data in variants.items():
-            if not isinstance(variant_data, dict):
-                continue
+    theme_archetypes = bdb.get_theme_archetypes(cuisine_type)
+    params = bdb.get_dish_count_params(cuisine_type)
 
-            price_mult_info = variant_data.get("price_multiplier", {"mean": 1.0})
-            price_multiplier = price_mult_info.get("mean", 1.0)
-            final_price = round(base_price * price_multiplier, 2)
+    target_mean = float(params["mean"]) * scaling_factor
+    target_sigma = float(params["sigma"]) * scaling_factor
 
-            characteristics = variant_data.get("characteristics", {})
-            flavor_spiciness = characteristics.get("flavor_spiciness", 0.0)
-            spiciness = flavor_spiciness * 10.0
+    target_count = max(4, int(random.gauss(target_mean, target_sigma)))
 
-            all_variants.append(
-                {
-                    "variant_name": variant_name,
-                    "archetype": category_name,
-                    "price": final_price,
-                    "ingredients": variant_data.get("ingredients", []),
-                    "tags": ["spicy"] if spiciness > 6 else [],
-                    "spiciness": spiciness,
-                }
-            )
-
-    config = MENU_BLUEPRINTS.get(menu_blueprint, MENU_BLUEPRINTS["General"])
-    archetypes = list(config["archetypes"])
-
-    base_mean = float(config["mean"])
-    base_sigma = float(config["sigma"])
-
-    target_mean = base_mean * scaling_factor
-    target_sigma = base_sigma * scaling_factor
-
-    target_count = int(random.gauss(target_mean, target_sigma))
-
-    target_count = max(4, target_count)
-
-    matching_dishes = [v for v in all_variants if v.get("archetype") in archetypes]
+    matching_dishes = [v for v in all_variants if v["archetype"] in theme_archetypes]
 
     if not matching_dishes:
         matching_dishes = all_variants
