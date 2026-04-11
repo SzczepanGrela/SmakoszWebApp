@@ -1,0 +1,47 @@
+id,name,base_price_mean,base_price_stdev,pixabay_term,cuisine_tag
+1,Pizza,30.0,3.5,pizza,Włoska
+2,Burger,30.0,3.4,burger,Amerykanska
+3,Kebab,26.0,3.29,kebab,Bliskowschodnia
+4,Frytki,12.0,2.0,french fries portion,
+5,Lody,14.0,2.0,ice cream,
+6,Sorbet,12.0,2.0,sorbet,
+7,Sałatka,26.0,2.82,salad,
+8,Kanapka,23.5,2.75,sandwich,
+9,Panini,27.0,3.0,panini,
+10,Wrap,26.0,3.0,wrap food,
+11,Makaron,30.0,3.54,pasta,Włoska
+12,Zupa,16.0,2.2,soup,Polska
+13,Ramen,31.0,3.75,ramen,Japonska
+14,Pho,27.0,3.0,pho soup,Wietnamska
+15,Sushi,25.0,2.86,sushi,Japonska
+16,Taco,16.0,2.0,tacos,Meksykanska
+17,Mexican,24.0,2.67,mexican food,Meksykanska
+18,Curry,32.0,4.0,curry,Indyjska
+19,Pierogi,22.0,3.0,dumplings,Polska
+20,Naleśniki,20.0,2.5,crepes,
+21,Deser,18.0,2.26,dessert,
+22,Herbata,9.0,1.1,tea cup,
+23,Kawa,12.0,1.4,coffee,
+24,Gorąca Czekolada,15.0,2.0,hot chocolate,
+25,Napój Bezalkoholowy,11.0,1.67,soda drink,
+26,Piwo,14.5,2.0,beer,
+27,Wino,24.5,5.0,wine,
+28,Przystawka,22.0,3.4,appetizer food,
+29,Stek,66.5,7.25,steak meal,Amerykanska
+30,Naan,9.0,1.0,naan bread,Indyjska
+31,Danie Polskie,28.0,2.9,polish food,Polska
+32,Danie Azjatyckie,30.0,3.33,asian food,Azjatycka
+33,Danie Koreańskie,36.5,3.5,korean food,
+34,Tapas,27.0,3.33,tapas,Hiszpanska
+35,Danie Greckie,28.0,3.0,greek food,Grecka
+36,Danie Francuskie,46.5,5.0,french cuisine,Francuska
+37,Danie Niemieckie,31.5,3.12,german food,Niemiecka
+38,Dania BBQ,37.5,4.5,barbecue food,Amerykanska
+39,Ryby i Owoce Morza,41.5,4.75,seafood dish,Srodziemnomorska
+40,Śniadanie,22.0,3.0,breakfast,
+41,Pieczywo,10.0,1.4,bread,
+42,Danie Bliskowschodnie,20.0,2.38,middle eastern food,Bliskowschodnia
+43,Risotto,35.0,4.0,risotto,Włoska
+44,Dodatek,14.0,2.0,side dish food,
+45,Drink,28.0,3.75,cocktail alcohol,
+46,Milkshake,15.0,2.0,milkshake,
