@@ -30,6 +30,7 @@ class DatasetStatistics:
             "moderation": self._moderation_stats(),
             "ncf_dataset": self._ncf_dataset_profile(),
             "generator_validation": self._generator_validation(),
+            "photo_pipeline": self._photo_pipeline_stats(),
             "temporal": self._temporal_stats(),
             "integrity": self._integrity_checks(),
         }
@@ -43,6 +44,18 @@ class DatasetStatistics:
             "restaurants",
             "dishes",
             "reviews",
+            "cities",
+            "cuisine_types",
+            "tags",
+            "ingredients",
+            "menu_sections",
+            "dish_archetypes",
+            "dish_variants",
+            "dish_ingredients",
+            "dish_tags",
+            "dish_section_assignments",
+            "restaurant_tags",
+            "restaurant_opening_hours",
             "user_follows",
             "review_likes",
             "notifications",
@@ -52,6 +65,14 @@ class DatasetStatistics:
             "media_assets",
             "data_correction_requests",
             "reports",
+            "report_reason_definitions",
+            "report_reason_assignments",
+            "restaurant_edit_requests",
+            "ingredient_suggestions",
+            "user_sessions",
+            "system.moderation_results",
+            "system.banned_identifiers",
+            "system.tickets",
         ]
         counts = {}
         for table in tables:
@@ -251,6 +272,18 @@ class DatasetStatistics:
                 "total": total,
                 "avg_per_user": _r(fav_row[0]),
                 "std": _r(fav_row[1]),
+            }
+
+        saved_row = self.db.fetch_one("""
+            SELECT AVG(cnt)::float, STDDEV(cnt)::float
+            FROM (SELECT user_id, COUNT(*) cnt FROM saved_dishes GROUP BY user_id) t
+        """)
+        if saved_row:
+            total = self.db.fetch_val("SELECT COUNT(*) FROM saved_dishes") or 0
+            result["saved_dishes"] = {
+                "total": total,
+                "avg_per_user": _r(saved_row[0]),
+                "std": _r(saved_row[1]),
             }
 
         return result
@@ -533,6 +566,70 @@ class DatasetStatistics:
             "pct_with_text": _r(row[3] / row[5] * 100) if row[5] else 0,
         }
 
+    def _photo_pipeline_stats(self) -> dict:
+        total_ing = self.db.fetch_val("SELECT COUNT(*) FROM ingredients") or 0
+        ing_with_icon = self.db.fetch_val(
+            "SELECT COUNT(*) FROM ingredients WHERE icon_url IS NOT NULL"
+        ) or 0
+        ing_with_blurhash = self.db.fetch_val(
+            "SELECT COUNT(*) FROM ingredients WHERE icon_blurhash IS NOT NULL"
+        ) or 0
+        ing_placeholder = self.db.fetch_val(
+            "SELECT COUNT(*) FROM ingredients WHERE icon_url LIKE '%%ui-avatars%%'"
+        ) or 0
+
+        total_dishes = self.db.fetch_val("SELECT COUNT(*) FROM dishes") or 0
+        dish_with_img = self.db.fetch_val(
+            "SELECT COUNT(*) FROM dishes WHERE image_url IS NOT NULL"
+        ) or 0
+        dish_with_blurhash = self.db.fetch_val(
+            "SELECT COUNT(*) FROM dishes WHERE image_blurhash IS NOT NULL"
+        ) or 0
+
+        total_rest = self.db.fetch_val("SELECT COUNT(*) FROM restaurants") or 0
+        rest_with_img = self.db.fetch_val(
+            "SELECT COUNT(*) FROM restaurants WHERE image_url IS NOT NULL"
+        ) or 0
+        rest_with_blurhash = self.db.fetch_val(
+            "SELECT COUNT(*) FROM restaurants WHERE image_blurhash IS NOT NULL"
+        ) or 0
+
+        total_users = self.db.fetch_val("SELECT COUNT(*) FROM users") or 0
+        user_with_avatar = self.db.fetch_val(
+            "SELECT COUNT(*) FROM users WHERE avatar_url IS NOT NULL"
+        ) or 0
+        user_with_blurhash = self.db.fetch_val(
+            "SELECT COUNT(*) FROM users WHERE avatar_blurhash IS NOT NULL"
+        ) or 0
+
+        return {
+            "ingredients": {
+                "total": total_ing,
+                "with_icon": ing_with_icon,
+                "with_blurhash": ing_with_blurhash,
+                "placeholder_count": ing_placeholder,
+                "coverage_pct": _r(ing_with_icon / total_ing * 100) if total_ing else 0,
+            },
+            "dishes": {
+                "total": total_dishes,
+                "with_image": dish_with_img,
+                "with_blurhash": dish_with_blurhash,
+                "coverage_pct": _r(dish_with_img / total_dishes * 100) if total_dishes else 0,
+            },
+            "restaurants": {
+                "total": total_rest,
+                "with_image": rest_with_img,
+                "with_blurhash": rest_with_blurhash,
+                "coverage_pct": _r(rest_with_img / total_rest * 100) if total_rest else 0,
+            },
+            "users": {
+                "total": total_users,
+                "with_avatar": user_with_avatar,
+                "with_blurhash": user_with_blurhash,
+                "coverage_pct": _r(user_with_avatar / total_users * 100) if total_users else 0,
+            },
+        }
+
     def _temporal_stats(self) -> dict:
         rows = self.db.fetch_all("""
             SELECT TO_CHAR(DATE_TRUNC('month', visit_date), 'YYYY-MM') as month,
@@ -750,6 +847,95 @@ class DatasetStatistics:
                 "0",
                 "Each user should review each dish at most once",
             ),
+            (
+                "Ingredients with placeholder icon (ui-avatars)",
+                """SELECT COUNT(*) FROM ingredients
+                   WHERE icon_url LIKE '%%ui-avatars%%'""",
+                "0",
+                "All ingredients should have real R2 photos, not ui-avatars placeholders",
+            ),
+            (
+                "Ingredients without icon_url",
+                "SELECT COUNT(*) FROM ingredients WHERE icon_url IS NULL",
+                "0",
+                "All ingredients should have an icon URL",
+            ),
+            (
+                "Ingredients without blurhash",
+                "SELECT COUNT(*) FROM ingredients WHERE icon_blurhash IS NULL",
+                "0",
+                "All ingredients should have a blurhash for progressive loading",
+            ),
+            (
+                "Dishes without blurhash",
+                "SELECT COUNT(*) FROM dishes WHERE image_blurhash IS NULL AND image_url IS NOT NULL",
+                "0",
+                "All dishes with images should have a blurhash",
+            ),
+            (
+                "Restaurants without blurhash",
+                "SELECT COUNT(*) FROM restaurants WHERE image_blurhash IS NULL AND image_url IS NOT NULL",
+                "0",
+                "All restaurants with images should have a blurhash",
+            ),
+            (
+                "Dish ingredients referencing missing ingredients",
+                """SELECT COUNT(*) FROM dish_ingredients di
+                   LEFT JOIN ingredients i ON di.ingredient_id = i.ingredient_id
+                   WHERE i.ingredient_id IS NULL""",
+                "0",
+                "Every dish_ingredient must reference an existing ingredient",
+            ),
+            (
+                "Dishes without menu section assignment",
+                """SELECT COUNT(*) FROM dishes d
+                   LEFT JOIN dish_section_assignments dsa ON d.dish_id = dsa.dish_id
+                   WHERE dsa.dish_id IS NULL""",
+                "0",
+                "Every dish should be assigned to a menu section",
+            ),
+            (
+                "Menu sections without dishes (empty sections)",
+                """SELECT COUNT(*) FROM menu_sections ms
+                   LEFT JOIN dish_section_assignments dsa ON ms.section_id = dsa.section_id
+                   WHERE dsa.section_id IS NULL""",
+                f"< {int(num_restaurants * 5)}",
+                "Some empty menu sections are expected (not every restaurant uses every section)",
+            ),
+            (
+                "Restaurant edit requests referencing missing restaurants",
+                """SELECT COUNT(*) FROM restaurant_edit_requests r
+                   LEFT JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
+                   WHERE rest.restaurant_id IS NULL""",
+                "0",
+                "Restaurant edit requests must reference existing restaurants",
+            ),
+            (
+                "Ingredient suggestions referencing missing users",
+                """SELECT COUNT(*) FROM ingredient_suggestions s
+                   LEFT JOIN users u ON s.user_id = u.user_id
+                   WHERE u.user_id IS NULL""",
+                "0",
+                "Ingredient suggestions must reference existing users",
+            ),
+            (
+                "Users with NULL failed_login_count",
+                "SELECT COUNT(*) FROM users WHERE failed_login_count IS NULL",
+                "0",
+                "All users must have failed_login_count set (NOT NULL)",
+            ),
+            (
+                "Reviews with wrong helpful_count",
+                """SELECT COUNT(*) FROM (
+                       SELECT r.review_id, r.helpful_count, COUNT(rl.user_id) real_cnt
+                       FROM reviews r
+                       LEFT JOIN review_likes rl ON r.review_id = rl.review_id
+                       GROUP BY r.review_id, r.helpful_count
+                       HAVING r.helpful_count != COUNT(rl.user_id)
+                   ) t""",
+                "0",
+                "reviews.helpful_count must match actual COUNT(review_likes)",
+            ),
         ]
 
         results = []
@@ -760,6 +946,7 @@ class DatasetStatistics:
             except Exception as e:
                 actual = -1
                 status = "error"
+                self.db.rollback()
                 logger.debug(f"Integrity check '{name}' failed: {e}")
 
             results.append({
@@ -876,6 +1063,9 @@ class DatasetStatistics:
             if "favorites" in sg:
                 fv = sg["favorites"]
                 lines.append(f"  Favorites: {fv['total']:,} (avg {fv['avg_per_user']}/user, std {fv['std']})")
+            if "saved_dishes" in sg:
+                sd = sg["saved_dishes"]
+                lines.append(f"  Saved dishes: {sd['total']:,} (avg {sd['avg_per_user']}/user, std {sd['std']})")
 
         rd = self.stats.get("restaurant_distribution", {})
         if rd:
@@ -935,6 +1125,37 @@ class DatasetStatistics:
                         f"deleted={bd.get('deleted', 0):,} "
                         f"rejected={bd.get('rejected', 0):,} "
                         f"user_deleted={bd.get('user_deleted', 0):,}"
+                    )
+
+        photo = self.stats.get("photo_pipeline", {})
+        if photo:
+            lines.append("")
+            lines.append("PHOTO PIPELINE HEALTH")
+            for section_name, section_data in photo.items():
+                total = section_data.get("total", 0)
+                coverage = section_data.get("coverage_pct", 0)
+                if section_name == "ingredients":
+                    with_icon = section_data.get("with_icon", 0)
+                    with_bh = section_data.get("with_blurhash", 0)
+                    placeholder = section_data.get("placeholder_count", 0)
+                    lines.append(
+                        f"  Ingredients: {with_icon}/{total} with icon ({coverage}%), "
+                        f"{with_bh} blurhash, {placeholder} placeholders"
+                    )
+                elif section_name == "users":
+                    with_avatar = section_data.get("with_avatar", 0)
+                    with_bh = section_data.get("with_blurhash", 0)
+                    lines.append(
+                        f"  Users: {with_avatar}/{total} with avatar ({coverage}%), "
+                        f"{with_bh} blurhash"
+                    )
+                else:
+                    with_img = section_data.get("with_image", 0)
+                    with_bh = section_data.get("with_blurhash", 0)
+                    label = section_name.capitalize()
+                    lines.append(
+                        f"  {label}: {with_img}/{total} with image ({coverage}%), "
+                        f"{with_bh} blurhash"
                     )
 
         real = self.stats.get("generator_validation", {})
