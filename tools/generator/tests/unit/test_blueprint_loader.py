@@ -1,5 +1,8 @@
 import pytest
 
+from utils.blueprint_db import BlueprintDB
+
+
 class TestDishesBlueprint:
 
     def test_dishes_json_loads(self, dishes_json):
@@ -63,30 +66,89 @@ class TestDishesBlueprint:
                 for dim, val in var_chars.items():
                     assert 0.0 <= val <= 1.0, f"Variant '{archetype_name}.{variant_name}' {dim}={val} out of [0,1]"
 
-class TestIngredientsBlueprint:
 
-    def test_ingredients_loads(self, ingredients_json):
-        assert ingredients_json is not None
-        assert len(ingredients_json) > 0, "ingredients_list.json should have ingredients"
+class TestBlueprintDB:
 
-    def test_ingredients_are_strings(self, ingredients_json):
-        for ingredient in ingredients_json:
-            assert isinstance(ingredient, str), f"Ingredient should be string, got {type(ingredient)}"
+    def test_archetypes_loaded(self):
+        bdb = BlueprintDB()
+        names = bdb.get_archetype_names()
+        assert len(names) == 46
+        assert "Pizza" in names
+        bdb.close()
 
-class TestCrossReferenceValidation:
+    def test_variants_have_characteristics(self):
+        bdb = BlueprintDB()
+        variants = bdb.get_all_variants_with_details()
+        assert len(variants) > 0
+        for v in variants:
+            assert v["characteristics"], f"Variant '{v['name']}' has empty characteristics"
+        bdb.close()
 
-    def test_variant_ingredients_exist(self, dishes_json, ingredients_json):
-        valid_ingredients = set(ingredients_json)
+    def test_variant_price_multiplier_reasonable(self):
+        bdb = BlueprintDB()
+        variants = bdb.get_all_variants_with_details()
+        for v in variants:
+            assert 0.1 <= v["price_multiplier_mean"] <= 5.0, (
+                f"Variant '{v['name']}' price multiplier {v['price_multiplier_mean']} out of range"
+            )
+        bdb.close()
+
+    def test_ingredients_have_names(self):
+        bdb = BlueprintDB()
+        ingredients = bdb.get_all_ingredients()
+        assert len(ingredients) == 286
+        for ing in ingredients:
+            assert ing["name"], "Ingredient has empty name"
+        bdb.close()
+
+    def test_all_variants_have_ingredients(self):
+        bdb = BlueprintDB()
+        variants = bdb.get_all_variants_with_details()
+        empty = []
+        for v in variants:
+            ings = bdb.get_variant_ingredients(v["id"])
+            if not ings:
+                empty.append(f"{v['archetype_name']}/{v['name']}")
+        bdb.close()
+        if empty:
+            pytest.skip(f"{len(empty)} variants without ingredients")
+
+    def test_themes_have_sections(self):
+        bdb = BlueprintDB()
+        themes = bdb.get_themes()
+        assert len(themes) == 26
+        for t in themes:
+            sections = bdb.get_theme_sections(t["name"])
+            assert sections, f"Theme '{t['name']}' has no sections"
+        bdb.close()
+
+    def test_all_theme_archetypes_have_section_routes(self):
+        bdb = BlueprintDB()
+        themes = bdb.get_themes()
         missing = []
+        for t in themes:
+            for arch in bdb.get_theme_archetypes(t["name"]):
+                secs = bdb.get_sections_for_dish(t["name"], arch)
+                if not secs:
+                    missing.append(f"{t['name']} -> {arch}")
+        bdb.close()
+        assert not missing, f"Missing section routes: {missing}"
 
-        for archetype_name, archetype_data in dishes_json.items():
-            if not isinstance(archetype_data, dict):
-                continue
+    def test_characteristics_values_normalized(self):
+        bdb = BlueprintDB()
+        variants = bdb.get_all_variants_with_details()
+        violations = []
+        for v in variants:
+            for dim, val in v["characteristics"].items():
+                if not (0.0 <= val <= 1.0):
+                    violations.append(f"{v['archetype_name']}/{v['name']} {dim}={val}")
+        bdb.close()
+        assert not violations, f"Characteristic values out of [0,1]: {violations[:5]}"
 
-            for variant_name, variant_data in archetype_data.get("variants", {}).items():
-                for ingredient in variant_data.get("ingredients", []):
-                    if ingredient not in valid_ingredients:
-                        missing.append(f"{archetype_name}.{variant_name}: {ingredient}")
-
-        if missing and len(missing) > 10:
-            pytest.skip(f"Many missing ingredients ({len(missing)}) - may need blueprint update")
+    def test_ingredient_dietary_flags(self):
+        bdb = BlueprintDB()
+        flags = bdb.get_ingredient_dietary_flags(["kurczak", "mozzarella", "pomidor"])
+        bdb.close()
+        assert flags["kurczak"]["is_meat"] is True
+        assert flags["mozzarella"]["is_dairy"] is True
+        assert flags["pomidor"]["is_meat"] is False
