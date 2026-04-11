@@ -12,8 +12,9 @@ class TestPhase3Metadata:
         assert metadata.phase_id == "phase3_dishes"
         assert metadata.display_name == "Dishes Generation"
 
-        assert len(metadata.dependencies) == 2
+        assert len(metadata.dependencies) == 3
         assert "phase1_ingredients" in metadata.dependencies
+        assert "phase1_tags" in metadata.dependencies
         assert "phase2_restaurants" in metadata.dependencies
 
         assert "dishes" in metadata.required_tables
@@ -32,7 +33,7 @@ class TestPhase3Registration:
         assert retrieved is phase
 
     def test_phase3_dual_dependency_resolution(self):
-        from generators.phase1_definitions import IngredientsPhase
+        from generators.phase1_definitions import CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
 
         registry = PhaseRegistry()
@@ -40,7 +41,9 @@ class TestPhase3Registration:
         from generators.phase1_definitions import CitiesPhase
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
 
@@ -142,13 +145,15 @@ class TestPhase3ErrorHandling:
 class TestPhase3ComplexDependencies:
 
     def test_full_dependency_chain(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
 
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
 
@@ -156,9 +161,11 @@ class TestPhase3ComplexDependencies:
 
         assert "phase1_cities" in resolved
         assert "phase1_ingredients" in resolved
+        assert "phase1_tags" in resolved
         assert "phase2_restaurants" in resolved
         assert "phase3_dishes" in resolved
 
         assert resolved.index("phase1_cities") < resolved.index("phase2_restaurants")
         assert resolved.index("phase1_ingredients") < resolved.index("phase3_dishes")
+        assert resolved.index("phase1_tags") < resolved.index("phase3_dishes")
         assert resolved.index("phase2_restaurants") < resolved.index("phase3_dishes")

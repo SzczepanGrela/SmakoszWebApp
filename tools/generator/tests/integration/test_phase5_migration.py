@@ -32,7 +32,7 @@ class TestPhase5Registration:
         assert retrieved is phase
 
     def test_phase5_triple_dependency_resolution(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
         from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
@@ -40,7 +40,9 @@ class TestPhase5Registration:
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
         registry.register(UsersPhase())
@@ -162,7 +164,7 @@ class TestPhase5ErrorHandling:
 class TestPhase5ComplexDependencies:
 
     def test_full_dependency_chain(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
         from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
@@ -170,7 +172,9 @@ class TestPhase5ComplexDependencies:
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
         registry.register(UsersPhase())
@@ -199,7 +203,7 @@ class TestPhase5ComplexDependencies:
         assert restaurants_idx < dishes_idx
 
     def test_phase5_is_deepest_in_tree(self):
-        from generators.phase1_definitions import CitiesPhase, IngredientsPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, IngredientsPhase, TagsPhase
         from generators.phase2_restaurants import RestaurantsPhase
         from generators.phase3_dishes import DishesPhase
         from generators.phase4_users import UsersPhase
@@ -207,7 +211,9 @@ class TestPhase5ComplexDependencies:
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
         registry.register(IngredientsPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
         registry.register(DishesPhase())
         registry.register(UsersPhase())

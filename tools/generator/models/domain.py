@@ -50,7 +50,7 @@ class RestaurantForReview:
 @dataclass(slots=True)
 class RestaurantForDishes:
     restaurant_id: int
-    secret_menu_blueprint: str
+    cuisine_type: str
     secret_price_multiplier: float
     secret_archetype_modifiers: dict
     status: str

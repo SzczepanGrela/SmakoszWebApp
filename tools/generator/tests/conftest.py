@@ -30,16 +30,6 @@ def dishes_json(blueprints_dir) -> dict:
         return json.load(f)
 
 @pytest.fixture
-def menu_templates_json(blueprints_dir) -> dict:
-    with open(blueprints_dir / "menu_templates.json", encoding="utf-8") as f:
-        return json.load(f)
-
-@pytest.fixture
-def ingredients_json(blueprints_dir) -> list:
-    with open(blueprints_dir / "ingredients_list.json", encoding="utf-8") as f:
-        return json.load(f)
-
-@pytest.fixture
 def sample_archetype() -> dict:
     return {
         "base_price": {"mean": 30.0, "stdev": 3.5},

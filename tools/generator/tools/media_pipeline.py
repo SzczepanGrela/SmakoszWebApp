@@ -368,14 +368,16 @@ class MediaPipeline:
         return url
 
     def _load_ingredient_mappings(self, blueprints_dir: Path) -> dict[str, str]:
-        mapping_file = blueprints_dir / "ingredients_pixabay.json"
-        if mapping_file.exists():
-            with open(mapping_file, encoding="utf-8") as f:
-                mappings = json.load(f)
-                logger.info(f"Loaded {len(mappings)} ingredient mappings")
-                return mappings
-        logger.warning(f"Ingredient mapping file not found: {mapping_file}")
-        return {}
+        try:
+            from utils.blueprint_db import BlueprintDB
+            bdb = BlueprintDB()
+            mappings = {k: v for k, v in bdb.get_ingredient_pixabay_terms().items() if v}
+            bdb.close()
+            logger.info(f"Loaded {len(mappings)} ingredient mappings from BlueprintDB")
+            return mappings
+        except Exception as e:
+            logger.warning(f"Could not load ingredient mappings from BlueprintDB: {e}")
+            return {}
 
     def _load_dish_variants(self, blueprints_dir: Path) -> dict:
         variants_file = blueprints_dir / "dishes.json"
@@ -385,12 +387,15 @@ class MediaPipeline:
         return {}
 
     def _load_restaurant_themes(self, blueprints_dir: Path) -> dict:
-        themes_file = blueprints_dir / "restaurant_types.json"
-        if themes_file.exists():
-            with open(themes_file, encoding="utf-8") as f:
-                data = json.load(f)
-                return data.get("RESTAURANT_THEMES", {})
-        return {}
+        try:
+            from utils.blueprint_db import BlueprintDB
+            bdb = BlueprintDB()
+            themes = {t["name"]: t for t in bdb.get_themes()}
+            bdb.close()
+            return themes
+        except Exception as e:
+            logger.warning(f"Could not load themes from BlueprintDB: {e}")
+            return {}
 
     def search_with_backoff(
         self, query: str, count: int, orientation: str = "horizontal", max_attempts: int = 15

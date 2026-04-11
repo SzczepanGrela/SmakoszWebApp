@@ -7,14 +7,14 @@ class RestaurantDAO:
     @staticmethod
     def get_all_restaurants_for_dishes(db: DatabaseConnection) -> list[RestaurantForDishes]:
         rows = db.fetch_all("""
-            SELECT restaurant_id, secret_menu_blueprint, secret_price_multiplier,
+            SELECT restaurant_id, cuisine_type, secret_price_multiplier,
                    secret_archetype_modifiers, status, created_at
             FROM restaurants
         """)
         return [
             RestaurantForDishes(
                 restaurant_id=row[0],
-                secret_menu_blueprint=row[1],
+                cuisine_type=row[1],
                 secret_price_multiplier=row[2],
                 secret_archetype_modifiers=safe_json_loads(row[3], {}),
                 status=row[4],

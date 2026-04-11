@@ -30,18 +30,22 @@ class TestPhase2Registration:
         assert retrieved is phase
 
     def test_phase2_dependency_resolution(self):
-        from generators.phase1_definitions import CitiesPhase
+        from generators.phase1_definitions import CitiesPhase, CuisineTypesPhase, TagsPhase
 
         registry = PhaseRegistry()
 
         registry.register(CitiesPhase())
+        registry.register(CuisineTypesPhase())
+        registry.register(TagsPhase())
         registry.register(RestaurantsPhase())
 
         resolved = registry.resolve_dependencies(["phase2_restaurants"])
 
-        assert len(resolved) == 2
-        assert resolved[0] == "phase1_cities"
-        assert resolved[1] == "phase2_restaurants"
+        assert len(resolved) == 4
+        assert resolved[-1] == "phase2_restaurants"
+        assert resolved.index("phase1_cities") < resolved.index("phase2_restaurants")
+        assert resolved.index("phase1_cuisines") < resolved.index("phase2_restaurants")
+        assert resolved.index("phase1_tags") < resolved.index("phase2_restaurants")
 
 class TestPhase2DependencyValidation:
 

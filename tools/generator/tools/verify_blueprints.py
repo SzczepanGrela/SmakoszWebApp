@@ -1,151 +1,104 @@
-import json
 import logging
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from generators.constants import MENU_BLUEPRINTS, THEME_TO_MENU_BLUEPRINT
+from utils.blueprint_db import BlueprintDB
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("BlueprintVerifier")
 
-def load_json_blueprint(filepath):
-    try:
-        with open(filepath, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        logger.error(f"ERROR: Failed to load {filepath}: {e}")
-        return None
 
 def verify_blueprints():
-    root_dir = Path(__file__).parent.parent
-    blueprints_dir = root_dir / "blueprints"
+    logger.info("Starting Blueprint Verification (SQLite)...\n")
 
-    logger.info("Starting: Starting COMPREHENSIVE Blueprint Verification...\n")
+    bdb = BlueprintDB()
 
-    restaurant_types = load_json_blueprint(blueprints_dir / "restaurant_types.json")
-    dishes = load_json_blueprint(blueprints_dir / "dishes.json")
-    ingredients_list = load_json_blueprint(blueprints_dir / "ingredients_list.json")
+    logger.info("--- 1. Theme Analysis ---")
+    themes = bdb.get_themes()
+    logger.info(f"Loaded {len(themes)} themes.")
 
-    if not restaurant_types or not dishes or not ingredients_list:
-        logger.error("ERROR: Critical: Missing blueprint files.")
-        return
+    for theme in themes:
+        name = theme["name"]
+        sections = bdb.get_theme_sections(name)
+        archetypes = bdb.get_theme_archetypes(name)
 
-    ingredients_set = set(ingredients_list)
-
-    theme_mapping = THEME_TO_MENU_BLUEPRINT
-
-    logger.info("--- 1. Restaurant Themes Analysis ---")
-    themes = restaurant_types.get("RESTAURANT_THEMES", {})
-
-    themes_without_specific_mapping = []
-
-    for theme, data in themes.items():
-        mapped_profile = theme_mapping.get(theme, "General")
-        is_fallback = (theme not in theme_mapping) or (
-            mapped_profile == "General" and theme not in ["Kebab", "Kuchnia Polska"]
-        )
-
-        sections = data.get("menu_config", {}).get("sections", [])
         if not sections:
-            logger.error(f"ERROR: {theme}: No Sections Defined!")
+            logger.error(f"ERROR: {name}: No sections defined!")
+        if not archetypes:
+            logger.error(f"ERROR: {name}: No archetypes mapped!")
 
-        if is_fallback:
-            themes_without_specific_mapping.append(theme)
+        if not theme["display_name"]:
+            logger.warning(f"WARNING: {name}: Missing display_name")
+        if not theme["icon"]:
+            logger.warning(f"WARNING: {name}: Missing icon")
 
-    if themes_without_specific_mapping:
-        logger.warning(
-            f"\nWARNING:  {len(themes_without_specific_mapping)} Themes are falling back to 'General' (Missing specific menu):"
-        )
-        for t in themes_without_specific_mapping:
-            logger.warning(f"   - {t}")
-        logger.info(
-            "   -> Recommendations: Create new mappings in phase2_restaurants.py and new menu profiles in phase3_dishes.py"
-        )
+    logger.info("\n--- 2. Archetype Reachability ---")
+    all_archetype_names = set(bdb.get_archetype_names())
+    reachable = set()
+    for theme in themes:
+        for a in bdb.get_theme_archetypes(theme["name"]):
+            reachable.add(a)
 
-    logger.info("\n--- 2. Dish Reachability Analysis ---")
-
-    defined_archetypes = set()
-    for category, content in dishes.items():
-        if isinstance(content, dict) and content.get("variants"):
-            defined_archetypes.add(category)
-
-    reachable_archetypes = set()
-    for _profile, config in MENU_BLUEPRINTS.items():
-        for arch in config["archetypes"]:
-            reachable_archetypes.add(arch)
-
-    orphans = defined_archetypes - reachable_archetypes
+    orphans = all_archetype_names - reachable
     if orphans:
-        logger.error(f"ERROR: Found {len(orphans)} ORPHANED Dish Categories (Never Generated):")
-        for o in orphans:
-            possible_match = [k for k in MENU_BLUEPRINTS if k.lower() in o.lower()]
-            hint = f"(Maybe add to {possible_match[0]}?)" if possible_match else ""
-            logger.error(f"   - {o} {hint}")
+        logger.error(f"ERROR: {len(orphans)} orphaned archetypes (not reachable by any theme):")
+        for o in sorted(orphans):
+            logger.error(f"   - {o}")
     else:
-        logger.info("OK: All dish categories are reachable.")
+        logger.info("OK: All archetypes are reachable by at least one theme.")
 
-    logger.info("\n--- 3. Ingredient Integrity Check ---")
+    logger.info("\n--- 3. Variant Integrity ---")
+    variants = bdb.get_all_variants_with_details()
+    logger.info(f"Loaded {len(variants)} variants across {len(all_archetype_names)} archetypes.")
 
-    unknown_ingredients = defaultdict(list)
+    missing_chars = []
+    for v in variants:
+        if not v["characteristics"]:
+            missing_chars.append(f"{v['archetype_name']}/{v['name']}")
 
-    for category, content in dishes.items():
-        if not isinstance(content, dict):
-            continue
-        variants = content.get("variants", {})
-        for v_name, v_data in variants.items():
-            if not isinstance(v_data, dict):
-                continue
-            ingredients = v_data.get("ingredients", [])
-            for ing in ingredients:
-                if ing not in ingredients_set:
-                    unknown_ingredients[ing].append(f"{category}/{v_name}")
+        ings = bdb.get_variant_ingredients(v["id"])
+        if not ings:
+            logger.warning(f"WARNING: {v['archetype_name']}/{v['name']}: No ingredients")
 
-    if unknown_ingredients:
-        logger.warning(
-            f"WARNING: Found {len(unknown_ingredients)} ingredients used in dishes but NOT in ingredients_list.json:"
-        )
-        sorted_unknown = sorted(unknown_ingredients.items(), key=lambda x: len(x[1]), reverse=True)
-        for ing, usage in sorted_unknown[:10]:
-            logger.warning(f"   - '{ing}': used in {len(usage)} dishes (e.g. {usage[0]})")
-        if len(unknown_ingredients) > 10:
-            logger.warning(f"   ... and {len(unknown_ingredients) - 10} more.")
+    if missing_chars:
+        logger.error(f"ERROR: {len(missing_chars)} variants with empty characteristics:")
+        for m in missing_chars[:10]:
+            logger.error(f"   - {m}")
     else:
-        logger.info("OK: All ingredients in dishes are valid.")
+        logger.info("OK: All variants have characteristics vectors.")
 
-    logger.info("\n--- 4. Logic & Structure Check (Inheritance) ---")
+    logger.info("\n--- 4. Ingredient Dietary Flags ---")
+    ingredients = bdb.get_all_ingredients()
+    logger.info(f"Loaded {len(ingredients)} ingredients.")
 
-    for category, content in dishes.items():
-        if isinstance(content, dict):
-            bp = content.get("base_price", {})
-            if not bp or "mean" not in bp:
-                logger.error(f"ERROR: {category}: Missing base_price configuration")
+    meat_count = sum(1 for i in ingredients if i["is_meat"])
+    dairy_count = sum(1 for i in ingredients if i["is_dairy"])
+    egg_count = sum(1 for i in ingredients if i["is_egg"])
+    gluten_count = sum(1 for i in ingredients if i["is_gluten"])
+    logger.info(f"  Meat: {meat_count}, Dairy: {dairy_count}, Egg: {egg_count}, Gluten: {gluten_count}")
 
-            archetype_base = content.get("archetype_base", {})
-            base_chars = archetype_base.get("characteristics", {})
-            if not base_chars:
-                logger.warning(
-                    f"WARNING: {category}: 'archetype_base.characteristics' is empty. Variants will need to define all stats."
-                )
+    logger.info("\n--- 5. Section Routing Completeness ---")
+    missing_routes = []
+    for theme in themes:
+        t_name = theme["name"]
+        t_archetypes = bdb.get_theme_archetypes(t_name)
+        for arch in t_archetypes:
+            sections = bdb.get_sections_for_dish(t_name, arch)
+            if not sections:
+                missing_routes.append(f"{t_name} -> {arch}")
 
-            variants = content.get("variants", {})
-            if not variants:
-                logger.warning(f"WARNING: {category}: No variants defined (Empty category)")
+    if missing_routes:
+        logger.error(f"ERROR: {len(missing_routes)} theme-archetype pairs with no section route:")
+        for m in missing_routes[:10]:
+            logger.error(f"   - {m}")
+    else:
+        logger.info("OK: All theme-archetype pairs have section routes.")
 
-            for v_name, v_data in variants.items():
-                if not v_data.get("pixabay_term"):
-                    logger.warning(f"WARNING: {category}/{v_name}: Missing 'pixabay_term' (Photos will fail)")
-
-                variant_chars = v_data.get("characteristics", {})
-
-                if not base_chars and not variant_chars:
-                    logger.warning(
-                        f"WARNING: {category}/{v_name}: No characteristics in Base AND No characteristics in Variant. Dish will be purely random."
-                    )
-
+    bdb.close()
     logger.info("\n--- Verification Complete ---")
+
 
 if __name__ == "__main__":
     verify_blueprints()
