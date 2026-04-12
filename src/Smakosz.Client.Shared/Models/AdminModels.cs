@@ -252,6 +252,18 @@ public class AdminRestaurantUpdateDto
     public int ExpectedVersion { get; set; }
 }
 
+public class AdminBannedIdentifierDto
+{
+    public int BanId { get; set; }
+    public string Type { get; set; } = default!;
+    public string Value { get; set; } = default!;
+    public string? Reason { get; set; }
+    public string? BannedByUsername { get; set; }
+    public DateTime? BannedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public bool IsExpired { get; set; }
+}
+
 public class AdminForbiddenWordDto
 {
     public int WordId { get; set; }
