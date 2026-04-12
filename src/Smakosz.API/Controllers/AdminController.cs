@@ -10,6 +10,11 @@ using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.ChangeRestaurantStatus;
+using Smakosz.Application.Features.Admin.Commands.CreateForbiddenWord;
+using Smakosz.Application.Features.Admin.Commands.DeleteForbiddenWord;
+using Smakosz.Application.Features.Admin.Commands.TestForbiddenWord;
+using Smakosz.Application.Features.Admin.Commands.UpdateForbiddenWord;
+using Smakosz.Application.Features.Admin.Queries.GetForbiddenWords;
 using Smakosz.Application.Features.Admin.Commands.UpdateRestaurantAdmin;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Queries.GetRestaurantModerationHistory;
@@ -133,6 +138,59 @@ public class AdminController : ApiController
     {
         var result = await _mediator.Send(new VerifyRestaurantCommand(publicId));
         return ToNoContentResult(result);
+    }
+
+    [HttpGet("forbidden-words")]
+    public async Task<IActionResult> GetForbiddenWords(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null)
+    {
+        var result = await _mediator.Send(new GetForbiddenWordsQuery(new PaginationParams(page, pageSize), search));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("forbidden-words")]
+    public async Task<IActionResult> CreateForbiddenWord([FromBody] CreateForbiddenWordRequest request)
+    {
+        if (!Enum.TryParse<ForbiddenWordCategory>(request.Category, true, out var category))
+            return BadRequest(new { error = "Nieprawidlowa kategoria" });
+
+        var result = await _mediator.Send(new CreateForbiddenWordCommand(request.Word, category, request.IsRegex));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("forbidden-words/{id:int}")]
+    public async Task<IActionResult> UpdateForbiddenWord(int id, [FromBody] UpdateForbiddenWordRequest request)
+    {
+        ForbiddenWordCategory? category = null;
+        if (request.Category is not null && !Enum.TryParse(request.Category, true, out ForbiddenWordCategory parsed))
+            return BadRequest(new { error = "Nieprawidlowa kategoria" });
+        else if (request.Category is not null)
+            category = Enum.Parse<ForbiddenWordCategory>(request.Category, true);
+
+        var result = await _mediator.Send(new UpdateForbiddenWordCommand(id, request.Word, category, request.IsRegex));
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("forbidden-words/{id:int}")]
+    public async Task<IActionResult> DeleteForbiddenWord(int id)
+    {
+        var result = await _mediator.Send(new DeleteForbiddenWordCommand(id));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("forbidden-words/test")]
+    public async Task<IActionResult> TestForbiddenWord([FromBody] TestForbiddenWordRequest request)
+    {
+        var categories = request.Categories
+            .Select(c => Enum.TryParse<ForbiddenWordCategory>(c, true, out var cat) ? cat : (ForbiddenWordCategory?)null)
+            .Where(c => c.HasValue)
+            .Select(c => c!.Value)
+            .ToArray();
+
+        var result = await _mediator.Send(new TestForbiddenWordCommand(request.Text, categories));
+        return ToActionResult(result);
     }
 
     [HttpGet("ingredients")]
@@ -267,6 +325,9 @@ public record UpdateTagRequest(string? Name, string? Category, string? TargetEnt
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
 public record ChangeRestaurantStatusRequest(string Status, string? Reason);
+public record CreateForbiddenWordRequest(string Word, string Category, bool IsRegex);
+public record UpdateForbiddenWordRequest(string? Word, string? Category, bool? IsRegex);
+public record TestForbiddenWordRequest(string Text, string[] Categories);
 public record UpdateRestaurantAdminRequest(
     string? Name,
     string? Description,

@@ -288,5 +288,14 @@ public static class DomainErrors
 
         public static readonly Error ContentContainsForbiddenWord =
             Error.Validation("FORBIDDEN_WORD_CONTENT", "Treść zawiera niedozwolone słowo");
+
+        public static readonly Error NotFound =
+            Error.NotFound("FORBIDDEN_WORD_NOT_FOUND", "Zakazane słowo nie zostało znalezione");
+
+        public static readonly Error AlreadyExists =
+            Error.Conflict("FORBIDDEN_WORD_ALREADY_EXISTS", "Zakazane słowo już istnieje");
+
+        public static readonly Error InvalidRegex =
+            Error.Validation("FORBIDDEN_WORD_INVALID_REGEX", "Nieprawidłowe wyrażenie regularne");
     }
 }

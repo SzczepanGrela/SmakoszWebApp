@@ -57,4 +57,9 @@ public interface IAdminService
     Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null);
     Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null);
     Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync();
+    Task<PagedResult<AdminForbiddenWordDto>?> GetForbiddenWordsAsync(int page = 1, string? search = null);
+    Task<bool> CreateForbiddenWordAsync(AdminForbiddenWordDto dto);
+    Task<bool> UpdateForbiddenWordAsync(int id, AdminForbiddenWordDto dto);
+    Task<bool> DeleteForbiddenWordAsync(int id);
+    Task<bool?> TestForbiddenWordAsync(string text, string[] categories);
 }

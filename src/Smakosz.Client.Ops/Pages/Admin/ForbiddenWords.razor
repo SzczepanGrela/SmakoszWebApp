@@ -1,0 +1,210 @@
+@page "/admin/forbidden-words"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Zakazane slowa - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-ban me-2"></i>Zakazane slowa</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj slowo
+    </button>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h5 class="mb-0">Przetestuj tekst</h5></div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-5 mb-2">
+                <label class="form-label fw-medium">Tekst</label>
+                <input type="text" class="form-control" @bind="_testText" placeholder="Wpisz tekst do sprawdzenia..." />
+            </div>
+            <div class="col-md-5 mb-2">
+                <label class="form-label fw-medium">Kategorie</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var cat in _allCategories)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="test-@cat"
+                                   checked="@_testCategories.Contains(cat)"
+                                   @onchange="e => ToggleTestCategory(cat, (bool)(e.Value ?? false))" />
+                            <label class="form-check-label" for="test-@cat">@cat</label>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <button class="btn btn-outline-primary btn-sm w-100" disabled="@_testing" @onclick="RunTest">
+                    <i class="fa-solid fa-flask me-1"></i>Testuj
+                </button>
+            </div>
+        </div>
+        @if (_testResult.HasValue)
+        {
+            <div class="mt-2">
+                @if (_testResult.Value)
+                {
+                    <span class="badge bg-danger"><i class="fa-solid fa-xmark me-1"></i>Zablokowany</span>
+                }
+                else
+                {
+                    <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Dozwolony</span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_editingId.HasValue ? "Edytuj" : "Nowe") zakazane slowo</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <label class="form-label fw-medium">Slowo / wzorzec *</label>
+                    <input type="text" class="form-control" @bind="_form.Word" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Kategoria *</label>
+                    <select class="form-select" @bind="_form.Category">
+                        <option value="">-- wybierz --</option>
+                        @foreach (var cat in _allCategories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="isRegex" @bind="_form.IsRegex" />
+                        <label class="form-check-label" for="isRegex">Wyrazenie regularne</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveWord">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_words == null || !_words.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-ban" Title="Brak zakazanych slow" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Slowo</th><th>Kategoria</th><th>Regex</th><th>Dodal</th><th>Data</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var w in _words.Data)
+                {
+                    <tr>
+                        <td class="fw-medium"><code>@w.Word</code></td>
+                        <td><StatusBadge Status="@w.Category" /></td>
+                        <td>
+                            @if (w.IsRegex)
+                            {
+                                <i class="fa-solid fa-code text-info" title="Regex"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-font text-muted" title="Zwykly tekst"></i>
+                            }
+                        </td>
+                        <td>@(w.AddedByUsername ?? "-")</td>
+                        <td>@(w.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditWord(w)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteWord(w)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_words.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_words.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminForbiddenWordDto>? _words;
+    private bool _loading = true;
+    private bool _showForm;
+    private int? _editingId;
+    private AdminForbiddenWordDto _form = new() { Category = "" };
+
+    private string _testText = "";
+    private HashSet<string> _testCategories = new() { "Profanity", "Offensive" };
+    private bool? _testResult;
+    private bool _testing;
+
+    private static readonly string[] _allCategories = { "Profanity", "Reserved", "Offensive", "Trademark" };
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _words = await AdminService.GetForbiddenWordsAsync(page);
+        _loading = false;
+    }
+
+    private void ShowAddForm() { _form = new() { Category = "" }; _editingId = null; _showForm = true; }
+    private void EditWord(AdminForbiddenWordDto w) { _form = new() { WordId = w.WordId, Word = w.Word, Category = w.Category, IsRegex = w.IsRegex }; _editingId = w.WordId; _showForm = true; }
+    private void CancelForm() { _showForm = false; _editingId = null; }
+
+    private async Task SaveWord()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Word) || string.IsNullOrWhiteSpace(_form.Category)) return;
+        bool success;
+        if (_editingId.HasValue)
+            success = await AdminService.UpdateForbiddenWordAsync(_editingId.Value, _form);
+        else
+            success = await AdminService.CreateForbiddenWordAsync(_form);
+
+        if (success) { Toast.ShowSuccess("Zapisano."); _showForm = false; await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie zapisac.");
+    }
+
+    private async Task DeleteWord(AdminForbiddenWordDto w)
+    {
+        var success = await AdminService.DeleteForbiddenWordAsync(w.WordId);
+        if (success) { Toast.ShowSuccess("Usunieto."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie usunac.");
+    }
+
+    private void ToggleTestCategory(string cat, bool isChecked)
+    {
+        if (isChecked) _testCategories.Add(cat);
+        else _testCategories.Remove(cat);
+    }
+
+    private async Task RunTest()
+    {
+        if (string.IsNullOrWhiteSpace(_testText) || _testCategories.Count == 0) return;
+        _testing = true;
+        _testResult = await AdminService.TestForbiddenWordAsync(_testText, _testCategories.ToArray());
+        _testing = false;
+    }
+}
