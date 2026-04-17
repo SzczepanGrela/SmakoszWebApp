@@ -1,4 +1,4 @@
-﻿using Smakosz.E2E.Infrastructure;
+using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Admin;
 
@@ -6,7 +6,7 @@ namespace Smakosz.E2E.Tests.Admin;
 public class T63_PhotoRejectionTest : SmakoszE2ETestBase
 {
     [Test]
-    public async Task Admin_CanRejectPhotoWithReason()
+    public async Task Admin_CanRejectPhotoWithStructuredReason()
     {
         await LoginViaLocalStorageAsync(TestConstants.AdminEmail, TestConstants.AdminPassword);
 
@@ -39,28 +39,21 @@ public class T63_PhotoRejectionTest : SmakoszE2ETestBase
         }
 
         await allRejectButtons.First.ClickAsync();
-        await Page.WaitForTimeoutAsync(1000);
+        await Page.WaitForTimeoutAsync(1500);
 
-        var reasonInput = Page.Locator("input[placeholder='Powód odrzucenia...']").First;
-        await Expect(reasonInput).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
-        await reasonInput.ClickAsync();
-        await reasonInput.FillAsync("Zdjecie nieodpowiednie");
-        await reasonInput.EvaluateAsync("el => el.dispatchEvent(new Event('change', { bubbles: true }))");
+        var rejectionPanel = Page.Locator(".card.border-danger").First;
+        await Expect(rejectionPanel).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+
+        var checkboxes = rejectionPanel.Locator("input.form-check-input[type='checkbox']");
+        var checkboxCount = await checkboxes.CountAsync();
+        Assert.That(checkboxCount, Is.GreaterThan(0),
+            "Panel odrzucenia powinien zawierac co najmniej jeden seedowany powod dla kategorii Photo");
+
+        await checkboxes.First.CheckAsync();
         await Page.WaitForTimeoutAsync(300);
 
-        var confirmButton = Page.Locator(".input-group button.btn-danger").First;
+        var confirmButton = rejectionPanel.Locator("button.btn-danger", new() { HasText = "Potwierdź" }).First;
         await confirmButton.ClickAsync();
-
-        var toastLocator = Page.Locator(".toast").First;
-        try
-        {
-            await Expect(toastLocator).ToBeVisibleAsync(
-                new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
-        }
-        catch (Exception)
-        {
-            // Toast may have appeared and disappeared already - check queue state
-        }
 
         await Page.WaitForTimeoutAsync(2000);
         await WaitForBlazorLoadedAsync();
