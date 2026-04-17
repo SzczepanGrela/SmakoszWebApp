@@ -1,0 +1,237 @@
+@page "/admin/rejection-reasons"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Powody odrzucenia - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-circle-xmark me-2"></i>Powody odrzucenia</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj powod
+    </button>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-4 mb-2">
+                <label class="form-label fw-medium">Kategoria</label>
+                <select class="form-select" @bind="_filterCategory" @bind:after="ApplyFilter">
+                    <option value="">-- wszystkie --</option>
+                    <option value="Photo">Zdjecia</option>
+                    <option value="Text">Tresc</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" id="includeInactive"
+                           @bind="_includeInactive" @bind:after="ApplyFilter" />
+                    <label class="form-check-label" for="includeInactive">Pokaz nieaktywne</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_isEditing ? "Edytuj" : "Nowy") powod odrzucenia</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Kod *</label>
+                    <input type="text" class="form-control" @bind="_form.ReasonCode" disabled="@_isEditing"
+                           placeholder="np. text_custom" />
+                    <div class="form-text">Male litery, cyfry, podkreslenia. Niezmienne po utworzeniu.</div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Kategoria *</label>
+                    <select class="form-select" @bind="_form.Category">
+                        <option value="">-- wybierz --</option>
+                        <option value="Photo">Zdjecia</option>
+                        <option value="Text">Tresc</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="isActive" @bind="_form.IsActive" />
+                        <label class="form-check-label" for="isActive">Aktywny</label>
+                    </div>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-medium">Etykieta administratora *</label>
+                    <input type="text" class="form-control" @bind="_form.AdminLabel" maxlength="100"
+                           placeholder="Krotki opis widoczny dla moderatora" />
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-medium">Komunikat dla uzytkownika *</label>
+                    <textarea class="form-control" rows="3" @bind="_form.UserMessageTemplate" maxlength="500"
+                              placeholder="Pelny komunikat ktory zostanie wyslany uzytkownikowi po odrzuceniu"></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveReason">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_reasons == null || !_reasons.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-circle-xmark" Title="Brak powodow odrzucenia" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Kategoria</th>
+                    <th>Etykieta</th>
+                    <th>Komunikat dla uzytkownika</th>
+                    <th>Aktywny</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in _reasons.Data)
+                {
+                    <tr>
+                        <td class="fw-medium"><code>@r.ReasonCode</code></td>
+                        <td><StatusBadge Status="@r.Category" /></td>
+                        <td>@r.AdminLabel</td>
+                        <td class="text-muted small" title="@r.UserMessageTemplate">@TruncateMessage(r.UserMessageTemplate)</td>
+                        <td>
+                            @if (r.IsActive)
+                            {
+                                <i class="fa-solid fa-check text-success" title="Aktywny"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-xmark text-muted" title="Nieaktywny"></i>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditReason(r)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteReason(r)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_reasons.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_reasons.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminRejectionReasonDto>? _reasons;
+    private bool _loading = true;
+    private bool _showForm;
+    private bool _isEditing;
+    private AdminRejectionReasonDto _form = new() { Category = "", IsActive = true };
+    private string _filterCategory = "";
+    private bool _includeInactive;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        var category = string.IsNullOrEmpty(_filterCategory) ? null : _filterCategory;
+        _reasons = await AdminService.GetRejectionReasonsAsync(page, 100, category, _includeInactive);
+        _loading = false;
+    }
+
+    private Task ApplyFilter() => LoadPage(1);
+
+    private void ShowAddForm()
+    {
+        _form = new AdminRejectionReasonDto { Category = "", IsActive = true };
+        _isEditing = false;
+        _showForm = true;
+    }
+
+    private void EditReason(AdminRejectionReasonDto r)
+    {
+        _form = new AdminRejectionReasonDto
+        {
+            ReasonCode = r.ReasonCode,
+            Category = r.Category,
+            AdminLabel = r.AdminLabel,
+            UserMessageTemplate = r.UserMessageTemplate,
+            IsActive = r.IsActive
+        };
+        _isEditing = true;
+        _showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        _showForm = false;
+        _isEditing = false;
+    }
+
+    private async Task SaveReason()
+    {
+        if (string.IsNullOrWhiteSpace(_form.ReasonCode)
+            || string.IsNullOrWhiteSpace(_form.Category)
+            || string.IsNullOrWhiteSpace(_form.AdminLabel)
+            || string.IsNullOrWhiteSpace(_form.UserMessageTemplate))
+        {
+            Toast.ShowError("Uzupelnij wszystkie wymagane pola.");
+            return;
+        }
+
+        bool success = _isEditing
+            ? await AdminService.UpdateRejectionReasonAsync(_form.ReasonCode, _form)
+            : await AdminService.CreateRejectionReasonAsync(_form);
+
+        if (success)
+        {
+            Toast.ShowSuccess("Zapisano.");
+            _showForm = false;
+            _isEditing = false;
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie zapisac.");
+        }
+    }
+
+    private async Task DeleteReason(AdminRejectionReasonDto r)
+    {
+        var success = await AdminService.DeleteRejectionReasonAsync(r.ReasonCode);
+        if (success)
+        {
+            Toast.ShowSuccess("Usunieto.");
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie usunac.");
+        }
+    }
+
+    private static string TruncateMessage(string message)
+        => message.Length <= 80 ? message : message.Substring(0, 77) + "...";
+}

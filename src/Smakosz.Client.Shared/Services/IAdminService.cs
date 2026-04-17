@@ -66,4 +66,8 @@ public interface IAdminService
     Task<bool> UpdateForbiddenWordAsync(int id, AdminForbiddenWordDto dto);
     Task<bool> DeleteForbiddenWordAsync(int id);
     Task<bool?> TestForbiddenWordAsync(string text, string[] categories);
+    Task<PagedResult<AdminRejectionReasonDto>?> GetRejectionReasonsAsync(int page = 1, int pageSize = 100, string? category = null, bool includeInactive = false);
+    Task<bool> CreateRejectionReasonAsync(AdminRejectionReasonDto dto);
+    Task<bool> UpdateRejectionReasonAsync(string reasonCode, AdminRejectionReasonDto dto);
+    Task<bool> DeleteRejectionReasonAsync(string reasonCode);
 }
