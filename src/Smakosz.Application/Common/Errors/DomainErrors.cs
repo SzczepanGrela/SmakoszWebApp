@@ -310,4 +310,34 @@ public static class DomainErrors
         public static readonly Error InvalidRegex =
             Error.Validation("FORBIDDEN_WORD_INVALID_REGEX", "Nieprawidłowe wyrażenie regularne");
     }
+
+    public static class RejectionReason
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("REJECTION_REASON_NOT_FOUND", "Powód odrzucenia nie został znaleziony");
+
+        public static readonly Error CodeAlreadyExists =
+            Error.Conflict("REJECTION_REASON_CODE_EXISTS", "Powód odrzucenia o podanym kodzie już istnieje");
+
+        public static readonly Error LabelAlreadyExists =
+            Error.Conflict("REJECTION_REASON_LABEL_EXISTS", "Powód odrzucenia o podanej etykiecie już istnieje");
+
+        public static readonly Error InvalidCategory =
+            Error.Validation("REJECTION_REASON_INVALID_CATEGORY", "Nieprawidłowa kategoria powodu odrzucenia");
+
+        public static readonly Error InvalidCode =
+            Error.Validation("REJECTION_REASON_INVALID_CODE", "Nieprawidłowy format kodu powodu odrzucenia");
+
+        public static readonly Error RejectionRequiresReason =
+            Error.Validation("REJECTION_REASON_REQUIRED", "Odrzucenie wymaga podania co najmniej jednego powodu lub uwagi moderatora");
+
+        public static readonly Error CategoryMismatch =
+            Error.Validation("REJECTION_REASON_CATEGORY_MISMATCH", "Wybrany powód odrzucenia nie pasuje do typu moderowanej treści");
+
+        public static readonly Error InactiveReason =
+            Error.Validation("REJECTION_REASON_INACTIVE", "Wybrany powód odrzucenia jest nieaktywny");
+
+        public static readonly Error UnknownReasonCode =
+            Error.Validation("REJECTION_REASON_UNKNOWN_CODE", "Nieznany kod powodu odrzucenia");
+    }
 }
