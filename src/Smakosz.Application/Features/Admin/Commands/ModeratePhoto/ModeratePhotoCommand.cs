@@ -1,4 +1,5 @@
 using ErrorOr;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
@@ -10,7 +11,34 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
 
-public record ModeratePhotoCommand(Guid PublicId, bool Approve, string? RejectionReason) : IRequest<ErrorOr<Success>>;
+public record ModeratePhotoCommand(
+    Guid PublicId,
+    bool Approve,
+    IReadOnlyList<string>? ReasonCodes,
+    string? ModeratorNote) : IRequest<ErrorOr<Success>>;
+
+public class ModeratePhotoValidator : AbstractValidator<ModeratePhotoCommand>
+{
+    public ModeratePhotoValidator()
+    {
+        RuleFor(x => x.ModeratorNote)
+            .MaximumLength(500)
+            .WithMessage("Uwaga moderatora może mieć maksymalnie 500 znaków");
+
+        RuleFor(x => x)
+            .Must(HasAtLeastOneReasonWhenRejecting)
+            .WithMessage("Odrzucenie wymaga wybrania co najmniej jednego powodu lub wpisania uwagi moderatora")
+            .When(x => !x.Approve);
+    }
+
+    private static bool HasAtLeastOneReasonWhenRejecting(ModeratePhotoCommand command)
+    {
+        var hasCodes = command.ReasonCodes is not null
+            && command.ReasonCodes.Any(c => !string.IsNullOrWhiteSpace(c));
+        var hasNote = !string.IsNullOrWhiteSpace(command.ModeratorNote);
+        return hasCodes || hasNote;
+    }
+}
 
 public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorOr<Success>>
 {
@@ -34,6 +62,21 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
         if (asset is null)
             return DomainErrors.Photo.NotFound;
 
+        string? resolvedText = null;
+        IReadOnlyList<string> appliedCodes = Array.Empty<string>();
+
+        if (!request.Approve)
+        {
+            var resolution = await RejectionReasonResolver.ResolveAsync(
+                _db, request.ReasonCodes, request.ModeratorNote, RejectionReasonCategory.Photo, cancellationToken);
+
+            if (resolution.IsError)
+                return resolution.Errors;
+
+            resolvedText = resolution.Value.ResolvedText;
+            appliedCodes = resolution.Value.AppliedCodes;
+        }
+
         asset.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
 
         if (request.Approve && asset.UploadedBy.HasValue)
@@ -44,7 +87,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
         }
 
         if (!request.Approve)
-            asset.RejectionReason = request.RejectionReason;
+            asset.RejectionReason = resolvedText;
 
         var existingResult = await _db.ModerationResults
             .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Photo && r.EntityId == (int)asset.AssetId, cancellationToken);
@@ -56,7 +99,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
                 EntityType = ModerationEntityType.Photo,
                 EntityId = (int)asset.AssetId,
                 Status = asset.ModerationStatus,
-                RejectionReason = request.RejectionReason,
+                RejectionReason = resolvedText,
                 ProcessedAt = now,
                 CreatedAt = now
             });
@@ -64,7 +107,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
         else
         {
             existingResult.Status = asset.ModerationStatus;
-            existingResult.RejectionReason = request.RejectionReason;
+            existingResult.RejectionReason = resolvedText;
             existingResult.ProcessedAt = now;
             existingResult.UpdatedAt = now;
         }
@@ -75,7 +118,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
             EntityId = (int)asset.AssetId,
             Actor = ModerationActor.Admin,
             Verdict = request.Approve ? ModerationVerdict.Approved : ModerationVerdict.Rejected,
-            ReasonCodes = !string.IsNullOrEmpty(request.RejectionReason) ? [request.RejectionReason] : [],
+            ReasonCodes = appliedCodes.ToList(),
             ProcessedBy = _currentUser.UserId,
             CreatedAt = DateTime.UtcNow
         });
@@ -93,9 +136,7 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
                 Type = NotificationType.System,
                 Severity = NotificationSeverity.Warning,
                 Title = "Zdjęcie odrzucone",
-                Message = !string.IsNullOrEmpty(request.RejectionReason)
-                    ? $"Twoje zdjęcie zostało odrzucone. Powód: {request.RejectionReason}"
-                    : "Twoje zdjęcie zostało odrzucone przez moderatora.",
+                Message = $"Twoje zdjęcie zostało odrzucone. Powód: {resolvedText}",
                 SendPush = sendPush,
                 PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow

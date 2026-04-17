@@ -81,7 +81,7 @@ public class AdminModerationController : ApiController
     [HttpPost("photos/{publicId:guid}/moderate")]
     public async Task<IActionResult> ModeratePhoto(Guid publicId, [FromBody] ModeratePhotoRequest request)
     {
-        var result = await _mediator.Send(new ModeratePhotoCommand(publicId, request.Approve, request.RejectionReason));
+        var result = await _mediator.Send(new ModeratePhotoCommand(publicId, request.Approve, request.ReasonCodes, request.ModeratorNote));
         return ToNoContentResult(result);
     }
 
@@ -97,7 +97,7 @@ public class AdminModerationController : ApiController
     [HttpPost("reviews/{publicId:guid}/moderate")]
     public async Task<IActionResult> ModerateReview(Guid publicId, [FromBody] ModerateReviewRequest request)
     {
-        var result = await _mediator.Send(new ModerateReviewCommand(publicId, request.Approve, request.RejectionReason));
+        var result = await _mediator.Send(new ModerateReviewCommand(publicId, request.Approve, request.ReasonCodes, request.ModeratorNote));
         return ToNoContentResult(result);
     }
 
@@ -153,6 +153,6 @@ public class AdminModerationController : ApiController
 public record UpdateReportStatusRequest(string Status);
 public record UpdateTicketStatusRequest(string Status);
 public record RespondToContactRequest(string Response);
-public record ModeratePhotoRequest(bool Approve, string? RejectionReason);
-public record ModerateReviewRequest(bool Approve, string? RejectionReason);
+public record ModeratePhotoRequest(bool Approve, IReadOnlyList<string>? ReasonCodes, string? ModeratorNote);
+public record ModerateReviewRequest(bool Approve, IReadOnlyList<string>? ReasonCodes, string? ModeratorNote);
 public record ProcessEditRequestRequest(bool Approve, string? RejectionReason);
