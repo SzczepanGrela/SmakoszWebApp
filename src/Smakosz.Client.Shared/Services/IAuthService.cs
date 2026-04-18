@@ -11,7 +11,7 @@ public interface IAuthService
     Task LogoutAsync();
     Task<ApiResponse<object>> ForgotPasswordAsync(string email, string? turnstileToken = null);
     Task<ApiResponse<object>> ResetPasswordAsync(string token, string newPassword, string confirmPassword);
-    Task<ApiResponse<LoginResponse>> Verify2faAsync(string code);
-    Task<ApiResponse<object>> Resend2faAsync();
+    Task<ApiResponse<LoginResponse>> Verify2faAsync(string email, string code);
+    Task<ApiResponse<object>> Resend2faAsync(string email);
     Task<ApiResponse<object>> ResendVerificationAsync(string email);
 }

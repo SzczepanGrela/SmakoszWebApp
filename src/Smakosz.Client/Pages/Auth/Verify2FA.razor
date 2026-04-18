@@ -8,7 +8,7 @@
 <div class="text-center mb-4">
     <i class="fa-solid fa-shield-halved fa-3x mb-3" style="color:var(--primary-color);"></i>
     <h4>Weryfikacja dwuetapowa</h4>
-    <p class="text-muted small">Wprowadź kod z aplikacji uwierzytelniającej.</p>
+    <p class="text-muted small">Kod został wysłany na Twój adres email. Wprowadź 6-cyfrowy kod.</p>
 </div>
 
 @if (!string.IsNullOrEmpty(_error))
@@ -43,18 +43,26 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery] public string? Email { get; set; }
+
     private string _code = "";
     private string? _error;
     private bool _loading;
     private int _resendCooldown;
     private System.Threading.Timer? _timer;
 
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(Email))
+            Navigation.NavigateTo("/login");
+    }
+
     private async Task Verify()
     {
-        if (_code.Length != 6) return;
+        if (_code.Length != 6 || string.IsNullOrEmpty(Email)) return;
         _loading = true;
         _error = null;
-        var result = await AuthService.Verify2faAsync(_code);
+        var result = await AuthService.Verify2faAsync(Email, _code);
         if (result.Success)
         {
             Navigation.NavigateTo("/", forceLoad: true);
@@ -68,8 +76,9 @@
 
     private async Task ResendCode()
     {
+        if (string.IsNullOrEmpty(Email)) return;
         _error = null;
-        var result = await AuthService.Resend2faAsync();
+        var result = await AuthService.Resend2faAsync(Email);
         if (result.Success)
         {
             StartCooldown();

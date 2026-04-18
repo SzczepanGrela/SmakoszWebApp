@@ -70,9 +70,9 @@ public class AuthService : IAuthService
             ConfirmPassword = confirmPassword
         });
 
-    public async Task<ApiResponse<LoginResponse>> Verify2faAsync(string code)
+    public async Task<ApiResponse<LoginResponse>> Verify2faAsync(string email, string code)
     {
-        var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/verify-2fa", new Verify2faRequest { Code = code });
+        var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/verify-2fa", new Verify2faRequest { Email = email, Code = code });
         if (result is { Success: true, Data: not null })
         {
             await _localStorage.SetItemAsStringAsync("auth_token", result.Data.AccessToken);
@@ -82,8 +82,8 @@ public class AuthService : IAuthService
         return result;
     }
 
-    public Task<ApiResponse<object>> Resend2faAsync()
-        => _api.PostApiResponseAsync<object>("/api/auth/resend-2fa", null);
+    public Task<ApiResponse<object>> Resend2faAsync(string email)
+        => _api.PostApiResponseAsync<object>("/api/auth/resend-2fa", new Resend2faRequest { Email = email });
 
     public Task<ApiResponse<object>> ResendVerificationAsync(string email)
         => _api.PostApiResponseAsync<object>("/api/auth/resend-verification", new ResendVerificationRequest { Email = email });

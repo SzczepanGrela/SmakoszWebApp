@@ -87,6 +87,12 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
+    public async Task<bool> Disable2faForUserAsync(Guid publicId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/disable-2fa", null);
+        return response.Success;
+    }
+
     public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
 
