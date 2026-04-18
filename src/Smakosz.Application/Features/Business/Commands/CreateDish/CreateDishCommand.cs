@@ -16,6 +16,7 @@ public record CreateDishCommand(
     string? Description,
     int? Calories,
     bool IsAvailable,
+    string DishCategoryTagName,
     List<int>? SectionIds = null,
     List<int>? IngredientIds = null) : IRequest<ErrorOr<int>>;
 
@@ -48,6 +49,14 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
         if (restaurant is null)
             return DomainErrors.Restaurant.NotFound;
 
+        var categoryTag = await _db.Tags
+            .FirstOrDefaultAsync(t =>
+                t.TagName == request.DishCategoryTagName
+                && t.Category == "dish_category", cancellationToken);
+
+        if (categoryTag is null)
+            return DomainErrors.Dish.InvalidCategory;
+
         var dish = new Dish
         {
             RestaurantId = restaurant.RestaurantId,
@@ -62,6 +71,13 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
         };
 
         _db.Dishes.Add(dish);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        _db.DishTags.Add(new DishTag
+        {
+            DishId = dish.DishId,
+            TagId = categoryTag.TagId
+        });
         await _db.SaveChangesAsync(cancellationToken);
 
         if (request.SectionIds is { Count: > 0 })
@@ -123,5 +139,8 @@ public class CreateDishValidator : AbstractValidator<CreateDishCommand>
             RuleFor(x => x.Price!.Value)
                 .GreaterThanOrEqualTo(0).WithMessage("Cena nie może być ujemna");
         });
+
+        RuleFor(x => x.DishCategoryTagName)
+            .NotEmpty().WithMessage("Wybor kategorii dania jest wymagany");
     }
 }
