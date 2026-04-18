@@ -1,0 +1,17 @@
+@if (EntityType == "User" && EntityId.HasValue)
+{
+    <a href="@($"/admin/users/{EntityId}")">User#@EntityId</a>
+}
+else if (EntityType == "Restaurant" && EntityId.HasValue)
+{
+    <a href="@($"/admin/restaurants/{EntityId}")">Restaurant#@EntityId</a>
+}
+else if (EntityId.HasValue && !string.IsNullOrWhiteSpace(EntityType))
+{
+    <span class="text-muted">@EntityType#@EntityId</span>
+}
+
+@code {
+    [Parameter, EditorRequired] public string EntityType { get; set; } = string.Empty;
+    [Parameter] public int? EntityId { get; set; }
+}
