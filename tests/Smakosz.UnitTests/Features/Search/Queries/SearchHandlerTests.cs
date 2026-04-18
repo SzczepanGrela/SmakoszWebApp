@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Smakosz.Application.Common.Models;
-using Smakosz.Application.Features.Search.Queries.SearchQuery;
+using AppSearch = Smakosz.Application.Features.Search.Queries.SearchQuery;
 using Smakosz.Domain.Entities;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
@@ -12,14 +12,14 @@ public class SearchHandlerTests
 {
     private readonly Smakosz.Application.Common.Interfaces.ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
-    private readonly SearchHandler _handler;
+    private readonly AppSearch.SearchHandler _handler;
     private readonly PaginationParams _defaultPagination = new(Page: 1, PageSize: 10);
 
     public SearchHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        _handler = new SearchHandler(_db, anonymousUser);
+        _handler = new AppSearch.SearchHandler(_db, anonymousUser);
     }
 
     // Note: Tests with Query parameter (text search) are skipped because
@@ -34,7 +34,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.Add(dish);
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "restaurants");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -52,7 +52,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.Add(dish);
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "dishes");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -68,7 +68,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.Add(dish);
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "all");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "all");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -83,7 +83,7 @@ public class SearchHandlerTests
         var polish = new RestaurantBuilder().WithId(2).WithCuisineType("Polish").Build();
         _sets.Restaurants.AddRange(new[] { italian, polish });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "restaurants", Cuisines: "Italian");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants", Cuisines: "Italian");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -101,7 +101,7 @@ public class SearchHandlerTests
         _sets.Restaurants.AddRange(new[] { italian, polish });
         _sets.Dishes.AddRange(new[] { italianDish, polishDish });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "dishes", Cuisines: "Italian");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes", Cuisines: "Italian");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -115,7 +115,7 @@ public class SearchHandlerTests
         var expensive = new RestaurantBuilder().WithId(2).WithPriceLevel(4).Build();
         _sets.Restaurants.AddRange(new[] { cheap, expensive });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "restaurants", MinPrice: 2, MaxPrice: 5);
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants", MinPrice: 2, MaxPrice: 5);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -132,7 +132,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.AddRange(new[] { vegan, regular });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "dishes", Dietary: "vegan");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes", Dietary: "vegan");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -149,7 +149,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.AddRange(new[] { gf, regular });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "dishes", Dietary: "gluten_free");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes", Dietary: "gluten_free");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -164,7 +164,7 @@ public class SearchHandlerTests
         var r2 = new RestaurantBuilder().WithId(2).WithName("Amber").Build();
         _sets.Restaurants.AddRange(new[] { r1, r2 });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "restaurants", SortBy: "name", SortDir: "asc");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants", SortBy: "name", SortDir: "asc");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -181,7 +181,7 @@ public class SearchHandlerTests
         _sets.Restaurants.Add(restaurant);
         _sets.Dishes.AddRange(new[] { expensive, cheap });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new SearchQuery(_defaultPagination, Type: "dishes", SortBy: "price", SortDir: "asc");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes", SortBy: "price", SortDir: "asc");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -198,7 +198,7 @@ public class SearchHandlerTests
         }
         DbContextMockFactory.Refresh(_db, _sets);
         var pagination = new PaginationParams(Page: 2, PageSize: 10);
-        var query = new SearchQuery(pagination, Type: "restaurants");
+        var query = new AppSearch.SearchQuery(pagination, Type: "restaurants");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -211,7 +211,7 @@ public class SearchHandlerTests
     [Fact]
     public async Task Handle_AppliedFilters_ReturnedCorrectly()
     {
-        var query = new SearchQuery(_defaultPagination, Type: "restaurants", Cuisines: "Italian,Polish", Dietary: "vegan");
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants", Cuisines: "Italian,Polish", Dietary: "vegan");
 
         var result = await _handler.Handle(query, CancellationToken.None);
 

@@ -47,6 +47,10 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             ? request.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
             : [];
 
+        var dishCategoryList = !string.IsNullOrWhiteSpace(request.DishCategories)
+            ? request.DishCategories.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+            : [];
+
         var restaurants = new List<RestaurantCardDto>();
         var dishes = new List<DishCardDto>();
         var totalCount = 0;
@@ -60,7 +64,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
         if (request.Type is "dishes" or "all")
         {
-            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, cancellationToken);
+            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, dishCategoryList, cancellationToken);
             dishes = items;
             totalCount += count;
         }
@@ -169,6 +173,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         List<string> cuisineList,
         List<string> dietaryList,
         List<string> tagList,
+        List<string> dishCategoryList,
         CancellationToken cancellationToken)
     {
         var query = _db.Dishes
@@ -202,6 +207,13 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
         if (tagList.Count > 0)
             query = query.Where(d => d.DishTags.Any(dt => tagList.Contains(dt.Tag.TagName)));
+
+        if (dishCategoryList.Count > 0)
+        {
+            query = query.Where(d => d.DishTags.Any(dt =>
+                dt.Tag.Category == "dish_category"
+                && dishCategoryList.Contains(dt.Tag.TagName)));
+        }
 
         if (request.MinPrice.HasValue)
             query = query.Where(d => d.Price >= request.MinPrice.Value);

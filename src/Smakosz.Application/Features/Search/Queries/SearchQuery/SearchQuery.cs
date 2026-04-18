@@ -16,5 +16,6 @@ public record SearchQuery(
     string? Dietary = null,
     string SortBy = "rating",
     string SortDir = "desc",
-    string? Tags = null
+    string? Tags = null,
+    string? DishCategories = null
 ) : IRequest<ErrorOr<SearchResultDto>>;
