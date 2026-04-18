@@ -2,6 +2,7 @@
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Search.Queries.GetSearchFilters;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 
 namespace Smakosz.UnitTests.Features.Search.Queries.GetSearchFilters;
@@ -43,5 +44,21 @@ public class GetSearchFiltersHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.Cuisines.Should().BeEmpty();
         result.Value.Cities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_ReturnsDishCategoriesOrderedAlphabetically()
+    {
+        _sets.Tags.AddRange(
+            new Tag { TagId = 1, TagName = "Pizza", Category = "dish_category", TargetEntity = TagTargetEntity.Dish },
+            new Tag { TagId = 2, TagName = "Burger", Category = "dish_category", TargetEntity = TagTargetEntity.Dish },
+            new Tag { TagId = 3, TagName = "Na wynos", Category = "service", TargetEntity = TagTargetEntity.Dish });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetSearchFiltersQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.DishCategories.Should().HaveCount(2);
+        result.Value.DishCategories.Select(x => x.Label).Should().ContainInOrder("Burger", "Pizza");
     }
 }
