@@ -252,6 +252,19 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null)
         => _api.GetAsync<PagedResult<AdminSecurityLogDto>>($"/api/admin/security-logs?page={page}&eventType={eventType}");
 
+    public Task<PagedResult<AdminEmailLogDto>?> GetEmailLogsAsync(int page = 1, string? status = null, string? type = null)
+        => _api.GetAsync<PagedResult<AdminEmailLogDto>>($"/api/admin/email-logs?page={page}&status={status}&type={type}");
+
+    public Task<PagedResult<AdminModerationLogDto>?> GetModerationLogsAsync(int page = 1, string? actor = null, string? entityType = null)
+        => _api.GetAsync<PagedResult<AdminModerationLogDto>>($"/api/admin/moderation-logs?page={page}&actor={actor}&entityType={entityType}");
+
+    public Task<PagedResult<AdminAiLogDto>?> GetAiLogsAsync(int page = 1, string? modelType = null, bool? fallback = null)
+    {
+        var url = $"/api/admin/ai-logs?page={page}&modelType={modelType}";
+        if (fallback.HasValue) url += $"&fallback={fallback.Value.ToString().ToLower()}";
+        return _api.GetAsync<PagedResult<AdminAiLogDto>>(url);
+    }
+
     public async Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync()
         => await _api.GetAsync<List<AdminSystemNodeDto>>("/api/admin/nodes");
 

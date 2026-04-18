@@ -56,6 +56,9 @@ public interface IAdminService
     Task<bool> DeleteHeroImageAsync(Guid publicId);
     Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null);
     Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null);
+    Task<PagedResult<AdminEmailLogDto>?> GetEmailLogsAsync(int page = 1, string? status = null, string? type = null);
+    Task<PagedResult<AdminModerationLogDto>?> GetModerationLogsAsync(int page = 1, string? actor = null, string? entityType = null);
+    Task<PagedResult<AdminAiLogDto>?> GetAiLogsAsync(int page = 1, string? modelType = null, bool? fallback = null);
     Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync();
     Task<PagedResult<AdminBannedIdentifierDto>?> GetBannedIdentifiersAsync(int page = 1, string? type = null, bool includeExpired = false);
     Task<bool> CreateBannedIdentifierAsync(AdminBannedIdentifierDto dto);

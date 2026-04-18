@@ -291,8 +291,11 @@ public class AdminModerationLogDto
     public int EntityId { get; set; }
     public string Actor { get; set; } = default!;
     public string Verdict { get; set; } = default!;
+    public List<string> ReasonCodes { get; set; } = new();
     public string? AdminNote { get; set; }
+    public int? ProcessedBy { get; set; }
     public string? ProcessedByUsername { get; set; }
+    public string? AiScores { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 
@@ -426,6 +429,36 @@ public class AdminSecurityLogDto
     public string? Details { get; set; }
     public string? CountryCode { get; set; }
     public string? City { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class AdminEmailLogDto
+{
+    public long LogId { get; set; }
+    public string? Type { get; set; }
+    public string Recipient { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string? Provider { get; set; }
+    public string? ProviderMessageId { get; set; }
+    public string? ErrorMessage { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? SentAt { get; set; }
+}
+
+public class AdminAiLogDto
+{
+    public long LogId { get; set; }
+    public string? ModelType { get; set; }
+    public string? ModelName { get; set; }
+    public string? ModelVersion { get; set; }
+    public string? EntityType { get; set; }
+    public int? EntityId { get; set; }
+    public string? InputSummary { get; set; }
+    public string? Scores { get; set; }
+    public string? Verdict { get; set; }
+    public int? ProcessingTimeMs { get; set; }
+    public bool Fallback { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 
