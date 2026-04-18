@@ -35,6 +35,15 @@ public static class DomainErrors
 
         public static readonly Error InvalidVerificationCode =
             Error.Validation("AUTH_INVALID_VERIFICATION_CODE", "Nieprawidłowy lub wygasły kod weryfikacyjny");
+
+        public static readonly Error TwoFactorRequired =
+            Error.Forbidden("AUTH_2FA_REQUIRED", "Wymagana weryfikacja dwuetapowa");
+
+        public static readonly Error TwoFactorAlreadyEnabled =
+            Error.Conflict("AUTH_2FA_ALREADY_ENABLED", "Weryfikacja dwuetapowa jest już włączona");
+
+        public static readonly Error TwoFactorNotEnabled =
+            Error.Conflict("AUTH_2FA_NOT_ENABLED", "Weryfikacja dwuetapowa nie jest włączona");
     }
 
     public static class Restaurant

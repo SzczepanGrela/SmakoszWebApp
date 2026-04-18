@@ -15,6 +15,7 @@ using Smakosz.Application.Features.Me.Commands.RemovePushSubscription;
 using Smakosz.Application.Features.Me.Commands.SavePushSubscription;
 using Smakosz.Application.Features.Me.Commands.UpdateNotificationSettings;
 using Smakosz.Application.Features.Me.Commands.DeleteAccount;
+using Smakosz.Application.Features.Me.Commands.TwoFactor;
 using Smakosz.Application.Features.Me.Commands.UpdateProfile;
 using Smakosz.Application.Features.Me.Queries.GetFavoriteRestaurants;
 using Smakosz.Application.Features.Me.Queries.GetMyFollowers;
@@ -220,6 +221,27 @@ public class MeController : ApiController
     {
         var key = _configuration["Vapid:PublicKey"] ?? string.Empty;
         return Ok(new { publicKey = key });
+    }
+
+    [HttpPost("2fa/enable")]
+    public async Task<IActionResult> Enable2fa()
+    {
+        var result = await _mediator.Send(new Enable2faCommand());
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("2fa/confirm")]
+    public async Task<IActionResult> Confirm2fa([FromBody] Confirm2faCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("2fa/disable")]
+    public async Task<IActionResult> Disable2fa([FromBody] Disable2faCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
     }
 
     [HttpPost("delete-account/request")]

@@ -18,8 +18,10 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly ICurrentUserService _currentUser;
     private readonly ITurnstileService _turnstile;
     private readonly IValidationConfigProvider _config;
+    private readonly IVerificationCodeService _verificationCodeService;
+    private readonly IEmailService _emailService;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config, IVerificationCodeService verificationCodeService, IEmailService emailService)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -28,6 +30,8 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         _currentUser = currentUser;
         _turnstile = turnstile;
         _config = config;
+        _verificationCodeService = verificationCodeService;
+        _emailService = emailService;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -118,6 +122,24 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
 
         if (!user.EmailVerified)
             return DomainErrors.Auth.EmailNotVerified;
+
+        if (user.Is2faEnabled)
+        {
+            var twoFactorCode = await _verificationCodeService.CreateCodeAsync(
+                user.UserId, VerificationCodeType.TwoFactorAuth, cancellationToken);
+            await _emailService.Send2faCodeAsync(user.Email, twoFactorCode, cancellationToken);
+            _db.EmailLogs.Add(new EmailLog
+            {
+                Type = "TwoFactorAuth",
+                Recipient = user.Email,
+                Subject = "Kod 2FA",
+                Status = "sent",
+                CreatedAt = DateTime.UtcNow,
+                SentAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync(cancellationToken);
+            return DomainErrors.Auth.TwoFactorRequired;
+        }
 
         var refreshToken = await _sessionService.CreateSessionAsync(user.UserId, request.RememberMe, cancellationToken);
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.BanUser;
 using Smakosz.Application.Features.Admin.Commands.CreateCity;
@@ -6,6 +7,7 @@ using Smakosz.Application.Features.Admin.Commands.CreateIngredient;
 using Smakosz.Application.Features.Admin.Commands.DeleteCity;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
+using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Commands.CreateTag;
@@ -25,6 +27,7 @@ namespace Smakosz.API.Controllers;
 
 [Authorize(Roles = "Admin")]
 [Route("api/admin")]
+[DisableRateLimiting]
 public class AdminController : ApiController
 {
     private readonly IMediator _mediator;
@@ -62,6 +65,13 @@ public class AdminController : ApiController
     public async Task<IActionResult> UnbanUser(Guid publicId)
     {
         var result = await _mediator.Send(new UnbanUserCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("users/{publicId:guid}/disable-2fa")]
+    public async Task<IActionResult> AdminDisable2fa(Guid publicId)
+    {
+        var result = await _mediator.Send(new AdminDisable2faCommand(publicId));
         return ToNoContentResult(result);
     }
 

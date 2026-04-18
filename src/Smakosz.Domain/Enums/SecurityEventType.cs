@@ -8,5 +8,8 @@ public enum SecurityEventType
     PasswordReset,
     BannedRegistration,
     PasswordChanged,
-    AccountDeleted
+    AccountDeleted,
+    TwoFactorEnabled,
+    TwoFactorDisabled,
+    TwoFactorDisabledByAdmin
 }
