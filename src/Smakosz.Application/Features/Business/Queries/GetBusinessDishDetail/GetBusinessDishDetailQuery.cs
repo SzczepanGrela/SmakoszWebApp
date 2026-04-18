@@ -27,6 +27,7 @@ public class BusinessDishDetailDto
     public bool IsSpicy { get; set; }
     public int ReviewCount { get; set; }
     public double? AvgRating { get; set; }
+    public string? CategoryTagName { get; set; }
     public List<DishIngredientItemDto> Ingredients { get; set; } = new();
 }
 
@@ -58,6 +59,8 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
             .Include(d => d.Restaurant)
             .Include(d => d.DishIngredients)
                 .ThenInclude(di => di.Ingredient)
+            .Include(d => d.DishTags)
+                .ThenInclude(dt => dt.Tag)
             .Where(d => d.PublicId == request.PublicId)
             .Select(d => new
             {
@@ -78,6 +81,10 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
                 d.ReviewCount,
                 d.AvgRating,
                 OwnerId = d.Restaurant!.OwnerId,
+                CategoryTagName = d.DishTags
+                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
                 Ingredients = d.DishIngredients.Select(di => new DishIngredientItemDto
                 {
                     IngredientId = di.IngredientId,
@@ -111,6 +118,7 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
             IsSpicy = dish.IsSpicy,
             ReviewCount = dish.ReviewCount,
             AvgRating = dish.AvgRating,
+            CategoryTagName = dish.CategoryTagName,
             Ingredients = dish.Ingredients
         };
     }

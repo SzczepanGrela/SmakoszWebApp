@@ -25,6 +25,7 @@ public class DishDetailDto
     public string? CuisineType { get; set; }
     public string? CityName { get; set; }
     public bool IsSaved { get; set; }
+    public string? CategoryTagName { get; set; }
     public List<TagDto> Tags { get; set; } = [];
     public List<DishIngredientDto> Ingredients { get; set; } = [];
 }

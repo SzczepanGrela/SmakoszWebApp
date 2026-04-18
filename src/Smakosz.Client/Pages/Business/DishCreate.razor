@@ -2,6 +2,7 @@
 @layout BusinessLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Restaurant")]
 @inject IBusinessService BusinessService
+@inject ISearchService SearchService
 @inject NavigationManager Navigation
 @inject ToastService Toast
 
@@ -44,6 +45,18 @@
                 <div class="mb-3">
                     <label class="form-label fw-medium">Zdjecie dania</label>
                     <ImageUpload EntityType="dish" OnImageUploaded="url => _dish.ImageUrl = url" />
+                </div>
+                <div class="mb-3">
+                    <label for="dishCategory" class="form-label fw-medium">Kategoria dania *</label>
+                    <select id="dishCategory"
+                            class="form-select"
+                            @bind="_selectedCategory">
+                        <option value="">-- wybierz kategorie --</option>
+                        @foreach (var cat in _categories)
+                        {
+                            <option value="@cat.Value">@cat.Label</option>
+                        }
+                    </select>
                 </div>
             </div>
         </div>
@@ -90,8 +103,16 @@
     private DishDetailDto _dish = new() { IsAvailable = true };
     private List<int> _selectedIngredientIds = [];
     private List<int> _selectedSectionIds = [];
+    private string? _selectedCategory;
+    private List<FilterOption> _categories = new();
     private bool _saving;
     private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var filters = await SearchService.GetFiltersAsync();
+        _categories = filters?.DishCategories ?? new();
+    }
 
     private async Task HandleCreate()
     {
@@ -101,8 +122,15 @@
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(_selectedCategory))
+        {
+            Toast.ShowError("Wybor kategorii dania jest wymagany");
+            return;
+        }
+
         _saving = true;
         _error = null;
+        _dish.CategoryTagName = _selectedCategory;
         var success = await BusinessService.CreateDishAsync(_dish, _selectedIngredientIds, _selectedSectionIds);
         if (success)
         {
