@@ -2,6 +2,7 @@ using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Commands.UpdateDish;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
@@ -148,5 +149,42 @@ public class UpdateDishHandlerTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("FORBIDDEN_WORD_CONTENT");
+    }
+
+    [Fact]
+    public async Task Handle_UpdateCategory_ReplacesExistingDishCategoryTag()
+    {
+        var restaurant = new RestaurantBuilder().WithId(10).Build();
+        restaurant.OwnerId = 1;
+        _sets.Restaurants.Add(restaurant);
+
+        var pizzaTag = new Tag { TagId = 1, TagName = "Pizza", Category = "dish_category", TargetEntity = TagTargetEntity.Dish };
+        var burgerTag = new Tag { TagId = 2, TagName = "Burger", Category = "dish_category", TargetEntity = TagTargetEntity.Dish };
+        _sets.Tags.AddRange(new[] { pizzaTag, burgerTag });
+
+        var publicId = Guid.NewGuid();
+        var dish = new Dish { DishId = 100, DishName = "Margherita", RestaurantId = 10, PublicId = publicId, IsAvailable = true, Restaurant = restaurant };
+        _sets.Dishes.Add(dish);
+        var existing = new DishTag { DishId = 100, TagId = 1, Dish = dish, Tag = pizzaTag };
+        dish.DishTags = new List<DishTag> { existing };
+        _sets.DishTags.Add(existing);
+
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new UpdateDishCommand(
+                PublicId: publicId,
+                Name: null,
+                Price: null,
+                Description: null,
+                Calories: null,
+                IsAvailable: null,
+                DishCategoryTagName: "Burger"),
+            CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _sets.DishTags.Where(dt => dt.DishId == 100 && dt.Tag.Category == "dish_category")
+            .Should().ContainSingle()
+            .Which.TagId.Should().Be(2);
     }
 }
