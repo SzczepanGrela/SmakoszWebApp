@@ -11,5 +11,6 @@ public enum SecurityEventType
     AccountDeleted,
     TwoFactorEnabled,
     TwoFactorDisabled,
-    TwoFactorDisabledByAdmin
+    TwoFactorDisabledByAdmin,
+    PasswordResetByAdmin
 }
