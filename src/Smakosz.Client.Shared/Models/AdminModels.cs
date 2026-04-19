@@ -117,6 +117,29 @@ public class AdminTagDto
     public DateTime? CreatedAt { get; set; }
 }
 
+public class AdminDishDto
+{
+    public int DishId { get; set; }
+    public Guid PublicId { get; set; }
+    public string DishName { get; set; } = default!;
+    public decimal? Price { get; set; }
+    public bool IsAvailable { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? ImageBlurhash { get; set; }
+    public string ModerationStatus { get; set; } = default!;
+    public double? AvgRating { get; set; }
+    public int ReviewCount { get; set; }
+    public decimal? TrendingScore { get; set; }
+    public string? Slug { get; set; }
+    public int? RestaurantId { get; set; }
+    public string? RestaurantName { get; set; }
+    public List<string> Ingredients { get; set; } = new();
+    public List<AdminTagDto> Tags { get; set; } = new();
+    public string? CategoryTagName { get; set; }
+    public string? CategoryColor { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminAiModelDto
 {
     public string ModelType { get; set; } = default!;
