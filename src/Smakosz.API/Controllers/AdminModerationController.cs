@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
 using Smakosz.Application.Features.Admin.Commands.ModerateReview;
@@ -18,6 +19,7 @@ namespace Smakosz.API.Controllers;
 
 [Authorize(Roles = "Admin,Moderator")]
 [Route("api/admin")]
+[DisableRateLimiting]
 public class AdminModerationController : ApiController
 {
     private readonly IMediator _mediator;

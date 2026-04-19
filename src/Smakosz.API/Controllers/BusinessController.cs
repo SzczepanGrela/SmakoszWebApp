@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Business.Commands.CreateDish;
 using Smakosz.Application.Features.Business.Commands.CreateMenuSection;
@@ -30,6 +31,7 @@ namespace Smakosz.API.Controllers;
 
 [Authorize(Roles = "Restaurant,Admin")]
 [Route("api/business")]
+[DisableRateLimiting]
 public class BusinessController : ApiController
 {
     private readonly IMediator _mediator;

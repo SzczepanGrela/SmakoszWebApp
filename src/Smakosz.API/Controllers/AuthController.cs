@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Features.Auth.Commands.ForgotPassword;
 using Smakosz.Application.Features.Auth.Commands.Login;
 using Smakosz.Application.Features.Auth.Commands.Logout;
@@ -13,6 +14,7 @@ using Smakosz.Application.Features.Auth.Commands.VerifyEmail;
 namespace Smakosz.API.Controllers;
 
 [Route("api/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ApiController
 {
     private readonly IMediator _mediator;

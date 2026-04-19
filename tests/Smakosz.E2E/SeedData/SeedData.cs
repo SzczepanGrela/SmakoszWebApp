@@ -498,7 +498,15 @@ public static class SeedData
             new SystemConfig { Key = "search.default_page_size", Value = "20", Description = "Domyslny rozmiar strony API", IsSecret = false, IsPublic = true },
             new SystemConfig { Key = "search.max_page_size", Value = "100", Description = "Max rozmiar strony API", IsSecret = false, IsPublic = true },
             new SystemConfig { Key = "trending.window_days", Value = "7", Description = "Okno czasowe trendow (dni)", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "datacorrection.response_deadline_days", Value = "7", Description = "SLA dni na reakcje na korekte danych", IsSecret = false, IsPublic = false });
+            new SystemConfig { Key = "datacorrection.response_deadline_days", Value = "7", Description = "SLA dni na reakcje na korekte danych", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.auth.permit_limit", Value = "10", Description = "Rate limit auth endpointow (req/okno)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.auth.window_seconds", Value = "60", Description = "Okno rate limitu auth (sekundy)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.upload.permit_limit", Value = "10", Description = "Rate limit uploadu (req/okno)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.upload.window_seconds", Value = "60", Description = "Okno rate limitu uploadu (sekundy)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.search.permit_limit", Value = "30", Description = "Rate limit wyszukiwania (req/okno)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.search.window_seconds", Value = "60", Description = "Okno rate limitu wyszukiwania (sekundy)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.general.permit_limit", Value = "60", Description = "Rate limit ogolny (req/okno)", IsSecret = false, IsPublic = false },
+            new SystemConfig { Key = "ratelimit.general.window_seconds", Value = "60", Description = "Okno rate limitu ogolnego (sekundy)", IsSecret = false, IsPublic = false });
 
         db.SystemLogs.AddRange(
             new SystemLog { Source = "AuthService", Level = Domain.Enums.LogLevel.Info, Message = "User jan-kowalski logged in", CreatedAt = DateTime.UtcNow.AddHours(-1) },
