@@ -30,6 +30,9 @@ else
                     <i class="fa-solid fa-shield-halved me-1"></i>Wyłącz 2FA
                 </button>
             }
+            <button class="btn btn-info btn-sm" @onclick="HandleResetPassword" disabled="@_resetInProgress">
+                <i class="fa-solid fa-key me-1"></i>Resetuj hasło
+            </button>
             @if (_user.Status == "Banned")
             {
                 <button class="btn btn-success btn-sm" @onclick='() => UserAction("unban")'>
@@ -84,6 +87,7 @@ else
 
     private AdminUserDto? _user;
     private bool _loading = true;
+    private bool _resetInProgress;
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,5 +115,14 @@ else
             _user = await AdminService.GetUserAsync(Id);
         }
         else Toast.ShowError("Nie udało się wyłączyć 2FA.");
+    }
+
+    private async Task HandleResetPassword()
+    {
+        _resetInProgress = true;
+        var success = await AdminService.ResetUserPasswordAsync(_user!.PublicId);
+        _resetInProgress = false;
+        if (success) Toast.ShowSuccess("Link resetujący wysłany na email użytkownika.");
+        else Toast.ShowError("Nie udało się wysłać linku resetującego.");
     }
 }

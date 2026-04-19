@@ -21,6 +21,7 @@ public interface IAdminService
     Task<AdminUserDto?> GetUserAsync(int userId);
     Task<bool> UpdateUserAsync(Guid publicId, string action);
     Task<bool> Disable2faForUserAsync(Guid publicId);
+    Task<bool> ResetUserPasswordAsync(Guid publicId);
     Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
     Task<AdminRestaurantDetailDto?> GetRestaurantDetailAsync(int id);
     Task<bool> UpdateRestaurantAsync(Guid publicId, AdminRestaurantUpdateDto dto);
