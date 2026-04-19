@@ -98,6 +98,7 @@ builder.Services.AddScoped<SystemJobsCleanupService>();
 builder.Services.AddScoped<SystemLogsCleanupService>();
 builder.Services.AddScoped<SoftDeletedReviewsCleanupService>();
 builder.Services.AddScoped<DataCorrectionEscalationService>();
+builder.Services.AddScoped<LogRetentionService>();
 
 var app = builder.Build();
 
@@ -169,5 +170,8 @@ RecurringJob.AddOrUpdate<SoftDeletedReviewsCleanupService>(
 
 RecurringJob.AddOrUpdate<DataCorrectionEscalationService>(
     "data-correction-escalation", x => x.EscalateAsync(CancellationToken.None), Cron.Hourly, utc);
+
+RecurringJob.AddOrUpdate<LogRetentionService>(
+    "log-retention", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(3, 45), utc);
 
 await app.RunAsync();
