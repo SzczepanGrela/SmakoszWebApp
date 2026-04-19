@@ -2,10 +2,19 @@
 @inject ISearchService SearchService
 @inject NavigationManager Navigation
 
-<PageTitle>Szukaj - Smakosz</PageTitle>
+<PageTitle>@(_type == "restaurants" ? "Restauracje" : "Szukaj") - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fa-solid fa-magnifying-glass me-2"></i>Szukaj</h1>
+    <h1 class="mb-4">
+        @if (_type == "restaurants")
+        {
+            <i class="fa-solid fa-store me-2"></i>@("Restauracje")
+        }
+        else
+        {
+            <i class="fa-solid fa-magnifying-glass me-2"></i>@("Szukaj")
+        }
+    </h1>
 
     <div class="row mb-4">
         <div class="col-md-8">
