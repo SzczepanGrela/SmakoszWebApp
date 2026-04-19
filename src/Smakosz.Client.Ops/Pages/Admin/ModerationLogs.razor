@@ -1,0 +1,138 @@
+@page "/admin/moderation-logs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Logi moderacji - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-gavel me-2"></i>Logi moderacji</h2>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mb-3">
+    <div>
+        <div class="small text-muted mb-1">Actor</div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn @(_actorFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByActor(null)">Wszystkie</button>
+            <button class="btn @(_actorFilter == "Admin" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByActor("Admin")'>Admin</button>
+            <button class="btn @(_actorFilter == "System" ? "btn-info" : "btn-outline-info")" @onclick='() => FilterByActor("System")'>System</button>
+            <button class="btn @(_actorFilter == "Ai" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByActor("Ai")'>Ai</button>
+        </div>
+    </div>
+    <div>
+        <div class="small text-muted mb-1">Typ encji</div>
+        <select class="form-select form-select-sm" style="width:auto;" @bind="_entityTypeFilter" @bind:after="() => LoadPage(1)">
+            <option value="">Wszystkie</option>
+            @foreach (var et in EntityTypes)
+            {
+                <option value="@et">@et</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_logs == null || !_logs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-gavel" Title="Brak logow moderacji" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover" style="font-size:0.85rem;">
+            <thead>
+                <tr>
+                    <th style="width:160px;">Czas</th>
+                    <th style="width:90px;">Actor</th>
+                    <th style="width:180px;">Encja</th>
+                    <th style="width:110px;">Verdict</th>
+                    <th>Powody</th>
+                    <th style="width:140px;">Moderator</th>
+                    <th>Scores</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in _logs.Data)
+                {
+                    <tr>
+                        <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="badge @ActorBadge(log.Actor)">@log.Actor</span></td>
+                        <td><EntityLink EntityType="@log.EntityType" EntityId="@log.EntityId" /></td>
+                        <td><span class="badge @VerdictBadge(log.Verdict)">@log.Verdict</span></td>
+                        <td>
+                            @foreach (var reason in log.ReasonCodes)
+                            {
+                                <span class="badge bg-light text-dark border me-1">@reason</span>
+                            }
+                            @if (!string.IsNullOrEmpty(log.AdminNote))
+                            {
+                                <div class="small text-muted mt-1">@log.AdminNote</div>
+                            }
+                        </td>
+                        <td>
+                            @if (log.ProcessedBy.HasValue)
+                            {
+                                <a href="@($"/admin/users/{log.ProcessedBy}")">@(log.ProcessedByUsername ?? $"User#{log.ProcessedBy}")</a>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.AiScores))
+                            {
+                                <details>
+                                    <summary class="small text-primary">Szczegoly</summary>
+                                    <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.AiScores</pre>
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_logs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_logs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private static readonly string[] EntityTypes =
+        { "Photo", "Review", "EditRequest", "User", "Report", "Ticket", "Restaurant", "Dish", "MenuSection" };
+
+    private PagedResult<AdminModerationLogDto>? _logs;
+    private string? _actorFilter;
+    private string _entityTypeFilter = string.Empty;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        var entityType = string.IsNullOrWhiteSpace(_entityTypeFilter) ? null : _entityTypeFilter;
+        _logs = await AdminService.GetModerationLogsAsync(page, _actorFilter, entityType);
+        _loading = false;
+    }
+
+    private async Task FilterByActor(string? actor) { _actorFilter = actor; await LoadPage(1); }
+
+    private static string ActorBadge(string actor) => actor switch
+    {
+        "Admin" => "bg-primary",
+        "System" => "bg-info",
+        "Ai" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private static string VerdictBadge(string verdict) => verdict switch
+    {
+        "Approved" or "Unbanned" or "Resolved" => "bg-success",
+        "Rejected" or "Banned" => "bg-danger",
+        "NeedsReview" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}
