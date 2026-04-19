@@ -117,9 +117,10 @@ public class AdminSystemController : ApiController
     public async Task<IActionResult> GetAuditLogs(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
-        [FromQuery] string? tableName = null)
+        [FromQuery] string? tableName = null,
+        [FromQuery] int? recordId = null)
     {
-        var result = await _mediator.Send(new GetAuditLogsQuery(new PaginationParams(page, pageSize), tableName));
+        var result = await _mediator.Send(new GetAuditLogsQuery(new PaginationParams(page, pageSize), tableName, recordId));
         return ToActionResult(result);
     }
 

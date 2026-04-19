@@ -120,9 +120,10 @@ public class AdminModerationController : ApiController
     [HttpGet("edit-requests")]
     public async Task<IActionResult> GetEditRequests(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] int? restaurantId = null)
     {
-        var result = await _mediator.Send(new GetEditRequestsQuery(new PaginationParams(page, pageSize)));
+        var result = await _mediator.Send(new GetEditRequestsQuery(new PaginationParams(page, pageSize), restaurantId));
         return ToActionResult(result);
     }
 

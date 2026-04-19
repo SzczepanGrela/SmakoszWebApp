@@ -38,6 +38,98 @@ public class AdminRestaurantDto
     public int ReviewCount { get; init; }
 }
 
+public class AdminRestaurantDetailDto
+{
+    // Core
+    public int RestaurantId { get; init; }
+    public Guid PublicId { get; init; }
+    public string Name { get; init; } = default!;
+    public string? Slug { get; init; }
+    public string? Description { get; init; }
+    public string? CuisineType { get; init; }
+    public int? PriceLevel { get; init; }
+    public string? ImageUrl { get; init; }
+    public string? ImageBlurhash { get; init; }
+
+    // Contact & location
+    public string? Address { get; init; }
+    public string? PostalCode { get; init; }
+    public string? Phone { get; init; }
+    public string? Email { get; init; }
+    public string? Website { get; init; }
+    public int? CityId { get; init; }
+    public string? CityName { get; init; }
+
+    // Owner
+    public int? OwnerId { get; init; }
+    public Guid? OwnerPublicId { get; init; }
+    public string? OwnerUsername { get; init; }
+    public string? OwnerEmail { get; init; }
+
+    // Status & moderation
+    public string Status { get; init; } = default!;
+    public bool IsVerified { get; init; }
+    public string ModerationStatus { get; init; } = default!;
+    public DateTime? VerifiedAt { get; init; }
+    public string? VerifiedByUsername { get; init; }
+    public int Version { get; init; }
+
+    // Metrics
+    public double? AvgFoodScore { get; init; }
+    public double? AvgServiceScore { get; init; }
+    public double? AvgCleanlinessScore { get; init; }
+    public double? AvgAmbianceScore { get; init; }
+    public decimal? TrendingScore { get; init; }
+    public int ReviewCount { get; init; }
+
+    // Counters
+    public int PendingEditRequestsCount { get; init; }
+    public int PendingPhotosCount { get; init; }
+    public int ApprovedPhotosCount { get; init; }
+    public int MenuSectionsCount { get; init; }
+    public int MenuItemsCount { get; init; }
+
+    // Nested (cheap)
+    public List<AdminRestaurantOpeningHoursDto> OpeningHours { get; init; } = new();
+    public List<AdminRestaurantReviewSummaryDto> RecentReviews { get; init; } = new();
+
+    // Metadata
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+}
+
+public class AdminRestaurantOpeningHoursDto
+{
+    public int DayOfWeek { get; init; }
+    public TimeOnly OpenTime { get; init; }
+    public TimeOnly CloseTime { get; init; }
+    public bool IsClosed { get; init; }
+}
+
+public class AdminModerationLogDto
+{
+    public long LogId { get; init; }
+    public string EntityType { get; init; } = default!;
+    public int EntityId { get; init; }
+    public string Actor { get; init; } = default!;
+    public string Verdict { get; init; } = default!;
+    public string? AdminNote { get; init; }
+    public string? ProcessedByUsername { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
+public class AdminRestaurantReviewSummaryDto
+{
+    public int ReviewId { get; init; }
+    public Guid PublicId { get; init; }
+    public string? Username { get; init; }
+    public string? DishName { get; init; }
+    public int DishRating { get; init; }
+    public string? ContentPreview { get; init; }
+    public string ModerationStatus { get; init; } = default!;
+    public DateTime? CreatedAt { get; init; }
+}
+
 public class AdminReportDto
 {
     public int ReportId { get; init; }

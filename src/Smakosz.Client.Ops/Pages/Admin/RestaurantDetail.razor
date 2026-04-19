@@ -1,0 +1,768 @@
+@page "/admin/restaurants/{Id:int}"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>@(_detail?.Name ?? "Restauracja") - Admin Smakosz</PageTitle>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ładowanie restauracji..." />
+}
+else if (_detail == null)
+{
+    <EmptyState Icon="fa-solid fa-store" Title="Nie znaleziono restauracji" ActionText="Powrót do listy" ActionUrl="/admin/restaurants" />
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+            <a href="/admin/restaurants" class="btn btn-outline-secondary btn-sm me-2">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="fw-bold d-inline me-2">@_detail.Name</h2>
+            <StatusBadge Status="@_detail.Status" />
+            @if (_detail.IsVerified)
+            {
+                <span class="badge bg-success ms-1"><i class="fa-solid fa-check me-1"></i>Zweryfikowana</span>
+            }
+            else
+            {
+                <span class="badge bg-warning text-dark ms-1">Niezweryfikowana</span>
+            }
+            @if (_detail.ModerationStatus != "None")
+            {
+                <span class="badge bg-info ms-1">Moderacja: @_detail.ModerationStatus</span>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            @if (!string.IsNullOrEmpty(_detail.Slug))
+            {
+                <a href="/restaurants/@_detail.Slug" target="_blank" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-up-right-from-square me-1"></i>Zobacz publicznie
+                </a>
+            }
+            @if (!_detail.IsVerified)
+            {
+                <button class="btn btn-success btn-sm" disabled="@_verifying" @onclick="HandleVerify">
+                    <i class="fa-solid fa-check me-1"></i>Zweryfikuj
+                </button>
+            }
+            @if (_detail.Status != "ClosedPermanently")
+            {
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Zmień status
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var s in GetAvailableStatuses())
+                        {
+                            <li><button class="dropdown-item" @onclick="() => BeginStatusChange(s)">@StatusLabel(s)</button></li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (_pendingStatus is not null)
+    {
+        <div class="card border-warning mb-4">
+            <div class="card-body">
+                <p class="mb-2">Zmiana statusu na <strong>@StatusLabel(_pendingStatus)</strong></p>
+                @if (StatusRequiresReason(_pendingStatus))
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Powód (wymagany)</label>
+                        <textarea class="form-control" rows="2" @bind="_statusReason"></textarea>
+                    </div>
+                }
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger btn-sm" disabled="@_changingStatus" @onclick="ConfirmStatusChange">
+                        <i class="fa-solid fa-check me-1"></i>Potwierdź
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="CancelStatusChange">Anuluj</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa-solid fa-circle-info me-2"></i>Informacje podstawowe</h5>
+                    @if (!_infoEditMode)
+                    {
+                        <button class="btn btn-outline-primary btn-sm" @onclick="EnterInfoEdit">
+                            <i class="fa-solid fa-pen me-1"></i>Edytuj
+                        </button>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (_infoEditMode)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nazwa</label>
+                            <input type="text" class="form-control" @bind="_form.Name" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Typ kuchni</label>
+                            <input type="text" class="form-control" @bind="_form.CuisineType" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Poziom cenowy (1-4)</label>
+                            <input type="number" class="form-control" min="1" max="4" @bind="_form.PriceLevel" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Opis</label>
+                            <textarea class="form-control" rows="4" @bind="_form.Description"></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm" disabled="@_saving" @onclick="SaveInfo">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">Anuluj</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Nazwa</dt>
+                            <dd class="col-sm-8">@_detail.Name</dd>
+
+                            <dt class="col-sm-4">Typ kuchni</dt>
+                            <dd class="col-sm-8">@(_detail.CuisineType ?? "-")</dd>
+
+                            <dt class="col-sm-4">Poziom cenowy</dt>
+                            <dd class="col-sm-8">@(_detail.PriceLevel.HasValue ? new string('$', _detail.PriceLevel.Value) : "-")</dd>
+
+                            <dt class="col-sm-4">Opis</dt>
+                            <dd class="col-sm-8">
+                                @if (string.IsNullOrWhiteSpace(_detail.Description))
+                                {
+                                    <span class="text-muted">Brak opisu</span>
+                                }
+                                else
+                                {
+                                    <span style="white-space:pre-wrap;">@_detail.Description</span>
+                                }
+                            </dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa-solid fa-location-dot me-2"></i>Kontakt i lokalizacja</h5>
+                    @if (!_contactEditMode)
+                    {
+                        <button class="btn btn-outline-primary btn-sm" @onclick="EnterContactEdit">
+                            <i class="fa-solid fa-pen me-1"></i>Edytuj
+                        </button>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (_contactEditMode)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Adres</label>
+                            <input type="text" class="form-control" @bind="_form.Address" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kod pocztowy</label>
+                            <input type="text" class="form-control" @bind="_form.PostalCode" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Telefon</label>
+                            <input type="text" class="form-control" @bind="_form.Phone" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control" @bind="_form.Email" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Strona WWW</label>
+                            <input type="url" class="form-control" @bind="_form.Website" />
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary btn-sm" disabled="@_saving" @onclick="SaveContact">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">Anuluj</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Adres</dt>
+                            <dd class="col-sm-8">@(_detail.Address ?? "-")</dd>
+
+                            <dt class="col-sm-4">Kod pocztowy</dt>
+                            <dd class="col-sm-8">@(_detail.PostalCode ?? "-")</dd>
+
+                            <dt class="col-sm-4">Miasto</dt>
+                            <dd class="col-sm-8">@(_detail.CityName ?? "-")</dd>
+
+                            <dt class="col-sm-4">Telefon</dt>
+                            <dd class="col-sm-8">@(_detail.Phone ?? "-")</dd>
+
+                            <dt class="col-sm-4">Email</dt>
+                            <dd class="col-sm-8">@(_detail.Email ?? "-")</dd>
+
+                            <dt class="col-sm-4">Strona WWW</dt>
+                            <dd class="col-sm-8">
+                                @if (string.IsNullOrEmpty(_detail.Website))
+                                {
+                                    <span>-</span>
+                                }
+                                else
+                                {
+                                    <a href="@_detail.Website" target="_blank" rel="noopener">@_detail.Website</a>
+                                }
+                            </dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h5></div>
+                <div class="card-body">
+                    @if (_detail.OpeningHours.Count == 0)
+                    {
+                        <p class="text-muted mb-0">Brak godzin otwarcia.</p>
+                    }
+                    else
+                    {
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                @foreach (var oh in _detail.OpeningHours)
+                                {
+                                    <tr>
+                                        <td style="width:150px;">@DayName(oh.DayOfWeek)</td>
+                                        <td>
+                                            @if (oh.IsClosed)
+                                            {
+                                                <span class="text-muted">Zamknięte</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@oh.OpenTime.ToString("HH:mm") - @oh.CloseTime.ToString("HH:mm")</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa-solid fa-comments me-2"></i>Ostatnie recenzje (top @_detail.RecentReviews.Count)</h5>
+                    <span class="badge bg-secondary">@_detail.ReviewCount łącznie</span>
+                </div>
+                <div class="card-body">
+                    @if (_detail.RecentReviews.Count == 0)
+                    {
+                        <p class="text-muted mb-0">Brak recenzji.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var rv in _detail.RecentReviews)
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div>
+                                            <strong>@(rv.Username ?? "-")</strong>
+                                            <span class="text-muted ms-2">@(rv.DishName ?? "-")</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-warning text-dark">@rv.DishRating/5</span>
+                                            <StatusBadge Status="@rv.ModerationStatus" />
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(rv.ContentPreview))
+                                    {
+                                        <p class="mb-1 small">@rv.ContentPreview</p>
+                                    }
+                                    <small class="text-muted">@(rv.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-chart-simple me-2"></i>Statystyki</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-2 small">
+                        <dt class="col-7">Jedzenie</dt>
+                        <dd class="col-5 text-end">@FormatScore(_detail.AvgFoodScore)</dd>
+
+                        <dt class="col-7">Obsługa</dt>
+                        <dd class="col-5 text-end">@FormatScore(_detail.AvgServiceScore)</dd>
+
+                        <dt class="col-7">Czystość</dt>
+                        <dd class="col-5 text-end">@FormatScore(_detail.AvgCleanlinessScore)</dd>
+
+                        <dt class="col-7">Atmosfera</dt>
+                        <dd class="col-5 text-end">@FormatScore(_detail.AvgAmbianceScore)</dd>
+
+                        <dt class="col-7">Trending</dt>
+                        <dd class="col-5 text-end">@(_detail.TrendingScore?.ToString("F2") ?? "-")</dd>
+
+                        <dt class="col-7">Recenzje</dt>
+                        <dd class="col-5 text-end">@_detail.ReviewCount</dd>
+                    </dl>
+                    <hr />
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-secondary" title="Sekcje menu"><i class="fa-solid fa-list me-1"></i>@_detail.MenuSectionsCount sekcji</span>
+                        <span class="badge bg-secondary" title="Pozycje w menu"><i class="fa-solid fa-utensils me-1"></i>@_detail.MenuItemsCount dań</span>
+                        <span class="badge bg-success" title="Zdjęcia zatwierdzone"><i class="fa-solid fa-image me-1"></i>@_detail.ApprovedPhotosCount</span>
+                        @if (_detail.PendingPhotosCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark" title="Zdjęcia oczekujące"><i class="fa-solid fa-hourglass me-1"></i>@_detail.PendingPhotosCount</span>
+                        }
+                        @if (_detail.PendingEditRequestsCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark" title="Oczekujące wnioski edycji"><i class="fa-solid fa-pen me-1"></i>@_detail.PendingEditRequestsCount</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-user-tie me-2"></i>Właściciel</h5></div>
+                <div class="card-body">
+                    @if (_detail.OwnerId.HasValue)
+                    {
+                        <dl class="row mb-0 small">
+                            <dt class="col-5">Użytkownik</dt>
+                            <dd class="col-7">
+                                <a href="/admin/users/@_detail.OwnerId">@(_detail.OwnerUsername ?? "-")</a>
+                            </dd>
+
+                            <dt class="col-5">Email</dt>
+                            <dd class="col-7">@(_detail.OwnerEmail ?? "-")</dd>
+                        </dl>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Brak przypisanego właściciela.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-database me-2"></i>Metadane</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0 small">
+                        <dt class="col-5">Utworzono</dt>
+                        <dd class="col-7">@(_detail.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
+
+                        <dt class="col-5">Zaktualizowano</dt>
+                        <dd class="col-7">@(_detail.UpdatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
+
+                        <dt class="col-5">Zweryfikowano</dt>
+                        <dd class="col-7">
+                            @if (_detail.VerifiedAt.HasValue)
+                            {
+                                <span>@_detail.VerifiedAt.Value.ToString("dd.MM.yyyy")</span>
+                                @if (!string.IsNullOrEmpty(_detail.VerifiedByUsername))
+                                {
+                                    <span class="text-muted"> (@_detail.VerifiedByUsername)</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </dd>
+
+                        <dt class="col-5">Wersja</dt>
+                        <dd class="col-7">@_detail.Version</dd>
+
+                        <dt class="col-5">Slug</dt>
+                        <dd class="col-7"><code class="small">@(_detail.Slug ?? "-")</code></dd>
+
+                        <dt class="col-5">PublicId</dt>
+                        <dd class="col-7"><code class="small">@_detail.PublicId</code></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mt-4 mb-3">Powiązane dane</h4>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer;" @onclick="ToggleEditRequests">
+            <h6 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Wnioski o edycję</h6>
+            <i class="fa-solid @(_editRequestsExpanded ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_editRequestsExpanded)
+        {
+            <div class="card-body">
+                @if (_editRequests == null)
+                {
+                    <LoadingSpinner />
+                }
+                else if (_editRequests.Count == 0)
+                {
+                    <p class="text-muted mb-0">Brak wniosków o edycję.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Typ</th><th>Status</th><th>Użytkownik</th><th>Data</th></tr></thead>
+                        <tbody>
+                            @foreach (var er in _editRequests)
+                            {
+                                <tr>
+                                    <td>@er.FieldChanged</td>
+                                    <td><StatusBadge Status="@er.Status" /></td>
+                                    <td>@er.RequestedBy</td>
+                                    <td>@er.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer;" @onclick="ToggleModerationHistory">
+            <h6 class="mb-0"><i class="fa-solid fa-gavel me-2"></i>Historia moderacji</h6>
+            <i class="fa-solid @(_moderationHistoryExpanded ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_moderationHistoryExpanded)
+        {
+            <div class="card-body">
+                @if (_moderationHistory == null)
+                {
+                    <LoadingSpinner />
+                }
+                else if (_moderationHistory.Count == 0)
+                {
+                    <p class="text-muted mb-0">Brak historii moderacji.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Data</th><th>Aktor</th><th>Werdykt</th><th>Notatka</th><th>Moderator</th></tr></thead>
+                        <tbody>
+                            @foreach (var m in _moderationHistory)
+                            {
+                                <tr>
+                                    <td>@(m.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                                    <td>@m.Actor</td>
+                                    <td><StatusBadge Status="@m.Verdict" /></td>
+                                    <td>@(m.AdminNote ?? "-")</td>
+                                    <td>@(m.ProcessedByUsername ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center" style="cursor:pointer;" @onclick="ToggleAuditLog">
+            <h6 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Historia zmian (audit)</h6>
+            <i class="fa-solid @(_auditLogExpanded ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_auditLogExpanded)
+        {
+            <div class="card-body">
+                @if (_auditLogs == null)
+                {
+                    <LoadingSpinner />
+                }
+                else if (_auditLogs.Count == 0)
+                {
+                    <p class="text-muted mb-0">Brak wpisów audytu.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Data</th><th>Operacja</th><th>Kto</th><th>Stare</th><th>Nowe</th></tr></thead>
+                        <tbody>
+                            @foreach (var a in _auditLogs)
+                            {
+                                <tr>
+                                    <td>@a.ChangedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@a.Operation</td>
+                                    <td>@a.ChangedBy</td>
+                                    <td><code class="small" style="max-width:200px;display:block;overflow:hidden;text-overflow:ellipsis;">@(a.OldValues ?? "-")</code></td>
+                                    <td><code class="small" style="max-width:200px;display:block;overflow:hidden;text-overflow:ellipsis;">@(a.NewValues ?? "-")</code></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private AdminRestaurantDetailDto? _detail;
+    private bool _loading = true;
+    private bool _verifying;
+    private bool _saving;
+    private bool _infoEditMode;
+    private bool _contactEditMode;
+    private AdminRestaurantUpdateDto _form = new();
+    private string? _pendingStatus;
+    private string _statusReason = "";
+    private bool _changingStatus;
+
+    private bool _editRequestsExpanded;
+    private List<AdminEditRequestDto>? _editRequests;
+    private bool _moderationHistoryExpanded;
+    private List<AdminModerationLogDto>? _moderationHistory;
+    private bool _auditLogExpanded;
+    private List<AdminAuditLogDto>? _auditLogs;
+
+    protected override async Task OnParametersSetAsync() => await LoadDetail();
+
+    private async Task LoadDetail()
+    {
+        _loading = true;
+        _detail = await AdminService.GetRestaurantDetailAsync(Id);
+        _loading = false;
+    }
+
+    private async Task HandleVerify()
+    {
+        if (_detail is null) return;
+        _verifying = true;
+        var success = await AdminService.VerifyRestaurantAsync(_detail.PublicId);
+        _verifying = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Restauracja zweryfikowana.");
+            await LoadDetail();
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zweryfikować restauracji.");
+        }
+    }
+
+    private async Task ToggleEditRequests()
+    {
+        _editRequestsExpanded = !_editRequestsExpanded;
+        if (_editRequestsExpanded && _editRequests == null && _detail != null)
+        {
+            var result = await AdminService.GetEditRequestsAsync(1, _detail.RestaurantId);
+            _editRequests = result?.Data ?? new();
+        }
+    }
+
+    private async Task ToggleModerationHistory()
+    {
+        _moderationHistoryExpanded = !_moderationHistoryExpanded;
+        if (_moderationHistoryExpanded && _moderationHistory == null && _detail != null)
+        {
+            var result = await AdminService.GetRestaurantModerationHistoryAsync(_detail.RestaurantId);
+            _moderationHistory = result?.Data ?? new();
+        }
+    }
+
+    private async Task ToggleAuditLog()
+    {
+        _auditLogExpanded = !_auditLogExpanded;
+        if (_auditLogExpanded && _auditLogs == null && _detail != null)
+        {
+            var result = await AdminService.GetAuditLogsAsync(1, "restaurants", _detail.RestaurantId);
+            _auditLogs = result?.Data ?? new();
+        }
+    }
+
+    private void PopulateForm()
+    {
+        if (_detail is null) return;
+        _form = new AdminRestaurantUpdateDto
+        {
+            Name = _detail.Name,
+            Description = _detail.Description,
+            CuisineType = _detail.CuisineType,
+            PriceLevel = _detail.PriceLevel,
+            Address = _detail.Address,
+            PostalCode = _detail.PostalCode,
+            Phone = _detail.Phone,
+            Email = _detail.Email,
+            Website = _detail.Website,
+            CityId = _detail.CityId,
+            ExpectedVersion = _detail.Version
+        };
+    }
+
+    private void EnterInfoEdit()
+    {
+        PopulateForm();
+        _infoEditMode = true;
+    }
+
+    private void EnterContactEdit()
+    {
+        PopulateForm();
+        _contactEditMode = true;
+    }
+
+    private void CancelEdit()
+    {
+        _infoEditMode = false;
+        _contactEditMode = false;
+    }
+
+    private async Task SaveInfo()
+    {
+        if (_detail is null) return;
+        _saving = true;
+        var dto = new AdminRestaurantUpdateDto
+        {
+            Name = _form.Name,
+            Description = _form.Description,
+            CuisineType = _form.CuisineType,
+            PriceLevel = _form.PriceLevel,
+            ExpectedVersion = _form.ExpectedVersion
+        };
+        var success = await AdminService.UpdateRestaurantAsync(_detail.PublicId, dto);
+        _saving = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Informacje zaktualizowane.");
+            _infoEditMode = false;
+            await LoadDetail();
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zapisać zmian.");
+        }
+    }
+
+    private async Task SaveContact()
+    {
+        if (_detail is null) return;
+        _saving = true;
+        var dto = new AdminRestaurantUpdateDto
+        {
+            Address = _form.Address,
+            PostalCode = _form.PostalCode,
+            Phone = _form.Phone,
+            Email = _form.Email,
+            Website = _form.Website,
+            CityId = _form.CityId,
+            ExpectedVersion = _form.ExpectedVersion
+        };
+        var success = await AdminService.UpdateRestaurantAsync(_detail.PublicId, dto);
+        _saving = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Dane kontaktowe zaktualizowane.");
+            _contactEditMode = false;
+            await LoadDetail();
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zapisać zmian.");
+        }
+    }
+
+    private List<string> GetAvailableStatuses()
+    {
+        if (_detail is null) return new();
+        return _detail.Status switch
+        {
+            "PendingVerification" => new() { "Active", "Suspended", "ClosedPermanently" },
+            "Active" => new() { "Renovation", "Suspended", "ClosedPermanently" },
+            "Renovation" => new() { "Active", "ClosedPermanently" },
+            "Suspended" => new() { "Active", "ClosedPermanently" },
+            _ => new()
+        };
+    }
+
+    private static string StatusLabel(string status) => status switch
+    {
+        "Active" => "Aktywna",
+        "PendingVerification" => "Oczekuje na weryfikację",
+        "Renovation" => "Remont",
+        "Suspended" => "Zawieszona",
+        "ClosedPermanently" => "Trwale zamknięta",
+        _ => status
+    };
+
+    private static bool StatusRequiresReason(string status) =>
+        status is "Suspended" or "ClosedPermanently";
+
+    private void BeginStatusChange(string status)
+    {
+        _pendingStatus = status;
+        _statusReason = "";
+    }
+
+    private void CancelStatusChange()
+    {
+        _pendingStatus = null;
+        _statusReason = "";
+    }
+
+    private async Task ConfirmStatusChange()
+    {
+        if (_detail is null || _pendingStatus is null) return;
+        if (StatusRequiresReason(_pendingStatus) && string.IsNullOrWhiteSpace(_statusReason))
+        {
+            Toast.ShowError("Podaj powód zmiany statusu.");
+            return;
+        }
+
+        _changingStatus = true;
+        var success = await AdminService.ChangeRestaurantStatusAsync(
+            _detail.PublicId, _pendingStatus, string.IsNullOrWhiteSpace(_statusReason) ? null : _statusReason);
+        _changingStatus = false;
+
+        if (success)
+        {
+            Toast.ShowSuccess($"Status zmieniony na {StatusLabel(_pendingStatus)}.");
+            _pendingStatus = null;
+            _statusReason = "";
+            await LoadDetail();
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zmienić statusu.");
+        }
+    }
+
+    private static string DayName(int dayOfWeek) => dayOfWeek switch
+    {
+        1 => "Poniedziałek",
+        2 => "Wtorek",
+        3 => "Środa",
+        4 => "Czwartek",
+        5 => "Piątek",
+        6 => "Sobota",
+        0 or 7 => "Niedziela",
+        _ => dayOfWeek.ToString()
+    };
+
+    private static string FormatScore(double? score)
+        => score.HasValue ? score.Value.ToString("F1") : "-";
+}

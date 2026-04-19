@@ -15,13 +15,17 @@ public interface IAdminService
     Task<bool> ModerateReviewAsync(Guid id, string action, string? reason = null);
     Task<PagedResult<AdminReportDto>?> GetReportsAsync(int page = 1, string? status = null);
     Task<bool> ResolveReportAsync(int id, string resolution);
-    Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1);
+    Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1, int? restaurantId = null);
     Task<bool> ProcessEditRequestAsync(int id, string action, string? reason = null);
     Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null);
     Task<AdminUserDto?> GetUserAsync(int userId);
     Task<bool> UpdateUserAsync(Guid publicId, string action);
     Task<bool> Disable2faForUserAsync(Guid publicId);
     Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
+    Task<AdminRestaurantDetailDto?> GetRestaurantDetailAsync(int id);
+    Task<bool> UpdateRestaurantAsync(Guid publicId, AdminRestaurantUpdateDto dto);
+    Task<bool> ChangeRestaurantStatusAsync(Guid publicId, string status, string? reason);
+    Task<PagedResult<AdminModerationLogDto>?> GetRestaurantModerationHistoryAsync(int restaurantId, int page = 1);
     Task<bool> VerifyRestaurantAsync(Guid publicId);
     Task<PagedResult<AdminIngredientDto>?> GetIngredientsAsync(int page = 1, string? search = null);
     Task<bool> CreateIngredientAsync(AdminIngredientDto dto);
@@ -50,7 +54,7 @@ public interface IAdminService
         bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null);
     Task<List<AdminHeroImageDto>> GetHeroImagesAsync();
     Task<bool> DeleteHeroImageAsync(Guid publicId);
-    Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null);
+    Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null);
     Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null);
     Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync();
 }

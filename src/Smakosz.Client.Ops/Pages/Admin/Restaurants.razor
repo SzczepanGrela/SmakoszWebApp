@@ -41,7 +41,15 @@ else
                 @foreach (var r in _restaurants.Data)
                 {
                     <tr>
-                        <td><a href="/restaurants/@r.Slug">@r.Name</a></td>
+                        <td>
+                            <a href="/admin/restaurants/@r.RestaurantId">@r.Name</a>
+                            @if (!string.IsNullOrEmpty(r.Slug))
+                            {
+                                <a href="/restaurants/@r.Slug" target="_blank" rel="noopener" class="ms-2 text-muted" title="Otwórz publicznie">
+                                    <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                            }
+                        </td>
                         <td><span class="badge bg-@GetStatusColor(r.Status)">@r.Status</span></td>
                         <td>
                             @if (r.IsVerified)
