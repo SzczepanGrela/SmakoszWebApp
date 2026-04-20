@@ -50,52 +50,51 @@ namespace Smakosz.Infrastructure.Migrations
 
         private static void SeedCuisineTypes(MigrationBuilder migrationBuilder)
         {
-            var rows = new (string Name, string DisplayName, string? Icon)[]
+            var rows = new (string Name, string DisplayName)[]
             {
-                ("polska", "Polska", null),
-                ("wloska", "Wloska", null),
-                ("francuska", "Francuska", null),
-                ("hiszpanska", "Hiszpanska", null),
-                ("grecka", "Grecka", null),
-                ("portugalska", "Portugalska", null),
-                ("japonska", "Japonska", null),
-                ("chinska", "Chinska", null),
-                ("koreanska", "Koreanska", null),
-                ("wietnamska", "Wietnamska", null),
-                ("tajska", "Tajska", null),
-                ("indyjska", "Indyjska", null),
-                ("amerykanska", "Amerykanska", null),
-                ("meksykanska", "Meksykanska", null),
-                ("brazylijska", "Brazylijska", null),
-                ("turecka", "Turecka", null),
-                ("libanska", "Libanska", null),
-                ("marokanska", "Marokanska", null),
-                ("izraelska", "Izraelska", null),
-                ("niemiecka", "Niemiecka", null),
-                ("austriacka", "Austriacka", null),
-                ("wegierska", "Wegierska", null),
-                ("czeska", "Czeska", null),
-                ("ukrainska", "Ukrainska", null),
-                ("rosyjska", "Rosyjska", null),
-                ("wegetarianska", "Wegetarianska", null),
-                ("weganska", "Weganska", null),
-                ("fusion", "Fusion", null),
-                ("street_food", "Street food", null),
-                ("fast_food", "Fast food", null),
-                ("kawiarnia", "Kawiarnia", null)
+                ("polska", "Polska"),
+                ("wloska", "Wloska"),
+                ("francuska", "Francuska"),
+                ("hiszpanska", "Hiszpanska"),
+                ("grecka", "Grecka"),
+                ("portugalska", "Portugalska"),
+                ("japonska", "Japonska"),
+                ("chinska", "Chinska"),
+                ("koreanska", "Koreanska"),
+                ("wietnamska", "Wietnamska"),
+                ("tajska", "Tajska"),
+                ("indyjska", "Indyjska"),
+                ("amerykanska", "Amerykanska"),
+                ("meksykanska", "Meksykanska"),
+                ("brazylijska", "Brazylijska"),
+                ("turecka", "Turecka"),
+                ("libanska", "Libanska"),
+                ("marokanska", "Marokanska"),
+                ("izraelska", "Izraelska"),
+                ("niemiecka", "Niemiecka"),
+                ("austriacka", "Austriacka"),
+                ("wegierska", "Wegierska"),
+                ("czeska", "Czeska"),
+                ("ukrainska", "Ukrainska"),
+                ("rosyjska", "Rosyjska"),
+                ("wegetarianska", "Wegetarianska"),
+                ("weganska", "Weganska"),
+                ("fusion", "Fusion"),
+                ("street_food", "Street food"),
+                ("fast_food", "Fast food"),
+                ("kawiarnia", "Kawiarnia")
             };
 
-            var data = new object[rows.Length, 3];
+            var data = new object[rows.Length, 2];
             for (var i = 0; i < rows.Length; i++)
             {
                 data[i, 0] = rows[i].Name;
                 data[i, 1] = rows[i].DisplayName;
-                data[i, 2] = (object?)rows[i].Icon ?? DBNull.Value;
             }
 
             migrationBuilder.InsertData(
                 table: "cuisine_types",
-                columns: new[] { "name", "display_name", "icon" },
+                columns: new[] { "name", "display_name" },
                 values: data);
         }
 
