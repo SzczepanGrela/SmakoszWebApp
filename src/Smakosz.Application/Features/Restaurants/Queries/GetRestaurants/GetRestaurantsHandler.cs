@@ -27,14 +27,15 @@ public class GetRestaurantsHandler : IRequestHandler<GetRestaurantsQuery, ErrorO
         var query = _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
+            .Include(r => r.Cuisine)
             .Where(r => r.Status == RestaurantStatus.Active)
             .AsQueryable();
 
         if (request.CityId.HasValue)
             query = query.Where(r => r.CityId == request.CityId.Value);
 
-        if (!string.IsNullOrWhiteSpace(request.CuisineType))
-            query = query.Where(r => r.CuisineType == request.CuisineType);
+        if (request.CuisineTypeId.HasValue)
+            query = query.Where(r => r.CuisineTypeId == request.CuisineTypeId.Value);
 
         if (request.MinPrice.HasValue)
             query = query.Where(r => r.PriceLevel >= request.MinPrice.Value);
@@ -64,7 +65,7 @@ public class GetRestaurantsHandler : IRequestHandler<GetRestaurantsQuery, ErrorO
                 PublicId = r.PublicId,
                 Slug = r.Slug ?? string.Empty,
                 RestaurantName = r.RestaurantName,
-                CuisineType = r.CuisineType,
+                CuisineType = r.Cuisine != null ? r.Cuisine.DisplayName : null,
                 CityName = r.City != null ? r.City.CityName : null,
                 PriceLevel = r.PriceLevel,
                 AvgFoodScore = r.AvgFoodScore,

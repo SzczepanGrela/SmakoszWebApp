@@ -19,9 +19,6 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasMaxLength(255)
             .IsRequired();
 
-        builder.Property(x => x.CuisineType)
-            .HasMaxLength(100);
-
         builder.Property(x => x.Address)
             .HasMaxLength(200);
 
@@ -80,6 +77,11 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .WithMany()
             .HasForeignKey(x => x.CityId);
 
+        builder.HasOne(x => x.Cuisine)
+            .WithMany()
+            .HasForeignKey(x => x.CuisineTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasOne(x => x.Owner)
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
@@ -95,7 +97,7 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .IsUnique();
 
         builder.HasIndex(x => x.CityId);
-        builder.HasIndex(x => x.CuisineType);
+        builder.HasIndex(x => x.CuisineTypeId);
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.OwnerId);
         builder.HasIndex(x => new { x.IsVerified, x.OwnerId });

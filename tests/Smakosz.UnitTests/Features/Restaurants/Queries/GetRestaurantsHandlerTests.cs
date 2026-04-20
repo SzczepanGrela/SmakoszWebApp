@@ -57,11 +57,13 @@ public class GetRestaurantsHandlerTests
     [Fact]
     public async Task Handle_CuisineFilter_ReturnsMatchingOnly()
     {
-        var italian = new RestaurantBuilder().WithId(1).WithCuisineType("Italian").Build();
-        var polish = new RestaurantBuilder().WithId(2).WithCuisineType("Polish").Build();
+        var italian = new RestaurantBuilder().WithId(1).WithCuisineTypeId(1).Build();
+        italian.Cuisine = new CuisineType { CuisineTypeId = 1, Name = "Italian", DisplayName = "Italian" };
+        var polish = new RestaurantBuilder().WithId(2).WithCuisineTypeId(2).Build();
+        polish.Cuisine = new CuisineType { CuisineTypeId = 2, Name = "Polish", DisplayName = "Polish" };
         _sets.Restaurants.AddRange(new[] { italian, polish });
         DbContextMockFactory.Refresh(_db, _sets);
-        var query = new GetRestaurantsQuery(_defaultPagination, CuisineType: "Italian");
+        var query = new GetRestaurantsQuery(_defaultPagination, CuisineTypeId: 1);
 
         var result = await _handler.Handle(query, CancellationToken.None);
 

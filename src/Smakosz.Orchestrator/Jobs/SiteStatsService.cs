@@ -50,8 +50,8 @@ public class SiteStatsService
             : 0;
 
         stats.MostPopularCuisine = await _db.Restaurants
-            .Where(r => r.Status == RestaurantStatus.Active && r.CuisineType != null)
-            .GroupBy(r => r.CuisineType!)
+            .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
+            .GroupBy(r => r.Cuisine!.DisplayName)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
             .FirstOrDefaultAsync(ct);

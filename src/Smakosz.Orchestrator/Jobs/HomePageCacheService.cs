@@ -33,6 +33,7 @@ public class HomePageCacheService
         var trendingRestaurants = await _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
+            .Include(r => r.Cuisine)
             .Where(r => r.Status == RestaurantStatus.Active
                 && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
             .OrderByDescending(r => r.TrendingScore)
@@ -42,7 +43,7 @@ public class HomePageCacheService
                 PublicId = r.PublicId,
                 Slug = r.Slug ?? string.Empty,
                 RestaurantName = r.RestaurantName,
-                CuisineType = r.CuisineType,
+                CuisineType = r.Cuisine != null ? r.Cuisine.DisplayName : null,
                 CityName = r.City != null ? r.City.CityName : null,
                 PriceLevel = r.PriceLevel,
                 AvgFoodScore = r.AvgFoodScore,
@@ -146,8 +147,8 @@ public class HomePageCacheService
 
         var popularCategories = await _db.Restaurants
             .AsNoTracking()
-            .Where(r => r.Status == RestaurantStatus.Active && r.CuisineType != null)
-            .GroupBy(r => r.CuisineType!)
+            .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
+            .GroupBy(r => r.Cuisine!.DisplayName)
             .OrderByDescending(g => g.Count())
             .Take(8)
             .Select(g => g.Key)

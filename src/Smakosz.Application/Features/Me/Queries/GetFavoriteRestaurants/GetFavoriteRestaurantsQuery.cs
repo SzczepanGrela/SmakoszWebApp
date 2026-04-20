@@ -44,7 +44,7 @@ public class GetFavoriteRestaurantsHandler : IRequestHandler<GetFavoriteRestaura
                 Name = f.Restaurant.RestaurantName,
                 Slug = f.Restaurant.Slug,
                 ImageUrl = f.Restaurant.ImageUrl,
-                CuisineType = f.Restaurant.CuisineType,
+                CuisineType = f.Restaurant.Cuisine != null ? f.Restaurant.Cuisine.DisplayName : null,
                 AvgRating = f.Restaurant.AvgFoodScore,
                 FavoritedAt = f.CreatedAt
             })

@@ -9,7 +9,7 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned, IModerable
     public Guid PublicId { get; set; }
     public int? CityId { get; set; }
     public string RestaurantName { get; set; } = string.Empty;
-    public string? CuisineType { get; set; }
+    public int? CuisineTypeId { get; set; }
     public int? PriceLevel { get; set; }
     public string? Address { get; set; }
     public string? PostalCode { get; set; }
@@ -47,6 +47,7 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned, IModerable
     #endregion
 
     public City? City { get; set; }
+    public CuisineType? Cuisine { get; set; }
     public User? Owner { get; set; }
 
     public ICollection<RestaurantOpeningHours> OpeningHours { get; set; } = new List<RestaurantOpeningHours>();

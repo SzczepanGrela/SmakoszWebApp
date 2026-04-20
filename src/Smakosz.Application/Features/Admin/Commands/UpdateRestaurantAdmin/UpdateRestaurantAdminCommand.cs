@@ -12,7 +12,7 @@ public record UpdateRestaurantAdminCommand(
     Guid PublicId,
     string? Name,
     string? Description,
-    string? CuisineType,
+    int? CuisineTypeId,
     int? PriceLevel,
     string? Address,
     string? PostalCode,
@@ -58,7 +58,7 @@ public class UpdateRestaurantAdminHandler : IRequestHandler<UpdateRestaurantAdmi
         {
             restaurant.RestaurantName,
             restaurant.Description,
-            restaurant.CuisineType,
+            restaurant.CuisineTypeId,
             restaurant.PriceLevel,
             restaurant.Address,
             restaurant.PostalCode,
@@ -70,7 +70,7 @@ public class UpdateRestaurantAdminHandler : IRequestHandler<UpdateRestaurantAdmi
 
         if (request.Name is not null) restaurant.RestaurantName = request.Name;
         if (request.Description is not null) restaurant.Description = request.Description;
-        if (request.CuisineType is not null) restaurant.CuisineType = request.CuisineType;
+        if (request.CuisineTypeId.HasValue) restaurant.CuisineTypeId = request.CuisineTypeId.Value;
         if (request.PriceLevel.HasValue) restaurant.PriceLevel = request.PriceLevel.Value;
         if (request.Address is not null) restaurant.Address = request.Address;
         if (request.PostalCode is not null) restaurant.PostalCode = request.PostalCode;
@@ -85,7 +85,7 @@ public class UpdateRestaurantAdminHandler : IRequestHandler<UpdateRestaurantAdmi
         {
             restaurant.RestaurantName,
             restaurant.Description,
-            restaurant.CuisineType,
+            restaurant.CuisineTypeId,
             restaurant.PriceLevel,
             restaurant.Address,
             restaurant.PostalCode,

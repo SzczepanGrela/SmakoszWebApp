@@ -37,7 +37,7 @@ public class UpdateRestaurantAdminHandlerTests
             Slug = "old-name",
             Version = version,
             Status = RestaurantStatus.Active,
-            CuisineType = "Italian"
+            CuisineTypeId = 1
         };
         _sets.Restaurants.Add(r);
         DbContextMockFactory.Refresh(_db, _sets);

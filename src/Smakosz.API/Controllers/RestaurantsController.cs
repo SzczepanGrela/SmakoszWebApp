@@ -23,7 +23,7 @@ public class RestaurantsController : ApiController
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] int? cityId = null,
-        [FromQuery] string? cuisineType = null,
+        [FromQuery] int? cuisineTypeId = null,
         [FromQuery] int? minPrice = null,
         [FromQuery] int? maxPrice = null,
         [FromQuery] string sortBy = "trending")
@@ -31,7 +31,7 @@ public class RestaurantsController : ApiController
         var query = new GetRestaurantsQuery(
             new PaginationParams(page, pageSize),
             cityId,
-            cuisineType,
+            cuisineTypeId,
             minPrice,
             maxPrice,
             sortBy);

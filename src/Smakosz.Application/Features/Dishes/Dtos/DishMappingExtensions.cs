@@ -50,7 +50,7 @@ public static class DishMappingExtensions
             TrendingScore = d.TrendingScore,
             RestaurantName = d.Restaurant?.RestaurantName,
             RestaurantSlug = d.Restaurant?.Slug,
-            CuisineType = d.Restaurant?.CuisineType,
+            CuisineType = d.Restaurant?.Cuisine?.DisplayName,
             CityName = d.Restaurant?.City?.CityName,
             IsSaved = isSaved,
             Tags = d.DishTags.Select(dt => new TagDto

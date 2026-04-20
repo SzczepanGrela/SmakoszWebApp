@@ -12,9 +12,9 @@ public class UpdateRestaurantAdminValidatorTests
     private static UpdateRestaurantAdminCommand Cmd(
         string? name = null, string? description = null, string? email = null,
         string? phone = null, string? website = null, int? priceLevel = null,
-        string? postalCode = null, string? cuisineType = null, int? cityId = null,
+        string? postalCode = null, int? cuisineTypeId = null, int? cityId = null,
         int expectedVersion = 1)
-        => new(Guid.NewGuid(), name, description, cuisineType, priceLevel,
+        => new(Guid.NewGuid(), name, description, cuisineTypeId, priceLevel,
             null, postalCode, phone, email, website, cityId, expectedVersion);
 
     [Theory]
