@@ -7,9 +7,10 @@ class RestaurantDAO:
     @staticmethod
     def get_all_restaurants_for_dishes(db: DatabaseConnection) -> list[RestaurantForDishes]:
         rows = db.fetch_all("""
-            SELECT restaurant_id, cuisine_type, secret_price_multiplier,
-                   secret_archetype_modifiers, status, created_at
-            FROM restaurants
+            SELECT r.restaurant_id, COALESCE(ct.name, ''), r.secret_price_multiplier,
+                   r.secret_archetype_modifiers, r.status, r.created_at
+            FROM restaurants r
+            LEFT JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
         """)
         return [
             RestaurantForDishes(
@@ -26,11 +27,12 @@ class RestaurantDAO:
     @staticmethod
     def get_all_restaurants_for_reviews(db: DatabaseConnection) -> list[RestaurantForReview]:
         rows = db.fetch_all("""
-            SELECT restaurant_id, city_id, cuisine_type, created_at,
-                   secret_price_multiplier, secret_overall_food_quality,
-                   secret_service_quality, secret_cleanliness_score,
-                   secret_ambiance_type, secret_ambiance_quality
-            FROM restaurants
+            SELECT r.restaurant_id, r.city_id, COALESCE(ct.name, ''), r.created_at,
+                   r.secret_price_multiplier, r.secret_overall_food_quality,
+                   r.secret_service_quality, r.secret_cleanliness_score,
+                   r.secret_ambiance_type, r.secret_ambiance_quality
+            FROM restaurants r
+            LEFT JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
         """)
         result = []
         for row in rows:
@@ -60,8 +62,16 @@ class RestaurantDAO:
 
     @staticmethod
     def get_restaurants_with_cuisine(db: DatabaseConnection) -> list[tuple[int, str]]:
-        return db.fetch_all("SELECT restaurant_id, cuisine_type FROM restaurants")
+        return db.fetch_all("""
+            SELECT r.restaurant_id, COALESCE(ct.name, '')
+            FROM restaurants r
+            LEFT JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
+        """)
 
     @staticmethod
     def get_restaurants_with_images(db: DatabaseConnection) -> list[tuple[int, str, str]]:
-        return db.fetch_all("SELECT restaurant_id, cuisine_type, image_url FROM restaurants")
+        return db.fetch_all("""
+            SELECT r.restaurant_id, COALESCE(ct.name, ''), r.image_url
+            FROM restaurants r
+            LEFT JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
+        """)

@@ -1,3 +1,10 @@
+class TagCategories:
+    DISH_CATEGORY = "dish_category"
+    ATTRIBUTE = "attribute"
+    DIET = "diet"
+    CUISINE = "cuisine"
+
+
 THEME_TO_MENU_BLUEPRINT: dict[str, str] = {
     "Pizzeria": "Pizzeria",
     "Burgerownia": "Burger Bar",
