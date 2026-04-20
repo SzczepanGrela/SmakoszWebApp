@@ -1,3 +1,4 @@
+using Smakosz.Domain.Entities.Generator;
 using Smakosz.Domain.Enums;
 using Smakosz.Domain.Interfaces;
 
@@ -29,6 +30,9 @@ public class Dish : IAuditableEntity, IHasPublicId, IModerable
     public int ReviewCount { get; set; }
     public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
 
+    /// <summary>
+    /// Fields populated only by tools/generator/ Python pipeline. NULL in production data.
+    /// </summary>
     #region Generator-Only Fields
     public int? SecretVariantId { get; set; }
     public decimal? SecretBasePrice { get; set; }

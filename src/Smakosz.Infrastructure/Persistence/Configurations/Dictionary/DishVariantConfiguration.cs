@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.Generator;
 
 namespace Smakosz.Infrastructure.Persistence.Configurations.Dictionary;
 

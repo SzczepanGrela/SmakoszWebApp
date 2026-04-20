@@ -2,6 +2,7 @@
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.Generator;
 using Smakosz.Domain.Entities.System;
 
 namespace Smakosz.UnitTests.Common.TestInfrastructure;
