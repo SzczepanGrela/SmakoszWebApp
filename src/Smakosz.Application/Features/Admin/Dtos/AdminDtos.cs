@@ -106,6 +106,16 @@ public class AdminRestaurantOpeningHoursDto
     public bool IsClosed { get; init; }
 }
 
+public class AdminForbiddenWordDto
+{
+    public int WordId { get; init; }
+    public string Word { get; init; } = default!;
+    public string Category { get; init; } = default!;
+    public bool IsRegex { get; init; }
+    public string? AddedByUsername { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
 public class AdminModerationLogDto
 {
     public long LogId { get; init; }

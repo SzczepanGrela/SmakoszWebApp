@@ -252,6 +252,16 @@ public class AdminRestaurantUpdateDto
     public int ExpectedVersion { get; set; }
 }
 
+public class AdminForbiddenWordDto
+{
+    public int WordId { get; set; }
+    public string Word { get; set; } = default!;
+    public string Category { get; set; } = default!;
+    public bool IsRegex { get; set; }
+    public string? AddedByUsername { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminModerationLogDto
 {
     public long LogId { get; set; }

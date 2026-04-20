@@ -56,6 +56,8 @@ public class ForbiddenWordService : IForbiddenWordService
         return false;
     }
 
+    public void InvalidateCache() => _cache.Remove(CacheKey);
+
     private async Task<List<ForbiddenWord>> GetCachedWordsAsync(CancellationToken ct)
     {
         if (_cache.TryGetValue(CacheKey, out List<ForbiddenWord>? cached) && cached is not null)
