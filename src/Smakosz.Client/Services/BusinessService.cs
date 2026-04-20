@@ -57,6 +57,7 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
+            IsSpicy = dish.IsSpicy,
             DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds
@@ -73,6 +74,7 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
+            IsSpicy = dish.IsSpicy,
             DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds

@@ -18,6 +18,7 @@ public record CreateDishCommand(
     int? Calories,
     bool IsAvailable,
     string DishCategoryTagName,
+    bool IsSpicy = false,
     List<int>? SectionIds = null,
     List<int>? IngredientIds = null) : IRequest<ErrorOr<int>>;
 
@@ -66,6 +67,7 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
             Description = request.Description,
             Calories = request.Calories,
             IsAvailable = request.IsAvailable,
+            IsSpicy = request.IsSpicy,
             ModerationStatus = ContentModerationStatus.Pending,
             PublicId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow

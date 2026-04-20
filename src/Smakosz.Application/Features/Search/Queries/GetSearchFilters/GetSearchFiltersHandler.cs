@@ -43,7 +43,8 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
                 new() { Value = "vegetarian", Label = "Wegetariańskie" },
                 new() { Value = "vegan", Label = "Wegańskie" },
                 new() { Value = "gluten_free", Label = "Bezglutenowe" },
-                new() { Value = "lactose_free", Label = "Bezlaktozowe" }
+                new() { Value = "lactose_free", Label = "Bezlaktozowe" },
+                new() { Value = "spicy", Label = "Ostre" }
             },
             MinPrice = 1,
             MaxPrice = 4
