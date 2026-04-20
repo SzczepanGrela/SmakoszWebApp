@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Constants;
 
 namespace Smakosz.Application.Features.Search.Queries.GetSearchFilters;
 
@@ -27,7 +28,7 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
 
         var dishCategories = await _db.Tags
             .AsNoTracking()
-            .Where(t => t.Category == "dish_category")
+            .Where(t => t.Category == TagCategories.DishCategory)
             .OrderBy(t => t.TagName)
             .Select(t => new FilterOption { Value = t.TagName, Label = t.TagName })
             .ToListAsync(cancellationToken);

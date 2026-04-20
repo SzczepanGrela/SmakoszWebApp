@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Smakosz.Domain.Constants;
 
 #nullable disable
 
@@ -33,7 +34,7 @@ namespace Smakosz.Infrastructure.Migrations
             for (var i = 0; i < CategoryNames.Length; i++)
             {
                 values[i, 0] = CategoryNames[i];
-                values[i, 1] = "dish_category";
+                values[i, 1] = TagCategories.DishCategory;
                 values[i, 2] = "dish";
                 values[i, 3] = "#e67e22";
                 values[i, 4] = createdAt;

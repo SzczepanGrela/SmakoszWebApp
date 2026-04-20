@@ -6,6 +6,7 @@ using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Dishes.Dtos;
 using Smakosz.Application.Features.Restaurants.Dtos;
 using Smakosz.Application.Features.Search.Dtos;
+using Smakosz.Domain.Constants;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 
@@ -211,7 +212,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         if (dishCategoryList.Count > 0)
         {
             query = query.Where(d => d.DishTags.Any(dt =>
-                dt.Tag.Category == "dish_category"
+                dt.Tag.Category == TagCategories.DishCategory
                 && dishCategoryList.Contains(dt.Tag.TagName)));
         }
 
@@ -266,11 +267,11 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 IsGlutenFree = d.IsGlutenFree,
                 IsSaved = false,
                 CategoryTagName = d.DishTags
-                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.TagName)
                     .FirstOrDefault(),
                 CategoryColor = d.DishTags
-                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.DisplayColor)
                     .FirstOrDefault()
             })
