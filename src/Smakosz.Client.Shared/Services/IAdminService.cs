@@ -57,6 +57,10 @@ public interface IAdminService
     Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null);
     Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null);
     Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync();
+    Task<PagedResult<AdminBannedIdentifierDto>?> GetBannedIdentifiersAsync(int page = 1, string? type = null, bool includeExpired = false);
+    Task<bool> CreateBannedIdentifierAsync(AdminBannedIdentifierDto dto);
+    Task<bool> UpdateBannedIdentifierAsync(int id, object dto);
+    Task<bool> DeleteBannedIdentifierAsync(int id);
     Task<PagedResult<AdminForbiddenWordDto>?> GetForbiddenWordsAsync(int page = 1, string? search = null);
     Task<bool> CreateForbiddenWordAsync(AdminForbiddenWordDto dto);
     Task<bool> UpdateForbiddenWordAsync(int id, AdminForbiddenWordDto dto);

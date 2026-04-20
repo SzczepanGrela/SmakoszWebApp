@@ -281,6 +281,18 @@ public static class DomainErrors
             Error.Validation("CAPTCHA_FAILED", "Weryfikacja CAPTCHA nie powiodła się");
     }
 
+    public static class BannedIdentifier
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("BANNED_IDENTIFIER_NOT_FOUND", "Zbanowany identyfikator nie został znaleziony");
+
+        public static readonly Error AlreadyExists =
+            Error.Conflict("BANNED_IDENTIFIER_ALREADY_EXISTS", "Ban na ten identyfikator już istnieje");
+
+        public static readonly Error InvalidFormat =
+            Error.Validation("BANNED_IDENTIFIER_INVALID_FORMAT", "Nieprawidłowy format wartości dla wybranego typu");
+    }
+
     public static class ForbiddenWord
     {
         public static readonly Error UsernameContainsForbiddenWord =

@@ -1,0 +1,213 @@
+@page "/admin/banned-identifiers"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Zbanowane identyfikatory - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Zbanowane identyfikatory</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj ban
+    </button>
+</div>
+
+<div class="d-flex gap-3 mb-3 align-items-center flex-wrap">
+    <div>
+        <select class="form-select form-select-sm" @bind="_filterType" @bind:after="ReloadList">
+            <option value="">Wszystkie typy</option>
+            @foreach (var t in _allTypes)
+            {
+                <option value="@t">@t</option>
+            }
+        </select>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="showExpired" @bind="_showExpired" @bind:after="ReloadList" />
+        <label class="form-check-label" for="showExpired">Pokaż wygasłe</label>
+    </div>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_editingId.HasValue ? "Edytuj" : "Nowy") ban</h5></div>
+        <div class="card-body">
+            <div class="row">
+                @if (!_editingId.HasValue)
+                {
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-medium">Typ *</label>
+                        <select class="form-select" @bind="_form.Type">
+                            <option value="">-- wybierz --</option>
+                            @foreach (var t in _allTypes)
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-medium">Wartość *</label>
+                        <input type="text" class="form-control" @bind="_form.Value" placeholder="np. 192.168.1.100 lub spam@test.com" />
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-medium">Typ</label>
+                        <input type="text" class="form-control" value="@_form.Type" disabled />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-medium">Wartość</label>
+                        <input type="text" class="form-control" value="@_form.Value" disabled />
+                    </div>
+                }
+                <div class="col-md-5 mb-3">
+                    <label class="form-label fw-medium">Powód</label>
+                    <textarea class="form-control" rows="2" @bind="_form.Reason"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Wygasa (puste = staly ban)</label>
+                    <input type="datetime-local" class="form-control" @bind="_formExpiresAt" />
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveBan">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_bans == null || !_bans.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-shield-halved" Title="Brak zbanowanych identyfikatorów" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Wartość</th><th>Typ</th><th>Powód</th><th>Zbanowany przez</th><th>Data</th><th>Wygasa</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var b in _bans.Data)
+                {
+                    <tr class="@(b.IsExpired ? "table-secondary" : "")">
+                        <td class="fw-medium"><code>@b.Value</code></td>
+                        <td><StatusBadge Status="@b.Type" /></td>
+                        <td class="small">@(b.Reason ?? "-")</td>
+                        <td>@(b.BannedByUsername ?? "-")</td>
+                        <td>@(b.BannedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                        <td>
+                            @if (b.IsExpired)
+                            {
+                                <span class="badge bg-secondary">Wygasl</span>
+                            }
+                            else if (b.ExpiresAt.HasValue)
+                            {
+                                <span>@b.ExpiresAt.Value.ToString("dd.MM.yyyy HH:mm")</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Staly</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditBan(b)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteBan(b)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_bans.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_bans.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminBannedIdentifierDto>? _bans;
+    private bool _loading = true;
+    private bool _showForm;
+    private int? _editingId;
+    private AdminBannedIdentifierDto _form = new() { Type = "" };
+    private DateTime? _formExpiresAt;
+
+    private string _filterType = "";
+    private bool _showExpired;
+
+    private static readonly string[] _allTypes = { "Email", "Phone", "Ip", "EmailDomain" };
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _bans = await AdminService.GetBannedIdentifiersAsync(page, string.IsNullOrEmpty(_filterType) ? null : _filterType, _showExpired);
+        _loading = false;
+    }
+
+    private async Task ReloadList() => await LoadPage(1);
+
+    private void ShowAddForm()
+    {
+        _form = new() { Type = "" };
+        _formExpiresAt = null;
+        _editingId = null;
+        _showForm = true;
+    }
+
+    private void EditBan(AdminBannedIdentifierDto b)
+    {
+        _form = new() { BanId = b.BanId, Type = b.Type, Value = b.Value, Reason = b.Reason };
+        _formExpiresAt = b.ExpiresAt?.ToLocalTime();
+        _editingId = b.BanId;
+        _showForm = true;
+    }
+
+    private void CancelForm() { _showForm = false; _editingId = null; }
+
+    private async Task SaveBan()
+    {
+        bool success;
+        if (_editingId.HasValue)
+        {
+            var clearExpiration = !_formExpiresAt.HasValue && _form.ExpiresAt.HasValue;
+            success = await AdminService.UpdateBannedIdentifierAsync(_editingId.Value,
+                new { _form.Reason, ExpiresAt = _formExpiresAt?.ToUniversalTime(), ClearExpiration = clearExpiration });
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(_form.Type) || string.IsNullOrWhiteSpace(_form.Value)) return;
+            _form.ExpiresAt = _formExpiresAt?.ToUniversalTime();
+            success = await AdminService.CreateBannedIdentifierAsync(_form);
+        }
+
+        if (success) { Toast.ShowSuccess("Zapisano."); _showForm = false; await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie zapisac.");
+    }
+
+    private async Task DeleteBan(AdminBannedIdentifierDto b)
+    {
+        var success = await AdminService.DeleteBannedIdentifierAsync(b.BanId);
+        if (success) { Toast.ShowSuccess("Usunieto."); await LoadPage(1); }
+        else Toast.ShowError("Nie udalo sie usunac.");
+    }
+}

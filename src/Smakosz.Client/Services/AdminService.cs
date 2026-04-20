@@ -255,6 +255,29 @@ public class AdminService : IAdminService
     public async Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync()
         => await _api.GetAsync<List<AdminSystemNodeDto>>("/api/admin/nodes");
 
+    public Task<PagedResult<AdminBannedIdentifierDto>?> GetBannedIdentifiersAsync(int page = 1, string? type = null, bool includeExpired = false)
+    {
+        var url = $"/api/admin/banned-identifiers?page={page}&includeExpired={includeExpired}";
+        if (!string.IsNullOrEmpty(type)) url += $"&type={type}";
+        return _api.GetAsync<PagedResult<AdminBannedIdentifierDto>>(url);
+    }
+
+    public async Task<bool> CreateBannedIdentifierAsync(AdminBannedIdentifierDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/banned-identifiers",
+            new { dto.Type, dto.Value, dto.Reason, dto.ExpiresAt });
+        return response.Success;
+    }
+
+    public async Task<bool> UpdateBannedIdentifierAsync(int id, object dto)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/banned-identifiers/{id}", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> DeleteBannedIdentifierAsync(int id)
+        => await _api.DeleteAsync($"/api/admin/banned-identifiers/{id}");
+
     public Task<PagedResult<AdminForbiddenWordDto>?> GetForbiddenWordsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminForbiddenWordDto>>($"/api/admin/forbidden-words?page={page}&search={search}");
 

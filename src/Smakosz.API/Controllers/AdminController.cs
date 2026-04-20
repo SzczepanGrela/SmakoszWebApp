@@ -10,7 +10,11 @@ using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.ChangeRestaurantStatus;
+using Smakosz.Application.Features.Admin.Commands.CreateBannedIdentifier;
 using Smakosz.Application.Features.Admin.Commands.CreateForbiddenWord;
+using Smakosz.Application.Features.Admin.Commands.DeleteBannedIdentifier;
+using Smakosz.Application.Features.Admin.Commands.UpdateBannedIdentifier;
+using Smakosz.Application.Features.Admin.Queries.GetBannedIdentifiers;
 using Smakosz.Application.Features.Admin.Commands.DeleteForbiddenWord;
 using Smakosz.Application.Features.Admin.Commands.TestForbiddenWord;
 using Smakosz.Application.Features.Admin.Commands.UpdateForbiddenWord;
@@ -137,6 +141,41 @@ public class AdminController : ApiController
     public async Task<IActionResult> VerifyRestaurant(Guid publicId)
     {
         var result = await _mediator.Send(new VerifyRestaurantCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpGet("banned-identifiers")]
+    public async Task<IActionResult> GetBannedIdentifiers(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? type = null,
+        [FromQuery] bool includeExpired = false)
+    {
+        var result = await _mediator.Send(new GetBannedIdentifiersQuery(new PaginationParams(page, pageSize), type, includeExpired));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("banned-identifiers")]
+    public async Task<IActionResult> CreateBannedIdentifier([FromBody] CreateBannedIdentifierRequest request)
+    {
+        if (!Enum.TryParse<BannedIdentifierType>(request.Type, true, out var banType))
+            return BadRequest(new { error = "Nieprawidłowy typ" });
+
+        var result = await _mediator.Send(new CreateBannedIdentifierCommand(banType, request.Value, request.Reason, request.ExpiresAt));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("banned-identifiers/{id:int}")]
+    public async Task<IActionResult> UpdateBannedIdentifier(int id, [FromBody] UpdateBannedIdentifierRequest request)
+    {
+        var result = await _mediator.Send(new UpdateBannedIdentifierCommand(id, request.Reason, request.ExpiresAt, request.ClearExpiration));
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("banned-identifiers/{id:int}")]
+    public async Task<IActionResult> DeleteBannedIdentifier(int id)
+    {
+        var result = await _mediator.Send(new DeleteBannedIdentifierCommand(id));
         return ToNoContentResult(result);
     }
 
@@ -325,6 +364,8 @@ public record UpdateTagRequest(string? Name, string? Category, string? TargetEnt
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
 public record ChangeRestaurantStatusRequest(string Status, string? Reason);
+public record CreateBannedIdentifierRequest(string Type, string Value, string? Reason, DateTime? ExpiresAt);
+public record UpdateBannedIdentifierRequest(string? Reason, DateTime? ExpiresAt, bool ClearExpiration = false);
 public record CreateForbiddenWordRequest(string Word, string Category, bool IsRegex);
 public record UpdateForbiddenWordRequest(string? Word, string? Category, bool? IsRegex);
 public record TestForbiddenWordRequest(string Text, string[] Categories);

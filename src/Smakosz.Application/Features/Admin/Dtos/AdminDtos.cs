@@ -106,6 +106,18 @@ public class AdminRestaurantOpeningHoursDto
     public bool IsClosed { get; init; }
 }
 
+public class AdminBannedIdentifierDto
+{
+    public int BanId { get; init; }
+    public string Type { get; init; } = default!;
+    public string Value { get; init; } = default!;
+    public string? Reason { get; init; }
+    public string? BannedByUsername { get; init; }
+    public DateTime? BannedAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
+    public bool IsExpired { get; init; }
+}
+
 public class AdminForbiddenWordDto
 {
     public int WordId { get; init; }
