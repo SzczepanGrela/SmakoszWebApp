@@ -61,6 +61,56 @@
             </div>
         </div>
 
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Cechy dania</h5></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Ostrość</label>
+                    <select class="form-select" @bind="_selectedSpiceLevel">
+                        <option value="">-- brak --</option>
+                        @foreach (var lvl in _spiceLevelOptions)
+                        {
+                            <option value="@lvl.Value">@lvl.Label</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Klimat</label>
+                    <select class="form-select" @bind="_selectedMood">
+                        <option value="">-- brak --</option>
+                        @foreach (var mood in _moodOptions)
+                        {
+                            <option value="@mood.Value">@mood.Label</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Pora dnia</label>
+                    @foreach (var occ in _occasionOptions)
+                    {
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"
+                                   checked="@_selectedOccasions.Contains(occ.Value)"
+                                   @onchange="e => ToggleOccasion(occ.Value, (bool)e.Value!)" />
+                            <label class="form-check-label">@occ.Label</label>
+                        </div>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Cechy</label>
+                    @foreach (var feat in _featureOptions)
+                    {
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox"
+                                   checked="@_selectedFeatures.Contains(feat.Value)"
+                                   @onchange="e => ToggleFeature(feat.Value, (bool)e.Value!)" />
+                            <label class="form-check-label">@feat.Label</label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
         <IngredientPicker @bind-SelectedIds="_selectedIngredientIds" />
 
         <MenuSectionPicker @bind-SelectedIds="_selectedSectionIds" />
@@ -104,7 +154,15 @@
     private List<int> _selectedIngredientIds = [];
     private List<int> _selectedSectionIds = [];
     private string? _selectedCategory;
+    private string? _selectedSpiceLevel;
+    private string? _selectedMood;
+    private readonly HashSet<string> _selectedOccasions = [];
+    private readonly HashSet<string> _selectedFeatures = [];
     private List<FilterOption> _categories = new();
+    private List<FilterOption> _spiceLevelOptions = new();
+    private List<FilterOption> _moodOptions = new();
+    private List<FilterOption> _occasionOptions = new();
+    private List<FilterOption> _featureOptions = new();
     private bool _saving;
     private string? _error;
 
@@ -112,7 +170,14 @@
     {
         var filters = await SearchService.GetFiltersAsync();
         _categories = filters?.DishCategories ?? new();
+        _spiceLevelOptions = filters?.SpiceLevels ?? new();
+        _moodOptions = filters?.Moods ?? new();
+        _occasionOptions = filters?.Occasions ?? new();
+        _featureOptions = filters?.Features ?? new();
     }
+
+    private void ToggleOccasion(string v, bool on) { if (on) _selectedOccasions.Add(v); else _selectedOccasions.Remove(v); }
+    private void ToggleFeature(string v, bool on) { if (on) _selectedFeatures.Add(v); else _selectedFeatures.Remove(v); }
 
     private async Task HandleCreate()
     {
@@ -131,7 +196,14 @@
         _saving = true;
         _error = null;
         _dish.CategoryTagName = _selectedCategory;
-        var success = await BusinessService.CreateDishAsync(_dish, _selectedIngredientIds, _selectedSectionIds);
+        var success = await BusinessService.CreateDishAsync(
+            _dish,
+            _selectedIngredientIds,
+            _selectedSectionIds,
+            spiceLevel: string.IsNullOrEmpty(_selectedSpiceLevel) ? null : _selectedSpiceLevel,
+            mood: string.IsNullOrEmpty(_selectedMood) ? null : _selectedMood,
+            features: _selectedFeatures.ToList(),
+            occasions: _selectedOccasions.ToList());
         if (success)
         {
             Toast.ShowSuccess("Danie zostalo dodane!");
