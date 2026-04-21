@@ -21,6 +21,10 @@ public class SearchFiltersDto
     public List<FilterOption> Cuisines { get; set; } = [];
     public List<FilterOption> DietaryOptions { get; set; } = [];
     public List<FilterOption> DishCategories { get; set; } = [];
+    public List<FilterOption> Features { get; set; } = [];
+    public List<FilterOption> Moods { get; set; } = [];
+    public List<FilterOption> Occasions { get; set; } = [];
+    public List<FilterOption> SpiceLevels { get; set; } = [];
     public List<string> Cities { get; set; } = [];
     public int MinPrice { get; set; }
     public int MaxPrice { get; set; }
