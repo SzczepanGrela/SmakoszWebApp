@@ -1,4 +1,4 @@
-@if (IsVegan || IsVegetarian || IsGlutenFree || IsLactoseFree || IsSpicy)
+@if (IsVegan || IsVegetarian || IsGlutenFree || IsLactoseFree || !string.IsNullOrEmpty(SpiceLevel))
 {
     <div class="dish-tags mt-1 d-flex flex-wrap gap-1">
         @if (IsVegan)
@@ -17,9 +17,9 @@
         {
             <span class="badge bg-info">Bez laktozy</span>
         }
-        @if (IsSpicy)
+        @if (!string.IsNullOrEmpty(SpiceLevel))
         {
-            <span class="badge bg-danger"><i class="fa-solid fa-pepper-hot me-1"></i>Ostre</span>
+            <span class="@SpiceBadgeClass"><i class="fa-solid fa-pepper-hot me-1"></i>@SpiceLevel</span>
         }
     </div>
 }
@@ -29,5 +29,14 @@
     [Parameter] public bool IsVegetarian { get; set; }
     [Parameter] public bool IsGlutenFree { get; set; }
     [Parameter] public bool IsLactoseFree { get; set; }
-    [Parameter] public bool IsSpicy { get; set; }
+    [Parameter] public string? SpiceLevel { get; set; }
+
+    private string SpiceBadgeClass => SpiceLevel switch
+    {
+        "Łagodne" => "badge bg-success",
+        "Średnio ostre" => "badge bg-warning text-dark",
+        "Ostre" => "badge bg-danger",
+        "Bardzo ostre" => "badge bg-dark",
+        _ => "badge bg-secondary"
+    };
 }

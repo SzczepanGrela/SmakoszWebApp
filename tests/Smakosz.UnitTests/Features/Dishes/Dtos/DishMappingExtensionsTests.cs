@@ -79,7 +79,7 @@ public class DishMappingExtensionsTests
         dto.Calories.Should().Be(dish.Calories);
         dto.IsVegetarian.Should().BeTrue(); // AsVegan sets both
         dto.IsVegan.Should().BeTrue();
-        dto.IsSpicy.Should().BeTrue();
+        dto.SpiceLevel.Should().Be("Ostre");
         dto.IsLactoseFree.Should().BeTrue();
         dto.IsAvailable.Should().Be(dish.IsAvailable);
         dto.TrendingScore.Should().Be(dish.TrendingScore);

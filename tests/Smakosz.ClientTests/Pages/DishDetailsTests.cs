@@ -23,7 +23,6 @@ public class DishDetailsTests : BunitTestBase
         IsVegetarian = true,
         IsGlutenFree = false,
         IsLactoseFree = false,
-        IsSpicy = false,
         IsAvailable = true,
         IsSaved = false,
         Calories = 850

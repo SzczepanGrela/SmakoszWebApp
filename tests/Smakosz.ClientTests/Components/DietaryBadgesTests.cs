@@ -56,7 +56,7 @@ public class DietaryBadgesTests : BunitTestBase
     [Fact]
     public void SpicyFlag_RendersBadge()
     {
-        var cut = RenderComponent<DietaryBadges>(p => p.Add(c => c.IsSpicy, true));
+        var cut = RenderComponent<DietaryBadges>(p => p.Add(c => c.SpiceLevel, "Ostre"));
         cut.Markup.Should().Contain("Ostre");
         cut.Find(".badge.bg-danger").Should().NotBeNull();
     }

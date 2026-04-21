@@ -42,10 +42,6 @@
                     <input class="form-check-input" type="checkbox" @bind="_dish.IsAvailable" />
                     <label class="form-check-label">Dostepne</label>
                 </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" @bind="_dish.IsSpicy" />
-                    <label class="form-check-label"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>Ostre</label>
-                </div>
                 <div class="mb-3">
                     <label class="form-label fw-medium">Zdjecie dania</label>
                     <ImageUpload EntityType="dish" OnImageUploaded="url => _dish.ImageUrl = url" />

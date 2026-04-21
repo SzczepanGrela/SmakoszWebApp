@@ -25,7 +25,10 @@ public class BusinessDishDetailDto
     public bool IsVegan { get; set; }
     public bool IsGlutenFree { get; set; }
     public bool IsLactoseFree { get; set; }
-    public bool IsSpicy { get; set; }
+    public string? SpiceLevel { get; set; }
+    public string? Mood { get; set; }
+    public List<string> Features { get; set; } = new();
+    public List<string> Occasions { get; set; } = new();
     public int ReviewCount { get; set; }
     public double? AvgRating { get; set; }
     public string? CategoryTagName { get; set; }
@@ -78,7 +81,6 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
                 d.IsVegan,
                 d.IsGlutenFree,
                 d.IsLactoseFree,
-                d.IsSpicy,
                 d.ReviewCount,
                 d.AvgRating,
                 OwnerId = d.Restaurant!.OwnerId,
@@ -86,6 +88,22 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
                     .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.TagName)
                     .FirstOrDefault(),
+                SpiceLevel = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Spice)
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
+                Mood = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Mood)
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
+                Features = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Feature)
+                    .Select(dt => dt.Tag.TagName)
+                    .ToList(),
+                Occasions = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Occasion)
+                    .Select(dt => dt.Tag.TagName)
+                    .ToList(),
                 Ingredients = d.DishIngredients.Select(di => new DishIngredientItemDto
                 {
                     IngredientId = di.IngredientId,
@@ -116,7 +134,10 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
             IsVegan = dish.IsVegan,
             IsGlutenFree = dish.IsGlutenFree,
             IsLactoseFree = dish.IsLactoseFree,
-            IsSpicy = dish.IsSpicy,
+            SpiceLevel = dish.SpiceLevel,
+            Mood = dish.Mood,
+            Features = dish.Features,
+            Occasions = dish.Occasions,
             ReviewCount = dish.ReviewCount,
             AvgRating = dish.AvgRating,
             CategoryTagName = dish.CategoryTagName,
