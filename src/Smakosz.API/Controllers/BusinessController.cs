@@ -151,7 +151,10 @@ public class BusinessController : ApiController
             request.Calories,
             request.IsAvailable,
             request.DishCategoryTagName ?? "",
-            request.IsSpicy,
+            request.SpiceLevel,
+            request.Mood,
+            request.Features,
+            request.Occasions,
             request.SectionIds,
             request.IngredientIds));
         return ToCreatedResult(result, $"/api/business/dishes/{(result.IsError ? 0 : result.Value)}");
@@ -168,6 +171,10 @@ public class BusinessController : ApiController
             request.Calories,
             request.IsAvailable,
             request.IsSpicy,
+            request.SpiceLevel,
+            request.Mood,
+            request.Features,
+            request.Occasions,
             request.DishCategoryTagName,
             request.IngredientIds,
             request.SectionIds));
@@ -238,6 +245,32 @@ public record CreateEditRequestRequest(
     string? NewAddress, string? NewPhone, string? NewWebsite);
 public record UpdateDishAvailabilityRequest(bool IsAvailable);
 public record UpdateMenuSectionRequest(string Name);
-public record CreateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool IsAvailable = true, bool IsSpicy = false, string? DishCategoryTagName = null, List<int>? SectionIds = null, List<int>? IngredientIds = null);
-public record UpdateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool? IsAvailable, bool? IsSpicy = null, string? DishCategoryTagName = null, List<int>? IngredientIds = null, List<int>? SectionIds = null);
+public record CreateDishRequest(
+    string? DishName,
+    decimal? Price,
+    string? Description,
+    int? Calories,
+    bool IsAvailable = true,
+    string? SpiceLevel = null,
+    string? Mood = null,
+    List<string>? Features = null,
+    List<string>? Occasions = null,
+    string? DishCategoryTagName = null,
+    List<int>? SectionIds = null,
+    List<int>? IngredientIds = null);
+
+public record UpdateDishRequest(
+    string? DishName,
+    decimal? Price,
+    string? Description,
+    int? Calories,
+    bool? IsAvailable,
+    bool? IsSpicy = null,
+    string? SpiceLevel = null,
+    string? Mood = null,
+    List<string>? Features = null,
+    List<string>? Occasions = null,
+    string? DishCategoryTagName = null,
+    List<int>? IngredientIds = null,
+    List<int>? SectionIds = null);
 public record SetDishIngredientsRequest(List<int> IngredientIds);

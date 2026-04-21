@@ -57,7 +57,7 @@ public class CreateDishHandlerTests
     public async Task Handle_NoRestaurant_ReturnsNotFoundError()
     {
         var result = await _handler.Handle(
-            new CreateDishCommand("Pasta", null, null, null, true, "Pizza", false, null, null),
+            new CreateDishCommand("Pasta", null, null, null, true, "Pizza"),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();
@@ -109,50 +109,4 @@ public class CreateDishHandlerTests
         result.FirstError.Code.Should().Be("DISH_INVALID_CATEGORY");
     }
 
-    [Fact]
-    public async Task Handle_IsSpicyDefault_StoresFalse()
-    {
-        var restaurant = new RestaurantBuilder().WithId(10).Build();
-        restaurant.OwnerId = 5;
-        _sets.Restaurants.Add(restaurant);
-        _sets.Tags.Add(new Tag { TagId = 1, TagName = "Pizza", Category = "dish_category", TargetEntity = TagTargetEntity.Dish });
-        DbContextMockFactory.Refresh(_db, _sets);
-
-        var result = await _handler.Handle(
-            new CreateDishCommand(
-                Name: "Margherita",
-                Price: 35m,
-                Description: null,
-                Calories: null,
-                IsAvailable: true,
-                DishCategoryTagName: "Pizza"),
-            CancellationToken.None);
-
-        result.IsError.Should().BeFalse();
-        _sets.Dishes[0].IsSpicy.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task Handle_IsSpicyTrue_StoresTrue()
-    {
-        var restaurant = new RestaurantBuilder().WithId(10).Build();
-        restaurant.OwnerId = 5;
-        _sets.Restaurants.Add(restaurant);
-        _sets.Tags.Add(new Tag { TagId = 1, TagName = "Kebab", Category = "dish_category", TargetEntity = TagTargetEntity.Dish });
-        DbContextMockFactory.Refresh(_db, _sets);
-
-        var result = await _handler.Handle(
-            new CreateDishCommand(
-                Name: "Kebab ostry",
-                Price: 25m,
-                Description: null,
-                Calories: null,
-                IsAvailable: true,
-                DishCategoryTagName: "Kebab",
-                IsSpicy: true),
-            CancellationToken.None);
-
-        result.IsError.Should().BeFalse();
-        _sets.Dishes[0].IsSpicy.Should().BeTrue();
-    }
 }

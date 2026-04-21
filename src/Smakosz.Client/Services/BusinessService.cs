@@ -48,7 +48,14 @@ public class BusinessService : IBusinessService
     public async Task<List<BusinessMenuSectionDto>> GetBusinessMenuSectionsAsync()
         => await _api.GetAsync<List<BusinessMenuSectionDto>>("/api/business/menu-sections") ?? [];
 
-    public async Task<bool> CreateDishAsync(DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null)
+    public async Task<bool> CreateDishAsync(
+        DishDetailDto dish,
+        List<int>? ingredientIds = null,
+        List<int>? sectionIds = null,
+        string? spiceLevel = null,
+        string? mood = null,
+        List<string>? features = null,
+        List<string>? occasions = null)
     {
         var response = await _api.PostApiResponseAsync<object>("/api/business/dishes", new
         {
@@ -57,7 +64,10 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
-            IsSpicy = dish.IsSpicy,
+            SpiceLevel = spiceLevel,
+            Mood = mood,
+            Features = features,
+            Occasions = occasions,
             DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds
@@ -65,7 +75,15 @@ public class BusinessService : IBusinessService
         return response.Success;
     }
 
-    public async Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null)
+    public async Task<bool> UpdateDishAsync(
+        Guid id,
+        DishDetailDto dish,
+        List<int>? ingredientIds = null,
+        List<int>? sectionIds = null,
+        string? spiceLevel = null,
+        string? mood = null,
+        List<string>? features = null,
+        List<string>? occasions = null)
     {
         var response = await _api.PutApiResponseAsync<object>($"/api/business/dishes/{id}", new
         {
@@ -74,7 +92,10 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
-            IsSpicy = dish.IsSpicy,
+            SpiceLevel = spiceLevel,
+            Mood = mood,
+            Features = features,
+            Occasions = occasions,
             DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds

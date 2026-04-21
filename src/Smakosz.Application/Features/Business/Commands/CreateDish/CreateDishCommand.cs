@@ -18,7 +18,10 @@ public record CreateDishCommand(
     int? Calories,
     bool IsAvailable,
     string DishCategoryTagName,
-    bool IsSpicy = false,
+    string? SpiceLevel = null,
+    string? Mood = null,
+    List<string>? Features = null,
+    List<string>? Occasions = null,
     List<int>? SectionIds = null,
     List<int>? IngredientIds = null) : IRequest<ErrorOr<int>>;
 
@@ -59,6 +62,30 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
         if (categoryTag is null)
             return DomainErrors.Dish.InvalidCategory;
 
+        var extraTagIds = new List<int>();
+
+        if (!string.IsNullOrWhiteSpace(request.SpiceLevel))
+        {
+            var spiceResult = await ResolveSingleTagIdAsync(TagCategories.Spice, request.SpiceLevel, cancellationToken);
+            if (spiceResult.IsError) return spiceResult.Errors;
+            extraTagIds.Add(spiceResult.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Mood))
+        {
+            var moodResult = await ResolveSingleTagIdAsync(TagCategories.Mood, request.Mood, cancellationToken);
+            if (moodResult.IsError) return moodResult.Errors;
+            extraTagIds.Add(moodResult.Value);
+        }
+
+        var featureIds = await ResolveMultipleTagIdsAsync(TagCategories.Feature, request.Features, cancellationToken);
+        if (featureIds.IsError) return featureIds.Errors;
+        extraTagIds.AddRange(featureIds.Value);
+
+        var occasionIds = await ResolveMultipleTagIdsAsync(TagCategories.Occasion, request.Occasions, cancellationToken);
+        if (occasionIds.IsError) return occasionIds.Errors;
+        extraTagIds.AddRange(occasionIds.Value);
+
         var dish = new Dish
         {
             RestaurantId = restaurant.RestaurantId,
@@ -67,7 +94,6 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
             Description = request.Description,
             Calories = request.Calories,
             IsAvailable = request.IsAvailable,
-            IsSpicy = request.IsSpicy,
             ModerationStatus = ContentModerationStatus.Pending,
             PublicId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow
@@ -76,11 +102,10 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
         _db.Dishes.Add(dish);
         await _db.SaveChangesAsync(cancellationToken);
 
-        _db.DishTags.Add(new DishTag
-        {
-            DishId = dish.DishId,
-            TagId = categoryTag.TagId
-        });
+        _db.DishTags.Add(new DishTag { DishId = dish.DishId, TagId = categoryTag.TagId });
+        foreach (var tid in extraTagIds.Distinct())
+            _db.DishTags.Add(new DishTag { DishId = dish.DishId, TagId = tid });
+
         await _db.SaveChangesAsync(cancellationToken);
 
         if (request.SectionIds is { Count: > 0 })
@@ -127,6 +152,31 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
 
         return dish.DishId;
     }
+
+    private async Task<ErrorOr<int>> ResolveSingleTagIdAsync(string category, string name, CancellationToken ct)
+    {
+        var tag = await _db.Tags.FirstOrDefaultAsync(
+            t => t.Category == category && t.TagName == name, ct);
+        if (tag is null) return DomainErrors.Dish.InvalidTag(category, name);
+        return tag.TagId;
+    }
+
+    private async Task<ErrorOr<List<int>>> ResolveMultipleTagIdsAsync(string category, List<string>? names, CancellationToken ct)
+    {
+        if (names is null || names.Count == 0) return new List<int>();
+        var distinct = names.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToList();
+        if (distinct.Count == 0) return new List<int>();
+
+        var found = await _db.Tags
+            .Where(t => t.Category == category && distinct.Contains(t.TagName))
+            .Select(t => new { t.TagId, t.TagName })
+            .ToListAsync(ct);
+
+        var missing = distinct.Except(found.Select(f => f.TagName)).FirstOrDefault();
+        if (missing is not null) return DomainErrors.Dish.InvalidTag(category, missing);
+
+        return found.Select(f => f.TagId).ToList();
+    }
 }
 
 public class CreateDishValidator : AbstractValidator<CreateDishCommand>
@@ -145,5 +195,12 @@ public class CreateDishValidator : AbstractValidator<CreateDishCommand>
 
         RuleFor(x => x.DishCategoryTagName)
             .NotEmpty().WithMessage("Wybor kategorii dania jest wymagany");
+
+        When(x => !string.IsNullOrEmpty(x.SpiceLevel), () =>
+        {
+            RuleFor(x => x.SpiceLevel!)
+                .Must(v => SpiceLevels.All.Contains(v))
+                .WithMessage("Nieprawidłowa wartość ostrości");
+        });
     }
 }

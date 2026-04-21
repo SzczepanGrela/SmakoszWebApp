@@ -71,6 +71,9 @@ public static class DomainErrors
 
         public static readonly Error InvalidModerationStatus =
             Error.Validation("DISH_INVALID_MODERATION_STATUS", "Nieprawidlowy status moderacji dania");
+
+        public static Error InvalidTag(string category, string name) =>
+            Error.Validation("DISH_INVALID_TAG", $"Tag '{name}' nie istnieje w kategorii '{category}'");
     }
 
     public static class Review
