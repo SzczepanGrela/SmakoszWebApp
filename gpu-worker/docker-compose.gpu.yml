@@ -1,8 +1,7 @@
 services:
   gpu-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.gpu
+    image: ghcr.io/szczepangrela/smakoszwebapp/gpu-worker:latest
+    pull_policy: always
     container_name: gpu-worker
     runtime: nvidia
     environment:
