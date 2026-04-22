@@ -12,6 +12,10 @@ services:
       - GPU_WORKER_R2_ENDPOINT=${GPU_WORKER_R2_ENDPOINT}
       - GPU_WORKER_R2_ACCESS_KEY=${GPU_WORKER_R2_ACCESS_KEY}
       - GPU_WORKER_R2_SECRET_KEY=${GPU_WORKER_R2_SECRET_KEY}
+      - GPU_WORKER_SHUTDOWN_API_URL=${GPU_WORKER_SHUTDOWN_API_URL}
+      - GPU_WORKER_SHUTDOWN_API_TOKEN=${GPU_WORKER_SHUTDOWN_API_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:8000"
     volumes:
