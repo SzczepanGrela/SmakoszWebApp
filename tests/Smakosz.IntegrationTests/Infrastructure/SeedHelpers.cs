@@ -264,6 +264,16 @@ public static class SeedHelpers
         );
     }
 
+    public static void SeedDishCategoryTags(SmakoszDbContext db)
+    {
+        db.Tags.AddRange(
+            new Tag { TagId = 1001, TagName = "Pizza", Category = "dish_category", TargetEntity = TagTargetEntity.Dish },
+            new Tag { TagId = 1002, TagName = "Makaron", Category = "dish_category", TargetEntity = TagTargetEntity.Dish },
+            new Tag { TagId = 1003, TagName = "Burger", Category = "dish_category", TargetEntity = TagTargetEntity.Dish },
+            new Tag { TagId = 1004, TagName = "Kebab", Category = "dish_category", TargetEntity = TagTargetEntity.Dish }
+        );
+    }
+
     public static async Task SeedRestaurantScenarioAsync(SmakoszDbContext db, string? passwordHash = null)
     {
         var city = CreateCity(1, "Warszawa");

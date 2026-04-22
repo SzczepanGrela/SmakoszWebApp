@@ -12,6 +12,8 @@ public class BusinessAccessTests : IntegrationTestBase
 
         await Factory.SeedDataAsync(async db =>
         {
+            SeedHelpers.SeedDishCategoryTags(db);
+
             var city = SeedHelpers.CreateCity(1, "Warszawa");
             var businessUser = SeedHelpers.CreateBusinessUser(50, hash);
             var restaurant = SeedHelpers.CreateRestaurant(1, "Pizzeria Roma", city.CityId, ownerId: 50);
@@ -68,7 +70,8 @@ public class BusinessAccessTests : IntegrationTestBase
             Price = 32.50,
             Description = "Klasyczne spaghetti z sosem bolonskim",
             Calories = 650,
-            IsAvailable = true
+            IsAvailable = true,
+            DishCategoryTagName = "Makaron"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);

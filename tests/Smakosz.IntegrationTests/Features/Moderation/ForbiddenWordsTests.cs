@@ -17,6 +17,7 @@ public class ForbiddenWordsTests : IntegrationTestBase
         await Factory.SeedDataAsync(async db =>
         {
             SeedHelpers.SeedForbiddenWords(db);
+            SeedHelpers.SeedDishCategoryTags(db);
 
             var city = SeedHelpers.CreateCity(1, "Warszawa");
             var user = SeedHelpers.CreateUser(1, "jan-kowalski", "jan@smakosz.test", hash);
@@ -68,7 +69,8 @@ public class ForbiddenWordsTests : IntegrationTestBase
             DishName = "Pizza Hawajska",
             Price = 28.00,
             Description = "Szynka i ananas",
-            IsAvailable = true
+            IsAvailable = true,
+            DishCategoryTagName = "Pizza"
         });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);

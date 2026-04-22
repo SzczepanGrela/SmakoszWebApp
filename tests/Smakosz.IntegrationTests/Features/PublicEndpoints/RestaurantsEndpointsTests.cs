@@ -26,7 +26,7 @@ public class RestaurantsEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task GetRestaurants_FilterByCuisine_ReturnsFiltered()
     {
-        var response = await AnonymousClient.GetAsync("/api/restaurants?cuisineType=Turecka");
+        var response = await AnonymousClient.GetAsync("/api/restaurants?cuisineTypeId=2");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
