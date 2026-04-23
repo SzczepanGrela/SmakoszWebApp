@@ -11,6 +11,7 @@ using Smakosz.Application.Features.Admin.Queries.GetAdminDashboard;
 using Smakosz.Application.Features.Admin.Queries.GetEditRequests;
 using Smakosz.Application.Features.Admin.Queries.GetPendingPhotos;
 using Smakosz.Application.Features.Admin.Queries.GetPendingReviews;
+using Smakosz.Application.Features.Admin.Queries.GetRejectionReasons;
 using Smakosz.Application.Features.Admin.Queries.GetReports;
 using Smakosz.Application.Features.Admin.Queries.GetTicketDetail;
 using Smakosz.Application.Features.Admin.Queries.GetTickets;
@@ -132,6 +133,20 @@ public class AdminModerationController : ApiController
     {
         var result = await _mediator.Send(new ProcessEditRequestCommand(requestId, request.Approve, request.RejectionReason));
         return ToNoContentResult(result);
+    }
+
+    [HttpGet("rejection-reasons")]
+    public async Task<IActionResult> GetRejectionReasons(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 100,
+        [FromQuery] string? category = null,
+        [FromQuery] bool includeInactive = false)
+    {
+        var result = await _mediator.Send(new GetRejectionReasonsQuery(
+            new PaginationParams(page, pageSize),
+            category,
+            includeInactive));
+        return ToActionResult(result);
     }
 }
 

@@ -128,6 +128,16 @@ public class AdminForbiddenWordDto
     public DateTime? CreatedAt { get; init; }
 }
 
+public class AdminRejectionReasonDto
+{
+    public string ReasonCode { get; init; } = default!;
+    public string Category { get; init; } = default!;
+    public string AdminLabel { get; init; } = default!;
+    public string UserMessageTemplate { get; init; } = default!;
+    public bool IsActive { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
 public class AdminModerationLogDto
 {
     public long LogId { get; init; }

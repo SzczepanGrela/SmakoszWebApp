@@ -23,10 +23,13 @@ using Smakosz.Application.Features.Admin.Commands.UpdateRestaurantAdmin;
 using Smakosz.Application.Features.Admin.Commands.VerifyRestaurant;
 using Smakosz.Application.Features.Admin.Queries.GetRestaurantModerationHistory;
 using Smakosz.Domain.Enums;
+using Smakosz.Application.Features.Admin.Commands.CreateRejectionReason;
 using Smakosz.Application.Features.Admin.Commands.CreateTag;
+using Smakosz.Application.Features.Admin.Commands.DeleteRejectionReason;
 using Smakosz.Application.Features.Admin.Commands.DeleteTag;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
+using Smakosz.Application.Features.Admin.Commands.UpdateRejectionReason;
 using Smakosz.Application.Features.Admin.Commands.UpdateTag;
 using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurantDetail;
@@ -328,6 +331,37 @@ public class AdminController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpPost("rejection-reasons")]
+    public async Task<IActionResult> CreateRejectionReason([FromBody] CreateRejectionReasonRequest request)
+    {
+        var result = await _mediator.Send(new CreateRejectionReasonCommand(
+            request.ReasonCode,
+            request.Category,
+            request.AdminLabel,
+            request.UserMessageTemplate,
+            request.IsActive));
+        return ToCreatedResult(result);
+    }
+
+    [HttpPut("rejection-reasons/{reasonCode}")]
+    public async Task<IActionResult> UpdateRejectionReason(string reasonCode, [FromBody] UpdateRejectionReasonRequest request)
+    {
+        var result = await _mediator.Send(new UpdateRejectionReasonCommand(
+            reasonCode,
+            request.Category,
+            request.AdminLabel,
+            request.UserMessageTemplate,
+            request.IsActive));
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("rejection-reasons/{reasonCode}")]
+    public async Task<IActionResult> DeleteRejectionReason(string reasonCode)
+    {
+        var result = await _mediator.Send(new DeleteRejectionReasonCommand(reasonCode));
+        return ToNoContentResult(result);
+    }
+
     [HttpGet("ingredient-suggestions")]
     public async Task<IActionResult> GetIngredientSuggestions(
         [FromQuery] int page = 1,
@@ -369,6 +403,17 @@ public record UpdateBannedIdentifierRequest(string? Reason, DateTime? ExpiresAt,
 public record CreateForbiddenWordRequest(string Word, string Category, bool IsRegex);
 public record UpdateForbiddenWordRequest(string? Word, string? Category, bool? IsRegex);
 public record TestForbiddenWordRequest(string Text, string[] Categories);
+public record CreateRejectionReasonRequest(
+    string ReasonCode,
+    string Category,
+    string AdminLabel,
+    string UserMessageTemplate,
+    bool IsActive);
+public record UpdateRejectionReasonRequest(
+    string Category,
+    string AdminLabel,
+    string UserMessageTemplate,
+    bool IsActive);
 public record UpdateRestaurantAdminRequest(
     string? Name,
     string? Description,
