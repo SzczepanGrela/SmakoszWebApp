@@ -29,7 +29,7 @@ def require_token(f):
         return f(*args, **kwargs)
     return decorated
 
-def get_blockers():
+def get_blockers(exclude_container: str | None = None):
     blockers = []
 
     if Path(config.LOCKFILE).exists():
@@ -60,7 +60,7 @@ def get_blockers():
         client = docker.from_env()
         for name in config.DOCKER_BLOCKERS.split(","):
             name = name.strip()
-            if not name:
+            if not name or name == exclude_container:
                 continue
             try:
                 container = client.containers.get(name)
@@ -284,7 +284,8 @@ def gpu_worker_status():
 @app.route("/api/shutdown", methods=["POST"])
 @require_token
 def shutdown():
-    b = get_blockers()
+    caller = request.args.get("caller")
+    b = get_blockers(exclude_container=caller)
     if b:
         return jsonify({
             "success": False,
