@@ -33,20 +33,20 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminPhotoDto>?> GetPendingPhotosAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminPhotoDto>>($"/api/admin/photos/pending?page={page}");
 
-    public async Task<bool> ModeratePhotoAsync(Guid id, string action, string? reason = null)
+    public async Task<bool> ModeratePhotoAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/photos/{id}/moderate",
-            new { Approve = action == "approve", RejectionReason = reason });
+            new { Approve = approve, ReasonCodes = reasonCodes, ModeratorNote = moderatorNote });
         return response.Success;
     }
 
     public Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminReviewDto>>($"/api/admin/reviews/pending?page={page}");
 
-    public async Task<bool> ModerateReviewAsync(Guid id, string action, string? reason = null)
+    public async Task<bool> ModerateReviewAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/reviews/{id}/moderate",
-            new { Approve = action == "approve", RejectionReason = reason });
+            new { Approve = approve, ReasonCodes = reasonCodes, ModeratorNote = moderatorNote });
         return response.Success;
     }
 

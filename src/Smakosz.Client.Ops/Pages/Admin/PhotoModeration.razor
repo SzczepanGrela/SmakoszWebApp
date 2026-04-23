@@ -33,7 +33,7 @@ else
                             }
                             <div class="text-muted"><i class="fa-solid fa-calendar me-1"></i>@photo.CreatedAt.ToString("dd.MM.yyyy")</div>
                         </div>
-                        <ModerationActionBar OnModerate="args => ModeratePhoto(photo.Id, args.Action, args.Reason)" />
+                        <ModerationActionBar Category="Photo" OnModerate="args => ModeratePhoto(photo.Id, args)" />
                     </div>
                 </div>
             </div>
@@ -59,10 +59,11 @@ else
         _loading = false;
     }
 
-    private async Task ModeratePhoto(Guid id, string action, string? reason)
+    private async Task ModeratePhoto(Guid id, ModerationActionBar.ModerationActionArgs args)
     {
-        var success = await AdminService.ModeratePhotoAsync(id, action, reason);
-        if (success) { Toast.ShowSuccess(action == "approve" ? "Zdjęcie zatwierdzone." : "Zdjęcie odrzucone."); await LoadPage(1); }
+        var approve = args.Action == "approve";
+        var success = await AdminService.ModeratePhotoAsync(id, approve, args.ReasonCodes, args.ModeratorNote);
+        if (success) { Toast.ShowSuccess(approve ? "Zdjęcie zatwierdzone." : "Zdjęcie odrzucone."); await LoadPage(1); }
         else Toast.ShowError("Operacja nieudana.");
     }
 }

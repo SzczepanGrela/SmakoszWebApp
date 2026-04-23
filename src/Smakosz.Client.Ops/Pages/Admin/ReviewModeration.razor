@@ -43,7 +43,7 @@ else
                         <span>Ocena dania: @review.DishRating/10</span>
                         <span class="ms-3"><i class="fa-solid fa-calendar me-1"></i>@review.CreatedAt.ToString("dd.MM.yyyy")</span>
                     </div>
-                    <ModerationActionBar OnModerate="args => ModerateReview(review.PublicId, args.Action, args.Reason)" />
+                    <ModerationActionBar Category="Text" OnModerate="args => ModerateReview(review.PublicId, args)" />
                 </div>
             </div>
         </div>
@@ -68,10 +68,11 @@ else
         _loading = false;
     }
 
-    private async Task ModerateReview(Guid id, string action, string? reason)
+    private async Task ModerateReview(Guid id, ModerationActionBar.ModerationActionArgs args)
     {
-        var success = await AdminService.ModerateReviewAsync(id, action, reason);
-        if (success) { Toast.ShowSuccess(action == "approve" ? "Recenzja zatwierdzona." : "Recenzja odrzucona."); await LoadPage(1); }
+        var approve = args.Action == "approve";
+        var success = await AdminService.ModerateReviewAsync(id, approve, args.ReasonCodes, args.ModeratorNote);
+        if (success) { Toast.ShowSuccess(approve ? "Recenzja zatwierdzona." : "Recenzja odrzucona."); await LoadPage(1); }
         else Toast.ShowError("Operacja nieudana.");
     }
 

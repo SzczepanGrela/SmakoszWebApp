@@ -175,7 +175,7 @@ else
     private async Task ApprovePhoto()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, "approve");
+        var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, approve: true);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Zdjęcie zatwierdzone."); Nav.NavigateTo("/admin/tickets"); }
@@ -184,8 +184,13 @@ else
 
     private async Task RejectPhoto()
     {
+        if (string.IsNullOrWhiteSpace(_rejectionReason))
+        {
+            Toast.ShowError("Wpisz powód odrzucenia.");
+            return;
+        }
         _actionInProgress = true;
-        var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, "reject", _rejectionReason);
+        var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, approve: false, reasonCodes: null, moderatorNote: _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Zdjęcie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
@@ -238,7 +243,7 @@ else
     private async Task ApproveReview()
     {
         _actionInProgress = true;
-        var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, "approve");
+        var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, approve: true);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Recenzja zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
@@ -247,8 +252,13 @@ else
 
     private async Task RejectReview()
     {
+        if (string.IsNullOrWhiteSpace(_rejectionReason))
+        {
+            Toast.ShowError("Wpisz powód odrzucenia.");
+            return;
+        }
         _actionInProgress = true;
-        var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, "reject", _rejectionReason);
+        var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, approve: false, reasonCodes: null, moderatorNote: _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
         if (ok) { Toast.ShowSuccess("Recenzja odrzucona."); Nav.NavigateTo("/admin/tickets"); }

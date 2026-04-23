@@ -10,9 +10,9 @@ public interface IAdminService
     Task<bool> UpdateTicketStatusAsync(int id, string status);
     Task<bool> RespondToContactAsync(int id, string response);
     Task<PagedResult<AdminPhotoDto>?> GetPendingPhotosAsync(int page = 1);
-    Task<bool> ModeratePhotoAsync(Guid id, string action, string? reason = null);
+    Task<bool> ModeratePhotoAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null);
     Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1);
-    Task<bool> ModerateReviewAsync(Guid id, string action, string? reason = null);
+    Task<bool> ModerateReviewAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null);
     Task<PagedResult<AdminReportDto>?> GetReportsAsync(int page = 1, string? status = null);
     Task<bool> ResolveReportAsync(int id, string resolution);
     Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1, int? restaurantId = null);
