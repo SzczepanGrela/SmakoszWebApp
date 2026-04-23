@@ -1,4 +1,5 @@
 using ErrorOr;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
@@ -10,7 +11,34 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ModerateReview;
 
-public record ModerateReviewCommand(Guid PublicId, bool Approve, string? RejectionReason) : IRequest<ErrorOr<Success>>;
+public record ModerateReviewCommand(
+    Guid PublicId,
+    bool Approve,
+    IReadOnlyList<string>? ReasonCodes,
+    string? ModeratorNote) : IRequest<ErrorOr<Success>>;
+
+public class ModerateReviewValidator : AbstractValidator<ModerateReviewCommand>
+{
+    public ModerateReviewValidator()
+    {
+        RuleFor(x => x.ModeratorNote)
+            .MaximumLength(500)
+            .WithMessage("Uwaga moderatora może mieć maksymalnie 500 znaków");
+
+        RuleFor(x => x)
+            .Must(HasAtLeastOneReasonWhenRejecting)
+            .WithMessage("Odrzucenie wymaga wybrania co najmniej jednego powodu lub wpisania uwagi moderatora")
+            .When(x => !x.Approve);
+    }
+
+    private static bool HasAtLeastOneReasonWhenRejecting(ModerateReviewCommand command)
+    {
+        var hasCodes = command.ReasonCodes is not null
+            && command.ReasonCodes.Any(c => !string.IsNullOrWhiteSpace(c));
+        var hasNote = !string.IsNullOrWhiteSpace(command.ModeratorNote);
+        return hasCodes || hasNote;
+    }
+}
 
 public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, ErrorOr<Success>>
 {
@@ -34,11 +62,26 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         if (review is null)
             return DomainErrors.Review.NotFound;
 
+        string? resolvedText = null;
+        IReadOnlyList<string> appliedCodes = Array.Empty<string>();
+
+        if (!request.Approve)
+        {
+            var resolution = await RejectionReasonResolver.ResolveAsync(
+                _db, request.ReasonCodes, request.ModeratorNote, RejectionReasonCategory.Text, cancellationToken);
+
+            if (resolution.IsError)
+                return resolution.Errors;
+
+            resolvedText = resolution.Value.ResolvedText;
+            appliedCodes = resolution.Value.AppliedCodes;
+        }
+
         review.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
         review.IsApproved = request.Approve;
 
         if (!request.Approve)
-            review.ContentRejectionReason = request.RejectionReason;
+            review.ContentRejectionReason = resolvedText;
 
         var existing = await _db.ModerationResults
             .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Review && r.EntityId == review.ReviewId, cancellationToken);
@@ -50,7 +93,7 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
                 EntityType = ModerationEntityType.Review,
                 EntityId = review.ReviewId,
                 Status = review.ModerationStatus,
-                RejectionReason = request.RejectionReason,
+                RejectionReason = resolvedText,
                 ProcessedAt = now,
                 CreatedAt = now
             });
@@ -58,7 +101,7 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         else
         {
             existing.Status = review.ModerationStatus;
-            existing.RejectionReason = request.RejectionReason;
+            existing.RejectionReason = resolvedText;
             existing.ProcessedAt = now;
             existing.UpdatedAt = now;
         }
@@ -69,7 +112,7 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
             EntityId = review.ReviewId,
             Actor = ModerationActor.Admin,
             Verdict = request.Approve ? ModerationVerdict.Approved : ModerationVerdict.Rejected,
-            ReasonCodes = !string.IsNullOrEmpty(request.RejectionReason) ? [request.RejectionReason] : [],
+            ReasonCodes = appliedCodes.ToList(),
             ProcessedBy = _currentUser.UserId,
             CreatedAt = DateTime.UtcNow
         });
@@ -87,9 +130,7 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
                 Type = NotificationType.System,
                 Severity = NotificationSeverity.Warning,
                 Title = "Recenzja odrzucona",
-                Message = !string.IsNullOrEmpty(request.RejectionReason)
-                    ? $"Twoja recenzja została odrzucona. Powód: {request.RejectionReason}"
-                    : "Twoja recenzja została odrzucona przez moderatora.",
+                Message = $"Twoja recenzja została odrzucona. Powód: {resolvedText}",
                 SendPush = sendPush,
                 PushStatus = pushStatus,
                 CreatedAt = DateTime.UtcNow

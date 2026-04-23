@@ -23,46 +23,150 @@ public class ModeratePhotoHandlerTests
         _handler = new ModeratePhotoHandler(_db, _currentUser);
     }
 
-    [Fact]
-    public async Task Handle_Approve_SetsApprovedStatus()
+    private void SeedReasons()
+    {
+        _sets.RejectionReasons.AddRange(new[]
+        {
+            new RejectionReason
+            {
+                ReasonCode = "photo_nudity",
+                Category = RejectionReasonCategory.Photo,
+                AdminLabel = "Nagość",
+                UserMessageTemplate = "Zdjęcie zawiera nagość.",
+                IsActive = true
+            },
+            new RejectionReason
+            {
+                ReasonCode = "photo_poor_quality",
+                Category = RejectionReasonCategory.Photo,
+                AdminLabel = "Niska jakość",
+                UserMessageTemplate = "Zdjęcie jest rozmazane.",
+                IsActive = true
+            },
+            new RejectionReason
+            {
+                ReasonCode = "text_spam",
+                Category = RejectionReasonCategory.Text,
+                AdminLabel = "Spam",
+                UserMessageTemplate = "Spam tekstowy.",
+                IsActive = true
+            }
+        });
+    }
+
+    private (User user, MediaAsset asset) SeedUserAndAsset()
     {
         var user = new UserBuilder().WithId(1).Build();
         var asset = new MediaAsset
         {
-            AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            EntityId = 1, Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Pending, UploadedBy = 1
+            AssetId = 1,
+            PublicId = Guid.NewGuid(),
+            EntityType = MediaEntityType.Dish,
+            EntityId = 1,
+            Url = "http://img.jpg",
+            ModerationStatus = ContentModerationStatus.Pending,
+            UploadedBy = 1
         };
         _sets.Users.Add(user);
         _sets.MediaAssets.Add(asset);
-        DbContextMockFactory.Refresh(_db, _sets);
-
-        var result = await _handler.Handle(
-            new ModeratePhotoCommand(asset.PublicId, true, null), CancellationToken.None);
-
-        result.IsError.Should().BeFalse();
-        asset.ModerationStatus.Should().Be(ContentModerationStatus.Approved);
+        return (user, asset);
     }
 
     [Fact]
-    public async Task Handle_Reject_SetsRejectedAndSendsNotification()
+    public async Task Handle_Approve_SetsApprovedStatusAndIncrementsPhotoCount()
     {
-        var user = new UserBuilder().WithId(1).Build();
-        var asset = new MediaAsset
-        {
-            AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
-            EntityId = 1, Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Pending, UploadedBy = 1
-        };
-        _sets.Users.Add(user);
-        _sets.MediaAssets.Add(asset);
+        var (user, asset) = SeedUserAndAsset();
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(
-            new ModeratePhotoCommand(asset.PublicId, false, "Blurry"), CancellationToken.None);
+            new ModeratePhotoCommand(asset.PublicId, true, null, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        asset.ModerationStatus.Should().Be(ContentModerationStatus.Approved);
+        user.PhotoCount.Should().Be(1);
+        _sets.Notifications.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_Reject_WithSingleCode_ResolvesTemplateAndNotifies()
+    {
+        SeedReasons();
+        var (_, asset) = SeedUserAndAsset();
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new ModeratePhotoCommand(asset.PublicId, false, new[] { "photo_nudity" }, null),
+            CancellationToken.None);
 
         result.IsError.Should().BeFalse();
         asset.ModerationStatus.Should().Be(ContentModerationStatus.Rejected);
-        asset.RejectionReason.Should().Be("Blurry");
-        _sets.Notifications.Should().HaveCount(1);
+        asset.RejectionReason.Should().Be("Zdjęcie zawiera nagość.");
+        _sets.Notifications.Should().ContainSingle();
+        _sets.Notifications[0].Message.Should().Contain("Zdjęcie zawiera nagość.");
+        _sets.ModerationLogs[0].ReasonCodes.Should().BeEquivalentTo(new[] { "photo_nudity" });
+    }
+
+    [Fact]
+    public async Task Handle_Reject_WithMultipleCodesAndNote_ConcatenatesAll()
+    {
+        SeedReasons();
+        var (_, asset) = SeedUserAndAsset();
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new ModeratePhotoCommand(asset.PublicId, false,
+                new[] { "photo_nudity", "photo_poor_quality" },
+                "Również niewłaściwy kontekst."),
+            CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        asset.RejectionReason.Should().Be(
+            "Zdjęcie zawiera nagość.\n\nZdjęcie jest rozmazane.\n\nDodatkowa uwaga moderatora: Również niewłaściwy kontekst.");
+    }
+
+    [Fact]
+    public async Task Handle_Reject_WithTextCategoryCode_ReturnsCategoryMismatch()
+    {
+        SeedReasons();
+        var (_, asset) = SeedUserAndAsset();
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new ModeratePhotoCommand(asset.PublicId, false, new[] { "text_spam" }, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("REJECTION_REASON_CATEGORY_MISMATCH");
+    }
+
+    [Fact]
+    public async Task Handle_Reject_WithNoCodeAndNoNote_ReturnsValidationError()
+    {
+        var (_, asset) = SeedUserAndAsset();
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new ModeratePhotoCommand(asset.PublicId, false, null, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("REJECTION_REASON_REQUIRED");
+    }
+
+    [Fact]
+    public async Task Handle_Reject_WithUnknownCode_ReturnsValidationError()
+    {
+        SeedReasons();
+        var (_, asset) = SeedUserAndAsset();
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(
+            new ModeratePhotoCommand(asset.PublicId, false, new[] { "photo_unknown" }, null),
+            CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("REJECTION_REASON_UNKNOWN_CODE");
     }
 
     [Fact]
@@ -72,7 +176,8 @@ public class ModeratePhotoHandlerTests
         var handler = new ModeratePhotoHandler(_db, nonAdmin);
 
         var result = await handler.Handle(
-            new ModeratePhotoCommand(Guid.NewGuid(), true, null), CancellationToken.None);
+            new ModeratePhotoCommand(Guid.NewGuid(), true, null, null),
+            CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("ADMIN_FORBIDDEN");
@@ -82,7 +187,8 @@ public class ModeratePhotoHandlerTests
     public async Task Handle_PhotoNotFound_ReturnsError()
     {
         var result = await _handler.Handle(
-            new ModeratePhotoCommand(Guid.NewGuid(), true, null), CancellationToken.None);
+            new ModeratePhotoCommand(Guid.NewGuid(), true, null, null),
+            CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("PHOTO_NOT_FOUND");
