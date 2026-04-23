@@ -274,6 +274,16 @@ public class AdminForbiddenWordDto
     public DateTime? CreatedAt { get; set; }
 }
 
+public class AdminRejectionReasonDto
+{
+    public string ReasonCode { get; set; } = default!;
+    public string Category { get; set; } = default!;
+    public string AdminLabel { get; set; } = default!;
+    public string UserMessageTemplate { get; set; } = default!;
+    public bool IsActive { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
 public class AdminModerationLogDto
 {
     public long LogId { get; set; }

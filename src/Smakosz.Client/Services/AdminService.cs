@@ -305,4 +305,28 @@ public class AdminService : IAdminService
         if (!response.Success) return null;
         return response.Data;
     }
+
+    public Task<PagedResult<AdminRejectionReasonDto>?> GetRejectionReasonsAsync(int page = 1, int pageSize = 100, string? category = null, bool includeInactive = false)
+    {
+        var url = $"/api/admin/rejection-reasons?page={page}&pageSize={pageSize}&includeInactive={includeInactive}";
+        if (!string.IsNullOrEmpty(category)) url += $"&category={category}";
+        return _api.GetAsync<PagedResult<AdminRejectionReasonDto>>(url);
+    }
+
+    public async Task<bool> CreateRejectionReasonAsync(AdminRejectionReasonDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/rejection-reasons",
+            new { dto.ReasonCode, dto.Category, dto.AdminLabel, dto.UserMessageTemplate, dto.IsActive });
+        return response.Success;
+    }
+
+    public async Task<bool> UpdateRejectionReasonAsync(string reasonCode, AdminRejectionReasonDto dto)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/rejection-reasons/{reasonCode}",
+            new { dto.Category, dto.AdminLabel, dto.UserMessageTemplate, dto.IsActive });
+        return response.Success;
+    }
+
+    public async Task<bool> DeleteRejectionReasonAsync(string reasonCode)
+        => await _api.DeleteAsync($"/api/admin/rejection-reasons/{reasonCode}");
 }
