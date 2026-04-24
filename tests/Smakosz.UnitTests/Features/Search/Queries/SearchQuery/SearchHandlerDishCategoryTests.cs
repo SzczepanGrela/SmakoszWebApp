@@ -124,4 +124,30 @@ public class SearchHandlerDishCategoryTests
         result.Value.Dishes.Should().HaveCount(1);
         result.Value.Dishes[0].DishName.Should().Be("Pizza Na Wynos");
     }
+
+    [Fact]
+    public async Task Handle_DishWithCategory_PopulatesCategoryTagNameInCardDto()
+    {
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        var tagPizza = new Tag { TagId = 1, TagName = "Pizza", Category = "dish_category", TargetEntity = TagTargetEntity.Dish, DisplayColor = "#ff5722" };
+
+        var margherita = new DishBuilder().WithId(1).WithName("Margherita").WithRestaurant(restaurant).Build();
+        var dt = new DishTag { DishId = 1, TagId = 1, Dish = margherita, Tag = tagPizza };
+        margherita.DishTags = new List<DishTag> { dt };
+
+        _sets.Restaurants.Add(restaurant);
+        _sets.Dishes.Add(margherita);
+        _sets.Tags.Add(tagPizza);
+        _sets.DishTags.Add(dt);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "dishes");
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Dishes.Should().HaveCount(1);
+        result.Value.Dishes[0].CategoryTagName.Should().Be("Pizza");
+        result.Value.Dishes[0].CategoryColor.Should().Be("#ff5722");
+    }
 }

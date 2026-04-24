@@ -264,7 +264,15 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 IsVegetarian = d.IsVegetarian,
                 IsVegan = d.IsVegan,
                 IsGlutenFree = d.IsGlutenFree,
-                IsSaved = false
+                IsSaved = false,
+                CategoryTagName = d.DishTags
+                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
+                CategoryColor = d.DishTags
+                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Select(dt => dt.Tag.DisplayColor)
+                    .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
