@@ -73,4 +73,8 @@ public interface IAdminService
     Task<bool> CreateRejectionReasonAsync(AdminRejectionReasonDto dto);
     Task<bool> UpdateRejectionReasonAsync(string reasonCode, AdminRejectionReasonDto dto);
     Task<bool> DeleteRejectionReasonAsync(string reasonCode);
+    Task<PagedResult<AdminDishDto>?> GetAdminDishesAsync(int page = 1, string? search = null, int? restaurantId = null, string? moderationStatus = null, bool? isAvailable = null);
+    Task<bool> DeleteAdminDishAsync(Guid publicId);
+    Task<bool> ChangeAdminDishModerationStatusAsync(Guid publicId, string status);
+    Task<bool> SetAdminDishAvailabilityAsync(Guid publicId, bool isAvailable);
 }

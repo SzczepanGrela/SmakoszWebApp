@@ -342,4 +342,29 @@ public class AdminService : IAdminService
 
     public async Task<bool> DeleteRejectionReasonAsync(string reasonCode)
         => await _api.DeleteAsync($"/api/admin/rejection-reasons/{reasonCode}");
+
+    public Task<PagedResult<AdminDishDto>?> GetAdminDishesAsync(int page = 1, string? search = null, int? restaurantId = null, string? moderationStatus = null, bool? isAvailable = null)
+    {
+        var url = $"/api/admin/dishes?page={page}&search={search}&moderationStatus={moderationStatus}";
+        if (restaurantId.HasValue) url += $"&restaurantId={restaurantId.Value}";
+        if (isAvailable.HasValue) url += $"&isAvailable={isAvailable.Value.ToString().ToLower()}";
+        return _api.GetAsync<PagedResult<AdminDishDto>>(url);
+    }
+
+    public async Task<bool> DeleteAdminDishAsync(Guid publicId)
+        => await _api.DeleteAsync($"/api/admin/dishes/{publicId}");
+
+    public async Task<bool> ChangeAdminDishModerationStatusAsync(Guid publicId, string status)
+    {
+        var response = await _api.PutApiResponseAsync<object>(
+            $"/api/admin/dishes/{publicId}/moderation-status", new { Status = status });
+        return response.Success;
+    }
+
+    public async Task<bool> SetAdminDishAvailabilityAsync(Guid publicId, bool isAvailable)
+    {
+        var response = await _api.PutApiResponseAsync<object>(
+            $"/api/admin/dishes/{publicId}/availability", new { IsAvailable = isAvailable });
+        return response.Success;
+    }
 }
