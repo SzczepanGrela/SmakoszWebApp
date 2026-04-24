@@ -18,6 +18,7 @@ public record UpdateDishCommand(
     string? Description,
     int? Calories,
     bool? IsAvailable,
+    string? DishCategoryTagName = null,
     List<int>? IngredientIds = null,
     List<int>? SectionIds = null) : IRequest<ErrorOr<Success>>;
 
@@ -46,6 +47,9 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (request.IngredientIds is not null)
             query = query.Include(d => d.DishIngredients);
 
+        if (request.DishCategoryTagName is not null)
+            query = query.Include(d => d.DishTags).ThenInclude(dt => dt.Tag);
+
         var dish = await query
             .FirstOrDefaultAsync(d => d.PublicId == request.PublicId, cancellationToken);
 
@@ -54,6 +58,30 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
 
         if (dish.Restaurant?.OwnerId != _currentUser.UserId.Value)
             return DomainErrors.Business.NotOwner;
+
+        if (request.DishCategoryTagName is not null)
+        {
+            var newCategoryTag = await _db.Tags
+                .FirstOrDefaultAsync(t =>
+                    t.TagName == request.DishCategoryTagName
+                    && t.Category == "dish_category", cancellationToken);
+
+            if (newCategoryTag is null)
+                return DomainErrors.Dish.InvalidCategory;
+
+            var oldCategoryTags = dish.DishTags
+                .Where(dt => dt.Tag.Category == "dish_category")
+                .ToList();
+            foreach (var old in oldCategoryTags)
+                _db.DishTags.Remove(old);
+
+            _db.DishTags.Add(new DishTag
+            {
+                DishId = dish.DishId,
+                TagId = newCategoryTag.TagId,
+                Tag = newCategoryTag
+            });
+        }
 
         if (request.Price.HasValue) dish.Price = request.Price.Value;
         if (request.Calories.HasValue) dish.Calories = request.Calories.Value;
