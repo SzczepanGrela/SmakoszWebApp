@@ -18,4 +18,6 @@ public class DishCardDto
     public bool IsSaved { get; set; }
     public bool IsAvailable { get; set; } = true;
     public List<string> SectionNames { get; set; } = [];
+    public string? CategoryTagName { get; set; }
+    public string? CategoryColor { get; set; }
 }
