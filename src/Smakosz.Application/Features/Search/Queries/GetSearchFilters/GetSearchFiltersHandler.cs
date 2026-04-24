@@ -25,10 +25,18 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
             .Select(c => c.CityName)
             .ToListAsync(cancellationToken);
 
+        var dishCategories = await _db.Tags
+            .AsNoTracking()
+            .Where(t => t.Category == "dish_category")
+            .OrderBy(t => t.TagName)
+            .Select(t => new FilterOption { Value = t.TagName, Label = t.TagName })
+            .ToListAsync(cancellationToken);
+
         return new SearchFiltersDto
         {
             Cuisines = cuisines,
             Cities = cities,
+            DishCategories = dishCategories,
             DietaryOptions = new List<FilterOption>
             {
                 new() { Value = "vegetarian", Label = "Wegetariańskie" },
