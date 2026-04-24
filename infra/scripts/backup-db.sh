@@ -10,7 +10,7 @@ fi
 # shellcheck disable=SC1090
 source "$CONFIG_FILE"
 
-DEPLOY_LOCKFILE=/var/run/smakosz-deploy.lock
+DEPLOY_LOCKFILE=/tmp/smakosz-deploy.lock
 if [ -f "$DEPLOY_LOCKFILE" ]; then
     DEPLOY_PID=$(cat "$DEPLOY_LOCKFILE" 2>/dev/null || echo "")
     if [ -n "$DEPLOY_PID" ] && kill -0 "$DEPLOY_PID" 2>/dev/null; then
