@@ -97,6 +97,12 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
+    public async Task<bool> ResetUserPasswordAsync(Guid publicId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/reset-password", null);
+        return response.Success;
+    }
+
     public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
 
