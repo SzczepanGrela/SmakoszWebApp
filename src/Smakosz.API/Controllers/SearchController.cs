@@ -30,7 +30,8 @@ public class SearchController : ApiController
         [FromQuery] string sortDir = "desc",
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? tags = null)
+        [FromQuery] string? tags = null,
+        [FromQuery] string? dishCategories = null)
     {
         var searchQuery = new SearchQueryRequest(
             new PaginationParams(page, pageSize),
@@ -43,7 +44,8 @@ public class SearchController : ApiController
             dietary,
             sortBy,
             sortDir,
-            tags);
+            tags,
+            dishCategories);
 
         var result = await _mediator.Send(searchQuery);
         return ToActionResult(result);
