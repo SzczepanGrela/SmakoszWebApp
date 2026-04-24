@@ -68,6 +68,9 @@ public static class DomainErrors
 
         public static readonly Error InvalidCategory =
             Error.Validation("DISH_INVALID_CATEGORY", "Wybrana kategoria dania nie istnieje lub jest nieaktywna");
+
+        public static readonly Error InvalidModerationStatus =
+            Error.Validation("DISH_INVALID_MODERATION_STATUS", "Nieprawidłowy status moderacji dania");
     }
 
     public static class Review
