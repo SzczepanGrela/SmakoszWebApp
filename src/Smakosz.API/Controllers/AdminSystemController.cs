@@ -7,9 +7,12 @@ using Smakosz.Application.Features.Admin.Commands.ScheduleModeration;
 using Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
 using Smakosz.Application.Features.Admin.Commands.TriggerJob;
 using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
+using Smakosz.Application.Features.Admin.Queries.GetAiLogs;
 using Smakosz.Application.Features.Admin.Queries.GetAiModels;
+using Smakosz.Application.Features.Admin.Queries.GetEmailLogs;
 using Smakosz.Application.Features.Admin.Queries.GetHeroImages;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
+using Smakosz.Application.Features.Admin.Queries.GetModerationLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAuditLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSecurityLogs;
@@ -131,6 +134,39 @@ public class AdminSystemController : ApiController
         [FromQuery] string? eventType = null)
     {
         var result = await _mediator.Send(new GetSecurityLogsQuery(new PaginationParams(page, pageSize), eventType));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("email-logs")]
+    public async Task<IActionResult> GetEmailLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? status = null,
+        [FromQuery] string? type = null)
+    {
+        var result = await _mediator.Send(new GetEmailLogsQuery(new PaginationParams(page, pageSize), status, type));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("moderation-logs")]
+    public async Task<IActionResult> GetModerationLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? actor = null,
+        [FromQuery] string? entityType = null)
+    {
+        var result = await _mediator.Send(new GetModerationLogsQuery(new PaginationParams(page, pageSize), actor, entityType));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("ai-logs")]
+    public async Task<IActionResult> GetAiLogs(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? modelType = null,
+        [FromQuery] bool? fallback = null)
+    {
+        var result = await _mediator.Send(new GetAiLogsQuery(new PaginationParams(page, pageSize), modelType, fallback));
         return ToActionResult(result);
     }
 
