@@ -1,0 +1,294 @@
+@page "/admin/dishes"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Dania - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-utensils me-2"></i>Dania</h2>
+    <div class="input-group" style="max-width:300px;">
+        <input type="text" class="form-control form-control-sm" @bind="_search" @onkeydown="HandleSearchKey" placeholder="Szukaj dania..." />
+        <button class="btn btn-outline-primary btn-sm" @onclick="DoSearch"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mb-3">
+    <div>
+        <div class="small text-muted mb-1">Restauracja</div>
+        <select class="form-select form-select-sm" style="min-width:220px;" @bind="_restaurantIdFilter" @bind:after="() => LoadPage(1)">
+            <option value="">Wszystkie</option>
+            @foreach (var r in _restaurants)
+            {
+                <option value="@r.RestaurantId">@r.Name</option>
+            }
+        </select>
+    </div>
+    <div>
+        <div class="small text-muted mb-1">Status moderacji</div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
+            <button class="btn @(_statusFilter == "Approved" ? "btn-success" : "btn-outline-success")" @onclick='() => FilterByStatus("Approved")'>Approved</button>
+            <button class="btn @(_statusFilter == "Pending" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByStatus("Pending")'>Pending</button>
+            <button class="btn @(_statusFilter == "Rejected" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByStatus("Rejected")'>Rejected</button>
+            <button class="btn @(_statusFilter == "NeedsReview" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByStatus("NeedsReview")'>NeedsReview</button>
+            <button class="btn @(_statusFilter == "None" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByStatus("None")'>None</button>
+        </div>
+    </div>
+    <div>
+        <div class="small text-muted mb-1">Dostępne</div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn @(_availableFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByAvailability(null)">Wszystkie</button>
+            <button class="btn @(_availableFilter == true ? "btn-success" : "btn-outline-success")" @onclick="() => FilterByAvailability(true)">Tak</button>
+            <button class="btn @(_availableFilter == false ? "btn-secondary" : "btn-outline-secondary")" @onclick="() => FilterByAvailability(false)">Nie</button>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_dishes == null || !_dishes.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-utensils" Title="Brak dań" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" style="font-size:0.9rem;">
+            <thead>
+                <tr>
+                    <th style="width:80px;">Zdjęcie</th>
+                    <th>Nazwa</th>
+                    <th>Restauracja</th>
+                    <th style="width:90px;">Cena</th>
+                    <th style="width:120px;">Status</th>
+                    <th style="width:100px;">Dostępne</th>
+                    <th style="width:110px;">Ocena</th>
+                    <th style="width:280px;">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dish in _dishes.Data)
+                {
+                    <tr @onclick="() => ToggleExpand(dish.PublicId)" style="cursor:pointer;">
+                        <td>
+                            @if (!string.IsNullOrEmpty(dish.ImageUrl))
+                            {
+                                <img src="@dish.ImageUrl" alt="@dish.DishName" style="width:60px;height:60px;object-fit:cover;border-radius:4px;" />
+                            }
+                        </td>
+                        <td>
+                            <strong>@dish.DishName</strong>
+                            @if (!string.IsNullOrEmpty(dish.Slug))
+                            {
+                                <a href="/dishes/@dish.Slug" target="_blank" rel="noopener" class="ms-2 text-muted" title="Otwórz publicznie" @onclick:stopPropagation="true">
+                                    <i class="fa-solid fa-up-right-from-square"></i>
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            @if (dish.RestaurantId.HasValue)
+                            {
+                                <a href="/admin/restaurants/@dish.RestaurantId" @onclick:stopPropagation="true">@(dish.RestaurantName ?? "-")</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>@(dish.Price.HasValue ? $"{dish.Price.Value:F2} zl" : "-")</td>
+                        <td><span class="badge @ModerationStatusBadge(dish.ModerationStatus)">@dish.ModerationStatus</span></td>
+                        <td>
+                            @if (dish.IsAvailable)
+                            {
+                                <span class="badge bg-success">Tak</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Nie</span>
+                            }
+                        </td>
+                        <td>
+                            @(dish.AvgRating.HasValue ? dish.AvgRating.Value.ToString("F1") : "-")
+                            <span class="text-muted small">(@dish.ReviewCount)</span>
+                        </td>
+                        <td @onclick:stopPropagation="true">
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Status</button>
+                                <ul class="dropdown-menu">
+                                    @foreach (var s in StatusOptions)
+                                    {
+                                        <li><button class="dropdown-item" @onclick="() => ChangeStatus(dish, s)">@s</button></li>
+                                    }
+                                </ul>
+                                <button class="btn @(dish.IsAvailable ? "btn-outline-secondary" : "btn-outline-success")"
+                                        @onclick="() => ToggleAvailability(dish)" disabled="@_actionInProgress">
+                                    @(dish.IsAvailable ? "Wyłącz" : "Włącz")
+                                </button>
+                                <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(dish)" disabled="@_actionInProgress">Usuń</button>
+                            </div>
+                        </td>
+                    </tr>
+                    @if (_expanded.Contains(dish.PublicId))
+                    {
+                        <tr class="table-light">
+                            <td colspan="8">
+                                <div class="p-2">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="small text-muted">Składniki</div>
+                                            <div>
+                                                @if (dish.Ingredients.Any())
+                                                {
+                                                    @string.Join(", ", dish.Ingredients)
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">brak</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="small text-muted">Tagi</div>
+                                            <div>
+                                                @foreach (var tag in dish.Tags)
+                                                {
+                                                    <span class="badge me-1" style="background-color:@(tag.DisplayColor ?? "#6c757d");">@tag.TagName</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <div class="small text-muted">Kategoria</div>
+                                            <div>@(dish.CategoryTagName ?? "-")</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="small text-muted">Trending</div>
+                                            <div>@(dish.TrendingScore.HasValue ? dish.TrendingScore.Value.ToString("F2") : "-")</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="small text-muted">Utworzono</div>
+                                            <div>@dish.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_dishes.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_dishes.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private static readonly string[] StatusOptions =
+        { "None", "Pending", "Processing", "Approved", "Rejected", "NeedsReview" };
+
+    private PagedResult<AdminDishDto>? _dishes;
+    private List<AdminRestaurantDto> _restaurants = new();
+    private HashSet<Guid> _expanded = new();
+    private string _search = "";
+    private string _restaurantIdFilter = "";
+    private string? _statusFilter;
+    private bool? _availableFilter;
+    private bool _loading = true;
+    private bool _actionInProgress;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var restaurantsResult = await AdminService.GetRestaurantsAsync(1, null);
+        _restaurants = restaurantsResult?.Data?.ToList() ?? new();
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        int? restaurantId = int.TryParse(_restaurantIdFilter, out var rid) ? rid : (int?)null;
+        _dishes = await AdminService.GetAdminDishesAsync(
+            page,
+            string.IsNullOrWhiteSpace(_search) ? null : _search,
+            restaurantId,
+            _statusFilter,
+            _availableFilter);
+        _loading = false;
+    }
+
+    private async Task DoSearch() => await LoadPage(1);
+    private void HandleSearchKey(KeyboardEventArgs e) { if (e.Key == "Enter") _ = DoSearch(); }
+    private async Task FilterByStatus(string? status) { _statusFilter = status; await LoadPage(1); }
+    private async Task FilterByAvailability(bool? available) { _availableFilter = available; await LoadPage(1); }
+
+    private void ToggleExpand(Guid publicId)
+    {
+        if (!_expanded.Add(publicId)) _expanded.Remove(publicId);
+    }
+
+    private async Task ChangeStatus(AdminDishDto dish, string newStatus)
+    {
+        _actionInProgress = true;
+        var success = await AdminService.ChangeAdminDishModerationStatusAsync(dish.PublicId, newStatus);
+        _actionInProgress = false;
+        if (success)
+        {
+            dish.ModerationStatus = newStatus;
+            Toast.ShowSuccess($"Status dania zmieniony na {newStatus}.");
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie zmienic statusu.");
+        }
+    }
+
+    private async Task ToggleAvailability(AdminDishDto dish)
+    {
+        _actionInProgress = true;
+        var newValue = !dish.IsAvailable;
+        var success = await AdminService.SetAdminDishAvailabilityAsync(dish.PublicId, newValue);
+        _actionInProgress = false;
+        if (success)
+        {
+            dish.IsAvailable = newValue;
+            Toast.ShowSuccess(newValue ? "Danie dostepne." : "Danie ukryte.");
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie zmienic dostepnosci.");
+        }
+    }
+
+    private async Task ConfirmDelete(AdminDishDto dish)
+    {
+        _actionInProgress = true;
+        var success = await AdminService.DeleteAdminDishAsync(dish.PublicId);
+        _actionInProgress = false;
+        if (success)
+        {
+            _dishes!.Data.Remove(dish);
+            Toast.ShowSuccess("Danie usuniete.");
+        }
+        else
+        {
+            Toast.ShowError("Nie udalo sie usunac dania.");
+        }
+    }
+
+    private static string ModerationStatusBadge(string status) => status switch
+    {
+        "Approved" => "bg-success",
+        "Pending" or "Processing" => "bg-info",
+        "Rejected" => "bg-danger",
+        "NeedsReview" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}
