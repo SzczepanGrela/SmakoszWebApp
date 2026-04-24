@@ -65,6 +65,9 @@ public static class DomainErrors
     {
         public static readonly Error NotFound =
             Error.NotFound("DISH_NOT_FOUND", "Danie nie zostało znalezione");
+
+        public static readonly Error InvalidCategory =
+            Error.Validation("DISH_INVALID_CATEGORY", "Wybrana kategoria dania nie istnieje lub jest nieaktywna");
     }
 
     public static class Review

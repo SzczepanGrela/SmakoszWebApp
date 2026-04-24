@@ -150,6 +150,7 @@ public class BusinessController : ApiController
             request.Description,
             request.Calories,
             request.IsAvailable,
+            request.DishCategoryTagName ?? "",
             request.SectionIds,
             request.IngredientIds));
         return ToCreatedResult(result, $"/api/business/dishes/{(result.IsError ? 0 : result.Value)}");
@@ -234,6 +235,6 @@ public record CreateEditRequestRequest(
     string? NewAddress, string? NewPhone, string? NewWebsite);
 public record UpdateDishAvailabilityRequest(bool IsAvailable);
 public record UpdateMenuSectionRequest(string Name);
-public record CreateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool IsAvailable = true, List<int>? SectionIds = null, List<int>? IngredientIds = null);
+public record CreateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool IsAvailable = true, string? DishCategoryTagName = null, List<int>? SectionIds = null, List<int>? IngredientIds = null);
 public record UpdateDishRequest(string? DishName, decimal? Price, string? Description, int? Calories, bool? IsAvailable, List<int>? IngredientIds = null, List<int>? SectionIds = null);
 public record SetDishIngredientsRequest(List<int> IngredientIds);
