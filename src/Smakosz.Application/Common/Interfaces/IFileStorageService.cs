@@ -9,6 +9,7 @@ public interface IFileStorageService
     Task DeleteAsync(string key, CancellationToken ct = default);
     Task<string> UploadRawAsync(Stream data, string key, string contentType, CancellationToken ct = default);
     string GetPublicUrl(string key);
+    Task CheckConnectivityAsync(CancellationToken ct);
 }
 
 public record FileUploadResult(

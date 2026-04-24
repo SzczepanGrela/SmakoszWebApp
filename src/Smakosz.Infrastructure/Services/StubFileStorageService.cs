@@ -33,4 +33,6 @@ public class StubFileStorageService : IFileStorageService
     }
 
     public string GetPublicUrl(string key) => $"https://assets.smakosz.xyz/{key}";
+
+    public Task CheckConnectivityAsync(CancellationToken ct) => Task.CompletedTask;
 }
