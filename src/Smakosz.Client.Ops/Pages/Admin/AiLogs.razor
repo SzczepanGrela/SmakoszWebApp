@@ -1,0 +1,123 @@
+@page "/admin/ai-logs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>Logi AI - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-robot me-2"></i>Logi AI</h2>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mb-3">
+    <div>
+        <div class="small text-muted mb-1">Model</div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn @(_modelTypeFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByModelType(null)">Wszystkie</button>
+            <button class="btn @(_modelTypeFilter == "image_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("image_moderation")'>image_moderation</button>
+            <button class="btn @(_modelTypeFilter == "text_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("text_moderation")'>text_moderation</button>
+            <button class="btn @(_modelTypeFilter == "ncf_training" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("ncf_training")'>ncf_training</button>
+        </div>
+    </div>
+    <div>
+        <div class="small text-muted mb-1">Fallback</div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn @(_fallbackFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByFallback(null)">Wszystkie</button>
+            <button class="btn @(_fallbackFilter == false ? "btn-success" : "btn-outline-success")" @onclick="() => FilterByFallback(false)">Normalne</button>
+            <button class="btn @(_fallbackFilter == true ? "btn-warning" : "btn-outline-warning")" @onclick="() => FilterByFallback(true)">Fallback</button>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_logs == null || !_logs.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-robot" Title="Brak logów AI" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover" style="font-size:0.85rem;">
+            <thead>
+                <tr>
+                    <th style="width:160px;">Czas</th>
+                    <th style="width:220px;">Model</th>
+                    <th style="width:180px;">Encja</th>
+                    <th style="width:110px;">Verdict</th>
+                    <th style="width:90px;">Czas</th>
+                    <th style="width:100px;">Fallback</th>
+                    <th>Input i Scores</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in _logs.Data)
+                {
+                    <tr>
+                        <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>
+                            <div><span class="badge bg-secondary">@log.ModelType</span></div>
+                            @if (!string.IsNullOrEmpty(log.ModelName))
+                            {
+                                <div class="small text-muted">@log.ModelName @(!string.IsNullOrEmpty(log.ModelVersion) ? $"v{log.ModelVersion}" : "")</div>
+                            }
+                        </td>
+                        <td><EntityLink EntityType="@(log.EntityType ?? string.Empty)" EntityId="@log.EntityId" /></td>
+                        <td>@log.Verdict</td>
+                        <td class="text-muted">@(log.ProcessingTimeMs.HasValue ? $"{log.ProcessingTimeMs} ms" : "")</td>
+                        <td>
+                            @if (log.Fallback)
+                            {
+                                <span class="badge bg-warning text-dark">Fallback</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.InputSummary) || !string.IsNullOrEmpty(log.Scores))
+                            {
+                                <details>
+                                    <summary class="small text-primary">Szczegóły</summary>
+                                    @if (!string.IsNullOrEmpty(log.InputSummary))
+                                    {
+                                        <div class="small text-muted mt-1">Input:</div>
+                                        <pre class="small mb-1" style="max-height:150px;overflow:auto;">@log.InputSummary</pre>
+                                    }
+                                    @if (!string.IsNullOrEmpty(log.Scores))
+                                    {
+                                        <div class="small text-muted">Scores:</div>
+                                        <pre class="small mb-0" style="max-height:150px;overflow:auto;">@log.Scores</pre>
+                                    }
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_logs.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_logs.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminAiLogDto>? _logs;
+    private string? _modelTypeFilter;
+    private bool? _fallbackFilter;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _logs = await AdminService.GetAiLogsAsync(page, _modelTypeFilter, _fallbackFilter);
+        _loading = false;
+    }
+
+    private async Task FilterByModelType(string? modelType) { _modelTypeFilter = modelType; await LoadPage(1); }
+    private async Task FilterByFallback(bool? fallback) { _fallbackFilter = fallback; await LoadPage(1); }
+}
