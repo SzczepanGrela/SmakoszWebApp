@@ -56,12 +56,16 @@ builder.Services.AddHangfire(cfg => cfg
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));
+    .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString), new PostgreSqlStorageOptions
+    {
+        QueuePollInterval = TimeSpan.FromSeconds(60),
+    }));
 
 builder.Services.AddHangfireServer(options =>
 {
-    options.WorkerCount = 4;
+    options.WorkerCount = 2;
     options.Queues = ["default"];
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(60);
 });
 
 builder.Services.AddHealthChecks()
@@ -130,13 +134,13 @@ RecurringJob.AddOrUpdate<UserReaperService>(
     "user-reaper", x => x.ReapAsync(CancellationToken.None), Cron.Daily(2), utc);
 
 RecurringJob.AddOrUpdate<RatingService>(
-    "avg-ratings", x => x.UpdateAsync(CancellationToken.None), Cron.Hourly, utc);
+    "avg-ratings", x => x.UpdateAsync(CancellationToken.None), "0 */6 * * *", utc);
 
 RecurringJob.AddOrUpdate<TrendingService>(
     "trending-scores", x => x.RecalculateAsync(CancellationToken.None), Cron.Daily(4), utc);
 
 RecurringJob.AddOrUpdate<R2CleanupService>(
-    "r2-cleanup", x => x.CleanupAsync(CancellationToken.None), "*/15 * * * *", utc);
+    "r2-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Hourly, utc);
 
 RecurringJob.AddOrUpdate<HeartbeatMonitorService>(
     "heartbeat-monitor", x => x.CheckAsync(CancellationToken.None), "*/5 * * * *", utc);
@@ -148,16 +152,16 @@ RecurringJob.AddOrUpdate<NotificationDigestService>(
     "notification-digest", x => x.SendAsync(CancellationToken.None), Cron.Daily(8), utc);
 
 RecurringJob.AddOrUpdate<PushNotificationDispatchService>(
-    "push-dispatch", x => x.SendAsync(CancellationToken.None), Cron.Minutely, utc);
+    "push-dispatch", x => x.SendAsync(CancellationToken.None), "*/2 * * * *", utc);
 
 RecurringJob.AddOrUpdate<SiteStatsService>(
-    "site-stats", x => x.UpdateAsync(CancellationToken.None), "*/10 * * * *", utc);
+    "site-stats", x => x.UpdateAsync(CancellationToken.None), Cron.Hourly, utc);
 
 RecurringJob.AddOrUpdate<HomePageCacheService>(
-    "home-page-cache", x => x.RefreshAsync(CancellationToken.None), "*/5 * * * *", utc);
+    "home-page-cache", x => x.RefreshAsync(CancellationToken.None), "*/30 * * * *", utc);
 
 RecurringJob.AddOrUpdate<ModerationAggregationSchedulerService>(
-    "moderation-aggregation", x => x.RunAsync(CancellationToken.None), Cron.Minutely, utc);
+    "moderation-aggregation", x => x.RunAsync(CancellationToken.None), "*/5 * * * *", utc);
 
 RecurringJob.AddOrUpdate<SystemJobsCleanupService>(
     "system-jobs-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(2, 30), utc);
