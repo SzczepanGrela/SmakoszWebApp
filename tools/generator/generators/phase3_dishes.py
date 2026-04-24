@@ -20,6 +20,60 @@ from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
+ARCHETYPE_TO_CATEGORY: dict[str, str] = {
+    "Pizza": "Pizza",
+    "Burger": "Burger",
+    "Kebab": "Kebab",
+    "Makaron": "Makaron",
+    "Sushi": "Sushi",
+    "Zupa": "Zupa",
+    "Sałatka": "Sałatka",
+    "Deser": "Deser",
+    "Napój Bezalkoholowy": "Napój",
+    "Drink": "Napój",
+    "Milkshake": "Napój",
+    "Kawa": "Napój",
+    "Herbata": "Napój",
+    "Wino": "Napój",
+    "Piwo": "Napój",
+    "Gorąca Czekolada": "Napój",
+    "Śniadanie": "Śniadanie",
+    "Przystawka": "Przystawka",
+    "Kanapka": "Kanapka",
+    "Wrap": "Kanapka",
+    "Panini": "Kanapka",
+    "Pierogi": "Pierogi",
+    "Stek": "Stek",
+    "Ryby i Owoce Morza": "Ryba",
+    "Danie Polskie": "Kuchnia domowa",
+    "Danie Francuskie": "Kuchnia domowa",
+    "Danie Koreańskie": "Kuchnia domowa",
+    "Danie Azjatyckie": "Kuchnia domowa",
+    "Danie Bliskowschodnie": "Kuchnia domowa",
+    "Dania BBQ": "Kuchnia domowa",
+    "Risotto": "Kuchnia domowa",
+    "Curry": "Kuchnia domowa",
+    "Ramen": "Zupa",
+    "Pho": "Zupa",
+    "Taco": "Fast food",
+    "Mexican": "Fast food",
+    "Frytki": "Fast food",
+    "Naleśniki": "Śniadanie",
+    "Pieczywo": "Kanapka",
+    "Lody": "Deser",
+    "Sorbet": "Deser",
+    "Naan": "Kanapka",
+    "Dodatek": "Inne",
+    "Tapas": "Inne",
+    "Danie Greckie": "Inne",
+    "Danie Niemieckie": "Inne",
+}
+
+
+def resolve_category_for_archetype(archetype: str) -> str:
+    return ARCHETYPE_TO_CATEGORY.get(archetype, "Inne")
+
+
 def _unique_slug(dish_name: str, used_slugs: set[str]) -> str:
     base = slugify(dish_name)
     slug = base
@@ -113,6 +167,10 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
         if tag_category not in tag_by_category:
             tag_by_category[tag_category] = []
         tag_by_category[tag_category].append((tag_id, tag_name))
+
+    category_tag_ids: dict[str, int] = {
+        tag_name: tag_id for tag_id, tag_name in tag_by_category.get("dish_category", [])
+    }
 
     logger.info("Populating dish archetypes dictionary...")
 
@@ -300,6 +358,11 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                 tag_map=tag_map,
                 tag_by_category=tag_by_category,
             )
+
+            category_name = resolve_category_for_archetype(archetype)
+            category_tag_id = category_tag_ids.get(category_name) or category_tag_ids.get("Inne")
+            if category_tag_id is not None:
+                dish_tag_ids.append(category_tag_id)
 
             is_spicy = secret_spiciness_val > 6.0
             is_vegan = "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids
