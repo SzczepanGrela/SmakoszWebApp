@@ -57,6 +57,7 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
+            DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds
         });
@@ -72,6 +73,7 @@ public class BusinessService : IBusinessService
             Description = dish.Description,
             Calories = dish.Calories,
             IsAvailable = dish.IsAvailable,
+            DishCategoryTagName = dish.CategoryTagName,
             IngredientIds = ingredientIds,
             SectionIds = sectionIds
         });
