@@ -8,6 +8,7 @@ using Smakosz.Application.Features.Admin.Commands.DeleteCity;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
+using Smakosz.Application.Features.Admin.Commands.AdminResetUserPassword;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.ChangeRestaurantStatus;
 using Smakosz.Application.Features.Admin.Commands.CreateBannedIdentifier;
@@ -89,6 +90,13 @@ public class AdminController : ApiController
     public async Task<IActionResult> AdminDisable2fa(Guid publicId)
     {
         var result = await _mediator.Send(new AdminDisable2faCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("users/{publicId:guid}/reset-password")]
+    public async Task<IActionResult> ResetUserPassword(Guid publicId)
+    {
+        var result = await _mediator.Send(new AdminResetUserPasswordCommand(publicId));
         return ToNoContentResult(result);
     }
 
