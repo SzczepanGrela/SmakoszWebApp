@@ -127,6 +127,19 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     theme_archetypes_cache = {t["name"]: bdb.get_theme_archetypes(t["name"]) for t in all_themes}
     theme_sections_cache = {t["name"]: bdb.get_theme_sections(t["name"]) for t in all_themes}
 
+    cuisine_rows = db.fetch_all("SELECT cuisine_type_id, name FROM cuisine_types")
+    cuisine_name_to_id = {row[1].lower(): row[0] for row in cuisine_rows}
+    def _resolve_cuisine_id(theme_name: str):
+        key = theme_name.lower().replace(" ", "_")
+        if key in cuisine_name_to_id:
+            return cuisine_name_to_id[key]
+        fallback_key = theme_name.lower()
+        if fallback_key in cuisine_name_to_id:
+            return cuisine_name_to_id[fallback_key]
+        raise RuntimeError(
+            f"cuisine '{theme_name}' not found in cuisine_types. Run phase1_cuisines before phase2_restaurants"
+        )
+
     for city_id, city_name in tqdm(
         cities, desc="Generating restaurants", unit=" city", mininterval=1.0, disable=LoggingConfig.is_quiet()
     ):
@@ -192,7 +205,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
                     "public_id": str(uuid.uuid4()),
                     "city_id": city_id,
                     "restaurant_name": name,
-                    "cuisine_type": theme,
+                    "cuisine_type_id": _resolve_cuisine_id(theme),
                     "price_level": price_level,
                     "postal_code": f"{city_info.get('postal_prefix', '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
                     "email": f"kontakt@{slugify(name)}.pl",
