@@ -36,7 +36,7 @@ services:
     ports:
       - "127.0.0.1:5000:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -61,9 +61,9 @@ services:
       - ncf-models:/models/ncf
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "127.0.0.1:8081:8080"
+      - "${TAILSCALE_IP}:8081:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
