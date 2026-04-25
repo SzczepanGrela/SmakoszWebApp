@@ -19,7 +19,6 @@ class DatabaseManager:
         "system.security_logs",
         "system.email_logs",
         "system.jobs",
-        "system.refresh_tokens",
         "system.banned_identifiers",
         "system.forbidden_words",
         "system.files_to_delete",
