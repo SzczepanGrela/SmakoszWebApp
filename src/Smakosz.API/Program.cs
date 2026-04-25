@@ -2,12 +2,15 @@ using System.Security.Cryptography;
 using System.Threading.RateLimiting;
 using Hangfire;
 using Hangfire.PostgreSql;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Smakosz.API.Common;
+using Smakosz.API.Middleware;
 using Smakosz.API.Services;
 using Smakosz.Application;
 using Smakosz.Application.Common.Interfaces;
@@ -15,6 +18,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Configuration;
+using Smakosz.Infrastructure.HealthChecks;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 
@@ -74,7 +78,8 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<SmakoszDbContext>();
+    .AddDbContextCheck<SmakoszDbContext>("database", tags: new[] { "ready" })
+    .AddCheck<R2HealthCheck>("r2_photos", timeout: TimeSpan.FromSeconds(3), tags: new[] { "ready" });
 
 builder.Services.AddControllers();
 
@@ -158,6 +163,10 @@ builder.Services.AddRateLimiter(options =>
     AddFixedWindowPolicy(options, "general", "ratelimit.general", 60, 60);
 });
 
+var healthKey = builder.Configuration["Monitoring:HealthCheckKey"];
+if (builder.Environment.IsProduction() && string.IsNullOrWhiteSpace(healthKey))
+    throw new InvalidOperationException("Monitoring:HealthCheckKey must be set in production");
+
 var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))
@@ -183,7 +192,23 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.UseMiddleware<HealthCheckAuthMiddleware>();
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
 
 await app.RunAsync();
 
