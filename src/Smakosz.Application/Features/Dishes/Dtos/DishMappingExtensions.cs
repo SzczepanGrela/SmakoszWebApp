@@ -21,6 +21,7 @@ public static class DishMappingExtensions
             IsVegetarian = d.IsVegetarian,
             IsVegan = d.IsVegan,
             IsGlutenFree = d.IsGlutenFree,
+            IsSpicy = d.IsSpicy,
             IsSaved = isSaved
         };
     }
