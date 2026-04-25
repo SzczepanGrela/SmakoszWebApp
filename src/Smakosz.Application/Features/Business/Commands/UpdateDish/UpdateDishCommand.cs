@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Constants;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -64,13 +65,13 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
             var newCategoryTag = await _db.Tags
                 .FirstOrDefaultAsync(t =>
                     t.TagName == request.DishCategoryTagName
-                    && t.Category == "dish_category", cancellationToken);
+                    && t.Category == TagCategories.DishCategory, cancellationToken);
 
             if (newCategoryTag is null)
                 return DomainErrors.Dish.InvalidCategory;
 
             var oldCategoryTags = dish.DishTags
-                .Where(dt => dt.Tag.Category == "dish_category")
+                .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                 .ToList();
             foreach (var old in oldCategoryTags)
                 _db.DishTags.Remove(old);

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Business.Dtos;
+using Smakosz.Domain.Constants;
 
 namespace Smakosz.Application.Features.Business.Queries.GetBusinessDishDetail;
 
@@ -82,7 +83,7 @@ public class GetBusinessDishDetailHandler : IRequestHandler<GetBusinessDishDetai
                 d.AvgRating,
                 OwnerId = d.Restaurant!.OwnerId,
                 CategoryTagName = d.DishTags
-                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.TagName)
                     .FirstOrDefault(),
                 Ingredients = d.DishIngredients.Select(di => new DishIngredientItemDto

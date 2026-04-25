@@ -5,6 +5,7 @@ using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Dtos;
+using Smakosz.Domain.Constants;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetAdminDishes;
@@ -96,11 +97,11 @@ public class GetAdminDishesHandler : IRequestHandler<GetAdminDishesQuery, ErrorO
                     })
                     .ToList(),
                 CategoryTagName = d.DishTags
-                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.TagName)
                     .FirstOrDefault(),
                 CategoryColor = d.DishTags
-                    .Where(dt => dt.Tag.Category == "dish_category")
+                    .Where(dt => dt.Tag.Category == TagCategories.DishCategory)
                     .Select(dt => dt.Tag.DisplayColor)
                     .FirstOrDefault(),
                 CreatedAt = d.CreatedAt
