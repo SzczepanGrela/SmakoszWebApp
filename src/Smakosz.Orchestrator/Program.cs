@@ -1,11 +1,14 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Orchestrator.Configuration;
+using Smakosz.Orchestrator.HealthChecks;
 using Smakosz.Orchestrator.Jobs;
 using Smakosz.Orchestrator.Middleware;
 using Smakosz.Orchestrator.Services;
@@ -69,7 +72,7 @@ builder.Services.AddHangfireServer(options =>
 });
 
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<SmakoszDbContext>();
+    .AddCheck<HangfireServerHealthCheck>("hangfire_server", timeout: TimeSpan.FromSeconds(3), tags: new[] { "ready" });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -115,7 +118,21 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
 
 app.MapHangfireDashboard("/hangfire");
 
