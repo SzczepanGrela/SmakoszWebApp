@@ -46,6 +46,7 @@ public class AdminRestaurantDetailDto
     public string Name { get; init; } = default!;
     public string? Slug { get; init; }
     public string? Description { get; init; }
+    public int? CuisineTypeId { get; init; }
     public string? CuisineType { get; init; }
     public int? PriceLevel { get; init; }
     public string? ImageUrl { get; init; }

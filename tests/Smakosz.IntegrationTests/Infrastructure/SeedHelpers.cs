@@ -124,7 +124,7 @@ public static class SeedHelpers
             PublicId = Guid.NewGuid(),
             RestaurantName = name,
             Slug = name.ToLower().Replace(" ", "-"),
-            CuisineType = "Włoska",
+            CuisineTypeId = 1,
             PriceLevel = 2,
             Address = "ul. Marszalkowska 10",
             CityId = cityId,
@@ -290,7 +290,7 @@ public static class SeedHelpers
 
         var pizzeria = CreateRestaurant(1, "Pizzeria Roma", warszawa.CityId);
         var kebab = CreateRestaurant(2, "Sultan Kebab", krakow.CityId);
-        kebab.CuisineType = "Turecka";
+        kebab.CuisineTypeId = 2;
         kebab.PriceLevel = 1;
 
         var dish1 = CreateDish(1, "Pizza Margherita", pizzeria.RestaurantId, 24.90m);

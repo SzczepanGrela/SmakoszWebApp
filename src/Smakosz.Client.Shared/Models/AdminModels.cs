@@ -208,6 +208,7 @@ public class AdminRestaurantDetailDto
     public string Name { get; set; } = default!;
     public string? Slug { get; set; }
     public string? Description { get; set; }
+    public int? CuisineTypeId { get; set; }
     public string? CuisineType { get; set; }
     public int? PriceLevel { get; set; }
     public string? ImageUrl { get; set; }
@@ -264,7 +265,7 @@ public class AdminRestaurantUpdateDto
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public string? CuisineType { get; set; }
+    public int? CuisineTypeId { get; set; }
     public int? PriceLevel { get; set; }
     public string? Address { get; set; }
     public string? PostalCode { get; set; }

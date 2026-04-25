@@ -31,9 +31,9 @@ public class UpdateRestaurantAdminValidator : AbstractValidator<UpdateRestaurant
             .InclusiveBetween(1, 4).WithMessage("Poziom cenowy musi być między 1 a 4")
             .When(x => x.PriceLevel.HasValue);
 
-        RuleFor(x => x.CuisineType)
-            .MaximumLength(100).WithMessage("Typ kuchni może mieć maksymalnie 100 znaków")
-            .When(x => !string.IsNullOrEmpty(x.CuisineType));
+        RuleFor(x => x.CuisineTypeId)
+            .GreaterThan(0).WithMessage("Identyfikator kuchni musi być większy od 0")
+            .When(x => x.CuisineTypeId.HasValue);
 
         RuleFor(x => x.PostalCode)
             .Matches(@"^\d{2}-\d{3}$").WithMessage("Kod pocztowy musi być w formacie XX-XXX")

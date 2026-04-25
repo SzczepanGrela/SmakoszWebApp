@@ -12,7 +12,8 @@ public class RestaurantBuilder
         RestaurantName = "Test Restaurant",
         Slug = "test-restaurant",
         Status = RestaurantStatus.Active,
-        CuisineType = "Italian",
+        CuisineTypeId = 1,
+        Cuisine = new CuisineType { CuisineTypeId = 1, Name = "Italian", DisplayName = "Italian" },
         PriceLevel = 2,
         AvgFoodScore = 7.5,
         AvgService = 7.0,
@@ -35,7 +36,14 @@ public class RestaurantBuilder
     public RestaurantBuilder WithPublicId(Guid id) { _restaurant.PublicId = id; return this; }
     public RestaurantBuilder WithName(string name) { _restaurant.RestaurantName = name; return this; }
     public RestaurantBuilder WithSlug(string slug) { _restaurant.Slug = slug; return this; }
-    public RestaurantBuilder WithCuisineType(string? cuisine) { _restaurant.CuisineType = cuisine; return this; }
+    public RestaurantBuilder WithCuisineType(string cuisine)
+    {
+        _restaurant.Cuisine = new CuisineType { CuisineTypeId = 1, Name = cuisine, DisplayName = cuisine };
+        _restaurant.CuisineTypeId = 1;
+        return this;
+    }
+
+    public RestaurantBuilder WithCuisineTypeId(int? id) { _restaurant.CuisineTypeId = id; return this; }
     public RestaurantBuilder WithPriceLevel(int? level) { _restaurant.PriceLevel = level; return this; }
     public RestaurantBuilder WithCity(City city) { _restaurant.City = city; _restaurant.CityId = city.CityId; return this; }
     public RestaurantBuilder WithCityId(int? cityId) { _restaurant.CityId = cityId; return this; }

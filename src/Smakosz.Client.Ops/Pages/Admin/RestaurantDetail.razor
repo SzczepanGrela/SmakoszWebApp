@@ -108,8 +108,9 @@ else
                             <input type="text" class="form-control" @bind="_form.Name" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Typ kuchni</label>
-                            <input type="text" class="form-control" @bind="_form.CuisineType" />
+                            <label class="form-label fw-bold">ID kuchni</label>
+                            <input type="number" class="form-control" @bind="_form.CuisineTypeId" />
+                            <small class="text-muted">Obecna: @(_detail?.CuisineType ?? "brak")</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Poziom cenowy (1-4)</label>
@@ -602,7 +603,7 @@ else
         {
             Name = _detail.Name,
             Description = _detail.Description,
-            CuisineType = _detail.CuisineType,
+            CuisineTypeId = _detail.CuisineTypeId,
             PriceLevel = _detail.PriceLevel,
             Address = _detail.Address,
             PostalCode = _detail.PostalCode,
@@ -640,7 +641,7 @@ else
         {
             Name = _form.Name,
             Description = _form.Description,
-            CuisineType = _form.CuisineType,
+            CuisineTypeId = _form.CuisineTypeId,
             PriceLevel = _form.PriceLevel,
             ExpectedVersion = _form.ExpectedVersion
         };

@@ -58,6 +58,7 @@ public class SearchSuggestHandler : IRequestHandler<SearchSuggestQuery, ErrorOr<
     {
         return await _db.Restaurants
             .AsNoTracking()
+            .Include(r => r.Cuisine)
             .Where(r => r.Status == RestaurantStatus.Active)
             .Where(r => EF.Functions.ILike(r.RestaurantName, $"%{term}%"))
             .OrderBy(r => !EF.Functions.ILike(r.RestaurantName, $"{term}%"))
@@ -68,7 +69,7 @@ public class SearchSuggestHandler : IRequestHandler<SearchSuggestQuery, ErrorOr<
                 Type = "restaurant",
                 Name = r.RestaurantName,
                 Slug = r.Slug ?? string.Empty,
-                Subtitle = r.CuisineType,
+                Subtitle = r.Cuisine != null ? r.Cuisine.DisplayName : null,
                 ImageUrl = r.ImageUrl != null ? r.ImageUrl.Replace(".webp", "_tiny.webp") : null,
                 ImageBlurhash = r.ImageBlurhash
             })

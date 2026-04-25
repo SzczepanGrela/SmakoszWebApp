@@ -102,6 +102,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         var query = _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
+            .Include(r => r.Cuisine)
             .Where(r => r.Status == RestaurantStatus.Active)
             .AsQueryable();
 
@@ -112,7 +113,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 EF.Functions.ILike(r.RestaurantName, $"%{term}%") ||
                 EF.Functions.TrigramsWordSimilarity(term, r.RestaurantName.ToLower()) > 0.3 ||
                 (r.Description != null && EF.Functions.ILike(r.Description, $"%{term}%")) ||
-                (r.CuisineType != null && EF.Functions.ILike(r.CuisineType, $"%{term}%")) ||
+                (r.Cuisine != null && EF.Functions.ILike(r.Cuisine.DisplayName, $"%{term}%")) ||
                 _db.RestaurantTags.Any(rt => rt.RestaurantId == r.RestaurantId && EF.Functions.ILike(rt.Tag.TagName, $"%{term}%")));
         }
 
@@ -122,7 +123,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         if (cuisineList.Count > 0)
         {
             var lower = cuisineList.Select(c => c.ToLower().Replace("_", " ")).ToList();
-            query = query.Where(r => r.CuisineType != null && lower.Contains(r.CuisineType.ToLower()));
+            query = query.Where(r => r.Cuisine != null && lower.Contains(r.Cuisine.Name.ToLower()));
         }
 
         if (tagList.Count > 0)
@@ -155,7 +156,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 PublicId = r.PublicId,
                 Slug = r.Slug ?? string.Empty,
                 RestaurantName = r.RestaurantName,
-                CuisineType = r.CuisineType,
+                CuisineType = r.Cuisine != null ? r.Cuisine.DisplayName : null,
                 CityName = r.City != null ? r.City.CityName : null,
                 PriceLevel = r.PriceLevel,
                 AvgFoodScore = r.AvgFoodScore,
@@ -181,6 +182,8 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             .AsNoTracking()
             .Include(d => d.Restaurant)
                 .ThenInclude(r => r!.City)
+            .Include(d => d.Restaurant)
+                .ThenInclude(r => r!.Cuisine)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .AsQueryable();
 
@@ -191,7 +194,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 EF.Functions.ILike(d.DishName, $"%{term}%") ||
                 EF.Functions.TrigramsWordSimilarity(term, d.DishName.ToLower()) > 0.3 ||
                 (d.Description != null && EF.Functions.ILike(d.Description, $"%{term}%")) ||
-                (d.Restaurant!.CuisineType != null && EF.Functions.ILike(d.Restaurant.CuisineType, $"%{term}%")) ||
+                (d.Restaurant!.Cuisine != null && EF.Functions.ILike(d.Restaurant.Cuisine.DisplayName, $"%{term}%")) ||
                 d.DishTags.Any(dt => EF.Functions.ILike(dt.Tag.TagName, $"%{term}%")));
         }
 
@@ -202,8 +205,8 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         if (cuisineList.Count > 0)
         {
             var lower = cuisineList.Select(c => c.ToLower().Replace("_", " ")).ToList();
-            query = query.Where(d => d.Restaurant!.CuisineType != null &&
-                lower.Contains(d.Restaurant.CuisineType.ToLower()));
+            query = query.Where(d => d.Restaurant!.Cuisine != null &&
+                lower.Contains(d.Restaurant.Cuisine.Name.ToLower()));
         }
 
         if (tagList.Count > 0)

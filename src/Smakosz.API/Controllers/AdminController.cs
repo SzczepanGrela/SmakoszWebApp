@@ -121,7 +121,7 @@ public class AdminController : ApiController
     public async Task<IActionResult> UpdateRestaurant(Guid publicId, [FromBody] UpdateRestaurantAdminRequest request)
     {
         var result = await _mediator.Send(new UpdateRestaurantAdminCommand(
-            publicId, request.Name, request.Description, request.CuisineType,
+            publicId, request.Name, request.Description, request.CuisineTypeId,
             request.PriceLevel, request.Address, request.PostalCode,
             request.Phone, request.Email, request.Website,
             request.CityId, request.ExpectedVersion));
@@ -425,7 +425,7 @@ public record UpdateRejectionReasonRequest(
 public record UpdateRestaurantAdminRequest(
     string? Name,
     string? Description,
-    string? CuisineType,
+    int? CuisineTypeId,
     int? PriceLevel,
     string? Address,
     string? PostalCode,
