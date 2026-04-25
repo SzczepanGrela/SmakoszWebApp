@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
+using Smakosz.Domain.Entities.Generator;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Interfaces;
 
