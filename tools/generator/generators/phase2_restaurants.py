@@ -324,7 +324,9 @@ def _assign_restaurant_tags(db: DatabaseConnection):
     logger.info("Assigning tags...")
 
     restaurants = RestaurantDAO.get_restaurants_with_cuisine(db)
-    tags = db.fetch_all("SELECT tag_id, tag_name, category FROM tags")
+    tags = db.fetch_all(
+        "SELECT tag_id, tag_name, category FROM tags WHERE target_entity IN ('restaurant', 'both')"
+    )
 
     tag_assignments = []
 
