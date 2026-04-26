@@ -13,6 +13,7 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/datasources/prometheus.yml -o infra/grafana/provisioning/datasources/prometheus.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/dashboards/dashboards.yml -o infra/grafana/provisioning/dashboards/dashboards.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/aspnetcore.json -o infra/grafana/dashboards/aspnetcore.json
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/business.json -o infra/grafana/dashboards/business.json
 
 docker compose pull
 docker compose up -d
