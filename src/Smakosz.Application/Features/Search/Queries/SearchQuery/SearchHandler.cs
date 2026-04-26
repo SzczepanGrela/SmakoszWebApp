@@ -52,6 +52,11 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             ? request.DishCategories.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
             : [];
 
+        var featureList = ParseCsv(request.Features);
+        var moodList = ParseCsv(request.Moods);
+        var occasionList = ParseCsv(request.Occasions);
+        var spiceList = ParseCsv(request.SpiceLevels);
+
         var restaurants = new List<RestaurantCardDto>();
         var dishes = new List<DishCardDto>();
         var totalCount = 0;
@@ -65,7 +70,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
         if (request.Type is "dishes" or "all")
         {
-            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, dishCategoryList, cancellationToken);
+            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, dishCategoryList, featureList, moodList, occasionList, spiceList, cancellationToken);
             dishes = items;
             totalCount += count;
         }
@@ -176,6 +181,10 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         List<string> dietaryList,
         List<string> tagList,
         List<string> dishCategoryList,
+        List<string> featureList,
+        List<string> moodList,
+        List<string> occasionList,
+        List<string> spiceList,
         CancellationToken cancellationToken)
     {
         var query = _db.Dishes
@@ -217,6 +226,34 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             query = query.Where(d => d.DishTags.Any(dt =>
                 dt.Tag.Category == TagCategories.DishCategory
                 && dishCategoryList.Contains(dt.Tag.TagName)));
+        }
+
+        if (featureList.Count > 0)
+        {
+            query = query.Where(d => d.DishTags.Any(dt =>
+                dt.Tag.Category == TagCategories.Feature
+                && featureList.Contains(dt.Tag.TagName)));
+        }
+
+        if (moodList.Count > 0)
+        {
+            query = query.Where(d => d.DishTags.Any(dt =>
+                dt.Tag.Category == TagCategories.Mood
+                && moodList.Contains(dt.Tag.TagName)));
+        }
+
+        if (occasionList.Count > 0)
+        {
+            query = query.Where(d => d.DishTags.Any(dt =>
+                dt.Tag.Category == TagCategories.Occasion
+                && occasionList.Contains(dt.Tag.TagName)));
+        }
+
+        if (spiceList.Count > 0)
+        {
+            query = query.Where(d => d.DishTags.Any(dt =>
+                dt.Tag.Category == TagCategories.Spice
+                && spiceList.Contains(dt.Tag.TagName)));
         }
 
         if (request.MinPrice.HasValue)
@@ -298,4 +335,9 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
         return (items, count);
     }
+
+    private static List<string> ParseCsv(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 }

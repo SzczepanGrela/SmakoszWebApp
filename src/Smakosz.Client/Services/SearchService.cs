@@ -14,7 +14,8 @@ public class SearchService : ISearchService
         string? cuisines = null, int? minPrice = null, int? maxPrice = null, string? dietary = null,
         string sortBy = "rating", string sortDir = "desc", int page = 1, int pageSize = 20,
         double? lat = null, double? lng = null, double? radius = null, string? tags = null,
-        string? dishCategories = null)
+        string? dishCategories = null, string? features = null, string? moods = null,
+        string? occasions = null, string? spiceLevels = null)
     {
         var qs = HttpUtility.ParseQueryString(string.Empty);
         qs["type"] = type;
@@ -33,6 +34,10 @@ public class SearchService : ISearchService
         if (radius.HasValue) qs["radius"] = radius.Value.ToString(CultureInfo.InvariantCulture);
         if (!string.IsNullOrWhiteSpace(tags)) qs["tags"] = tags;
         if (!string.IsNullOrWhiteSpace(dishCategories)) qs["dishCategories"] = dishCategories;
+        if (!string.IsNullOrWhiteSpace(features)) qs["features"] = features;
+        if (!string.IsNullOrWhiteSpace(moods)) qs["moods"] = moods;
+        if (!string.IsNullOrWhiteSpace(occasions)) qs["occasions"] = occasions;
+        if (!string.IsNullOrWhiteSpace(spiceLevels)) qs["spiceLevels"] = spiceLevels;
 
         return _api.GetAsync<SearchResultDto>($"/api/search?{qs}");
     }

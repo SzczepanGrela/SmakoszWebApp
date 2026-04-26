@@ -73,6 +73,62 @@
                         }
                     </div>
                 }
+                @if (_type is "dishes" or "all" && _spiceLevelOptions.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Ostrość</label>
+                        @foreach (var level in _spiceLevelOptions)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@_selectedSpiceLevels.Contains(level.Value)"
+                                       @onchange="e => ToggleSpiceLevel(level.Value, (bool)e.Value!)" />
+                                <label class="form-check-label small">@level.Label</label>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_type is "dishes" or "all" && _moodOptions.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Klimat</label>
+                        @foreach (var mood in _moodOptions)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@_selectedMoods.Contains(mood.Value)"
+                                       @onchange="e => ToggleMood(mood.Value, (bool)e.Value!)" />
+                                <label class="form-check-label small">@mood.Label</label>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_type is "dishes" or "all" && _occasionOptions.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Pora dnia</label>
+                        @foreach (var occ in _occasionOptions)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@_selectedOccasions.Contains(occ.Value)"
+                                       @onchange="e => ToggleOccasion(occ.Value, (bool)e.Value!)" />
+                                <label class="form-check-label small">@occ.Label</label>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_type is "dishes" or "all" && _featureOptions.Any())
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Cechy</label>
+                        @foreach (var feat in _featureOptions)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@_selectedFeatures.Contains(feat.Value)"
+                                       @onchange="e => ToggleFeature(feat.Value, (bool)e.Value!)" />
+                                <label class="form-check-label small">@feat.Label</label>
+                            </div>
+                        }
+                    </div>
+                }
                 @if (_cities.Any())
                 {
                     <div class="mb-3">
@@ -87,7 +143,7 @@
                     </div>
                 }
                 <button class="btn btn-primary btn-sm w-100" @onclick="DoSearch">Zastosuj filtry</button>
-                @if (_selectedCuisines.Any() || _selectedDietary.Any() || _selectedDishCategories.Any() || !string.IsNullOrEmpty(_selectedCity))
+                @if (_selectedCuisines.Any() || _selectedDietary.Any() || _selectedDishCategories.Any() || _selectedFeatures.Any() || _selectedMoods.Any() || _selectedOccasions.Any() || _selectedSpiceLevels.Any() || !string.IsNullOrEmpty(_selectedCity))
                 {
                     <button class="btn btn-outline-secondary btn-sm w-100 mt-2" @onclick="ClearFilters">
                         <i class="fa-solid fa-xmark me-1"></i>Wyczyść filtry
@@ -147,6 +203,10 @@
     [SupplyParameterFromQuery] public string? Sort { get; set; }
     [SupplyParameterFromQuery] public string? Tags { get; set; }
     [SupplyParameterFromQuery(Name = "dishCategories")] public string? DishCategoriesParam { get; set; }
+    [SupplyParameterFromQuery] public string? Features { get; set; }
+    [SupplyParameterFromQuery] public string? Moods { get; set; }
+    [SupplyParameterFromQuery] public string? Occasions { get; set; }
+    [SupplyParameterFromQuery(Name = "spiceLevels")] public string? SpiceLevelsParam { get; set; }
     [SupplyParameterFromQuery] public int Page { get; set; } = 1;
 
     private SearchResultDto? _result;
@@ -159,11 +219,19 @@
     private readonly HashSet<string> _selectedCuisines = [];
     private readonly HashSet<string> _selectedDietary = [];
     private readonly HashSet<string> _selectedDishCategories = [];
+    private readonly HashSet<string> _selectedFeatures = [];
+    private readonly HashSet<string> _selectedMoods = [];
+    private readonly HashSet<string> _selectedOccasions = [];
+    private readonly HashSet<string> _selectedSpiceLevels = [];
     private string? _selectedTags;
 
     private List<FilterOption> _cuisineOptions = [];
     private List<FilterOption> _dietaryOptions = [];
     private List<FilterOption> _dishCategoryOptions = [];
+    private List<FilterOption> _featureOptions = [];
+    private List<FilterOption> _moodOptions = [];
+    private List<FilterOption> _occasionOptions = [];
+    private List<FilterOption> _spiceLevelOptions = [];
     private List<string> _cities = [];
 
     private static readonly FilterOption[] _fallbackCuisines =
@@ -215,6 +283,11 @@
                 _selectedDishCategories.Add(c);
         }
 
+        PopulateSet(Features, _selectedFeatures);
+        PopulateSet(Moods, _selectedMoods);
+        PopulateSet(Occasions, _selectedOccasions);
+        PopulateSet(SpiceLevelsParam, _selectedSpiceLevels);
+
         var filtersTask = SearchService.GetFiltersAsync();
         var resultsTask = LoadResults();
 
@@ -224,6 +297,10 @@
             _cuisineOptions = filters.Cuisines.Any() ? filters.Cuisines : [.. _fallbackCuisines];
             _dietaryOptions = filters.DietaryOptions.Any() ? filters.DietaryOptions : [.. _fallbackDietary];
             _dishCategoryOptions = filters.DishCategories;
+            _featureOptions = filters.Features;
+            _moodOptions = filters.Moods;
+            _occasionOptions = filters.Occasions;
+            _spiceLevelOptions = filters.SpiceLevels;
             _cities = filters.Cities;
         }
         else
@@ -244,7 +321,13 @@
         var pageSize = _type == "dishes" ? 6 : 12;
         var tags = !string.IsNullOrWhiteSpace(_selectedTags) ? _selectedTags : null;
         var dishCategories = _selectedDishCategories.Any() ? string.Join(",", _selectedDishCategories) : null;
-        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page, pageSize, tags: tags, dishCategories: dishCategories);
+        var features = _selectedFeatures.Any() ? string.Join(",", _selectedFeatures) : null;
+        var moods = _selectedMoods.Any() ? string.Join(",", _selectedMoods) : null;
+        var occasions = _selectedOccasions.Any() ? string.Join(",", _selectedOccasions) : null;
+        var spiceLevels = _selectedSpiceLevels.Any() ? string.Join(",", _selectedSpiceLevels) : null;
+        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page, pageSize,
+            tags: tags, dishCategories: dishCategories,
+            features: features, moods: moods, occasions: occasions, spiceLevels: spiceLevels);
         _loading = false;
     }
 
@@ -262,12 +345,27 @@
     private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); }
     private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); }
     private void ToggleDishCategory(string c, bool v) { if (v) _selectedDishCategories.Add(c); else _selectedDishCategories.Remove(c); }
+    private void ToggleFeature(string c, bool v) { if (v) _selectedFeatures.Add(c); else _selectedFeatures.Remove(c); }
+    private void ToggleMood(string c, bool v) { if (v) _selectedMoods.Add(c); else _selectedMoods.Remove(c); }
+    private void ToggleOccasion(string c, bool v) { if (v) _selectedOccasions.Add(c); else _selectedOccasions.Remove(c); }
+    private void ToggleSpiceLevel(string c, bool v) { if (v) _selectedSpiceLevels.Add(c); else _selectedSpiceLevels.Remove(c); }
+
+    private static void PopulateSet(string? csv, HashSet<string> target)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return;
+        foreach (var v in csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            target.Add(v);
+    }
 
     private async Task ClearFilters()
     {
         _selectedCuisines.Clear();
         _selectedDietary.Clear();
         _selectedDishCategories.Clear();
+        _selectedFeatures.Clear();
+        _selectedMoods.Clear();
+        _selectedOccasions.Clear();
+        _selectedSpiceLevels.Clear();
         _selectedCity = "";
         _page = 1;
         await LoadResults();
@@ -284,6 +382,10 @@
         if (_sortBy != "rating") url += $"&sort={_sortBy}";
         if (!string.IsNullOrWhiteSpace(_selectedTags)) url += $"&tags={Uri.EscapeDataString(_selectedTags)}";
         if (_selectedDishCategories.Any()) url += $"&dishCategories={Uri.EscapeDataString(string.Join(",", _selectedDishCategories))}";
+        if (_selectedFeatures.Any()) url += $"&features={Uri.EscapeDataString(string.Join(",", _selectedFeatures))}";
+        if (_selectedMoods.Any()) url += $"&moods={Uri.EscapeDataString(string.Join(",", _selectedMoods))}";
+        if (_selectedOccasions.Any()) url += $"&occasions={Uri.EscapeDataString(string.Join(",", _selectedOccasions))}";
+        if (_selectedSpiceLevels.Any()) url += $"&spiceLevels={Uri.EscapeDataString(string.Join(",", _selectedSpiceLevels))}";
         Navigation.NavigateTo(url, replace: true);
     }
 }
