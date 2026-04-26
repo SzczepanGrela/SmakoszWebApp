@@ -35,6 +35,8 @@ fi
 echo "$$" > "$BACKUP_LOCKFILE"
 trap 'rm -f "$BACKUP_LOCKFILE"' EXIT
 
+bash "$(dirname "$0")/silence-alerts.sh" 10m "backup" || true
+
 : "${POSTGRES_CONTAINER:?}"
 : "${POSTGRES_USER:?}"
 : "${POSTGRES_DB:?}"
