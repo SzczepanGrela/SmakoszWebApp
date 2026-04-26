@@ -1,31 +1,35 @@
-CREATE OR REPLACE VIEW search_autocomplete AS
+DROP VIEW IF EXISTS search_autocomplete;
+
+CREATE VIEW search_autocomplete AS
     SELECT DISTINCT
         'cuisine'::text AS type,
-        0 AS id,
-        cuisine_type AS name,
+        ct.cuisine_type_id AS id,
+        ct.display_name AS name,
         NULL::text AS slug,
         'Kategoria'::text AS subtitle,
-        NULL::text AS icon,
+        ct.icon,
         NULL::text AS image_blurhash,
-        f_unaccent(lower(cuisine_type)) AS name_normalized,
+        f_unaccent(lower(ct.display_name)) AS name_normalized,
         1 AS priority
-    FROM restaurants
-    WHERE status = 'active' AND cuisine_type IS NOT NULL
+    FROM restaurants r
+    JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
+    WHERE r.status = 'active'
 
     UNION ALL
 
     SELECT
         'restaurant'::text AS type,
-        restaurant_id AS id,
-        restaurant_name AS name,
-        slug,
-        cuisine_type AS subtitle,
-        image_url AS icon,
-        image_blurhash,
-        f_unaccent(lower(restaurant_name || ' ' || COALESCE(cuisine_type, ''))) AS name_normalized,
+        r.restaurant_id AS id,
+        r.restaurant_name AS name,
+        r.slug,
+        ct.display_name AS subtitle,
+        r.image_url AS icon,
+        r.image_blurhash,
+        f_unaccent(lower(r.restaurant_name || ' ' || COALESCE(ct.display_name, ''))) AS name_normalized,
         2 AS priority
-    FROM restaurants
-    WHERE status = 'active'
+    FROM restaurants r
+    LEFT JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
+    WHERE r.status = 'active'
 
     UNION ALL
 
