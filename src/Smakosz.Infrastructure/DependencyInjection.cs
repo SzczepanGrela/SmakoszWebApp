@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Infrastructure.Configuration;
 using Smakosz.Infrastructure.Logging;
+using Smakosz.Infrastructure.Metrics;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Infrastructure.Services;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
         services.AddMemoryCache();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IBusinessMetrics>(_ => new BusinessMetrics(Prometheus.Metrics.DefaultFactory));
         services.AddSingleton<CachedConfigProvider>();
         services.AddSingleton<IPublicConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
         services.AddSingleton<IValidationConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
