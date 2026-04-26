@@ -17,6 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/node.json -o infra/grafana/dashboards/node.json
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/contact-points.yml -o infra/grafana/provisioning/alerting/contact-points.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/policies.yml -o infra/grafana/provisioning/alerting/policies.yml
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/rules.yml -o infra/grafana/provisioning/alerting/rules.yml
 
 docker compose pull
 docker compose up -d
