@@ -45,5 +45,8 @@
       "Microsoft.AspNetCore": "Warning"
     }
   },
+  "Monitoring": {
+    "HealthCheckKey": "<HEALTH_CHECK_KEY>"
+  },
   "AllowedHosts": "*"
 }
