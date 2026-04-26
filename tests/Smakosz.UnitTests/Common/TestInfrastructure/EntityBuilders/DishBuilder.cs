@@ -1,3 +1,4 @@
+using Smakosz.Domain.Constants;
 using Smakosz.Domain.Entities;
 
 namespace Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
@@ -18,7 +19,6 @@ public class DishBuilder
         IsVegan = false,
         IsGlutenFree = false,
         IsLactoseFree = false,
-        IsSpicy = false,
         Description = "A test dish",
         Calories = 500,
         ImageUrl = "https://example.com/dish.jpg",
@@ -42,7 +42,12 @@ public class DishBuilder
     public DishBuilder AsVegan() { _dish.IsVegan = true; _dish.IsVegetarian = true; return this; }
     public DishBuilder AsGlutenFree() { _dish.IsGlutenFree = true; return this; }
     public DishBuilder AsLactoseFree() { _dish.IsLactoseFree = true; return this; }
-    public DishBuilder AsSpicy() { _dish.IsSpicy = true; return this; }
+    public DishBuilder AsSpicy()
+    {
+        var tag = new Tag { TagId = 9001, TagName = SpiceLevels.Hot, Category = TagCategories.Spice };
+        _dish.DishTags = [.. _dish.DishTags, new DishTag { DishId = _dish.DishId, TagId = tag.TagId, Tag = tag }];
+        return this;
+    }
 
     public DishBuilder WithDishTags(List<DishTag> tags) { _dish.DishTags = tags; return this; }
 

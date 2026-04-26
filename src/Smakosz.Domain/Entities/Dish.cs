@@ -18,7 +18,6 @@ public class Dish : IAuditableEntity, IHasPublicId, IModerable
     public bool IsVegan { get; set; }
     public bool IsGlutenFree { get; set; } = true;
     public bool IsLactoseFree { get; set; } = true;
-    public bool IsSpicy { get; set; }
     public string? IngredientsJson { get; set; }
     public bool IsAvailable { get; set; } = true;
     public int? Calories { get; set; }

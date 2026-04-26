@@ -19,7 +19,6 @@ public record UpdateDishCommand(
     string? Description,
     int? Calories,
     bool? IsAvailable,
-    bool? IsSpicy = null,
     string? SpiceLevel = null,
     string? Mood = null,
     List<string>? Features = null,
@@ -114,7 +113,6 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
         if (request.Price.HasValue) dish.Price = request.Price.Value;
         if (request.Calories.HasValue) dish.Calories = request.Calories.Value;
         if (request.IsAvailable.HasValue) dish.IsAvailable = request.IsAvailable.Value;
-        if (request.IsSpicy.HasValue) dish.IsSpicy = request.IsSpicy.Value;
 
         if (request.Name is not null && await _forbiddenWords.ContainsAsync(request.Name, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Offensive))
             return DomainErrors.ForbiddenWord.ContentContainsForbiddenWord;

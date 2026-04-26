@@ -233,7 +233,6 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 "vegan" => query.Where(d => d.IsVegan),
                 "gluten_free" or "glutenfree" => query.Where(d => d.IsGlutenFree),
                 "lactose_free" or "lactosefree" => query.Where(d => d.IsLactoseFree),
-                "spicy" => query.Where(d => d.IsSpicy),
                 _ => query
             };
         }
@@ -269,7 +268,22 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
                 IsVegetarian = d.IsVegetarian,
                 IsVegan = d.IsVegan,
                 IsGlutenFree = d.IsGlutenFree,
-                IsSpicy = d.IsSpicy,
+                SpiceLevel = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Spice)
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
+                Mood = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Mood)
+                    .Select(dt => dt.Tag.TagName)
+                    .FirstOrDefault(),
+                Features = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Feature)
+                    .Select(dt => dt.Tag.TagName)
+                    .ToList(),
+                Occasions = d.DishTags
+                    .Where(dt => dt.Tag.Category == TagCategories.Occasion)
+                    .Select(dt => dt.Tag.TagName)
+                    .ToList(),
                 IsSaved = false,
                 CategoryTagName = d.DishTags
                     .Where(dt => dt.Tag.Category == TagCategories.DishCategory)

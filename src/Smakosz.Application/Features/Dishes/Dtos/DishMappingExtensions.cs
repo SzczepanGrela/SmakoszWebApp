@@ -1,3 +1,4 @@
+using Smakosz.Domain.Constants;
 using Smakosz.Domain.Entities;
 
 namespace Smakosz.Application.Features.Dishes.Dtos;
@@ -21,7 +22,22 @@ public static class DishMappingExtensions
             IsVegetarian = d.IsVegetarian,
             IsVegan = d.IsVegan,
             IsGlutenFree = d.IsGlutenFree,
-            IsSpicy = d.IsSpicy,
+            SpiceLevel = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Spice)
+                .Select(dt => dt.Tag.TagName)
+                .FirstOrDefault(),
+            Mood = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Mood)
+                .Select(dt => dt.Tag.TagName)
+                .FirstOrDefault(),
+            Features = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Feature)
+                .Select(dt => dt.Tag.TagName)
+                .ToList(),
+            Occasions = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Occasion)
+                .Select(dt => dt.Tag.TagName)
+                .ToList(),
             IsSaved = isSaved
         };
     }
@@ -45,7 +61,22 @@ public static class DishMappingExtensions
             IsVegan = d.IsVegan,
             IsGlutenFree = d.IsGlutenFree,
             IsLactoseFree = d.IsLactoseFree,
-            IsSpicy = d.IsSpicy,
+            SpiceLevel = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Spice)
+                .Select(dt => dt.Tag.TagName)
+                .FirstOrDefault(),
+            Mood = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Mood)
+                .Select(dt => dt.Tag.TagName)
+                .FirstOrDefault(),
+            Features = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Feature)
+                .Select(dt => dt.Tag.TagName)
+                .ToList(),
+            Occasions = d.DishTags
+                .Where(dt => dt.Tag.Category == TagCategories.Occasion)
+                .Select(dt => dt.Tag.TagName)
+                .ToList(),
             IsAvailable = d.IsAvailable,
             TrendingScore = d.TrendingScore,
             RestaurantName = d.Restaurant?.RestaurantName,

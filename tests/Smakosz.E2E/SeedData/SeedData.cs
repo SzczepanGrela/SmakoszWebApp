@@ -216,7 +216,6 @@ public static class SeedData
             Price = 29.90m,
             Calories = 1020,
             Description = "Pizza z pikantnym pepperoni, mozzarella i sosem pomidorowym.",
-            IsSpicy = true,
             IsAvailable = true,
             AvgRating = 8.0,
             ReviewCount = 0,

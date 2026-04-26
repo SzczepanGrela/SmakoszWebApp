@@ -17,7 +17,10 @@ public class DishDetailDto
     public bool IsVegan { get; init; }
     public bool IsGlutenFree { get; init; }
     public bool IsLactoseFree { get; init; }
-    public bool IsSpicy { get; init; }
+    public string? SpiceLevel { get; init; }
+    public string? Mood { get; init; }
+    public List<string> Features { get; init; } = [];
+    public List<string> Occasions { get; init; } = [];
     public bool IsAvailable { get; init; }
     public decimal? TrendingScore { get; init; }
     public string? RestaurantName { get; init; }
