@@ -43,7 +43,7 @@ public class LoginHandlerTests
         _config.GetInt("auth.max_login_attempts", 5).Returns(5);
         _config.GetInt("auth.lockout_duration_min", 15).Returns(15);
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService);
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService, Substitute.For<IBusinessMetrics>());
     }
 
     [Fact]

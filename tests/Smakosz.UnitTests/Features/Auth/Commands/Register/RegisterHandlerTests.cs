@@ -36,7 +36,7 @@ public class RegisterHandlerTests
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _verificationCodeService, _currentUser, _emailService, _forbiddenWords, _turnstile);
+        _handler = new RegisterHandler(_db, _passwordHasher, _verificationCodeService, _currentUser, _emailService, _forbiddenWords, _turnstile, Substitute.For<IBusinessMetrics>());
     }
 
     [Fact]

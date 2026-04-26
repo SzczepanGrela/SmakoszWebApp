@@ -20,8 +20,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly IValidationConfigProvider _config;
     private readonly IVerificationCodeService _verificationCodeService;
     private readonly IEmailService _emailService;
+    private readonly IBusinessMetrics _metrics;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config, IVerificationCodeService verificationCodeService, IEmailService emailService)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config, IVerificationCodeService verificationCodeService, IEmailService emailService, IBusinessMetrics metrics)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -32,6 +33,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         _config = config;
         _verificationCodeService = verificationCodeService;
         _emailService = emailService;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -63,7 +65,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
-
+            _metrics.RecordLogin("account_locked");
             return DomainErrors.Auth.AccountBanned;
         }
 
@@ -82,6 +84,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 CreatedAt = now
             });
             await _db.SaveChangesAsync(cancellationToken);
+            _metrics.RecordLogin("account_locked");
             return DomainErrors.Auth.AccountLocked;
         }
 
@@ -107,7 +110,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 CreatedAt = now
             });
             await _db.SaveChangesAsync(cancellationToken);
-
+            _metrics.RecordLogin("wrong_password");
             return DomainErrors.Auth.InvalidCredentials;
         }
 
@@ -118,10 +121,16 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
             return DomainErrors.Auth.AccountInactive;
 
         if (user.IsBanned)
+        {
+            _metrics.RecordLogin("account_locked");
             return DomainErrors.Auth.AccountBanned;
+        }
 
         if (!user.EmailVerified)
+        {
+            _metrics.RecordLogin("email_not_verified");
             return DomainErrors.Auth.EmailNotVerified;
+        }
 
         if (user.Is2faEnabled)
         {
@@ -138,6 +147,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 SentAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
+            _metrics.RecordLogin("2fa_required");
             return DomainErrors.Auth.TwoFactorRequired;
         }
 
@@ -147,6 +157,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
 
         user.LastLoginAt = now;
         await _db.SaveChangesAsync(cancellationToken);
+        _metrics.RecordLogin("success");
 
         return new AuthResultDto
         {
