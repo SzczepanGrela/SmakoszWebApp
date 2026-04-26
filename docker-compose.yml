@@ -155,8 +155,8 @@ services:
       GF_SMTP_HOST: smtp-relay.brevo.com:587
       GF_SMTP_USER: ${BREVO_SMTP_USER}
       GF_SMTP_PASSWORD: ${BREVO_SMTP_PASSWORD}
-      GF_SMTP_FROM_ADDRESS: noreply@smakosz.xyz
-      GF_SMTP_FROM_NAME: Smakosz Monitoring
+      GF_SMTP_FROM_ADDRESS: grafana@smakosz.xyz
+      GF_SMTP_FROM_NAME: Grafana
       GF_SMTP_STARTTLS_POLICY: MandatoryStartTLS
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
