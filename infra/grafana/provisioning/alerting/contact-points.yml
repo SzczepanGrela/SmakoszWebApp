@@ -1,0 +1,19 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: smakosz-admin-email
+    receivers:
+      - uid: smakosz-admin-email
+        type: email
+        settings:
+          addresses: admin@smakosz.xyz
+          singleEmail: false
+          subject: "[Smakosz Alert] {{ .CommonLabels.alertname }}"
+          message: |
+            {{ range .Alerts }}
+            Alert: {{ .Labels.alertname }}
+            Severity: {{ .Labels.severity }}
+            Summary: {{ .Annotations.summary }}
+            Description: {{ .Annotations.description }}
+            Started: {{ .StartsAt }}
+            {{ end }}
