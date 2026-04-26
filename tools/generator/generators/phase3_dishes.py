@@ -364,7 +364,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
             if category_tag_id is not None:
                 dish_tag_ids.append(category_tag_id)
 
-            is_spicy = secret_spiciness_val > 6.0
             is_vegan = "Wegańskie" in tag_map and tag_map["Wegańskie"] in dish_tag_ids
 
             is_vegetarian = is_vegan
@@ -389,7 +388,6 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                     "is_vegan": is_vegan,
                     "is_gluten_free": is_gluten_free,
                     "is_lactose_free": is_lactose_free,
-                    "is_spicy": is_spicy,
                     "ingredients_json": json.dumps([ing.replace("_", " ") for ing in dish_ingredients]),
                     "is_available": is_available,
                     "secret_base_price": round(secret_base_price, 2),
@@ -464,16 +462,17 @@ def _get_tags_for_dish(
     if cuisine_tag and cuisine_tag in tag_map:
         tag_ids.add(tag_map[cuisine_tag])
 
-    if spiciness >= 4:
-        if spiciness <= 6:
-            spice_tag = "Średnio ostre"
-        elif spiciness <= 8:
-            spice_tag = "Ostre"
-        else:
-            spice_tag = "Bardzo ostre"
+    if spiciness < 4:
+        spice_tag = "Łagodne"
+    elif spiciness <= 6:
+        spice_tag = "Średnio ostre"
+    elif spiciness <= 8:
+        spice_tag = "Ostre"
+    else:
+        spice_tag = "Bardzo ostre"
 
-        if spice_tag in tag_map:
-            tag_ids.add(tag_map[spice_tag])
+    if spice_tag in tag_map:
+        tag_ids.add(tag_map[spice_tag])
 
     has_meat = False
     has_dairy = False
