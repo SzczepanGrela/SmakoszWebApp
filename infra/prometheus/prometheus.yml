@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    env: production
+    instance: smakosz-vps
+
+scrape_configs:
+  - job_name: smakosz-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['api:8080']
+        labels:
+          service: api
+
+  - job_name: smakosz-orchestrator
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['orchestrator:8080']
+        labels:
+          service: orchestrator
+
+  - job_name: prometheus-self
+    static_configs:
+      - targets: ['localhost:9090']
