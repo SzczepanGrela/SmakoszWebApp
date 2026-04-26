@@ -93,6 +93,16 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/orchestrator:latest
             ${{ env.IMAGE_PREFIX }}/orchestrator:${{ env.SHORT_SHA }}
 
+      - name: Build & push GPU Worker
+        uses: docker/build-push-action@v6
+        with:
+          context: gpu-worker
+          file: gpu-worker/Dockerfile.gpu
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
+
   deploy-vps:
     name: Deploy to VPS
     needs: build-images

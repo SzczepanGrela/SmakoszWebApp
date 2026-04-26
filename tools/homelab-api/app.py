@@ -219,28 +219,27 @@ def blockers():
 @app.route("/api/gpu-worker/start", methods=["POST"])
 @require_token
 def gpu_worker_start():
+    compose_args = ["docker", "compose", "-f", "docker-compose.gpu.yml"]
     try:
-        client = docker.from_env()
-        try:
-            container = client.containers.get("gpu-worker")
-            if container.status == "running":
-                return jsonify({"success": True, "message": "Already running"})
-            container.start()
-            logger.info("gpu-worker container started")
-            return jsonify({"success": True, "message": "Container started"})
-        except docker.errors.NotFound:
-            logger.info("gpu-worker container not found, running docker compose up")
-            result = subprocess.run(
-                ["docker", "compose", "-f", "docker-compose.gpu.yml", "up", "-d"],
-                cwd=config.GPU_WORKER_COMPOSE_DIR,
-                capture_output=True, text=True, timeout=120,
-            )
-            if result.returncode == 0:
-                return jsonify({"success": True, "message": "Container created and started"})
-            logger.error("docker compose up failed: %s", result.stderr)
-            return jsonify({"success": False, "message": result.stderr}), 500
-        finally:
-            client.close()
+        pull_result = subprocess.run(
+            compose_args + ["pull"],
+            cwd=config.GPU_WORKER_COMPOSE_DIR,
+            capture_output=True, text=True, timeout=600,
+        )
+        if pull_result.returncode != 0:
+            logger.warning("docker compose pull failed: %s", pull_result.stderr)
+
+        up_result = subprocess.run(
+            compose_args + ["up", "-d"],
+            cwd=config.GPU_WORKER_COMPOSE_DIR,
+            capture_output=True, text=True, timeout=300,
+        )
+        if up_result.returncode == 0:
+            logger.info("gpu-worker pulled and started")
+            return jsonify({"success": True, "message": "Container pulled and started"})
+
+        logger.error("docker compose up failed: %s", up_result.stderr)
+        return jsonify({"success": False, "message": up_result.stderr}), 500
     except Exception as e:
         logger.error("gpu-worker start failed: %s", e)
         return jsonify({"success": False, "message": str(e)}), 500
