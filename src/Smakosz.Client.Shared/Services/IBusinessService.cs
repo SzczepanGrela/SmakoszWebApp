@@ -14,8 +14,23 @@ public interface IBusinessService
     Task<PagedResult<BusinessDishDto>?> GetDishesAsync(int page = 1);
     Task<DishDetailDto?> GetDishAsync(Guid id);
     Task<List<BusinessMenuSectionDto>> GetBusinessMenuSectionsAsync();
-    Task<bool> CreateDishAsync(DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null);
-    Task<bool> UpdateDishAsync(Guid id, DishDetailDto dish, List<int>? ingredientIds = null, List<int>? sectionIds = null);
+    Task<bool> CreateDishAsync(
+        DishDetailDto dish,
+        List<int>? ingredientIds = null,
+        List<int>? sectionIds = null,
+        string? spiceLevel = null,
+        string? mood = null,
+        List<string>? features = null,
+        List<string>? occasions = null);
+    Task<bool> UpdateDishAsync(
+        Guid id,
+        DishDetailDto dish,
+        List<int>? ingredientIds = null,
+        List<int>? sectionIds = null,
+        string? spiceLevel = null,
+        string? mood = null,
+        List<string>? features = null,
+        List<string>? occasions = null);
     Task<bool> DeleteDishAsync(Guid id);
     Task<PagedResult<ReviewCardDto>?> GetReviewsAsync(int page = 1);
     Task<BusinessStatsDto?> GetStatsAsync();

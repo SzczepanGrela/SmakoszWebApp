@@ -20,6 +20,10 @@ public record UpdateDishCommand(
     int? Calories,
     bool? IsAvailable,
     bool? IsSpicy = null,
+    string? SpiceLevel = null,
+    string? Mood = null,
+    List<string>? Features = null,
+    List<string>? Occasions = null,
     string? DishCategoryTagName = null,
     List<int>? IngredientIds = null,
     List<int>? SectionIds = null) : IRequest<ErrorOr<Success>>;
@@ -44,13 +48,11 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
 
         var query = _db.Dishes
             .Include(d => d.Restaurant)
+            .Include(d => d.DishTags).ThenInclude(dt => dt.Tag)
             .AsQueryable();
 
         if (request.IngredientIds is not null)
             query = query.Include(d => d.DishIngredients);
-
-        if (request.DishCategoryTagName is not null)
-            query = query.Include(d => d.DishTags).ThenInclude(dt => dt.Tag);
 
         var dish = await query
             .FirstOrDefaultAsync(d => d.PublicId == request.PublicId, cancellationToken);
@@ -83,6 +85,30 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
                 TagId = newCategoryTag.TagId,
                 Tag = newCategoryTag
             });
+        }
+
+        if (request.SpiceLevel is not null)
+        {
+            var error = await ReplaceSingleTagAsync(dish, TagCategories.Spice, request.SpiceLevel, cancellationToken);
+            if (error is not null) return error.Value;
+        }
+
+        if (request.Mood is not null)
+        {
+            var error = await ReplaceSingleTagAsync(dish, TagCategories.Mood, request.Mood, cancellationToken);
+            if (error is not null) return error.Value;
+        }
+
+        if (request.Features is not null)
+        {
+            var error = await ReplaceMultipleTagsAsync(dish, TagCategories.Feature, request.Features, cancellationToken);
+            if (error is not null) return error.Value;
+        }
+
+        if (request.Occasions is not null)
+        {
+            var error = await ReplaceMultipleTagsAsync(dish, TagCategories.Occasion, request.Occasions, cancellationToken);
+            if (error is not null) return error.Value;
         }
 
         if (request.Price.HasValue) dish.Price = request.Price.Value;
@@ -183,6 +209,42 @@ public class UpdateDishHandler : IRequestHandler<UpdateDishCommand, ErrorOr<Succ
 
         return Result.Success;
     }
+
+    private async Task<ErrorOr<Success>?> ReplaceSingleTagAsync(Dish dish, string category, string name, CancellationToken ct)
+    {
+        var oldTags = dish.DishTags.Where(dt => dt.Tag.Category == category).ToList();
+        foreach (var old in oldTags) _db.DishTags.Remove(old);
+
+        if (string.IsNullOrWhiteSpace(name)) return null;
+
+        var tag = await _db.Tags.FirstOrDefaultAsync(
+            t => t.Category == category && t.TagName == name, ct);
+        if (tag is null) return DomainErrors.Dish.InvalidTag(category, name);
+
+        _db.DishTags.Add(new DishTag { DishId = dish.DishId, TagId = tag.TagId, Tag = tag });
+        return null;
+    }
+
+    private async Task<ErrorOr<Success>?> ReplaceMultipleTagsAsync(Dish dish, string category, List<string> names, CancellationToken ct)
+    {
+        var oldTags = dish.DishTags.Where(dt => dt.Tag.Category == category).ToList();
+        foreach (var old in oldTags) _db.DishTags.Remove(old);
+
+        var distinct = names.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToList();
+        if (distinct.Count == 0) return null;
+
+        var found = await _db.Tags
+            .Where(t => t.Category == category && distinct.Contains(t.TagName))
+            .ToListAsync(ct);
+
+        var missing = distinct.Except(found.Select(f => f.TagName)).FirstOrDefault();
+        if (missing is not null) return DomainErrors.Dish.InvalidTag(category, missing);
+
+        foreach (var tag in found)
+            _db.DishTags.Add(new DishTag { DishId = dish.DishId, TagId = tag.TagId, Tag = tag });
+
+        return null;
+    }
 }
 
 public class UpdateDishValidator : AbstractValidator<UpdateDishCommand>
@@ -197,6 +259,13 @@ public class UpdateDishValidator : AbstractValidator<UpdateDishCommand>
             RuleFor(x => x.Name!)
                 .MinimumLength(2).WithMessage("Nazwa dania musi mieć co najmniej 2 znaki")
                 .MaximumLength(200).WithMessage("Nazwa dania może mieć maksymalnie 200 znaków");
+        });
+
+        When(x => !string.IsNullOrEmpty(x.SpiceLevel), () =>
+        {
+            RuleFor(x => x.SpiceLevel!)
+                .Must(v => SpiceLevels.All.Contains(v))
+                .WithMessage("Nieprawidłowa wartość ostrości");
         });
     }
 }
