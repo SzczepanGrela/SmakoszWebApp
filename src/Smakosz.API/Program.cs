@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using Smakosz.API.Common;
 using Smakosz.API.Middleware;
 using Smakosz.API.Services;
@@ -191,7 +192,9 @@ app.UseCors("AllowClient");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpMetrics();
 app.MapControllers();
+app.MapMetrics("/metrics");
 app.UseMiddleware<HealthCheckAuthMiddleware>();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions
