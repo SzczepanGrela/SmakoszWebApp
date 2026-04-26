@@ -11,6 +11,9 @@ groups:
         data:
           - refId: A
             datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
             model:
               expr: '100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"})'
               instant: true
@@ -52,6 +55,9 @@ groups:
         data:
           - refId: A
             datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
             model:
               expr: '100 - ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100)'
               instant: true
@@ -92,6 +98,9 @@ groups:
         data:
           - refId: A
             datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
             model:
               expr: '100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'
               instant: true
@@ -132,6 +141,9 @@ groups:
         data:
           - refId: A
             datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
             model:
               expr: 'node_load5'
               instant: true
@@ -172,6 +184,9 @@ groups:
         data:
           - refId: A
             datasourceUid: Prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
             model:
               expr: '100 - ((node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes) * 100)'
               instant: true
