@@ -27,6 +27,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<IRecommendationService>());
         Services.AddSingleton(Substitute.For<IRestaurantService>());
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
+        Services.AddSingleton(Substitute.For<IPublicConfigService>());
     }
 
     protected void SetAuthenticatedUser(string username = "testuser", string role = "User")
