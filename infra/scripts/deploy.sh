@@ -1,5 +1,10 @@
 #!/bin/bash
 set -e
+
+DEPLOY_LOCKFILE=/var/run/smakosz-deploy.lock
+trap 'sudo rm -f "$DEPLOY_LOCKFILE"' EXIT
+echo "$$" | sudo tee "$DEPLOY_LOCKFILE" > /dev/null
+
 cd /home/smakosz
 curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/master/docker-compose.yml -o docker-compose.yml
 docker compose pull

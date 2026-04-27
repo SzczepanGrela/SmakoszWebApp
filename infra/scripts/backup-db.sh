@@ -10,6 +10,31 @@ fi
 # shellcheck disable=SC1090
 source "$CONFIG_FILE"
 
+DEPLOY_LOCKFILE=/var/run/smakosz-deploy.lock
+if [ -f "$DEPLOY_LOCKFILE" ]; then
+    DEPLOY_PID=$(cat "$DEPLOY_LOCKFILE" 2>/dev/null || echo "")
+    if [ -n "$DEPLOY_PID" ] && kill -0 "$DEPLOY_PID" 2>/dev/null; then
+        echo "Deploy in progress (PID $DEPLOY_PID), skipping backup" >&2
+        exit 0
+    fi
+    echo "Stale deploy lockfile found, removing" >&2
+    rm -f "$DEPLOY_LOCKFILE"
+fi
+
+BACKUP_LOCKFILE=/var/run/smakosz-backup.lock
+if [ -f "$BACKUP_LOCKFILE" ]; then
+    BACKUP_PID=$(cat "$BACKUP_LOCKFILE" 2>/dev/null || echo "")
+    if [ -n "$BACKUP_PID" ] && kill -0 "$BACKUP_PID" 2>/dev/null; then
+        echo "Another backup already running (PID $BACKUP_PID)" >&2
+        exit 1
+    fi
+    echo "Stale backup lockfile found, removing" >&2
+    rm -f "$BACKUP_LOCKFILE"
+fi
+
+echo "$$" > "$BACKUP_LOCKFILE"
+trap 'rm -f "$BACKUP_LOCKFILE"' EXIT
+
 : "${POSTGRES_CONTAINER:?}"
 : "${POSTGRES_USER:?}"
 : "${POSTGRES_DB:?}"
@@ -38,7 +63,7 @@ DAILY_FILE="$BACKUP_DIR/daily-$TODAY.dump"
 log "Starting pg_dump to $DAILY_FILE"
 docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" \
     "$POSTGRES_CONTAINER" \
-    pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc --compress=zstd:19 \
+    pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc --compress=zstd:9 \
     > "$DAILY_FILE"
 
 DUMP_SIZE=$(stat -c%s "$DAILY_FILE")
