@@ -14,6 +14,7 @@ def request_shutdown(settings: Settings) -> bool:
         resp = httpx.post(
             f"{settings.shutdown_api_url}/api/shutdown",
             headers={"X-API-Token": settings.shutdown_api_token},
+            params={"caller": settings.worker_id},
             timeout=10.0,
         )
         if resp.status_code == 200:
