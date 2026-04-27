@@ -11,6 +11,13 @@ docker compose pull
 docker compose up -d
 docker image prune -f
 
+BACKUP_SCRIPTS_DIR=/opt/smakosz-backup
+sudo mkdir -p "$BACKUP_SCRIPTS_DIR"
+sudo curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/backup-db.sh -o "$BACKUP_SCRIPTS_DIR/backup-db.sh"
+sudo curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/restore-db.sh -o "$BACKUP_SCRIPTS_DIR/restore-db.sh"
+sudo chmod 700 "$BACKUP_SCRIPTS_DIR"/*.sh
+sudo chown root:root "$BACKUP_SCRIPTS_DIR"/*.sh
+
 check_health() {
   local name=$1 url=$2
   for i in $(seq 1 15); do
