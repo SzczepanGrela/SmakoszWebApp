@@ -38,7 +38,7 @@ DAILY_FILE="$BACKUP_DIR/daily-$TODAY.dump"
 log "Starting pg_dump to $DAILY_FILE"
 docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" \
     "$POSTGRES_CONTAINER" \
-    pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc -Z 9 \
+    pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc --compress=zstd:19 \
     > "$DAILY_FILE"
 
 DUMP_SIZE=$(stat -c%s "$DAILY_FILE")
