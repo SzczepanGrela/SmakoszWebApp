@@ -10,7 +10,7 @@ groups:
         condition: B
         data:
           - refId: A
-            datasourceUid: Prometheus
+            datasourceUid: prometheus
             relativeTimeRange:
               from: 600
               to: 0
@@ -54,7 +54,7 @@ groups:
         condition: B
         data:
           - refId: A
-            datasourceUid: Prometheus
+            datasourceUid: prometheus
             relativeTimeRange:
               from: 600
               to: 0
@@ -97,7 +97,7 @@ groups:
         condition: B
         data:
           - refId: A
-            datasourceUid: Prometheus
+            datasourceUid: prometheus
             relativeTimeRange:
               from: 600
               to: 0
@@ -140,7 +140,7 @@ groups:
         condition: B
         data:
           - refId: A
-            datasourceUid: Prometheus
+            datasourceUid: prometheus
             relativeTimeRange:
               from: 600
               to: 0
@@ -183,7 +183,7 @@ groups:
         condition: B
         data:
           - refId: A
-            datasourceUid: Prometheus
+            datasourceUid: prometheus
             relativeTimeRange:
               from: 600
               to: 0
