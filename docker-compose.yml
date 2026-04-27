@@ -158,6 +158,9 @@ services:
       GF_SMTP_FROM_ADDRESS: grafana@smakosz.xyz
       GF_SMTP_FROM_NAME: Grafana
       GF_SMTP_STARTTLS_POLICY: MandatoryStartTLS
+      GF_RENDERING_SERVER_URL: http://grafana_image_renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_LOG_FILTERS: rendering:info
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -168,6 +171,24 @@ services:
       resources:
         limits:
           memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  grafana_image_renderer:
+    image: grafana/grafana-image-renderer:3.12.9
+    container_name: smakosz-grafana-renderer
+    restart: unless-stopped
+    environment:
+      ENABLE_METRICS: "true"
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: "8081"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     logging:
       driver: json-file
       options:
