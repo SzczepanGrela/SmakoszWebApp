@@ -160,6 +160,7 @@ services:
       GF_SMTP_STARTTLS_POLICY: MandatoryStartTLS
       GF_RENDERING_SERVER_URL: http://grafana_image_renderer:8081/render
       GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_RENDERING_RENDERER_TOKEN: ${GRAFANA_RENDERER_TOKEN}
       GF_LOG_FILTERS: rendering:info
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -185,6 +186,7 @@ services:
       ENABLE_METRICS: "true"
       HTTP_HOST: 0.0.0.0
       HTTP_PORT: "8081"
+      AUTH_TOKEN: ${GRAFANA_RENDERER_TOKEN}
     deploy:
       resources:
         limits:
