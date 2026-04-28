@@ -17,17 +17,17 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 chmod 755 "$BACKUP_SCRIPTS_DIR"/*.sh
 
 check_health() {
-  local name=$1 url=$2
+  local name=$1 container=$2
   for i in $(seq 1 15); do
-    status=$(curl -sf -o /dev/null -w '%{http_code}' "$url" 2>/dev/null) || true
-    [ "$status" = "200" ] && echo "$name is healthy" && return 0
-    echo "Attempt $i: waiting for $name..."
+    status=$(docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null || echo "missing")
+    [ "$status" = "healthy" ] && echo "$name is healthy" && return 0
+    echo "Attempt $i: waiting for $name (status: $status)..."
     sleep 5
   done
-  echo "ERROR: $name health check failed (HTTP $status)"
+  echo "ERROR: $name health check failed (last status: $status)"
   return 1
 }
 
-check_health "API" "http://localhost:5000/health"
-check_health "Orchestrator" "http://localhost:8081/health"
-check_health "Client" "http://localhost:5003/"
+check_health "API" "smakosz-api-1"
+check_health "Orchestrator" "smakosz-orchestrator-1"
+check_health "Client" "smakosz-client-1"
