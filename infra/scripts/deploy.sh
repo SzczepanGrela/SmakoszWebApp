@@ -6,7 +6,7 @@ trap 'rm -f "$DEPLOY_LOCKFILE"' EXIT
 echo "$$" > "$DEPLOY_LOCKFILE"
 
 cd /home/smakosz
-curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/master/docker-compose.yml -o docker-compose.yml
+curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/docker-compose.yml -o docker-compose.yml
 docker compose pull
 docker compose up -d
 docker image prune -f
