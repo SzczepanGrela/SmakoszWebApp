@@ -109,7 +109,11 @@ public class R2FileStorageService : IFileStorageService
 
     public async Task CheckConnectivityAsync(CancellationToken ct)
     {
-        await _s3.ListBucketsAsync(ct);
+        await _s3.ListObjectsV2Async(new ListObjectsV2Request
+        {
+            BucketName = _options.BucketName,
+            MaxKeys = 1
+        }, ct);
     }
 
     private async Task UploadToR2Async(Stream stream, string key, string contentType, CancellationToken ct)
