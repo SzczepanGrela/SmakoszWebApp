@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-DEPLOY_LOCKFILE=/var/run/smakosz-deploy.lock
-trap 'sudo rm -f "$DEPLOY_LOCKFILE"' EXIT
-echo "$$" | sudo tee "$DEPLOY_LOCKFILE" > /dev/null
+DEPLOY_LOCKFILE=/tmp/smakosz-deploy.lock
+trap 'rm -f "$DEPLOY_LOCKFILE"' EXIT
+echo "$$" > "$DEPLOY_LOCKFILE"
 
 cd /home/smakosz
 curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/master/docker-compose.yml -o docker-compose.yml
@@ -12,11 +12,9 @@ docker compose up -d
 docker image prune -f
 
 BACKUP_SCRIPTS_DIR=/opt/smakosz-backup
-sudo mkdir -p "$BACKUP_SCRIPTS_DIR"
-sudo curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/backup-db.sh -o "$BACKUP_SCRIPTS_DIR/backup-db.sh"
-sudo curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/restore-db.sh -o "$BACKUP_SCRIPTS_DIR/restore-db.sh"
-sudo chmod 700 "$BACKUP_SCRIPTS_DIR"/*.sh
-sudo chown root:root "$BACKUP_SCRIPTS_DIR"/*.sh
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/backup-db.sh -o "$BACKUP_SCRIPTS_DIR/backup-db.sh"
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/restore-db.sh -o "$BACKUP_SCRIPTS_DIR/restore-db.sh"
+chmod 755 "$BACKUP_SCRIPTS_DIR"/*.sh
 
 check_health() {
   local name=$1 url=$2
