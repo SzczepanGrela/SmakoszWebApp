@@ -107,6 +107,11 @@ public class R2FileStorageService : IFileStorageService
 
     public string GetPublicUrl(string key) => $"{_options.PublicUrl.TrimEnd('/')}/{key}";
 
+    public async Task CheckConnectivityAsync(CancellationToken ct)
+    {
+        await _s3.ListBucketsAsync(ct);
+    }
+
     private async Task UploadToR2Async(Stream stream, string key, string contentType, CancellationToken ct)
     {
         var length = stream.CanSeek ? stream.Length : 0;
