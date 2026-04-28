@@ -18,7 +18,7 @@ public class HangfireServerHealthCheck : IHealthCheck
         try
         {
             var count = await _db.Database
-                .SqlQueryRaw<int>("SELECT COUNT(*) FROM hangfire.server WHERE last_heartbeat > NOW() - INTERVAL '1 minute'")
+                .SqlQueryRaw<int>("SELECT COUNT(*) AS \"Value\" FROM hangfire.server WHERE lastheartbeat > NOW() - INTERVAL '1 minute'")
                 .FirstOrDefaultAsync(cancellationToken);
 
             return count > 0
