@@ -39,7 +39,7 @@ RESPONSE=$(curl -sS -m 10 -w "\n%{http_code}" \
     -H "Authorization: Bearer $GRAFANA_API_TOKEN" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD" \
-    "$GRAFANA_URL/api/alertmanager/grafana/api/v1/silences" 2>&1) || {
+    "$GRAFANA_URL/api/alertmanager/grafana/api/v2/silences" 2>&1) || {
     echo "silence-alerts: curl failed, alerts may fire" >&2
     exit 0
 }
