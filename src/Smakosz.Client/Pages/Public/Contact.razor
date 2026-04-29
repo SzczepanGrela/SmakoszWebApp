@@ -49,7 +49,7 @@
                     <textarea class="form-control" rows="4" @bind="_message"></textarea>
                 </div>
                 <div class="mb-3">
-                    <Smakosz.Client.Components.TurnstileWidget OnVerified="t => _turnstileToken = t" />
+                    <Smakosz.Client.Components.TurnstileWidget @ref="_turnstileWidget" OnVerified="t => _turnstileToken = t" />
                 </div>
                 <button class="btn btn-primary w-100" @onclick="Send">
                     <i class="fa-solid fa-paper-plane me-1"></i>Wyślij
@@ -63,6 +63,7 @@
     private Smakosz.Client.Models.ContactPageDto? _contact;
     private string _name = "", _email = "", _subject = "", _message = "";
     private string? _turnstileToken;
+    private Smakosz.Client.Components.TurnstileWidget? _turnstileWidget;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,5 +75,7 @@
         await ContentService.SendContactMessageAsync(_name, _email, _subject, _message, _turnstileToken);
         Toast.ShowSuccess("Wiadomość wysłana!");
         _name = _email = _subject = _message = "";
+        _turnstileToken = null;
+        if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
     }
 }

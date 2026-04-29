@@ -1,4 +1,5 @@
 @inject IJSRuntime JS
+@implements IDisposable
 
 <div id="@_elementId"></div>
 
@@ -7,19 +8,24 @@
 
     private string _elementId = $"turnstile-{Guid.NewGuid():N}";
     private string _siteKey = "0x4AAAAAACrslpQAJFM5gHII";
+    private DotNetObjectReference<TurnstileWidget>? _selfRef;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            var token = await JS.InvokeAsync<string>("smakoszTurnstile.render", _elementId, _siteKey);
-            if (!string.IsNullOrEmpty(token))
-                await OnVerified.InvokeAsync(token);
+            _selfRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("smakoszTurnstile.render", _elementId, _siteKey, _selfRef);
         }
     }
+
+    [JSInvokable]
+    public Task OnTokenChanged(string token) => OnVerified.InvokeAsync(token);
 
     public async Task ResetAsync()
     {
         await JS.InvokeVoidAsync("smakoszTurnstile.reset", _elementId);
     }
+
+    public void Dispose() => _selfRef?.Dispose();
 }

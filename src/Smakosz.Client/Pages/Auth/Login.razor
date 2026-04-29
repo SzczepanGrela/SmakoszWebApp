@@ -26,7 +26,7 @@
         <label class="form-check-label">Zapamiętaj mnie</label>
     </div>
     <div class="mb-3">
-        <Smakosz.Client.Components.TurnstileWidget OnVerified="t => _turnstileToken = t" />
+        <Smakosz.Client.Components.TurnstileWidget @ref="_turnstileWidget" OnVerified="t => _turnstileToken = t" />
     </div>
     <button type="submit" class="btn btn-primary w-100 @(_loading ? "loading" : "")" disabled="@_loading">
         @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
@@ -47,6 +47,7 @@
     private string? _error;
     private bool _loading;
     private string? _turnstileToken;
+    private Smakosz.Client.Components.TurnstileWidget? _turnstileWidget;
 
     private async Task HandleLogin()
     {
@@ -57,14 +58,17 @@
         if (result.Success)
         {
             Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+            return;
         }
         else if (result.Error?.Code == "AUTH_EMAIL_NOT_VERIFIED")
         {
             Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
+            return;
         }
         else if (result.Error?.Code == "AUTH_2FA_REQUIRED")
         {
             Navigation.NavigateTo($"/verify-2fa?email={Uri.EscapeDataString(_model.Email)}");
+            return;
         }
         else if (result.Error?.Code == "AUTH_ACCOUNT_LOCKED")
         {
@@ -74,6 +78,8 @@
         {
             _error = result.Error?.GetDisplayMessage() ?? "Nieprawidłowy email lub hasło.";
         }
+        _turnstileToken = null;
+        if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
         _loading = false;
     }
 }
