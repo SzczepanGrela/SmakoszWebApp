@@ -151,6 +151,13 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_SERVER_ROOT_URL: http://${TAILSCALE_IP}:3000
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: smtp-relay.brevo.com:587
+      GF_SMTP_USER: ${BREVO_SMTP_USER}
+      GF_SMTP_PASSWORD: ${BREVO_SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: noreply@smakosz.xyz
+      GF_SMTP_FROM_NAME: Smakosz Monitoring
+      GF_SMTP_STARTTLS_POLICY: MandatoryStartTLS
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
