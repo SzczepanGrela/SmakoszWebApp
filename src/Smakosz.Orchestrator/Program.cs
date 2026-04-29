@@ -102,6 +102,7 @@ builder.Services.AddScoped<NcfModelActivationService>();
 builder.Services.AddScoped<ModerationBatchAggregatorService>();
 builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
 builder.Services.AddScoped<ModerationAggregationSchedulerService>();
+builder.Services.AddScoped<ModerationQueueDepthSamplerService>();
 builder.Services.AddScoped<SystemJobsCleanupService>();
 builder.Services.AddScoped<SystemLogsCleanupService>();
 builder.Services.AddScoped<SoftDeletedReviewsCleanupService>();
@@ -182,6 +183,12 @@ RecurringJob.AddOrUpdate<HomePageCacheService>(
 
 RecurringJob.AddOrUpdate<ModerationAggregationSchedulerService>(
     "moderation-aggregation", x => x.RunAsync(CancellationToken.None), "*/5 * * * *", utc);
+
+RecurringJob.AddOrUpdate<ModerationQueueDepthSamplerService>(
+    "moderation-queue-depth-sampler",
+    x => x.SampleAsync(CancellationToken.None),
+    "*/1 * * * *",
+    utc);
 
 RecurringJob.AddOrUpdate<SystemJobsCleanupService>(
     "system-jobs-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(2, 30), utc);
