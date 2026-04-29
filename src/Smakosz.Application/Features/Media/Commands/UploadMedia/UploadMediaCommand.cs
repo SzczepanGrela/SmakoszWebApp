@@ -34,13 +34,15 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
     private readonly ICurrentUserService _currentUser;
     private readonly IFileStorageService _storage;
     private readonly IPublicConfigProvider _configProvider;
+    private readonly IBusinessMetrics _metrics;
 
-    public UploadMediaHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IFileStorageService storage, IPublicConfigProvider configProvider)
+    public UploadMediaHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IFileStorageService storage, IPublicConfigProvider configProvider, IBusinessMetrics metrics)
     {
         _db = db;
         _currentUser = currentUser;
         _storage = storage;
         _configProvider = configProvider;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<UploadMediaResult>> Handle(UploadMediaCommand request, CancellationToken cancellationToken)
@@ -110,6 +112,17 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        var target = entityType switch
+        {
+            MediaEntityType.Review => "review",
+            MediaEntityType.Dish => "dish",
+            MediaEntityType.Restaurant => "restaurant",
+            MediaEntityType.User => "user",
+            MediaEntityType.Hero => "hero",
+            _ => "other"
+        };
+        _metrics.RecordPhotoUpload(target);
 
         return new UploadMediaResult
         {

@@ -28,7 +28,7 @@ public class UploadMediaHandlerTests
         _storage.UploadAsync(Arg.Any<Stream>(), Arg.Any<string>(), Arg.Any<string>(),
                 Arg.Any<IReadOnlyList<ImageVariant>>(), Arg.Any<CancellationToken>())
             .Returns(new FileUploadResult("key", "http://img.jpg", null, null, null, "blurhash", 800, 600));
-        _handler = new UploadMediaHandler(_db, _currentUser, _storage, _configProvider);
+        _handler = new UploadMediaHandler(_db, _currentUser, _storage, _configProvider, Substitute.For<IBusinessMetrics>());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class UploadMediaHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymous = MockExtensions.CreateAnonymousUser();
-        var handler = new UploadMediaHandler(_db, anonymous, _storage, _configProvider);
+        var handler = new UploadMediaHandler(_db, anonymous, _storage, _configProvider, Substitute.For<IBusinessMetrics>());
 
         using var stream = new MemoryStream(new byte[1024]);
         var command = new UploadMediaCommand(stream, "photo.jpg", "Dish", 1);
