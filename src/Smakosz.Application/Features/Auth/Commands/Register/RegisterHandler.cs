@@ -18,8 +18,9 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
     private readonly ITurnstileService _turnstile;
+    private readonly IBusinessMetrics _metrics;
 
-    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IVerificationCodeService verificationCodeService, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords, ITurnstileService turnstile)
+    public RegisterHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IVerificationCodeService verificationCodeService, ICurrentUserService currentUser, IEmailService emailService, IForbiddenWordService forbiddenWords, ITurnstileService turnstile, IBusinessMetrics metrics)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -28,12 +29,14 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
         _emailService = emailService;
         _forbiddenWords = forbiddenWords;
         _turnstile = turnstile;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<Success>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
+            _metrics.RecordRegistration("validation_failed");
             return DomainErrors.Captcha.VerificationFailed;
         }
 
@@ -41,16 +44,25 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
             .AnyAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
 
         if (emailExists)
+        {
+            _metrics.RecordRegistration("email_taken");
             return DomainErrors.Auth.EmailAlreadyExists;
+        }
 
         var usernameExists = await _db.Users
             .AnyAsync(u => u.Username == request.Username, cancellationToken);
 
         if (usernameExists)
+        {
+            _metrics.RecordRegistration("validation_failed");
             return DomainErrors.Auth.UsernameAlreadyExists;
+        }
 
         if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
+        {
+            _metrics.RecordRegistration("validation_failed");
             return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
+        }
 
         var emailDomain = request.Email.ToLowerInvariant().Split('@')[1];
         var ipAddress = _currentUser.IpAddress;
@@ -76,7 +88,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
-
+            _metrics.RecordRegistration("validation_failed");
             return DomainErrors.Auth.IdentifierBanned;
         }
 
@@ -108,7 +120,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
             SentAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync(cancellationToken);
-
+        _metrics.RecordRegistration("success");
         return Result.Success;
     }
 }
