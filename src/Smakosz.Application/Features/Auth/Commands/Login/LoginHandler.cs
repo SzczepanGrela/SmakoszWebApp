@@ -40,6 +40,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     {
         if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
+            _metrics.RecordLogin("captcha_failed");
             return DomainErrors.Captcha.VerificationFailed;
         }
 

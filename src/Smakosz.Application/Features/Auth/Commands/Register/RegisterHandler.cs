@@ -36,7 +36,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
     {
         if (!await _turnstile.VerifyAsync(request.TurnstileToken ?? string.Empty, cancellationToken))
         {
-            _metrics.RecordRegistration("validation_failed");
+            _metrics.RecordRegistration("captcha_failed");
             return DomainErrors.Captcha.VerificationFailed;
         }
 

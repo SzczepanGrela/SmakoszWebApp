@@ -28,7 +28,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "per minute",
+            "axisLabel": "in last hour",
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 20,
@@ -58,6 +58,10 @@
           {
             "matcher": { "id": "byName", "options": "validation_failed" },
             "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "captcha_failed" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
           }
         ]
       },
@@ -75,12 +79,12 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "rate(app_registrations_total[5m]) * 60",
+          "expr": "increase(app_registrations_total[1h])",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Registrations per minute",
+      "title": "Registrations in last hour",
       "type": "timeseries"
     },
     {
@@ -91,7 +95,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "per minute",
+            "axisLabel": "in last hour",
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 20,
@@ -129,6 +133,10 @@
           {
             "matcher": { "id": "byName", "options": "account_locked" },
             "properties": [{ "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "captcha_failed" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
           }
         ]
       },
@@ -146,12 +154,12 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "rate(app_logins_total[5m]) * 60",
+          "expr": "increase(app_logins_total[1h])",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Logins per minute",
+      "title": "Logins in last hour",
       "type": "timeseries"
     },
     {
@@ -191,12 +199,12 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "rate(app_reviews_submitted_total[5m]) * 3600",
-          "legendFormat": "reviews/h",
+          "expr": "increase(app_reviews_submitted_total[1h])",
+          "legendFormat": "reviews",
           "refId": "A"
         }
       ],
-      "title": "Reviews submitted per hour",
+      "title": "Reviews submitted in last hour",
       "type": "timeseries"
     },
     {
@@ -240,12 +248,12 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "rate(app_photo_uploads_total{target=~\"review|dish|restaurant\"}[5m]) * 3600",
+          "expr": "increase(app_photo_uploads_total{target=~\"review|dish|restaurant\"}[1h])",
           "legendFormat": "{{target}}",
           "refId": "A"
         }
       ],
-      "title": "Photo uploads per hour",
+      "title": "Photo uploads in last hour",
       "type": "timeseries"
     },
     {
@@ -265,18 +273,10 @@
             "showPoints": "always",
             "spanNulls": false,
             "thresholdsStyle": {
-              "mode": "line"
+              "mode": "off"
             }
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "red", "value": 100 }
-            ]
-          },
           "unit": "short"
         },
         "overrides": [
