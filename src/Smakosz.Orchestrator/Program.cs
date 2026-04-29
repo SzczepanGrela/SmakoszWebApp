@@ -3,6 +3,7 @@ using Hangfire.PostgreSql;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Prometheus;
 using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
@@ -117,7 +118,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpMetrics();
 app.MapControllers();
+app.MapMetrics("/metrics");
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
     Predicate = _ => false
