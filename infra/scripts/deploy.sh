@@ -5,6 +5,8 @@ DEPLOY_LOCKFILE=/tmp/smakosz-deploy.lock
 trap 'rm -f "$DEPLOY_LOCKFILE"' EXIT
 echo "$$" > "$DEPLOY_LOCKFILE"
 
+bash /opt/smakosz-backup/silence-alerts.sh 5m "deploy" || true
+
 cd /home/smakosz
 curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/docker-compose.yml -o docker-compose.yml
 
