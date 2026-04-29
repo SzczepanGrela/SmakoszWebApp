@@ -107,6 +107,9 @@ jobs:
     name: Deploy to VPS
     needs: build-images
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-vps
+      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
