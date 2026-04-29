@@ -26,6 +26,7 @@ docker image prune -f
 BACKUP_SCRIPTS_DIR=/opt/smakosz-backup
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/backup-db.sh -o "$BACKUP_SCRIPTS_DIR/backup-db.sh"
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/restore-db.sh -o "$BACKUP_SCRIPTS_DIR/restore-db.sh"
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/scripts/silence-alerts.sh -o "$BACKUP_SCRIPTS_DIR/silence-alerts.sh"
 chmod 755 "$BACKUP_SCRIPTS_DIR"/*.sh
 
 check_health() {
