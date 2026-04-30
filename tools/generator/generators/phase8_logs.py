@@ -480,6 +480,56 @@ def _generate_system_nodes(db: DatabaseConnection) -> int:
     return count
 
 
+def _generate_audit_logs(db: DatabaseConnection) -> int:
+    logger.info("Generating audit log starter entries...")
+
+    admin_row = db.fetch_one("SELECT user_id FROM users WHERE role = 'admin' AND is_deleted = false LIMIT 1")
+    admin_id = admin_row[0] if admin_row else 1
+    admin_str = str(admin_id)
+
+    base = datetime(2024, 6, 1, 9, 0, 0)
+    entries = [
+        ("rejection_reasons", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (12 reasons)"})),
+        ("dish_categories", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (18 categories)"})),
+        ("forbidden_words", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (forbidden_words.json)"})),
+        ("system_configs", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (blueprints/system_config.json)"})),
+        ("cuisine_types", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (31 polish cuisines)"})),
+        ("report_reason_definitions", 1, "INSERT", "system",
+         None, json.dumps({"action": "initial seed (phase6 report reasons)"})),
+        ("users", admin_id, "UPDATE", admin_str,
+         json.dumps({"role": "user"}), json.dumps({"role": "admin"})),
+        ("forbidden_words", 5, "UPDATE", admin_str,
+         json.dumps({"isActive": False}), json.dumps({"isActive": True})),
+        ("banned_identifiers", 1, "INSERT", admin_str,
+         None, json.dumps({"value": "spam@example.com", "reason": "manual ban"})),
+        ("system_configs", 2, "UPDATE", admin_str,
+         json.dumps({"value": "5"}), json.dumps({"value": "10"})),
+    ]
+
+    rows = []
+    for i, (table_name, record_id, operation, changed_by, old_values, new_values) in enumerate(entries):
+        rows.append({
+            "table_name": table_name,
+            "record_id": record_id,
+            "operation": operation,
+            "changed_by": changed_by,
+            "changed_at": base + timedelta(days=i * 3, hours=random.randint(0, 8)),
+            "old_values": old_values,
+            "new_values": new_values,
+        })
+
+    db.insert_bulk("audit_logs", rows)
+
+    count = db.fetch_val("SELECT COUNT(*) FROM audit_logs") or 0
+    logger.info(f"Generated {count:,} audit_logs entries")
+    return count
+
+
 class SystemLogsPhase(BasePhase):
 
     def __init__(self, blueprints_dir: str = "blueprints"):
@@ -526,6 +576,7 @@ class SystemLogsPhase(BasePhase):
             counts["security_logs"] = _generate_security_logs(context.db)
             counts["user_sessions"] = _generate_user_sessions(context.db)
             counts["system_nodes"] = _generate_system_nodes(context.db)
+            counts["audit_logs"] = _generate_audit_logs(context.db)
 
             duration = time.time() - start_time
             logger.info(f"Phase 8 completed in {duration:.2f}s")
