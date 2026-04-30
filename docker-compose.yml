@@ -162,6 +162,7 @@ services:
       GF_RENDERING_CALLBACK_URL: http://grafana:3000/
       GF_RENDERING_RENDERER_TOKEN: ${GRAFANA_RENDERER_TOKEN}
       GF_LOG_FILTERS: rendering:info
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -171,7 +172,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
     logging:
       driver: json-file
       options:
