@@ -10,7 +10,7 @@ bash /opt/smakosz-backup/silence-alerts.sh 5m "deploy" || true
 cd /home/smakosz
 curl -sSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/docker-compose.yml -o docker-compose.yml
 
-mkdir -p infra/prometheus infra/grafana/provisioning/datasources infra/grafana/provisioning/dashboards infra/grafana/provisioning/alerting infra/grafana/dashboards infra/grafana/email-templates
+mkdir -p infra/prometheus infra/grafana/provisioning/datasources infra/grafana/provisioning/dashboards infra/grafana/provisioning/alerting infra/grafana/dashboards
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/prometheus/prometheus.yml -o infra/prometheus/prometheus.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/datasources/prometheus.yml -o infra/grafana/provisioning/datasources/prometheus.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/dashboards/dashboards.yml -o infra/grafana/provisioning/dashboards/dashboards.yml
@@ -20,7 +20,6 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/contact-points.yml -o infra/grafana/provisioning/alerting/contact-points.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/policies.yml -o infra/grafana/provisioning/alerting/policies.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/rules.yml -o infra/grafana/provisioning/alerting/rules.yml
-curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/email-templates/ng_alert_notification.html -o infra/grafana/email-templates/ng_alert_notification.html
 
 docker compose pull
 docker compose up -d
