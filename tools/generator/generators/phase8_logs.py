@@ -1,7 +1,10 @@
+import base64
+import hashlib
 import json
 import logging
 import random
 import time
+import uuid
 from datetime import datetime, timedelta
 
 from orchestration.context import ExecutionContext
@@ -334,6 +337,149 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
     return count
 
 
+def _hash_refresh_token() -> str:
+    raw = uuid.uuid4().hex
+    return base64.b64encode(hashlib.sha256(raw.encode()).digest()).decode()
+
+
+def _generate_user_sessions(db: DatabaseConnection) -> int:
+    logger.info("Generating user sessions...")
+
+    users = db.fetch_all(
+        "SELECT user_id, last_login_at, created_at FROM users "
+        "WHERE is_deleted = false AND (last_login_at IS NOT NULL OR created_at IS NOT NULL)"
+    )
+    if not users:
+        logger.warning("No users with login activity, skipping user_sessions")
+        return 0
+
+    now_naive = datetime.utcnow().replace(microsecond=0)
+    buffer = []
+
+    for user_id, last_login_at, created_at in users:
+        anchor = ensure_naive(last_login_at) if last_login_at else ensure_naive(created_at)
+        if anchor is None:
+            continue
+
+        active_session_at = anchor - timedelta(days=random.randint(0, 7))
+        is_remember_me = random.random() < 0.20
+        ttl_days = 30 if is_remember_me else 7
+        buffer.append({
+            "user_id": user_id,
+            "refresh_token_hash": _hash_refresh_token(),
+            "device_name": None,
+            "ip_address": None,
+            "last_active_at": None,
+            "expires_at": active_session_at + timedelta(days=ttl_days),
+            "is_revoked": False,
+            "is_remember_me": is_remember_me,
+            "created_at": active_session_at,
+        })
+
+        history_count = random.choices([0, 1, 2], weights=[0.4, 0.4, 0.2])[0]
+        for _ in range(history_count):
+            old_at = anchor - timedelta(days=random.randint(8, 120))
+            old_remember = random.random() < 0.20
+            old_ttl = 30 if old_remember else 7
+            old_expires = old_at + timedelta(days=old_ttl)
+            if old_expires > now_naive:
+                old_expires = now_naive - timedelta(days=1)
+            buffer.append({
+                "user_id": user_id,
+                "refresh_token_hash": _hash_refresh_token(),
+                "device_name": None,
+                "ip_address": None,
+                "last_active_at": None,
+                "expires_at": old_expires,
+                "is_revoked": True,
+                "is_remember_me": old_remember,
+                "created_at": old_at,
+            })
+
+        if len(buffer) >= 5000:
+            db.insert_bulk("user_sessions", buffer)
+            buffer.clear()
+
+    if buffer:
+        db.insert_bulk("user_sessions", buffer)
+
+    total = db.fetch_val("SELECT COUNT(*) FROM user_sessions") or 0
+    distinct_hashes = db.fetch_val("SELECT COUNT(DISTINCT refresh_token_hash) FROM user_sessions") or 0
+    if total != distinct_hashes:
+        raise RuntimeError(
+            f"Refresh token hash collision detected: total={total} distinct={distinct_hashes}"
+        )
+    logger.info(f"Generated {total:,} user_sessions entries")
+    return total
+
+
+def _generate_system_nodes(db: DatabaseConnection) -> int:
+    logger.info("Generating system nodes...")
+
+    now_naive = datetime.utcnow().replace(microsecond=0)
+    nodes = [
+        {
+            "node_id": "rpi-gateway",
+            "ip_address": "100.64.0.10",
+            "mac_address": None,
+            "wol_gateway_id": None,
+            "role": "gateway",
+            "status": "online",
+            "node_type": "orchestrator",
+            "hostname": "raspberry-pi",
+            "gpu_name": None,
+            "gpu_memory_total": None,
+            "gpu_memory_used": None,
+            "current_job_id": None,
+            "metadata": json.dumps({"role_detail": "wol-gateway and uptime-kuma host"}),
+            "last_heartbeat": now_naive - timedelta(minutes=1),
+        },
+        {
+            "node_id": "gpu-worker",
+            "ip_address": "100.64.0.20",
+            "mac_address": "AA:BB:CC:DD:EE:FF",
+            "wol_gateway_id": "rpi-gateway",
+            "role": "worker",
+            "status": "offline",
+            "node_type": "gpu",
+            "hostname": "gpu-worker",
+            "gpu_name": "NVIDIA GeForce RTX 3060 Ti",
+            "gpu_memory_total": 8192,
+            "gpu_memory_used": 0,
+            "current_job_id": None,
+            "metadata": json.dumps({"cuda_version": "12.4", "driver": "550.x"}),
+            "last_heartbeat": now_naive - timedelta(hours=12),
+        },
+        {
+            "node_id": "vps-hetzner-prod",
+            "ip_address": "100.64.0.5",
+            "mac_address": None,
+            "wol_gateway_id": None,
+            "role": None,
+            "status": "online",
+            "node_type": "api",
+            "hostname": "hetznerVPS",
+            "gpu_name": None,
+            "gpu_memory_total": None,
+            "gpu_memory_used": None,
+            "current_job_id": None,
+            "metadata": json.dumps({"location": "Hetzner Falkenstein", "tier": "production"}),
+            "last_heartbeat": now_naive - timedelta(minutes=1),
+        },
+    ]
+
+    for node in nodes:
+        cols = ", ".join(node.keys())
+        placeholders = ", ".join(["%s"] * len(node))
+        sql = f"INSERT INTO system.nodes ({cols}) VALUES ({placeholders})"
+        db.execute_query(sql, tuple(node.values()))
+    db.commit()
+
+    count = db.fetch_val("SELECT COUNT(*) FROM system.nodes") or 0
+    logger.info(f"Generated {count:,} system nodes")
+    return count
+
+
 class SystemLogsPhase(BasePhase):
 
     def __init__(self, blueprints_dir: str = "blueprints"):
@@ -378,6 +524,8 @@ class SystemLogsPhase(BasePhase):
             counts["moderation_logs"] = _generate_moderation_logs(context.db)
             counts["email_logs"] = _generate_email_logs(context.db)
             counts["security_logs"] = _generate_security_logs(context.db)
+            counts["user_sessions"] = _generate_user_sessions(context.db)
+            counts["system_nodes"] = _generate_system_nodes(context.db)
 
             duration = time.time() - start_time
             logger.info(f"Phase 8 completed in {duration:.2f}s")
