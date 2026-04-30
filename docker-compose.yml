@@ -161,8 +161,10 @@ services:
       GF_RENDERING_SERVER_URL: http://grafana_image_renderer:8081/render
       GF_RENDERING_CALLBACK_URL: http://grafana:3000/
       GF_RENDERING_RENDERER_TOKEN: ${GRAFANA_RENDERER_TOKEN}
-      GF_LOG_FILTERS: rendering:info
+      GF_LOG_FILTERS: rendering:info,alerting.notifier:debug
       GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE: "true"
+      GF_UNIFIED_ALERTING_SCREENSHOTS_UPLOAD_EXTERNAL_IMAGE_STORAGE: "false"
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
