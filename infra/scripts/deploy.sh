@@ -23,6 +23,7 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 
 docker compose pull
 docker compose up -d
+docker restart nginx-proxy-manager || true
 docker image prune -f
 
 BACKUP_SCRIPTS_DIR=/opt/smakosz-backup
