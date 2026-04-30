@@ -85,6 +85,13 @@ def print_statistics(db: DatabaseConnection):
         "notifications",
         "restaurant_edit_requests",
         "system.tickets",
+        "system.ai_logs",
+        "system.moderation_logs",
+        "system.email_logs",
+        "system.security_logs",
+        "system.nodes",
+        "audit_logs",
+        "user_sessions",
     ]
 
     for table in tables:
