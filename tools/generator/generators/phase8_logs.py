@@ -1,7 +1,8 @@
+import json
 import logging
 import random
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
@@ -24,6 +25,16 @@ VERDICT_LOG_MAP = {
     "approved": "approve",
     "rejected": "reject",
     "needs_review": "needs_review",
+}
+
+EMAIL_TYPE_VERIFICATION = "Verification"
+EMAIL_TYPE_TWO_FACTOR = "TwoFactorAuth"
+EMAIL_TYPE_PASSWORD_RESET = "PasswordReset"
+
+EMAIL_SUBJECTS = {
+    EMAIL_TYPE_VERIFICATION: "Weryfikacja email",
+    EMAIL_TYPE_TWO_FACTOR: "Kod 2FA",
+    EMAIL_TYPE_PASSWORD_RESET: "Reset hasla",
 }
 
 
@@ -148,6 +159,181 @@ def _generate_moderation_logs(db: DatabaseConnection) -> int:
     return count
 
 
+def _generate_email_logs(db: DatabaseConnection) -> int:
+    logger.info("Generating email logs...")
+
+    users = db.fetch_all(
+        "SELECT user_id, email, is_2fa_enabled, created_at "
+        "FROM users WHERE is_deleted = false"
+    )
+    if not users:
+        logger.warning("No users found, skipping email_logs")
+        return 0
+
+    now_naive = datetime.utcnow().replace(microsecond=0)
+    buffer = []
+
+    for _user_id, email, is_2fa_enabled, user_created_at in users:
+        recipient = email.lower()
+        verification_at = ensure_naive(user_created_at) + timedelta(minutes=random.randint(1, 5))
+        buffer.append({
+            "type": EMAIL_TYPE_VERIFICATION,
+            "recipient": recipient,
+            "subject": EMAIL_SUBJECTS[EMAIL_TYPE_VERIFICATION],
+            "status": "sent",
+            "provider": None,
+            "provider_message_id": None,
+            "error_message": None,
+            "created_at": verification_at,
+            "sent_at": verification_at + timedelta(seconds=10),
+        })
+
+        if is_2fa_enabled:
+            for _ in range(random.randint(2, 4)):
+                ts = now_naive - timedelta(days=random.randint(0, 30), minutes=random.randint(0, 1440))
+                buffer.append({
+                    "type": EMAIL_TYPE_TWO_FACTOR,
+                    "recipient": recipient,
+                    "subject": EMAIL_SUBJECTS[EMAIL_TYPE_TWO_FACTOR],
+                    "status": "sent",
+                    "provider": None,
+                    "provider_message_id": None,
+                    "error_message": None,
+                    "created_at": ts,
+                    "sent_at": ts + timedelta(seconds=10),
+                })
+
+        if random.random() < 0.05:
+            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            buffer.append({
+                "type": EMAIL_TYPE_PASSWORD_RESET,
+                "recipient": recipient,
+                "subject": EMAIL_SUBJECTS[EMAIL_TYPE_PASSWORD_RESET],
+                "status": "sent",
+                "provider": None,
+                "provider_message_id": None,
+                "error_message": None,
+                "created_at": ts,
+                "sent_at": ts + timedelta(seconds=10),
+            })
+
+        if len(buffer) >= 5000:
+            db.insert_bulk("system.email_logs", buffer)
+            buffer.clear()
+
+    if buffer:
+        db.insert_bulk("system.email_logs", buffer)
+
+    count = db.fetch_val("SELECT COUNT(*) FROM system.email_logs") or 0
+    logger.info(f"Generated {count:,} email_logs entries")
+    return count
+
+
+def _generate_security_logs(db: DatabaseConnection) -> int:
+    logger.info("Generating security logs...")
+
+    users = db.fetch_all(
+        "SELECT user_id, email, is_2fa_enabled FROM users WHERE is_deleted = false"
+    )
+    if not users:
+        logger.warning("No users found, skipping security_logs")
+        return 0
+
+    banned_ips = [r[0] for r in db.fetch_all(
+        "SELECT value FROM system.banned_identifiers WHERE type = 'ip'"
+    )]
+
+    now_naive = datetime.utcnow().replace(microsecond=0)
+    buffer = []
+
+    for user_id, email, is_2fa_enabled in users:
+        recipient = email.lower()
+
+        if random.random() < 0.10:
+            for _ in range(random.randint(1, 2)):
+                ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+                reason = random.choice(["wrong_password", "account_locked"])
+                buffer.append({
+                    "event_type": "failed_login",
+                    "ip_address": fake.ipv4_public(),
+                    "user_agent": fake.user_agent(),
+                    "email": recipient,
+                    "user_id": None,
+                    "details": json.dumps({"reason": reason}),
+                    "country_code": None,
+                    "city": None,
+                    "created_at": ts,
+                })
+
+        if is_2fa_enabled:
+            ts = now_naive - timedelta(days=random.randint(0, 60), minutes=random.randint(0, 1440))
+            buffer.append({
+                "event_type": "two_factor_enabled",
+                "ip_address": fake.ipv4_public(),
+                "user_agent": fake.user_agent(),
+                "email": recipient,
+                "user_id": user_id,
+                "details": None,
+                "country_code": None,
+                "city": None,
+                "created_at": ts,
+            })
+
+        if random.random() < 0.10:
+            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            buffer.append({
+                "event_type": "password_changed",
+                "ip_address": fake.ipv4_public(),
+                "user_agent": fake.user_agent(),
+                "email": recipient,
+                "user_id": user_id,
+                "details": None,
+                "country_code": None,
+                "city": None,
+                "created_at": ts,
+            })
+
+        if len(buffer) >= 5000:
+            db.insert_bulk("system.security_logs", buffer)
+            buffer.clear()
+
+    for _ in range(random.randint(5, 10)):
+        ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+        buffer.append({
+            "event_type": "banned_registration",
+            "ip_address": fake.ipv4_public(),
+            "user_agent": fake.user_agent(),
+            "email": fake.email().lower(),
+            "user_id": None,
+            "details": json.dumps({"reason": "banned_identifier"}),
+            "country_code": None,
+            "city": None,
+            "created_at": ts,
+        })
+
+    if banned_ips:
+        for _ in range(random.randint(3, 5)):
+            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            buffer.append({
+                "event_type": "blocked_ip",
+                "ip_address": random.choice(banned_ips),
+                "user_agent": fake.user_agent(),
+                "email": fake.email().lower(),
+                "user_id": None,
+                "details": json.dumps({"reason": "banned_identifier"}),
+                "country_code": None,
+                "city": None,
+                "created_at": ts,
+            })
+
+    if buffer:
+        db.insert_bulk("system.security_logs", buffer)
+
+    count = db.fetch_val("SELECT COUNT(*) FROM system.security_logs") or 0
+    logger.info(f"Generated {count:,} security_logs entries")
+    return count
+
+
 class SystemLogsPhase(BasePhase):
 
     def __init__(self, blueprints_dir: str = "blueprints"):
@@ -190,6 +376,8 @@ class SystemLogsPhase(BasePhase):
             counts: dict[str, int] = {}
             counts["ai_logs"] = _generate_ai_logs(context.db)
             counts["moderation_logs"] = _generate_moderation_logs(context.db)
+            counts["email_logs"] = _generate_email_logs(context.db)
+            counts["security_logs"] = _generate_security_logs(context.db)
 
             duration = time.time() - start_time
             logger.info(f"Phase 8 completed in {duration:.2f}s")
