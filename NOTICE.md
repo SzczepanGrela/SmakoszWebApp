@@ -142,3 +142,30 @@ SOFTWARE.
    match our local Grafana provisioning. No other modifications were made to
    the dashboard structure or panel queries.
 ```
+
+---
+
+## 5. Grafana alert email template
+
+- File: `infra/grafana/email-templates/ng_alert_notification.html`
+- Source: Grafana v13.0.1 image
+  (`/usr/share/grafana/public/emails/ng_alert_notification.html` from
+  https://github.com/grafana/grafana)
+- License: GNU Affero General Public License v3.0
+
+```
+   This file is a derivative work of Grafana's built-in alert notification
+   email template. The original template was extracted from grafana/grafana
+   image tag 13.0.1 and processed through the juice CSS inliner so that
+   stylesheet rules are written as element style attributes instead of
+   <style> blocks. Mail clients that strip <style> blocks (notably Zoho
+   Mail) then render the template the same way as clients that honor them.
+   No template logic, copy, or layout was changed.
+
+   Grafana is distributed under the GNU Affero General Public License
+   version 3.0. The full license text is available at
+   https://www.gnu.org/licenses/agpl-3.0.html and a copy ships with the
+   Grafana container image at /usr/share/grafana/LICENSE.
+
+   Copyright (c) Grafana Labs
+```

@@ -168,6 +168,7 @@ services:
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./infra/grafana/email-templates/ng_alert_notification.html:/usr/share/grafana/public/emails/ng_alert_notification.html:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
