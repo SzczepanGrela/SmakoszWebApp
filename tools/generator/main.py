@@ -17,6 +17,7 @@ from generators import (
     ReviewsPhase,
     SocialGraphPhase,
     SystemConfigPhase,
+    SystemLogsPhase,
     TagsPhase,
     TicketsPhase,
     UsersPhase,
@@ -55,6 +56,8 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
     registry.register(SocialGraphPhase(blueprints_dir=blueprints_dir))
 
     registry.register(TicketsPhase())
+
+    registry.register(SystemLogsPhase(blueprints_dir=blueprints_dir))
 
     return registry
 
@@ -198,6 +201,7 @@ Examples:
                         5: ["phase5_reviews"],
                         6: ["phase6_social"],
                         7: ["phase7_tickets"],
+                        8: ["phase8_logs"],
                     }
 
                     for phase_num in range(start_num, end_num + 1):
