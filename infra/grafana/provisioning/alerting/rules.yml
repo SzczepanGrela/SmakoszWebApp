@@ -221,7 +221,7 @@ groups:
               type: threshold
         noDataState: OK
         execErrState: Alerting
-        for: 15m
+        for: 10m
         annotations:
           __dashboardUid__: xfpJB9FGz
           __panelId__: "156"
