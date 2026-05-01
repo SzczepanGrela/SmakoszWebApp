@@ -7,6 +7,8 @@ import time
 import uuid
 from datetime import datetime, timedelta
 
+from psycopg2.extras import Json
+
 from orchestration.context import ExecutionContext
 from orchestration.phase import BasePhase, PhaseMetadata, PhaseResult, PhaseStatus
 from utils.date_generator import ensure_naive
@@ -72,7 +74,7 @@ def _generate_ai_logs(db: DatabaseConnection) -> int:
             "model_version": model_version,
             "entity_type": entity_type,
             "entity_id": entity_id,
-            "scores": scores,
+            "scores": Json(scores) if scores is not None else None,
             "verdict": verdict,
             "processing_time_ms": random.randint(50, 500),
             "fallback": False,
@@ -126,7 +128,7 @@ def _generate_moderation_logs(db: DatabaseConnection) -> int:
             "reason_codes": [],
             "admin_note": None,
             "processed_by": None,
-            "ai_scores": scores,
+            "ai_scores": Json(scores) if scores is not None else None,
             "created_at": created_at,
         })
 
@@ -166,7 +168,7 @@ def _generate_email_logs(db: DatabaseConnection) -> int:
     logger.info("Generating email logs...")
 
     users = db.fetch_all(
-        "SELECT user_id, email, is_2fa_enabled, created_at "
+        "SELECT user_id, email, is2fa_enabled, created_at "
         "FROM users WHERE is_deleted = false"
     )
     if not users:
@@ -236,7 +238,7 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
     logger.info("Generating security logs...")
 
     users = db.fetch_all(
-        "SELECT user_id, email, is_2fa_enabled FROM users WHERE is_deleted = false"
+        "SELECT user_id, email, is2fa_enabled FROM users WHERE is_deleted = false"
     )
     if not users:
         logger.warning("No users found, skipping security_logs")
