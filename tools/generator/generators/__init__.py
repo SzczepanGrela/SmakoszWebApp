@@ -14,6 +14,7 @@ from .phase4_users import UsersPhase
 from .phase5_reviews import ReviewsPhase
 from .phase6_social import SocialGraphPhase
 from .phase7_tickets import TicketsPhase
+from .phase8_logs import SystemLogsPhase
 
 __all__ = [
     "SystemConfigPhase",
@@ -30,4 +31,5 @@ __all__ = [
     "ReviewsPhase",
     "SocialGraphPhase",
     "TicketsPhase",
+    "SystemLogsPhase",
 ]

@@ -32,6 +32,7 @@ class DatasetStatistics:
             "generator_validation": self._generator_validation(),
             "photo_pipeline": self._photo_pipeline_stats(),
             "temporal": self._temporal_stats(),
+            "log_distributions": self._log_distributions(),
             "integrity": self._integrity_checks(),
         }
 
@@ -70,9 +71,15 @@ class DatasetStatistics:
             "restaurant_edit_requests",
             "ingredient_suggestions",
             "user_sessions",
+            "audit_logs",
             "system.moderation_results",
             "system.banned_identifiers",
             "system.tickets",
+            "system.ai_logs",
+            "system.moderation_logs",
+            "system.email_logs",
+            "system.security_logs",
+            "system.nodes",
         ]
         counts = {}
         for table in tables:
@@ -630,6 +637,84 @@ class DatasetStatistics:
             },
         }
 
+    def _log_distributions(self) -> dict:
+        result: dict = {}
+
+        try:
+            ai_rows = self.db.fetch_all(
+                "SELECT model_type, verdict, COUNT(*) FROM system.ai_logs "
+                "GROUP BY model_type, verdict ORDER BY COUNT(*) DESC"
+            )
+            result["ai_logs"] = {
+                f"{mt}/{v}": cnt for mt, v, cnt in ai_rows
+            }
+        except Exception:
+            self.db.rollback()
+            result["ai_logs"] = {}
+
+        try:
+            mod_rows = self.db.fetch_all(
+                "SELECT actor, verdict, COUNT(*) FROM system.moderation_logs "
+                "GROUP BY actor, verdict ORDER BY COUNT(*) DESC"
+            )
+            result["moderation_logs"] = {
+                f"{actor}/{v}": cnt for actor, v, cnt in mod_rows
+            }
+        except Exception:
+            self.db.rollback()
+            result["moderation_logs"] = {}
+
+        try:
+            email_rows = self.db.fetch_all(
+                "SELECT type, COUNT(*) FROM system.email_logs "
+                "GROUP BY type ORDER BY COUNT(*) DESC"
+            )
+            result["email_logs_by_type"] = dict(email_rows)
+        except Exception:
+            self.db.rollback()
+            result["email_logs_by_type"] = {}
+
+        try:
+            sec_rows = self.db.fetch_all(
+                "SELECT event_type, COUNT(*) FROM system.security_logs "
+                "GROUP BY event_type ORDER BY COUNT(*) DESC"
+            )
+            result["security_logs_by_event"] = dict(sec_rows)
+        except Exception:
+            self.db.rollback()
+            result["security_logs_by_event"] = {}
+
+        try:
+            sess_row = self.db.fetch_one(
+                "SELECT COUNT(*), "
+                "COUNT(*) FILTER (WHERE NOT is_revoked AND expires_at > now()), "
+                "COUNT(*) FILTER (WHERE is_remember_me) "
+                "FROM user_sessions"
+            )
+            if sess_row:
+                result["user_sessions"] = {
+                    "total": sess_row[0],
+                    "active": sess_row[1],
+                    "remember_me": sess_row[2],
+                }
+        except Exception:
+            self.db.rollback()
+            result["user_sessions"] = {}
+
+        try:
+            node_rows = self.db.fetch_all(
+                "SELECT node_id, node_type, status FROM system.nodes ORDER BY node_id"
+            )
+            result["system_nodes"] = [
+                {"node_id": nid, "node_type": nt, "status": st}
+                for nid, nt, st in node_rows
+            ]
+        except Exception:
+            self.db.rollback()
+            result["system_nodes"] = []
+
+        return result
+
     def _temporal_stats(self) -> dict:
         rows = self.db.fetch_all("""
             SELECT TO_CHAR(DATE_TRUNC('month', visit_date), 'YYYY-MM') as month,
@@ -925,6 +1010,88 @@ class DatasetStatistics:
                 "All users must have failed_login_count set (NOT NULL)",
             ),
             (
+                "AI logs count matches moderation_results",
+                """SELECT (
+                       (SELECT COUNT(*) FROM system.moderation_results WHERE entity_type IN ('review', 'photo'))
+                       - (SELECT COUNT(*) FROM system.ai_logs)
+                   )""",
+                "0",
+                "Each moderation_result must have a corresponding ai_log entry (1:1 from phase8)",
+            ),
+            (
+                "Moderation logs AI subset matches moderation_results",
+                """SELECT (
+                       (SELECT COUNT(*) FROM system.moderation_results WHERE entity_type IN ('review', 'photo'))
+                       - (SELECT COUNT(*) FROM system.moderation_logs WHERE actor = 'ai')
+                   )""",
+                "0",
+                "Every moderation_result must have actor='ai' moderation_log",
+            ),
+            (
+                "Admin moderation logs have processed_by",
+                """SELECT COUNT(*) FROM system.moderation_logs
+                   WHERE actor = 'admin' AND processed_by IS NULL""",
+                "0",
+                "Admin override logs must reference an admin user via processed_by",
+            ),
+            (
+                "AI moderation logs do not have processed_by",
+                """SELECT COUNT(*) FROM system.moderation_logs
+                   WHERE actor = 'ai' AND processed_by IS NOT NULL""",
+                "0",
+                "AI logs must have processed_by NULL (no human actor)",
+            ),
+            (
+                "AI moderation logs carry ai_scores",
+                """SELECT COUNT(*) FROM system.moderation_logs
+                   WHERE actor = 'ai' AND ai_scores IS NULL""",
+                "0",
+                "AI logs must include AI scoring JSON",
+            ),
+            (
+                "Admin moderation logs do not carry ai_scores",
+                """SELECT COUNT(*) FROM system.moderation_logs
+                   WHERE actor = 'admin' AND ai_scores IS NOT NULL""",
+                "0",
+                "Admin override logs must have ai_scores NULL",
+            ),
+            (
+                "Refresh token hashes are unique",
+                """SELECT (
+                       (SELECT COUNT(*) FROM user_sessions)
+                       - (SELECT COUNT(DISTINCT refresh_token_hash) FROM user_sessions)
+                   )""",
+                "0",
+                "All user_sessions.refresh_token_hash values must be unique",
+            ),
+            (
+                "System nodes seeded (3 baseline)",
+                "SELECT COUNT(*) FROM system.nodes",
+                f"> {2}",
+                "VPS, GPU worker, and RPi gateway must be present",
+            ),
+            (
+                "Email logs sent status only",
+                """SELECT COUNT(*) FROM system.email_logs
+                   WHERE status NOT IN ('sent', 'pending', 'failed')""",
+                "0",
+                "Email log status must be a known value",
+            ),
+            (
+                "Security logs use snake_case event types",
+                """SELECT COUNT(*) FROM system.security_logs
+                   WHERE event_type ~ '[A-Z]'""",
+                "0",
+                "event_type values must be snake_case to match SnakeCaseEnumConverter",
+            ),
+            (
+                "Audit log operations are uppercase",
+                """SELECT COUNT(*) FROM audit_logs
+                   WHERE operation NOT IN ('INSERT', 'UPDATE', 'DELETE')""",
+                "0",
+                "operation must be UPPERCASE to match UpperCaseEnumConverter",
+            ),
+            (
                 "Reviews with wrong helpful_count",
                 """SELECT COUNT(*) FROM (
                        SELECT r.review_id, r.helpful_count, COUNT(rl.user_id) real_cnt
@@ -1217,6 +1384,47 @@ class DatasetStatistics:
                     f"with_text={tl.get('pct_with_text')}% "
                     f"({tl.get('with_text', 0):,}/{tl.get('with_text', 0) + tl.get('without_text', 0):,})"
                 )
+
+        log_dist = self.stats.get("log_distributions", {})
+        if log_dist:
+            lines.append("")
+            lines.append("PHASE 8 LOGS AND SESSIONS")
+
+            ai_dist = log_dist.get("ai_logs", {})
+            if ai_dist:
+                parts = ", ".join(f"{k}: {v:,}" for k, v in ai_dist.items())
+                lines.append(f"  AI logs (model_type/verdict): {parts}")
+
+            mod_dist = log_dist.get("moderation_logs", {})
+            if mod_dist:
+                parts = ", ".join(f"{k}: {v:,}" for k, v in mod_dist.items())
+                lines.append(f"  Moderation logs (actor/verdict): {parts}")
+
+            email_dist = log_dist.get("email_logs_by_type", {})
+            if email_dist:
+                parts = ", ".join(f"{k}: {v:,}" for k, v in email_dist.items())
+                lines.append(f"  Email logs by type: {parts}")
+
+            sec_dist = log_dist.get("security_logs_by_event", {})
+            if sec_dist:
+                parts = ", ".join(f"{k}: {v:,}" for k, v in sec_dist.items())
+                lines.append(f"  Security logs by event: {parts}")
+
+            sess = log_dist.get("user_sessions", {})
+            if sess:
+                lines.append(
+                    f"  User sessions: total={sess.get('total', 0):,}, "
+                    f"active={sess.get('active', 0):,}, "
+                    f"remember_me={sess.get('remember_me', 0):,}"
+                )
+
+            nodes = log_dist.get("system_nodes", [])
+            if nodes:
+                parts = ", ".join(
+                    f"{n['node_id']} ({n['node_type']}/{n['status']})"
+                    for n in nodes
+                )
+                lines.append(f"  System nodes: {parts}")
 
         temporal = self.stats.get("temporal", {})
         rpm = temporal.get("reviews_per_month", {})

@@ -17,6 +17,7 @@ from generators import (
     ReviewsPhase,
     SocialGraphPhase,
     SystemConfigPhase,
+    SystemLogsPhase,
     TagsPhase,
     TicketsPhase,
     UsersPhase,
@@ -56,6 +57,8 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
 
     registry.register(TicketsPhase())
 
+    registry.register(SystemLogsPhase(blueprints_dir=blueprints_dir))
+
     return registry
 
 def print_statistics(db: DatabaseConnection):
@@ -82,6 +85,13 @@ def print_statistics(db: DatabaseConnection):
         "notifications",
         "restaurant_edit_requests",
         "system.tickets",
+        "system.ai_logs",
+        "system.moderation_logs",
+        "system.email_logs",
+        "system.security_logs",
+        "system.nodes",
+        "audit_logs",
+        "user_sessions",
     ]
 
     for table in tables:
@@ -198,6 +208,7 @@ Examples:
                         5: ["phase5_reviews"],
                         6: ["phase6_social"],
                         7: ["phase7_tickets"],
+                        8: ["phase8_logs"],
                     }
 
                     for phase_num in range(start_num, end_num + 1):
