@@ -42,6 +42,8 @@ groups:
         execErrState: Alerting
         for: 10m
         annotations:
+          __dashboardUid__: xfpJB9FGz
+          __panelId__: "174"
           summary: "Disk usage above 85% on {{ $labels.host }}"
           description: "Root filesystem usage exceeded 85% threshold"
         labels:
@@ -86,6 +88,8 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
+          __dashboardUid__: xfpJB9FGz
+          __panelId__: "156"
           summary: "RAM usage above 90% on {{ $labels.host }}"
           description: "Memory usage exceeded 90% threshold"
         labels:
@@ -129,6 +133,8 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
+          __dashboardUid__: xfpJB9FGz
+          __panelId__: "7"
           summary: "CPU usage above 95% on {{ $labels.host }}"
           description: "CPU usage exceeded 95% threshold"
         labels:
@@ -172,6 +178,8 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
+          __dashboardUid__: xfpJB9FGz
+          __panelId__: "13"
           summary: "Load average above 4 on {{ $labels.host }}"
           description: "5-minute load average exceeded 4.0 threshold"
         labels:
@@ -215,6 +223,8 @@ groups:
         execErrState: Alerting
         for: 15m
         annotations:
+          __dashboardUid__: xfpJB9FGz
+          __panelId__: "156"
           summary: "Swap usage above 50% on {{ $labels.host }}"
           description: "Swap memory usage exceeded 50% threshold"
         labels:
