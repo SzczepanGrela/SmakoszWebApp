@@ -42,13 +42,23 @@ EMAIL_SUBJECTS = {
     EMAIL_TYPE_PASSWORD_RESET: "Reset hasla",
 }
 
+RETENTION_DAYS = {
+    "ai_logs": 30,
+    "moderation_logs": 180,
+    "email_logs": 60,
+    "security_logs": 90,
+    "audit_logs": 365,
+}
+SESSION_LOOKBACK_DAYS = 60
+
 
 def _generate_ai_logs(db: DatabaseConnection) -> int:
     logger.info("Generating AI moderation logs...")
 
     rows = db.fetch_all(
         "SELECT entity_type, entity_id, scores, ai_verdict, processed_at "
-        "FROM system.moderation_results"
+        "FROM system.moderation_results "
+        f"WHERE processed_at >= NOW() - INTERVAL '{RETENTION_DAYS['ai_logs']} days'"
     )
 
     if not rows:
@@ -99,7 +109,8 @@ def _generate_moderation_logs(db: DatabaseConnection) -> int:
     rows = db.fetch_all(
         "SELECT entity_type, entity_id, ai_verdict, scores, processed_at "
         "FROM system.moderation_results "
-        "WHERE entity_type IN ('review', 'photo')"
+        "WHERE entity_type IN ('review', 'photo') "
+        f"AND processed_at >= NOW() - INTERVAL '{RETENTION_DAYS['moderation_logs']} days'"
     )
 
     if not rows:
@@ -168,7 +179,7 @@ def _generate_email_logs(db: DatabaseConnection) -> int:
     logger.info("Generating email logs...")
 
     users = db.fetch_all(
-        "SELECT user_id, email, is2fa_enabled, created_at "
+        "SELECT user_id, email, is2fa_enabled, last_login_at, created_at "
         "FROM users WHERE is_deleted = false"
     )
     if not users:
@@ -176,26 +187,44 @@ def _generate_email_logs(db: DatabaseConnection) -> int:
         return 0
 
     now_naive = datetime.utcnow().replace(microsecond=0)
+    window_days = RETENTION_DAYS["email_logs"]
+    window_cutoff = now_naive - timedelta(days=window_days)
     buffer = []
 
-    for _user_id, email, is_2fa_enabled, user_created_at in users:
+    for _user_id, email, is_2fa_enabled, user_last_login_at, user_created_at in users:
         recipient = email.lower()
-        verification_at = ensure_naive(user_created_at) + timedelta(minutes=random.randint(1, 5))
-        buffer.append({
-            "type": EMAIL_TYPE_VERIFICATION,
-            "recipient": recipient,
-            "subject": EMAIL_SUBJECTS[EMAIL_TYPE_VERIFICATION],
-            "status": "sent",
-            "provider": None,
-            "provider_message_id": None,
-            "error_message": None,
-            "created_at": verification_at,
-            "sent_at": verification_at + timedelta(seconds=10),
-        })
+        created_naive = ensure_naive(user_created_at)
+        last_login_naive = ensure_naive(user_last_login_at) if user_last_login_at else None
 
-        if is_2fa_enabled:
-            for _ in range(random.randint(2, 4)):
-                ts = now_naive - timedelta(days=random.randint(0, 30), minutes=random.randint(0, 1440))
+        if created_naive and created_naive >= window_cutoff:
+            verification_at = created_naive + timedelta(minutes=random.randint(1, 5))
+            buffer.append({
+                "type": EMAIL_TYPE_VERIFICATION,
+                "recipient": recipient,
+                "subject": EMAIL_SUBJECTS[EMAIL_TYPE_VERIFICATION],
+                "status": "sent",
+                "provider": None,
+                "provider_message_id": None,
+                "error_message": None,
+                "created_at": verification_at,
+                "sent_at": verification_at + timedelta(seconds=10),
+            })
+
+        if is_2fa_enabled and last_login_naive and last_login_naive >= window_cutoff:
+            ts = last_login_naive - timedelta(minutes=random.randint(0, 5))
+            buffer.append({
+                "type": EMAIL_TYPE_TWO_FACTOR,
+                "recipient": recipient,
+                "subject": EMAIL_SUBJECTS[EMAIL_TYPE_TWO_FACTOR],
+                "status": "sent",
+                "provider": None,
+                "provider_message_id": None,
+                "error_message": None,
+                "created_at": ts,
+                "sent_at": ts + timedelta(seconds=10),
+            })
+            for _ in range(random.randint(1, 3)):
+                ts = now_naive - timedelta(days=random.randint(1, window_days), minutes=random.randint(0, 1440))
                 buffer.append({
                     "type": EMAIL_TYPE_TWO_FACTOR,
                     "recipient": recipient,
@@ -209,7 +238,7 @@ def _generate_email_logs(db: DatabaseConnection) -> int:
                 })
 
         if random.random() < 0.05:
-            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
             buffer.append({
                 "type": EMAIL_TYPE_PASSWORD_RESET,
                 "recipient": recipient,
@@ -238,7 +267,8 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
     logger.info("Generating security logs...")
 
     users = db.fetch_all(
-        "SELECT user_id, email, is2fa_enabled FROM users WHERE is_deleted = false"
+        "SELECT user_id, email, is2fa_enabled, last_login_at, created_at "
+        "FROM users WHERE is_deleted = false"
     )
     if not users:
         logger.warning("No users found, skipping security_logs")
@@ -249,14 +279,23 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
     )]
 
     now_naive = datetime.utcnow().replace(microsecond=0)
+    window_days = RETENTION_DAYS["security_logs"]
+    window_cutoff = now_naive - timedelta(days=window_days)
     buffer = []
 
-    for user_id, email, is_2fa_enabled in users:
+    for user_id, email, is_2fa_enabled, user_last_login_at, user_created_at in users:
         recipient = email.lower()
+        last_login_naive = ensure_naive(user_last_login_at) if user_last_login_at else None
+        created_naive = ensure_naive(user_created_at) if user_created_at else None
 
-        if random.random() < 0.10:
+        if last_login_naive and last_login_naive >= window_cutoff and random.random() < 0.10:
             for _ in range(random.randint(1, 2)):
-                ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+                ts = last_login_naive - timedelta(
+                    days=random.randint(0, 7),
+                    minutes=random.randint(0, 1440),
+                )
+                if ts < window_cutoff:
+                    ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
                 reason = random.choice(["wrong_password", "account_locked"])
                 buffer.append({
                     "event_type": "failed_login",
@@ -270,8 +309,13 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
                     "created_at": ts,
                 })
 
-        if is_2fa_enabled:
-            ts = now_naive - timedelta(days=random.randint(0, 60), minutes=random.randint(0, 1440))
+        if is_2fa_enabled and created_naive and created_naive >= window_cutoff:
+            ts = created_naive + timedelta(
+                days=random.randint(0, 14),
+                minutes=random.randint(0, 1440),
+            )
+            if ts > now_naive:
+                ts = now_naive - timedelta(minutes=random.randint(0, 1440))
             buffer.append({
                 "event_type": "two_factor_enabled",
                 "ip_address": fake.ipv4_public(),
@@ -285,7 +329,7 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
             })
 
         if random.random() < 0.10:
-            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
             buffer.append({
                 "event_type": "password_changed",
                 "ip_address": fake.ipv4_public(),
@@ -303,7 +347,7 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
             buffer.clear()
 
     for _ in range(random.randint(5, 10)):
-        ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+        ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
         buffer.append({
             "event_type": "banned_registration",
             "ip_address": fake.ipv4_public(),
@@ -318,7 +362,7 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
 
     if banned_ips:
         for _ in range(random.randint(3, 5)):
-            ts = now_naive - timedelta(days=random.randint(0, 90), minutes=random.randint(0, 1440))
+            ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
             buffer.append({
                 "event_type": "blocked_ip",
                 "ip_address": random.choice(banned_ips),
@@ -349,13 +393,15 @@ def _generate_user_sessions(db: DatabaseConnection) -> int:
 
     users = db.fetch_all(
         "SELECT user_id, last_login_at, created_at FROM users "
-        "WHERE is_deleted = false AND (last_login_at IS NOT NULL OR created_at IS NOT NULL)"
+        "WHERE is_deleted = false "
+        f"AND last_login_at >= NOW() - INTERVAL '{SESSION_LOOKBACK_DAYS} days'"
     )
     if not users:
-        logger.warning("No users with login activity, skipping user_sessions")
+        logger.warning("No users with recent login activity, skipping user_sessions")
         return 0
 
     now_naive = datetime.utcnow().replace(microsecond=0)
+    history_floor = now_naive - timedelta(days=SESSION_LOOKBACK_DAYS)
     buffer = []
 
     for user_id, last_login_at, created_at in users:
@@ -381,6 +427,8 @@ def _generate_user_sessions(db: DatabaseConnection) -> int:
         history_count = random.choices([0, 1, 2], weights=[0.4, 0.4, 0.2])[0]
         for _ in range(history_count):
             old_at = anchor - timedelta(days=random.randint(8, 120))
+            if old_at < history_floor:
+                continue
             old_remember = random.random() < 0.20
             old_ttl = 30 if old_remember else 7
             old_expires = old_at + timedelta(days=old_ttl)
