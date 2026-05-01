@@ -174,9 +174,10 @@ class CounterSync:
                 COALESCE((SELECT AVG(avg_rating) FROM dishes WHERE avg_rating IS NOT NULL), 0),
                 COALESCE((SELECT AVG(avg_food_score) FROM restaurants
                     WHERE avg_food_score IS NOT NULL), 0),
-                (SELECT cuisine_type FROM restaurants
-                    WHERE status = 'active' AND cuisine_type IS NOT NULL
-                    GROUP BY cuisine_type ORDER BY COUNT(*) DESC LIMIT 1),
+                (SELECT ct.name FROM restaurants r
+                    JOIN cuisine_types ct ON r.cuisine_type_id = ct.cuisine_type_id
+                    WHERE r.status = 'active'
+                    GROUP BY ct.name ORDER BY COUNT(*) DESC LIMIT 1),
                 (SELECT c.city_name FROM reviews r
                     JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
                     JOIN cities c ON rest.city_id = c.city_id
