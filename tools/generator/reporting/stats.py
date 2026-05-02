@@ -491,7 +491,7 @@ class DatasetStatistics:
                 STDDEV(cuisine_count)::float,
                 PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY cuisine_count)::float
             FROM (
-                SELECT r.user_id, COUNT(DISTINCT rest.cuisine_type) as cuisine_count
+                SELECT r.user_id, COUNT(DISTINCT rest.cuisine_type_id) as cuisine_count
                 FROM reviews r
                 JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
                 GROUP BY r.user_id
