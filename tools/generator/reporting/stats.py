@@ -1010,22 +1010,32 @@ class DatasetStatistics:
                 "All users must have failed_login_count set (NOT NULL)",
             ),
             (
-                "AI logs count matches moderation_results",
+                "AI logs cover moderation_results in 30d retention window",
                 """SELECT (
-                       (SELECT COUNT(*) FROM system.moderation_results WHERE entity_type IN ('review', 'photo'))
+                       (SELECT COUNT(*) FROM system.moderation_results
+                        WHERE entity_type IN ('review', 'photo')
+                          AND processed_at >= COALESCE(
+                              (SELECT MIN(created_at) FROM system.ai_logs),
+                              NOW() - INTERVAL '30 days'
+                          ))
                        - (SELECT COUNT(*) FROM system.ai_logs)
                    )""",
                 "0",
-                "Each moderation_result must have a corresponding ai_log entry (1:1 from phase8)",
+                "ai_logs must mirror moderation_results within LogRetentionService 30d window (1:1 in window)",
             ),
             (
-                "Moderation logs AI subset matches moderation_results",
+                "AI moderation_logs cover moderation_results in 180d retention window",
                 """SELECT (
-                       (SELECT COUNT(*) FROM system.moderation_results WHERE entity_type IN ('review', 'photo'))
+                       (SELECT COUNT(*) FROM system.moderation_results
+                        WHERE entity_type IN ('review', 'photo')
+                          AND processed_at >= COALESCE(
+                              (SELECT MIN(created_at) FROM system.moderation_logs WHERE actor = 'ai'),
+                              NOW() - INTERVAL '180 days'
+                          ))
                        - (SELECT COUNT(*) FROM system.moderation_logs WHERE actor = 'ai')
                    )""",
                 "0",
-                "Every moderation_result must have actor='ai' moderation_log",
+                "moderation_logs (actor=ai) must mirror moderation_results within LogRetentionService 180d window",
             ),
             (
                 "Admin moderation logs have processed_by",
