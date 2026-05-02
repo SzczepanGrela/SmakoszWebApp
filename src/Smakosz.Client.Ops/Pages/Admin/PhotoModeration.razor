@@ -18,12 +18,31 @@ else if (_photos == null || !_photos.Data.Any())
 }
 else
 {
+    <div class="d-flex align-items-center mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="select-all-page"
+                   checked="@AllOnPageSelected"
+                   @onchange="ToggleSelectAllOnPage" />
+            <label class="form-check-label fw-medium" for="select-all-page">
+                Zaznacz wszystkie na stronie (@_photos.Data.Count)
+            </label>
+        </div>
+    </div>
+
     <div class="row">
         @foreach (var photo in _photos.Data)
         {
             <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card shadow-sm h-100">
-                    <img src="@photo.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover;" alt="Zdjęcie do moderacji" />
+                <div class="card shadow-sm h-100 @(IsSelected(photo.Id) ? "border-primary" : "")">
+                    <div class="position-relative">
+                        <img src="@photo.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover;" alt="Zdjęcie do moderacji" />
+                        <div class="form-check position-absolute top-0 start-0 m-2 p-1 bg-white rounded">
+                            <input class="form-check-input" type="checkbox"
+                                   id="sel-@photo.Id"
+                                   checked="@IsSelected(photo.Id)"
+                                   @onchange="e => ToggleSelected(photo.Id, (bool)(e.Value ?? false))" />
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div class="small mb-2">
                             <div><i class="fa-solid fa-user me-1"></i>@photo.UploadedBy</div>
@@ -46,9 +65,21 @@ else
     }
 }
 
+<BulkPhotoActionBar SelectedCount="_selectedIds.Count"
+                    ConfirmThreshold="BulkConfirmThreshold"
+                    OnApprove="HandleBulkApprove"
+                    OnReject="HandleBulkReject"
+                    OnClear="ClearSelection" />
+
 @code {
+    private const int BulkConfirmThreshold = 5;
+
     private PagedResult<AdminPhotoDto>? _photos;
     private bool _loading = true;
+    private readonly HashSet<Guid> _selectedIds = new();
+
+    private bool AllOnPageSelected =>
+        _photos?.Data is { Count: > 0 } && _photos.Data.All(p => _selectedIds.Contains(p.Id));
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
@@ -59,11 +90,67 @@ else
         _loading = false;
     }
 
+    private bool IsSelected(Guid id) => _selectedIds.Contains(id);
+
+    private void ToggleSelected(Guid id, bool isChecked)
+    {
+        if (isChecked) _selectedIds.Add(id);
+        else _selectedIds.Remove(id);
+    }
+
+    private void ToggleSelectAllOnPage(ChangeEventArgs e)
+    {
+        var isChecked = (bool)(e.Value ?? false);
+        if (_photos?.Data is null) return;
+        if (isChecked)
+        {
+            foreach (var p in _photos.Data) _selectedIds.Add(p.Id);
+        }
+        else
+        {
+            foreach (var p in _photos.Data) _selectedIds.Remove(p.Id);
+        }
+    }
+
+    private void ClearSelection() => _selectedIds.Clear();
+
     private async Task ModeratePhoto(Guid id, ModerationActionBar.ModerationActionArgs args)
     {
         var approve = args.Action == "approve";
         var success = await AdminService.ModeratePhotoAsync(id, approve, args.ReasonCodes, args.ModeratorNote);
-        if (success) { Toast.ShowSuccess(approve ? "Zdjęcie zatwierdzone." : "Zdjęcie odrzucone."); await LoadPage(1); }
+        if (success) { Toast.ShowSuccess(approve ? "Zdjęcie zatwierdzone." : "Zdjęcie odrzucone."); _selectedIds.Remove(id); await LoadPage(1); }
         else Toast.ShowError("Operacja nieudana.");
+    }
+
+    private Task HandleBulkApprove() => RunBulk(approve: true, reasonCodes: null, note: null);
+
+    private Task HandleBulkReject(BulkPhotoActionBar.BulkRejectArgs args) =>
+        RunBulk(approve: false, reasonCodes: args.ReasonCodes, note: args.ModeratorNote);
+
+    private async Task RunBulk(bool approve, IReadOnlyList<string>? reasonCodes, string? note)
+    {
+        var ids = _selectedIds.ToList();
+        if (ids.Count == 0) return;
+
+        var result = await AdminService.BulkModeratePhotosAsync(ids, approve, reasonCodes, note);
+        if (result is null)
+        {
+            Toast.ShowError("Operacja zbiorcza nieudana.");
+            return;
+        }
+
+        var verb = approve ? "Zatwierdzono" : "Odrzucono";
+        if (result.Failed.Count == 0)
+        {
+            Toast.ShowSuccess($"{verb} {result.Success.Count}/{ids.Count} zdjęć.");
+        }
+        else
+        {
+            var firstError = result.Failed[0];
+            Toast.ShowWarning($"{verb} {result.Success.Count}/{ids.Count}. {result.Failed.Count} błędów (np. {firstError.ErrorCode}).");
+        }
+
+        _selectedIds.Clear();
+        await LoadPage(_photos?.Pagination.Page ?? 1);
     }
 }

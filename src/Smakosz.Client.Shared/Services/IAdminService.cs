@@ -11,6 +11,7 @@ public interface IAdminService
     Task<bool> RespondToContactAsync(int id, string response);
     Task<PagedResult<AdminPhotoDto>?> GetPendingPhotosAsync(int page = 1);
     Task<bool> ModeratePhotoAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null);
+    Task<BulkModeratePhotosResultDto?> BulkModeratePhotosAsync(IReadOnlyList<Guid> publicIds, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null);
     Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1);
     Task<bool> ModerateReviewAsync(Guid id, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null);
     Task<PagedResult<AdminReportDto>?> GetReportsAsync(int page = 1, string? status = null);

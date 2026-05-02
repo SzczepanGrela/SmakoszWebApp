@@ -77,82 +77,8 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
             appliedCodes = resolution.Value.AppliedCodes;
         }
 
-        asset.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
-
-        if (request.Approve && asset.UploadedBy.HasValue)
-        {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == asset.UploadedBy.Value, cancellationToken);
-            if (user is not null)
-                user.PhotoCount++;
-        }
-
-        if (!request.Approve)
-            asset.RejectionReason = resolvedText;
-
-        var existingResult = await _db.ModerationResults
-            .FirstOrDefaultAsync(r => r.EntityType == ModerationEntityType.Photo && r.EntityId == (int)asset.AssetId, cancellationToken);
-        var now = DateTime.UtcNow;
-        if (existingResult is null)
-        {
-            _db.ModerationResults.Add(new ModerationResult
-            {
-                EntityType = ModerationEntityType.Photo,
-                EntityId = (int)asset.AssetId,
-                Status = asset.ModerationStatus,
-                RejectionReason = resolvedText,
-                ProcessedAt = now,
-                CreatedAt = now
-            });
-        }
-        else
-        {
-            existingResult.Status = asset.ModerationStatus;
-            existingResult.RejectionReason = resolvedText;
-            existingResult.ProcessedAt = now;
-            existingResult.UpdatedAt = now;
-        }
-
-        _db.ModerationLogs.Add(new ModerationLog
-        {
-            EntityType = ModerationEntityType.Photo,
-            EntityId = (int)asset.AssetId,
-            Actor = ModerationActor.Admin,
-            Verdict = request.Approve ? ModerationVerdict.Approved : ModerationVerdict.Rejected,
-            ReasonCodes = appliedCodes.ToList(),
-            ProcessedBy = _currentUser.UserId,
-            CreatedAt = DateTime.UtcNow
-        });
-
-        if (!request.Approve && asset.UploadedBy.HasValue)
-        {
-            var pushSettings = await _db.UserNotificationSettings
-                .FirstOrDefaultAsync(s => s.UserId == asset.UploadedBy.Value, cancellationToken);
-            var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
-
-            _db.Notifications.Add(new Notification
-            {
-                UserId = asset.UploadedBy.Value,
-                ActorId = _currentUser.UserId,
-                Type = NotificationType.System,
-                Severity = NotificationSeverity.Warning,
-                Title = "Zdjęcie odrzucone",
-                Message = $"Twoje zdjęcie zostało odrzucone. Powód: {resolvedText}",
-                SendPush = sendPush,
-                PushStatus = pushStatus,
-                CreatedAt = DateTime.UtcNow
-            });
-        }
-
-        var relatedTicket = await _db.SystemTickets
-            .FirstOrDefaultAsync(t => t.TicketType == TicketType.Photo
-                && t.ReferenceId == asset.AssetId
-                && t.Status != TicketStatus.Resolved
-                && t.Status != TicketStatus.Closed, cancellationToken);
-        if (relatedTicket != null)
-        {
-            relatedTicket.Status = TicketStatus.Resolved;
-            relatedTicket.AssignedAdminId = _currentUser.UserId;
-        }
+        await ModeratePhotoLogic.ApplyAsync(
+            asset, request.Approve, resolvedText, appliedCodes, _db, _currentUser, cancellationToken);
 
         await _db.SaveChangesAsync(cancellationToken);
 

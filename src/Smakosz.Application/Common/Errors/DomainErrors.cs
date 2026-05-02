@@ -209,6 +209,15 @@ public static class DomainErrors
 
         public static readonly Error InvalidRoleForPrivilegedAccount =
             Error.Validation("ADMIN_INVALID_ROLE", "Można utworzyć tylko konto Admin lub Moderator");
+
+        public static readonly Error BulkLimitExceeded =
+            Error.Validation("ADMIN_BULK_LIMIT_EXCEEDED", "Liczba elementów przekracza dozwolony limit operacji zbiorczej");
+
+        public static readonly Error BulkEmpty =
+            Error.Validation("ADMIN_BULK_EMPTY", "Lista elementów do moderacji nie może być pusta");
+
+        public static readonly Error BulkReasonRequired =
+            Error.Validation("ADMIN_BULK_REASON_REQUIRED", "Odrzucenie wymaga wybrania co najmniej jednego powodu lub wpisania uwagi moderatora");
     }
 
     public static class Social

@@ -52,6 +52,19 @@ public class AdminPhotoDto
     public string UploadedBy => UploadedByUsername ?? "Nieznany";
 }
 
+public class BulkModeratePhotosResultDto
+{
+    public List<Guid> Success { get; set; } = new();
+    public List<BulkModerateFailureDto> Failed { get; set; } = new();
+}
+
+public class BulkModerateFailureDto
+{
+    public Guid PublicId { get; set; }
+    public string ErrorCode { get; set; } = default!;
+    public string Message { get; set; } = default!;
+}
+
 public class AdminReviewDto
 {
     public Guid PublicId { get; set; }
