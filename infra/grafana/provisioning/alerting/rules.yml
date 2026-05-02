@@ -230,3 +230,143 @@ groups:
         labels:
           severity: warning
           category: infra
+
+  - orgId: 1
+    name: smakosz-security
+    folder: Smakosz
+    interval: 1m
+    rules:
+      - uid: auth_login_failures_burst
+        title: AuthLoginFailuresBurst
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: 'rate(app_logins_total{outcome="wrong_password"}[1m]) * 60'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [10]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          __dashboardUid__: smakosz-security
+          summary: "Brute force suspected: more than 10 failed logins per minute"
+          description: "Failed login rate exceeded 10/min for 5 minutes. Investigate top source IPs in /admin/security-logs."
+        labels:
+          severity: warning
+          category: security
+        isPaused: false
+
+      - uid: auth_lockout_spike
+        title: AuthLockoutSpike
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 900
+              to: 0
+            model:
+              expr: 'sum(increase(app_logins_total{outcome="account_locked"}[15m]))'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [5]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          __dashboardUid__: smakosz-security
+          summary: "Lockout spike: more than 5 accounts locked in 15 minutes"
+          description: "Coordinated attack suspected. Multiple accounts hit lockout threshold in a short window."
+        labels:
+          severity: critical
+          category: security
+        isPaused: false
+
+      - uid: auth_captcha_abuse
+        title: AuthCaptchaAbuse
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: 'sum(increase(app_logins_total{outcome="captcha_failed"}[10m])) + sum(increase(app_registrations_total{outcome="captcha_failed"}[10m]))'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [20]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          __dashboardUid__: smakosz-security
+          summary: "CAPTCHA abuse: more than 20 captcha failures in 10 minutes"
+          description: "Automated bot suspected. CAPTCHA failure rate combined across login and register exceeded threshold."
+        labels:
+          severity: warning
+          category: security
+        isPaused: false
