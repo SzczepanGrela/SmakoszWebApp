@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using Smakosz.Application.Features.Auth.Commands.AcceptInvite;
 using Smakosz.Application.Features.Auth.Commands.ForgotPassword;
 using Smakosz.Application.Features.Auth.Commands.Login;
 using Smakosz.Application.Features.Auth.Commands.Logout;
@@ -89,6 +90,13 @@ public class AuthController : ApiController
 
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("accept-invite")]
+    public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteCommand command)
     {
         var result = await _mediator.Send(command);
         return ToNoContentResult(result);

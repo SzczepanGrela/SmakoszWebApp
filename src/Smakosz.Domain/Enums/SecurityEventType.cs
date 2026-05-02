@@ -12,5 +12,7 @@ public enum SecurityEventType
     TwoFactorEnabled,
     TwoFactorDisabled,
     TwoFactorDisabledByAdmin,
-    PasswordResetByAdmin
+    PasswordResetByAdmin,
+    AccountInvited,
+    RoleChanged
 }

@@ -14,4 +14,5 @@ public interface IAuthService
     Task<ApiResponse<LoginResponse>> Verify2faAsync(string email, string code);
     Task<ApiResponse<object>> Resend2faAsync(string email);
     Task<ApiResponse<object>> ResendVerificationAsync(string email);
+    Task<ApiResponse<object>> AcceptInviteAsync(string email, string code, string newPassword);
 }

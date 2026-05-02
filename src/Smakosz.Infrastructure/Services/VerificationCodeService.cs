@@ -18,7 +18,12 @@ public class VerificationCodeService : IVerificationCodeService
 
     public async Task<string> CreateCodeAsync(int userId, VerificationCodeType type, CancellationToken ct)
     {
-        var ttl = await GetTtlMinutesAsync(ct);
+        var ttlMinutes = await GetTtlMinutesAsync(ct);
+        return await CreateCodeAsync(userId, type, TimeSpan.FromMinutes(ttlMinutes), ct);
+    }
+
+    public async Task<string> CreateCodeAsync(int userId, VerificationCodeType type, TimeSpan ttl, CancellationToken ct)
+    {
         var code = Random.Shared.Next(100000, 999999).ToString();
 
         _db.VerificationCodes.Add(new VerificationCode
@@ -26,7 +31,7 @@ public class VerificationCodeService : IVerificationCodeService
             UserId = userId,
             CodeHash = _codeHasher.Hash(code),
             Type = type,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(ttl)
+            ExpiresAt = DateTime.UtcNow.Add(ttl)
         });
 
         await _db.SaveChangesAsync(ct);

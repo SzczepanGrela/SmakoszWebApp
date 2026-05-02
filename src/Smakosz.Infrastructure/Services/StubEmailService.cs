@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Infrastructure.Services;
 
@@ -55,6 +56,12 @@ public class StubEmailService : IEmailService
     public Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default)
     {
         _logger.LogInformation("[Email Stub] Account deletion confirmation sent to {Email}", email);
+        return Task.CompletedTask;
+    }
+
+    public Task SendInvitationAsync(string email, string code, string username, UserRole role, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Invitation code {Code} for role {Role} sent to {Email} (username={Username})", code, role, email, username);
         return Task.CompletedTask;
     }
 }

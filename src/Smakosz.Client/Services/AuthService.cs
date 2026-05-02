@@ -87,4 +87,7 @@ public class AuthService : IAuthService
 
     public Task<ApiResponse<object>> ResendVerificationAsync(string email)
         => _api.PostApiResponseAsync<object>("/api/auth/resend-verification", new ResendVerificationRequest { Email = email });
+
+    public Task<ApiResponse<object>> AcceptInviteAsync(string email, string code, string newPassword)
+        => _api.PostApiResponseAsync<object>("/api/auth/accept-invite", new { Email = email, Code = code, NewPassword = newPassword });
 }

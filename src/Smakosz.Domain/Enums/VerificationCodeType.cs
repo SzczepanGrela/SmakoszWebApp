@@ -6,5 +6,6 @@ public enum VerificationCodeType
     ResetPassword,
     TwoFactorAuth,
     EmailChange,
-    AccountDeletion
+    AccountDeletion,
+    Invitation
 }

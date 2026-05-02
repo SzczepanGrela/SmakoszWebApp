@@ -74,8 +74,13 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    public Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null)
-        => _api.GetAsync<PagedResult<AdminUserDto>>($"/api/admin/users?page={page}&search={search}");
+    public Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null, string? role = null)
+    {
+        var query = $"/api/admin/users?page={page}";
+        if (!string.IsNullOrWhiteSpace(search)) query += $"&search={Uri.EscapeDataString(search)}";
+        if (!string.IsNullOrWhiteSpace(role)) query += $"&role={role}";
+        return _api.GetAsync<PagedResult<AdminUserDto>>(query);
+    }
 
     public Task<AdminUserDto?> GetUserAsync(int userId)
         => _api.GetAsync<AdminUserDto>($"/api/admin/users/{userId}");
@@ -100,6 +105,18 @@ public class AdminService : IAdminService
     public async Task<bool> ResetUserPasswordAsync(Guid publicId)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/reset-password", null);
+        return response.Success;
+    }
+
+    public async Task<Guid?> CreatePrivilegedAccountAsync(string email, string username, string role)
+    {
+        var response = await _api.PostApiResponseAsync<Guid>("/api/admin/users", new { Email = email, Username = username, Role = role });
+        return response.Success ? response.Data : null;
+    }
+
+    public async Task<bool> ChangeUserRoleAsync(Guid publicId, string newRole, string? reason)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/users/{publicId}/role", new { Role = newRole, Reason = reason });
         return response.Success;
     }
 

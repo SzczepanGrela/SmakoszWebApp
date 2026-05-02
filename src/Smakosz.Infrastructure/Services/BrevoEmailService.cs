@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
+using Smakosz.Domain.Enums;
 using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Infrastructure.Services;
@@ -78,6 +79,16 @@ public class BrevoEmailService : IEmailService
             "Je&#347;li chcesz anulowa&#263; usuni&#281;cie &mdash; skontaktuj si&#281; z administracj&#261;.");
         var html = EmailTemplateBuilder.WrapInLayout(inner);
         return SendAsync(email, "Smakosz - konto oznaczone do usunięcia", html, ct);
+    }
+
+    public Task SendInvitationAsync(string email, string code, string username, UserRole role, CancellationToken ct = default)
+    {
+        var roleLabel = role == UserRole.Admin ? "administratora" : "moderatora";
+        var encodedEmail = Uri.EscapeDataString(email);
+        var link = $"{_options.ClientBaseUrl.TrimEnd('/')}/accept-invite?email={encodedEmail}&code={code}";
+        var inner = EmailTemplateBuilder.BuildInvitationSection(username, roleLabel, link, code);
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, "Smakosz - zaproszenie do zespołu", html, ct);
     }
 
     private Task SendCodeEmailAsync(string email, string subject, string heading, string label, string code, string footer, CancellationToken ct)
