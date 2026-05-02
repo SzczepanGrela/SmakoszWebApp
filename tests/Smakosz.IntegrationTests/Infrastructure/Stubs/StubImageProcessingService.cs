@@ -14,4 +14,9 @@ public class StubImageProcessingService : IImageProcessingService
     {
         return Task.FromResult("LEHV6nWB2yk8pyo0adR*.7kCMdnj");
     }
+
+    public Task<(int Width, int Height)?> IdentifyDimensionsAsync(Stream input)
+    {
+        return Task.FromResult<(int Width, int Height)?>((100, 100));
+    }
 }

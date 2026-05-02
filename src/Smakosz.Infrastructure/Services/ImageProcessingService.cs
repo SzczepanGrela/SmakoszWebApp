@@ -36,4 +36,18 @@ public class ImageProcessingService : IImageProcessingService
 
         return Blurhash.ImageSharp.Blurhasher.Encode(image, 4, 3);
     }
+
+    public async Task<(int Width, int Height)?> IdentifyDimensionsAsync(Stream input)
+    {
+        input.Position = 0;
+        try
+        {
+            var info = await Image.IdentifyAsync(input);
+            return info is null ? null : (info.Width, info.Height);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

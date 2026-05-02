@@ -82,4 +82,28 @@ public class UploadMediaHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("AUTH_INVALID_CREDENTIALS");
     }
+
+    [Fact]
+    public async Task Handle_EntityTypeUser_ReturnsUseDedicatedEndpoint()
+    {
+        using var stream = new MemoryStream(new byte[1024]);
+        var command = new UploadMediaCommand(stream, "photo.jpg", "User", 1);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("MEDIA_USE_DEDICATED_ENDPOINT");
+    }
+
+    [Fact]
+    public async Task Handle_EntityTypeHero_ReturnsUseDedicatedEndpoint()
+    {
+        using var stream = new MemoryStream(new byte[1024]);
+        var command = new UploadMediaCommand(stream, "photo.jpg", "Hero", null);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("MEDIA_USE_DEDICATED_ENDPOINT");
+    }
 }

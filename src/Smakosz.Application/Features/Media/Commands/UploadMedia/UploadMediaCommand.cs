@@ -65,8 +65,8 @@ public class UploadMediaHandler : IRequestHandler<UploadMediaCommand, ErrorOr<Up
         if (!Enum.TryParse<MediaEntityType>(request.EntityType, true, out var entityType))
             return DomainErrors.Media.InvalidFormat;
 
-        if (entityType == MediaEntityType.Hero && !_currentUser.IsAdmin)
-            return DomainErrors.Admin.Forbidden;
+        if (entityType is MediaEntityType.User or MediaEntityType.Hero)
+            return DomainErrors.Media.UseDedicatedEndpoint;
 
         if (entityType == MediaEntityType.Review && request.EntityId.HasValue)
         {

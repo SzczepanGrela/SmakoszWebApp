@@ -15,8 +15,10 @@ using Smakosz.Application.Features.Me.Commands.RemovePushSubscription;
 using Smakosz.Application.Features.Me.Commands.SavePushSubscription;
 using Smakosz.Application.Features.Me.Commands.UpdateNotificationSettings;
 using Smakosz.Application.Features.Me.Commands.DeleteAccount;
+using Smakosz.Application.Features.Me.Commands.DeleteAvatar;
 using Smakosz.Application.Features.Me.Commands.TwoFactor;
 using Smakosz.Application.Features.Me.Commands.UpdateProfile;
+using Smakosz.Application.Features.Me.Commands.UploadAvatar;
 using Smakosz.Application.Features.Me.Queries.GetFavoriteRestaurants;
 using Smakosz.Application.Features.Me.Queries.GetMyFollowers;
 using Smakosz.Application.Features.Me.Queries.GetMyFollowing;
@@ -262,6 +264,23 @@ public class MeController : ApiController
     public async Task<IActionResult> SavePushSubscription([FromBody] SavePushSubscriptionCommand command)
     {
         var result = await _mediator.Send(command);
+        return ToNoContentResult(result);
+    }
+
+    [HttpPut("avatar")]
+    [Consumes("multipart/form-data")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("upload")]
+    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    {
+        using var stream = file.OpenReadStream();
+        var result = await _mediator.Send(new UploadAvatarCommand(stream, file.FileName));
+        return ToActionResult(result);
+    }
+
+    [HttpDelete("avatar")]
+    public async Task<IActionResult> DeleteAvatar()
+    {
+        var result = await _mediator.Send(new DeleteAvatarCommand());
         return ToNoContentResult(result);
     }
 

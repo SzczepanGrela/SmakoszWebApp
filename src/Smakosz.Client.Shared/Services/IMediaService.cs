@@ -3,6 +3,8 @@ namespace Smakosz.Client.Services;
 public interface IMediaService
 {
     Task<UploadResult?> UploadImageAsync(Stream file, string fileName, string entityType, int? entityId = null);
+    Task<UploadResult?> UploadAvatarAsync(Stream file, string fileName);
+    Task<bool> DeleteAvatarAsync();
 }
 
 public class UploadResult

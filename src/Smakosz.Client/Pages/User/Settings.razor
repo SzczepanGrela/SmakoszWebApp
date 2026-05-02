@@ -59,8 +59,8 @@
                         <EditForm Model="_profile" OnValidSubmit="HandleSave">
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Zdjęcie profilowe</label>
-                                <ImageUpload EntityType="user" CurrentImageUrl="@_profile.AvatarUrl"
-                                             OnImageUploaded="url => _profile.AvatarUrl = url" />
+                                <AvatarPicker CurrentImageUrl="@_profile.AvatarUrl"
+                                              OnImageUploaded="url => _profile.AvatarUrl = url" />
                             </div>
                             <button type="submit" class="btn btn-primary" disabled="@_saving">
                                 @if (_saving)

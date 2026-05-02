@@ -1,25 +1,31 @@
 @page "/admin/hero-images"
 @layout AdminLayout
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
-@inject IMediaService MediaService
 @inject ToastService Toast
 
 <PageTitle>Hero images - Admin Smakosz</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0"><i class="fa-solid fa-panorama me-2"></i>Hero images</h2>
-    <button class="btn btn-primary" @onclick="() => _showUpload = !_showUpload">
+    <button class="btn btn-primary" @onclick="OpenUpload">
         <i class="fa-solid fa-upload me-1"></i>Dodaj nowe
     </button>
 </div>
 
-@if (_showUpload)
+<ImageCropper IsOpen="_open"
+              AspectRatio="@(21.0 / 9.0)"
+              Title="Przytnij hero image (21:9)"
+              MaxSizeMb="5"
+              OutputMaxWidth="2400"
+              OnClose="() => { _open = false; return Task.CompletedTask; }"
+              OnCropped="OnCroppedAsync" />
+
+@if (_open)
 {
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <ImageUpload EntityType="hero" OnImageUploaded="OnImageUploaded" />
-        </div>
+    <div class="mb-3">
+        <label class="form-label">Credit text (opcjonalnie)</label>
+        <input type="text" class="form-control" @bind="_creditText" placeholder="np. Photo by Jan Kowalski" />
     </div>
 }
 
@@ -44,6 +50,10 @@ else
                         <small class="text-muted d-block mb-2">
                             <i class="fa-solid fa-calendar me-1"></i>@(image.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")
                         </small>
+                        @if (!string.IsNullOrEmpty(image.CreditText))
+                        {
+                            <small class="text-muted d-block mb-2"><i class="fa-solid fa-camera me-1"></i>@image.CreditText</small>
+                        }
                         <button class="btn btn-outline-danger btn-sm w-100" @onclick="() => DeleteImage(image.PublicId)"
                                 disabled="@_deleting">
                             <i class="fa-solid fa-trash me-1"></i>Usuń
@@ -58,8 +68,9 @@ else
 @code {
     private List<AdminHeroImageDto> _images = [];
     private bool _loading = true;
-    private bool _showUpload;
+    private bool _open;
     private bool _deleting;
+    private string? _creditText;
 
     protected override async Task OnInitializedAsync() => await LoadImages();
 
@@ -70,9 +81,22 @@ else
         _loading = false;
     }
 
-    private async Task OnImageUploaded(string url)
+    private void OpenUpload()
     {
-        _showUpload = false;
+        _creditText = null;
+        _open = true;
+    }
+
+    private async Task OnCroppedAsync(ImageCropper.CroppedImage cropped)
+    {
+        _open = false;
+        using var stream = cropped.Stream;
+        var result = await AdminService.UploadHeroImageAsync(stream, cropped.FileName, _creditText);
+        if (result is null)
+        {
+            Toast.ShowError("Nie udało się przesłać hero image.");
+            return;
+        }
         Toast.ShowSuccess("Hero image dodane.");
         await LoadImages();
     }
