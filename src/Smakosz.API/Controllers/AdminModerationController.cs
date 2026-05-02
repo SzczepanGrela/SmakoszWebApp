@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
+using Smakosz.Application.Features.Admin.Commands.BulkModeratePhotos;
 using Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
 using Smakosz.Application.Features.Admin.Commands.ModerateReview;
 using Smakosz.Application.Features.Admin.Commands.ProcessEditRequest;
@@ -85,6 +86,26 @@ public class AdminModerationController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpPost("photos/bulk-moderate")]
+    public async Task<IActionResult> BulkModeratePhotos([FromBody] BulkModeratePhotosRequest request)
+    {
+        var result = await _mediator.Send(new BulkModeratePhotosCommand(
+            request.PublicIds, request.Approve, request.ReasonCodes, request.ModeratorNote));
+
+        if (result.IsError)
+            return ToActionResult(result);
+
+        var statusCode = result.Value.Failed.Count == 0
+            ? StatusCodes.Status200OK
+            : StatusCodes.Status207MultiStatus;
+
+        return StatusCode(statusCode, new ApiResponse<BulkModerateResult>
+        {
+            Success = true,
+            Data = result.Value
+        });
+    }
+
     [HttpGet("reviews/pending")]
     public async Task<IActionResult> GetPendingReviews(
         [FromQuery] int page = 1,
@@ -154,5 +175,6 @@ public record UpdateReportStatusRequest(string Status);
 public record UpdateTicketStatusRequest(string Status);
 public record RespondToContactRequest(string Response);
 public record ModeratePhotoRequest(bool Approve, IReadOnlyList<string>? ReasonCodes, string? ModeratorNote);
+public record BulkModeratePhotosRequest(IReadOnlyList<Guid> PublicIds, bool Approve, IReadOnlyList<string>? ReasonCodes, string? ModeratorNote);
 public record ModerateReviewRequest(bool Approve, IReadOnlyList<string>? ReasonCodes, string? ModeratorNote);
 public record ProcessEditRequestRequest(bool Approve, string? RejectionReason);

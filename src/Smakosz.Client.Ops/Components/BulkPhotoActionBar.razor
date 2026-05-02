@@ -1,0 +1,154 @@
+@namespace Smakosz.Client.Ops.Components
+@inject IAdminService AdminService
+@inject IJSRuntime JS
+
+@if (SelectedCount > 0)
+{
+    <div class="bulk-action-bar shadow-lg border-top bg-white p-3 sticky-bottom" style="position:sticky;bottom:0;z-index:1030;">
+        @if (!_showReject)
+        {
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="fw-medium me-2">
+                    <i class="fa-solid fa-square-check me-1"></i>Zaznaczono: @SelectedCount
+                </span>
+                <button class="btn btn-success btn-sm" @onclick="HandleApproveClicked" disabled="@_busy">
+                    <i class="fa-solid fa-check me-1"></i>Zatwierdź zaznaczone
+                </button>
+                <button class="btn btn-danger btn-sm" @onclick="OpenReject" disabled="@_busy">
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuć zaznaczone
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-auto" @onclick="HandleClearClicked" disabled="@_busy">
+                    <i class="fa-solid fa-eraser me-1"></i>Wyczyść zaznaczenie
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="card border-danger">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-2">
+                        <i class="fa-solid fa-xmark text-danger me-1"></i>Odrzucenie @SelectedCount zdjęć
+                    </h6>
+                    @if (_loadingReasons)
+                    {
+                        <div class="text-muted small"><i class="fa-solid fa-spinner fa-spin me-1"></i>Ładowanie powodów...</div>
+                    }
+                    else if (_reasons.Count == 0)
+                    {
+                        <div class="alert alert-warning py-2 small mb-2">
+                            Brak aktywnych powodów odrzucenia. Dodaj je w <code>/admin/rejection-reasons</code>.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-2">
+                            <label class="form-label fw-medium small">Wybierz powody (wspólne dla wszystkich)</label>
+                            <div class="d-flex flex-column gap-1">
+                                @foreach (var reason in _reasons)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="bulk-rej-@reason.ReasonCode"
+                                               checked="@_selectedCodes.Contains(reason.ReasonCode)"
+                                               @onchange="e => ToggleCode(reason.ReasonCode, (bool)(e.Value ?? false))" />
+                                        <label class="form-check-label small" for="bulk-rej-@reason.ReasonCode"
+                                               title="@reason.UserMessageTemplate">
+                                            @reason.AdminLabel
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <div class="mb-2">
+                        <label class="form-label fw-medium small">Dodatkowa uwaga moderatora (opcjonalnie)</label>
+                        <textarea class="form-control form-control-sm" rows="2" maxlength="500"
+                                  @bind="_moderatorNote"
+                                  placeholder="Dodaj szczegóły widoczne dla autorów..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger btn-sm" @onclick="HandleRejectClicked" disabled="@_busy">
+                            <i class="fa-solid fa-xmark me-1"></i>Potwierdź odrzucenie (@SelectedCount)
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="CancelReject" disabled="@_busy">Anuluj</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int SelectedCount { get; set; }
+    [Parameter] public int ConfirmThreshold { get; set; } = 5;
+    [Parameter] public EventCallback OnApprove { get; set; }
+    [Parameter] public EventCallback<BulkRejectArgs> OnReject { get; set; }
+    [Parameter] public EventCallback OnClear { get; set; }
+
+    private bool _showReject;
+    private bool _busy;
+    private string _moderatorNote = "";
+    private readonly HashSet<string> _selectedCodes = new();
+    private List<AdminRejectionReasonDto> _reasons = new();
+    private bool _loadingReasons;
+    private bool _reasonsLoaded;
+
+    private async Task<bool> ConfirmIfAboveThresholdAsync(string action)
+    {
+        if (SelectedCount <= ConfirmThreshold) return true;
+        var msg = $"Czy na pewno {action} {SelectedCount} zdjęć?";
+        return await JS.InvokeAsync<bool>("confirm", msg);
+    }
+
+    private async Task HandleApproveClicked()
+    {
+        if (!await ConfirmIfAboveThresholdAsync("zatwierdzić")) return;
+        _busy = true;
+        try { await OnApprove.InvokeAsync(); }
+        finally { _busy = false; ResetState(); }
+    }
+
+    private async Task OpenReject()
+    {
+        _showReject = true;
+        if (!_reasonsLoaded)
+        {
+            _loadingReasons = true;
+            var result = await AdminService.GetRejectionReasonsAsync(1, 100, "Photo", false);
+            _reasons = result?.Data ?? new List<AdminRejectionReasonDto>();
+            _reasonsLoaded = true;
+            _loadingReasons = false;
+        }
+    }
+
+    private void ToggleCode(string code, bool isChecked)
+    {
+        if (isChecked) _selectedCodes.Add(code);
+        else _selectedCodes.Remove(code);
+    }
+
+    private async Task HandleRejectClicked()
+    {
+        var codes = _selectedCodes.ToArray();
+        var note = string.IsNullOrWhiteSpace(_moderatorNote) ? null : _moderatorNote.Trim();
+        if (codes.Length == 0 && note is null) return;
+        if (!await ConfirmIfAboveThresholdAsync("odrzucić")) return;
+
+        _busy = true;
+        try { await OnReject.InvokeAsync(new BulkRejectArgs(codes, note)); }
+        finally { _busy = false; ResetState(); }
+    }
+
+    private async Task HandleClearClicked() => await OnClear.InvokeAsync();
+
+    private void CancelReject() => ResetState();
+
+    private void ResetState()
+    {
+        _showReject = false;
+        _moderatorNote = "";
+        _selectedCodes.Clear();
+    }
+
+    public record BulkRejectArgs(IReadOnlyList<string> ReasonCodes, string? ModeratorNote);
+}

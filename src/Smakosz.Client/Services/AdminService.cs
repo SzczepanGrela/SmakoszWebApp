@@ -40,6 +40,13 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
+    public async Task<BulkModeratePhotosResultDto?> BulkModeratePhotosAsync(IReadOnlyList<Guid> publicIds, bool approve, IReadOnlyList<string>? reasonCodes = null, string? moderatorNote = null)
+    {
+        var response = await _api.PostApiResponseAsync<BulkModeratePhotosResultDto>("/api/admin/photos/bulk-moderate",
+            new { PublicIds = publicIds, Approve = approve, ReasonCodes = reasonCodes, ModeratorNote = moderatorNote });
+        return response.Success ? response.Data : null;
+    }
+
     public Task<PagedResult<AdminReviewDto>?> GetPendingReviewsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminReviewDto>>($"/api/admin/reviews/pending?page={page}");
 
