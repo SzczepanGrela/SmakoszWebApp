@@ -1,0 +1,158 @@
+@namespace Smakosz.Client.Components
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1080;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAsync" disabled="@_processing"></button>
+                </div>
+                <div class="modal-body">
+                    @if (string.IsNullOrEmpty(_imageDataUrl))
+                    {
+                        <div class="mb-3">
+                            <input id="@_inputId" type="file" class="form-control" accept="image/jpeg,image/png,image/webp" @onchange="OnFileSelected" />
+                            <small class="text-muted">Akceptowane: JPEG, PNG, WebP. Maks. @MaxSizeMb MB.</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="max-height:60vh;overflow:hidden;">
+                            <img id="@_imgId" src="@_imageDataUrl" style="max-width:100%;display:block;" />
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">@_error</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAsync" disabled="@_processing">Anuluj</button>
+                    @if (!string.IsNullOrEmpty(_imageDataUrl))
+                    {
+                        <button type="button" class="btn btn-outline-secondary" @onclick="ResetAsync" disabled="@_processing">Wybierz inny plik</button>
+                        <button type="button" class="btn btn-primary" @onclick="AcceptAsync" disabled="@_processing">
+                            @if (_processing) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                            Zatwierdź
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<CroppedImage> OnCropped { get; set; }
+    [Parameter] public double AspectRatio { get; set; } = 1.0;
+    [Parameter] public string Title { get; set; } = "Przytnij zdjęcie";
+    [Parameter] public int MaxSizeMb { get; set; } = 5;
+    [Parameter] public int OutputMaxWidth { get; set; } = 2400;
+    [Parameter] public string OutputMime { get; set; } = "image/jpeg";
+
+    private readonly string _imgId = "cropper-img-" + Guid.NewGuid().ToString("N");
+    private readonly string _inputId = "cropper-input-" + Guid.NewGuid().ToString("N");
+    private string? _imageDataUrl;
+    private string? _error;
+    private bool _processing;
+    private bool _cropperActive;
+
+    public class CroppedImage
+    {
+        public Stream Stream { get; set; } = Stream.Null;
+        public string FileName { get; set; } = "image.jpg";
+        public string ContentType { get; set; } = "image/jpeg";
+    }
+
+    private async Task OnFileSelected(ChangeEventArgs _)
+    {
+        _error = null;
+        var info = await JS.InvokeAsync<FileInfo?>("smakoszCropper.readFile", _inputId);
+        if (info is null)
+        {
+            _error = "Nie udało się odczytać pliku.";
+            return;
+        }
+        if (info.Size > MaxSizeMb * 1024L * 1024L)
+        {
+            _error = $"Plik jest za duży (limit {MaxSizeMb} MB).";
+            return;
+        }
+        _imageDataUrl = info.DataUrl;
+        StateHasChanged();
+        await Task.Yield();
+        await JS.InvokeVoidAsync("smakoszCropper.init", _imgId, AspectRatio);
+        _cropperActive = true;
+    }
+
+    private async Task AcceptAsync()
+    {
+        if (!_cropperActive) return;
+        _processing = true;
+        try
+        {
+            var dataUrl = await JS.InvokeAsync<string?>("smakoszCropper.getDataUrl", _imgId, OutputMime, OutputMaxWidth);
+            if (string.IsNullOrEmpty(dataUrl))
+            {
+                _error = "Nie udało się przyciąć zdjęcia.";
+                return;
+            }
+            var commaIdx = dataUrl.IndexOf(',');
+            var bytes = Convert.FromBase64String(dataUrl[(commaIdx + 1)..]);
+            var ext = OutputMime == "image/png" ? ".png" : OutputMime == "image/webp" ? ".webp" : ".jpg";
+            var cropped = new CroppedImage
+            {
+                Stream = new MemoryStream(bytes),
+                FileName = "upload" + ext,
+                ContentType = OutputMime
+            };
+            await DestroyCropperAsync();
+            _imageDataUrl = null;
+            await OnCropped.InvokeAsync(cropped);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private async Task ResetAsync()
+    {
+        await DestroyCropperAsync();
+        _imageDataUrl = null;
+        _error = null;
+    }
+
+    private async Task CloseAsync()
+    {
+        await DestroyCropperAsync();
+        _imageDataUrl = null;
+        _error = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task DestroyCropperAsync()
+    {
+        if (_cropperActive)
+        {
+            try { await JS.InvokeVoidAsync("smakoszCropper.destroy", _imgId); } catch { }
+            _cropperActive = false;
+        }
+    }
+
+    public async ValueTask DisposeAsync() => await DestroyCropperAsync();
+
+    private class FileInfo
+    {
+        public string DataUrl { get; set; } = "";
+        public string Name { get; set; } = "";
+        public long Size { get; set; }
+    }
+}
