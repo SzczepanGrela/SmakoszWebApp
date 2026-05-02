@@ -24,6 +24,8 @@ public class T18_DishDeleteProtectionTest : SmakoszE2ETestBase
             caloriesInput = Page.Locator("input[type='number']").Nth(1);
         await caloriesInput.FillAsync("300");
 
+        await Page.Locator("#dishCategory").SelectOptionAsync(new SelectOptionValue { Index = 1 });
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dodaj danie" }).ClickAsync();
 
         await Page.WaitForURLAsync(

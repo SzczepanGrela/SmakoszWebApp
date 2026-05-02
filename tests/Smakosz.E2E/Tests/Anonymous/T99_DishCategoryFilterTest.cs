@@ -10,14 +10,17 @@ public class T99_DishCategoryFilterTest : SmakoszE2ETestBase
     {
         await NavigateAndWaitAsync("/search?type=dishes");
 
+        var filtersToggle = Page.Locator(".filters-panel h5", new() { HasTextString = "Filtry" }).First;
+        await Expect(filtersToggle).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
+        await filtersToggle.ClickAsync();
+
         var categoryHeader = Page.Locator("label.form-label", new() { HasTextString = "Kategoria dania" }).First;
         await Expect(categoryHeader).ToBeVisibleAsync(
             new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
-        var pizzaCheckbox = Page.Locator("label.form-check-label", new() { HasTextString = "Pizza" }).First;
-        await Expect(pizzaCheckbox).ToBeVisibleAsync(
-            new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
-        await pizzaCheckbox.ClickAsync();
+        var pizzaRow = Page.Locator(".form-check").Filter(new() { Has = Page.Locator("label.form-check-label", new() { HasTextString = "Pizza" }) }).First;
+        await Expect(pizzaRow).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+        await pizzaRow.Locator("input.form-check-input").CheckAsync();
 
         var applyButton = Page.Locator("button", new() { HasTextString = "Zastosuj filtry" }).First;
         await applyButton.ClickAsync();
@@ -38,6 +41,12 @@ public class T99_DishCategoryFilterTest : SmakoszE2ETestBase
     public async Task CategoryFilter_HiddenOnRestaurantsType()
     {
         await NavigateAndWaitAsync("/search?type=restaurants");
+
+        var filtersToggle = Page.Locator(".filters-panel h5", new() { HasTextString = "Filtry" }).First;
+        if (await filtersToggle.IsVisibleAsync())
+        {
+            await filtersToggle.ClickAsync();
+        }
 
         var categoryHeader = Page.Locator("label.form-label", new() { HasTextString = "Kategoria dania" });
         await Expect(categoryHeader).ToHaveCountAsync(0);

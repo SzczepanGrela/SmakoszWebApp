@@ -8,12 +8,12 @@ public class T68_TwoFactorAuthPageTest : SmakoszE2ETestBase
     [Test]
     public async Task TwoFactorAuth_PageUIAndValidation()
     {
-        await NavigateAndWaitAsync("/verify-2fa");
+        await NavigateAndWaitAsync("/verify-2fa?email=test%40smakosz.com");
         await WaitForBlazorLoadedAsync();
 
         await AssertPageContainsTextAsync("Weryfikacja dwuetapowa");
 
-        await AssertPageContainsTextAsync("Wprowadź kod z aplikacji uwierzytelniającej.");
+        await AssertPageContainsTextAsync("Wprowadź 6-cyfrowy kod");
 
         var codeInput = Page.Locator("input[type='text'][maxlength='6']");
         var inputCount = await codeInput.CountAsync();

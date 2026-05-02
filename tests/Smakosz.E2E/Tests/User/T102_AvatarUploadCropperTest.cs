@@ -10,11 +10,11 @@ public class T102_AvatarUploadCropperTest : SmakoszE2ETestBase
     {
         await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
 
-        await NavigateAndWaitAsync("/settings");
+        await NavigateAndWaitAsync("/profile/settings");
         if (Page.Url.Contains("/login"))
         {
             await Page.WaitForTimeoutAsync(2000);
-            await NavigateAndWaitAsync("/settings");
+            await NavigateAndWaitAsync("/profile/settings");
         }
         await WaitForBlazorLoadedAsync();
 

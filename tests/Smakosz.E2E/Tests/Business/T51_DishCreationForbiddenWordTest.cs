@@ -22,6 +22,8 @@ public class T51_DishCreationForbiddenWordTest : SmakoszE2ETestBase
         var priceInput = Page.Locator("input[type='number'][step='0.01']").First;
         await priceInput.FillAsync("35.00");
 
+        await Page.Locator("#dishCategory").SelectOptionAsync(new SelectOptionValue { Index = 1 });
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dodaj danie" }).ClickAsync();
 
         var redirectTask = Page.WaitForURLAsync(
@@ -57,6 +59,8 @@ public class T51_DishCreationForbiddenWordTest : SmakoszE2ETestBase
 
         var priceInput = Page.Locator("input[type='number'][step='0.01']").First;
         await priceInput.FillAsync("25.00");
+
+        await Page.Locator("#dishCategory").SelectOptionAsync(new SelectOptionValue { Index = 1 });
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dodaj danie" }).ClickAsync();
 

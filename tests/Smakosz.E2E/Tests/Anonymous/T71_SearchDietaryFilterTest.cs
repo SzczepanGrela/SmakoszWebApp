@@ -13,7 +13,7 @@ public class T71_SearchDietaryFilterTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Szukaj");
 
-        var searchInput = Page.Locator("input[placeholder='Szukaj dań lub restauracji...']");
+        var searchInput = Page.Locator("input[placeholder='Szukaj dan lub restauracji...']");
         await Expect(searchInput).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
 
         var filterToggle = Page.Locator(".filters-panel .cursor-pointer").First;

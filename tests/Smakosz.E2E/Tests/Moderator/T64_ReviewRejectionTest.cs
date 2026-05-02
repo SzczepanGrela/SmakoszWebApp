@@ -76,14 +76,12 @@ public class T64_ReviewRejectionTest : SmakoszE2ETestBase
         await allRejectButtons.First.ClickAsync();
         await Page.WaitForTimeoutAsync(1000);
 
-        var reasonInput = Page.Locator("input[placeholder='Powód odrzucenia...']").First;
-        await Expect(reasonInput).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
-        await reasonInput.ClickAsync();
-        await reasonInput.FillAsync("Recenzja narusza regulamin");
-        await reasonInput.EvaluateAsync("el => el.dispatchEvent(new Event('change', { bubbles: true }))");
+        var firstReasonCheckbox = Page.Locator("input.form-check-input[type='checkbox'][id^='rej-']").First;
+        await Expect(firstReasonCheckbox).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+        await firstReasonCheckbox.CheckAsync();
         await Page.WaitForTimeoutAsync(300);
 
-        var confirmButton = Page.Locator(".input-group button.btn-danger").First;
+        var confirmButton = Page.GetByRole(AriaRole.Button, new() { Name = "Potwierdź odrzucenie" }).First;
         await confirmButton.ClickAsync();
 
         var toastLocator = Page.Locator(".toast").First;

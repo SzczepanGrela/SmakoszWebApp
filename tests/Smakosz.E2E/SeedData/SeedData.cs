@@ -42,9 +42,9 @@ public static class SeedData
         db.Cities.AddRange(warszawa, krakow, wroclaw);
 
         db.CuisineTypes.AddRange(
-            new CuisineType { CuisineTypeId = 1, Name = "Wloska", DisplayName = "Wloska" },
-            new CuisineType { CuisineTypeId = 2, Name = "Turecka", DisplayName = "Turecka" },
-            new CuisineType { CuisineTypeId = 3, Name = "Polska", DisplayName = "Polska" });
+            new CuisineType { CuisineTypeId = 1001, Name = "Wloska", DisplayName = "Wloska" },
+            new CuisineType { CuisineTypeId = 1002, Name = "Turecka", DisplayName = "Turecka" },
+            new CuisineType { CuisineTypeId = 1003, Name = "Polska", DisplayName = "Polska" });
 
         var jan = new User
         {
@@ -145,7 +145,7 @@ public static class SeedData
             PublicId = Guid.NewGuid(),
             RestaurantName = "Pizzeria Roma",
             Slug = "pizzeria-roma",
-            CuisineTypeId = 1,
+            CuisineTypeId = 1001,
             PriceLevel = 2,
             Address = "ul. Marszalkowska 10",
             CityId = 1,
@@ -163,7 +163,7 @@ public static class SeedData
             PublicId = Guid.NewGuid(),
             RestaurantName = "Sultan Kebab",
             Slug = "sultan-kebab",
-            CuisineTypeId = 2,
+            CuisineTypeId = 1002,
             PriceLevel = 1,
             Address = "ul. Grodzka 5",
             CityId = 2,
@@ -180,7 +180,7 @@ public static class SeedData
             PublicId = Guid.NewGuid(),
             RestaurantName = "Nowa Restauracja",
             Slug = "nowa-restauracja",
-            CuisineTypeId = 3,
+            CuisineTypeId = 1003,
             PriceLevel = 2,
             Address = "ul. Swidnicka 22",
             CityId = 3,
@@ -270,16 +270,34 @@ public static class SeedData
         };
         db.Dishes.AddRange(margherita, pepperoni, kebabDuzy, tiramisu, pendingDish);
 
-        var tagNaWynos = new Tag { TagId = 1, TagName = "Na wynos", Category = "feature", DisplayColor = "#28a745", CreatedAt = DateTime.UtcNow };
-        var tagSezonowe = new Tag { TagId = 2, TagName = "Sezonowe", Category = "feature", DisplayColor = "#fd7e14", CreatedAt = DateTime.UtcNow };
-        var tagNowosc = new Tag { TagId = 3, TagName = "Nowosc", Category = "feature", DisplayColor = "#007bff", CreatedAt = DateTime.UtcNow };
+        var tagNaWynos = new Tag { TagId = 1001, TagName = "Na wynos", Category = "feature", DisplayColor = "#28a745", CreatedAt = DateTime.UtcNow };
+        var tagSezonowe = new Tag { TagId = 1002, TagName = "Sezonowe", Category = "feature", DisplayColor = "#fd7e14", CreatedAt = DateTime.UtcNow };
+        var tagNowosc = new Tag { TagId = 1003, TagName = "Nowosc", Category = "feature", DisplayColor = "#007bff", CreatedAt = DateTime.UtcNow };
         db.Tags.AddRange(tagNaWynos, tagSezonowe, tagNowosc);
 
         db.DishTags.AddRange(
-            new DishTag { DishId = 1, TagId = 1 }, // Margherita -> Na wynos
-            new DishTag { DishId = 1, TagId = 2 }, // Margherita -> Sezonowe
-            new DishTag { DishId = 3, TagId = 1 }, // Kebab -> Na wynos
-            new DishTag { DishId = 4, TagId = 3 }); // Tiramisu -> Nowosc
+            new DishTag { DishId = 1, TagId = 1001 }, // Margherita -> Na wynos
+            new DishTag { DishId = 1, TagId = 1002 }, // Margherita -> Sezonowe
+            new DishTag { DishId = 3, TagId = 1001 }, // Kebab -> Na wynos
+            new DishTag { DishId = 4, TagId = 1003 }); // Tiramisu -> Nowosc
+
+        await db.SaveChangesAsync();
+
+        var dishCategoryByName = await db.Tags
+            .Where(t => t.Category == "dish_category")
+            .ToDictionaryAsync(t => t.TagName, t => t.TagId);
+
+        void LinkCategory(int dishId, string categoryName)
+        {
+            if (dishCategoryByName.TryGetValue(categoryName, out var tagId))
+                db.DishTags.Add(new DishTag { DishId = dishId, TagId = tagId });
+        }
+
+        LinkCategory(1, "Pizza"); // Margherita
+        LinkCategory(2, "Pizza"); // Pepperoni
+        LinkCategory(3, "Kebab"); // Kebab Duzy
+        LinkCategory(4, "Deser"); // Tiramisu
+        LinkCategory(5, "Pizza"); // Pending Pizza
 
         var maka = new Ingredient { IngredientId = 1, IngredientName = "Maka pszenna", IsAllergen = true, IsGlutenFree = false, CreatedAt = DateTime.UtcNow };
         var mozzarella = new Ingredient { IngredientId = 2, IngredientName = "Ser mozzarella", IsAllergen = true, IsLactoseFree = false, CreatedAt = DateTime.UtcNow };
