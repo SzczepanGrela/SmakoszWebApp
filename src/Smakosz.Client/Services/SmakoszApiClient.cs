@@ -59,6 +59,18 @@ public class SmakoszApiClient
         return await ParseApiResponse<T>(response);
     }
 
+    public async Task<ApiResponse<T>> PostMultipartApiResponseAsync<T>(string url, MultipartFormDataContent content)
+    {
+        var response = await _http.PostAsync(url, content);
+        return await ParseApiResponse<T>(response);
+    }
+
+    public async Task<ApiResponse<T>> PutMultipartApiResponseAsync<T>(string url, MultipartFormDataContent content)
+    {
+        var response = await _http.PutAsync(url, content);
+        return await ParseApiResponse<T>(response);
+    }
+
     public async Task<ApiResponse<object>> DeleteApiResponseAsync(string url)
     {
         var response = await _http.DeleteAsync(url);

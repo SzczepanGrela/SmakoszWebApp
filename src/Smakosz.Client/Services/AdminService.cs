@@ -270,7 +270,27 @@ public class AdminService : IAdminService
         => await _api.GetAsync<List<AdminHeroImageDto>>("/api/admin/hero-images") ?? [];
 
     public async Task<bool> DeleteHeroImageAsync(Guid publicId)
-        => await _api.DeleteAsync($"/api/media/{publicId}");
+        => await _api.DeleteAsync($"/api/admin/hero-images/{publicId}");
+
+    public async Task<AdminHeroImageDto?> UploadHeroImageAsync(Stream file, string fileName, string? creditText)
+    {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(file);
+        var ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+        var contentType = ext switch
+        {
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "image/jpeg"
+        };
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        content.Add(streamContent, "file", fileName);
+        if (!string.IsNullOrWhiteSpace(creditText))
+            content.Add(new StringContent(creditText), "creditText");
+
+        var apiResponse = await _api.PostMultipartApiResponseAsync<AdminHeroImageDto>("/api/admin/hero-images", content);
+        return apiResponse is { Success: true } ? apiResponse.Data : null;
+    }
 
     public Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null)
     {

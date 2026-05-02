@@ -58,6 +58,7 @@ public interface IAdminService
         bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null);
     Task<List<AdminHeroImageDto>> GetHeroImagesAsync();
     Task<bool> DeleteHeroImageAsync(Guid publicId);
+    Task<AdminHeroImageDto?> UploadHeroImageAsync(Stream file, string fileName, string? creditText);
     Task<PagedResult<AdminAuditLogDto>?> GetAuditLogsAsync(int page = 1, string? tableName = null, int? recordId = null);
     Task<PagedResult<AdminSecurityLogDto>?> GetSecurityLogsAsync(int page = 1, string? eventType = null);
     Task<PagedResult<AdminEmailLogDto>?> GetEmailLogsAsync(int page = 1, string? status = null, string? type = null);

@@ -38,6 +38,34 @@ public class MediaService : IMediaService
         };
     }
 
+    public async Task<UploadResult?> UploadAvatarAsync(Stream file, string fileName)
+    {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(file);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(GetContentType(fileName));
+        content.Add(streamContent, "file", fileName);
+
+        var response = await _http.PutAsync("/api/me/avatar", content);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<ApiAvatarResponse>(JsonOptions);
+        if (apiResponse is not { Success: true, Data: not null })
+            return null;
+
+        return new UploadResult
+        {
+            Url = apiResponse.Data.Url,
+            Blurhash = apiResponse.Data.Blurhash
+        };
+    }
+
+    public async Task<bool> DeleteAvatarAsync()
+    {
+        var response = await _http.DeleteAsync("/api/me/avatar");
+        return response.IsSuccessStatusCode;
+    }
+
     private static string GetContentType(string fileName) =>
         Path.GetExtension(fileName).ToLowerInvariant() switch
         {
@@ -45,6 +73,18 @@ public class MediaService : IMediaService
             ".webp" => "image/webp",
             _ => "image/jpeg"
         };
+
+    private class ApiAvatarResponse
+    {
+        public bool Success { get; set; }
+        public AvatarData? Data { get; set; }
+    }
+
+    private class AvatarData
+    {
+        public string Url { get; set; } = string.Empty;
+        public string? Blurhash { get; set; }
+    }
 
     private class ApiUploadResponse
     {

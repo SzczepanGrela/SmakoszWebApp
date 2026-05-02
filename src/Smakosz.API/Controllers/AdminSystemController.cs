@@ -10,7 +10,6 @@ using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAiLogs;
 using Smakosz.Application.Features.Admin.Queries.GetAiModels;
 using Smakosz.Application.Features.Admin.Queries.GetEmailLogs;
-using Smakosz.Application.Features.Admin.Queries.GetHeroImages;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
 using Smakosz.Application.Features.Admin.Queries.GetModerationLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemConfig;
@@ -100,13 +99,6 @@ public class AdminSystemController : ApiController
     {
         var result = await _mediator.Send(new ScheduleModerationCommand());
         return ToNoContentResult(result);
-    }
-
-    [HttpGet("hero-images")]
-    public async Task<IActionResult> GetHeroImages()
-    {
-        var result = await _mediator.Send(new GetHeroImagesQuery());
-        return ToActionResult(result);
     }
 
     [HttpGet("ai-models")]

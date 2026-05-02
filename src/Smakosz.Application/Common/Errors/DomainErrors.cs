@@ -167,6 +167,16 @@ public static class DomainErrors
 
         public static readonly Error PhotoLimitExceeded =
             Error.Validation("MEDIA_PHOTO_LIMIT_EXCEEDED", "Osiągnięto limit zdjęć dla tej recenzji");
+
+        public static readonly Error UseDedicatedEndpoint =
+            Error.Validation("MEDIA_USE_DEDICATED_ENDPOINT",
+                "Dla avatarów i hero images użyj dedykowanych endpointów /api/me/avatar lub /api/admin/hero-images");
+
+        public static readonly Error WrongRatio =
+            Error.Validation("MEDIA_WRONG_RATIO", "Proporcje obrazu nie pasują do wymaganego zasobu");
+
+        public static readonly Error UnreadableImage =
+            Error.Validation("MEDIA_UNREADABLE_IMAGE", "Nie udało się odczytać wymiarów obrazu");
     }
 
     public static class Content
