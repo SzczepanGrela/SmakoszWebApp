@@ -9,6 +9,8 @@ using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
 using Smakosz.Application.Features.Admin.Commands.AdminResetUserPassword;
+using Smakosz.Application.Features.Admin.Commands.ChangeUserRole;
+using Smakosz.Application.Features.Admin.Commands.CreatePrivilegedAccount;
 using Smakosz.Application.Features.Admin.Commands.UnbanUser;
 using Smakosz.Application.Features.Admin.Commands.ChangeRestaurantStatus;
 using Smakosz.Application.Features.Admin.Commands.CreateBannedIdentifier;
@@ -59,9 +61,10 @@ public class AdminController : ApiController
     public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] UserRole? role = null)
     {
-        var result = await _mediator.Send(new GetUsersQuery(new PaginationParams(page, pageSize), search));
+        var result = await _mediator.Send(new GetUsersQuery(new PaginationParams(page, pageSize), search, role));
         return ToActionResult(result);
     }
 
@@ -97,6 +100,20 @@ public class AdminController : ApiController
     public async Task<IActionResult> ResetUserPassword(Guid publicId)
     {
         var result = await _mediator.Send(new AdminResetUserPasswordCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("users")]
+    public async Task<IActionResult> CreatePrivilegedAccount([FromBody] CreatePrivilegedAccountRequest body)
+    {
+        var result = await _mediator.Send(new CreatePrivilegedAccountCommand(body.Email, body.Username, body.Role));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("users/{publicId:guid}/role")]
+    public async Task<IActionResult> ChangeUserRole(Guid publicId, [FromBody] ChangeUserRoleRequest body)
+    {
+        var result = await _mediator.Send(new ChangeUserRoleCommand(publicId, body.Role, body.Reason));
         return ToNoContentResult(result);
     }
 
@@ -392,6 +409,9 @@ public class AdminController : ApiController
         return ToNoContentResult(result);
     }
 }
+
+public record CreatePrivilegedAccountRequest(string Email, string Username, UserRole Role);
+public record ChangeUserRoleRequest(UserRole Role, string? Reason);
 
 public record CreateIngredientRequest(
     string Name,

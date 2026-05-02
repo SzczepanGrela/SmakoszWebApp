@@ -1,4 +1,5 @@
 using Smakosz.Application.Common.Models;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Common.Interfaces;
 
@@ -12,4 +13,5 @@ public interface IEmailService
     Task SendNotificationDigestAsync(string email, string subject, IReadOnlyList<NotificationItem> notifications, CancellationToken ct = default);
     Task SendAccountDeletionCodeAsync(string email, string code, CancellationToken ct = default);
     Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default);
+    Task SendInvitationAsync(string email, string code, string username, UserRole role, CancellationToken ct = default);
 }

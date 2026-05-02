@@ -194,6 +194,21 @@ public static class DomainErrors
     {
         public static readonly Error Forbidden =
             Error.Forbidden("ADMIN_FORBIDDEN", "Brak uprawnień do wykonania tej operacji");
+
+        public static readonly Error CannotChangeOwnRole =
+            Error.Validation("ADMIN_CANNOT_CHANGE_OWN_ROLE", "Administrator nie może zmienić własnej roli");
+
+        public static readonly Error CannotDemoteLastAdmin =
+            Error.Validation("ADMIN_CANNOT_DEMOTE_LAST_ADMIN", "Nie można zdegradować ostatniego administratora");
+
+        public static readonly Error EmailAlreadyExists =
+            Error.Conflict("ADMIN_EMAIL_ALREADY_EXISTS", "Konto z tym adresem email już istnieje");
+
+        public static readonly Error UsernameAlreadyExists =
+            Error.Conflict("ADMIN_USERNAME_ALREADY_EXISTS", "Konto z tą nazwą użytkownika już istnieje");
+
+        public static readonly Error InvalidRoleForPrivilegedAccount =
+            Error.Validation("ADMIN_INVALID_ROLE", "Można utworzyć tylko konto Admin lub Moderator");
     }
 
     public static class Social

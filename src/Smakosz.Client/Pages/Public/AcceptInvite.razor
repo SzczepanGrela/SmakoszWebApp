@@ -1,0 +1,78 @@
+@page "/accept-invite"
+@layout Smakosz.Client.Layout.AuthLayout
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Aktywacja konta - Smakosz</PageTitle>
+
+<div class="text-center mb-4">
+    <h4>Aktywuj swoje konto</h4>
+    <p class="text-muted small mb-0">Ustaw haslo, aby zalogowac sie do panelu Smakosz.</p>
+</div>
+
+@if (_success)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-check-circle me-2"></i>Konto zostalo aktywowane. Mozesz sie teraz zalogowac.
+    </div>
+    <a href="/login" class="btn btn-primary w-100">Przejdz do logowania</a>
+}
+else if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Code))
+{
+    <div class="alert alert-danger small">Brak parametrow zaproszenia. Skorzystaj z linku otrzymanego w wiadomosci email.</div>
+}
+else
+{
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" value="@Email" disabled />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Nowe haslo</label>
+        <Smakosz.Client.Components.PasswordInput Value="@_password" ValueChanged="v => _password = v" Placeholder="Min. 8 znakow" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Potwierdz haslo</label>
+        <Smakosz.Client.Components.PasswordInput Value="@_confirmPassword" ValueChanged="v => _confirmPassword = v" Placeholder="Powtorz haslo" />
+    </div>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+    <button class="btn btn-primary w-100" @onclick="Submit" disabled="@_loading">
+        @if (_loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+        Aktywuj konto
+    </button>
+}
+
+@code {
+    [SupplyParameterFromQuery] public string? Email { get; set; }
+    [SupplyParameterFromQuery] public string? Code { get; set; }
+
+    private string _password = "";
+    private string _confirmPassword = "";
+    private string? _error;
+    private bool _success;
+    private bool _loading;
+
+    private async Task Submit()
+    {
+        if (_password.Length < 8) { _error = "Haslo musi miec min. 8 znakow."; return; }
+        if (_password != _confirmPassword) { _error = "Hasla nie sa identyczne."; return; }
+        if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Code)) { _error = "Brak parametrow zaproszenia."; return; }
+
+        _loading = true;
+        _error = null;
+
+        var result = await AuthService.AcceptInviteAsync(Email!, Code!, _password);
+        if (result.Success)
+        {
+            _success = true;
+        }
+        else
+        {
+            _error = result.Error?.GetDisplayMessage() ?? "Nie udalo sie aktywowac konta. Link moze byc nieprawidlowy lub wygasly.";
+        }
+        _loading = false;
+    }
+}

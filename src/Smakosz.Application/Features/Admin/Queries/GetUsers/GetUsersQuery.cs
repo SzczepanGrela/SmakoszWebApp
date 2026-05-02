@@ -5,10 +5,11 @@ using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Dtos;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetUsers;
 
-public record GetUsersQuery(PaginationParams Pagination, string? Search = null) : IRequest<ErrorOr<PagedResult<AdminUserDto>>>;
+public record GetUsersQuery(PaginationParams Pagination, string? Search = null, UserRole? Role = null) : IRequest<ErrorOr<PagedResult<AdminUserDto>>>;
 
 public class GetUsersHandler : IRequestHandler<GetUsersQuery, ErrorOr<PagedResult<AdminUserDto>>>
 {
@@ -32,6 +33,12 @@ public class GetUsersHandler : IRequestHandler<GetUsersQuery, ErrorOr<PagedResul
         {
             var search = request.Search.ToLower();
             query = query.Where(u => u.Username.ToLower().Contains(search) || u.Email.ToLower().Contains(search));
+        }
+
+        if (request.Role.HasValue)
+        {
+            var roleFilter = request.Role.Value;
+            query = query.Where(u => u.Role == roleFilter);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

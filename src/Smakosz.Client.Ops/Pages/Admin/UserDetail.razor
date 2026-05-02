@@ -30,6 +30,9 @@ else
                     <i class="fa-solid fa-shield-halved me-1"></i>Wyłącz 2FA
                 </button>
             }
+            <button class="btn btn-secondary btn-sm" @onclick="OpenRoleModal">
+                <i class="fa-solid fa-user-tag me-1"></i>Zmień rolę
+            </button>
             <button class="btn btn-info btn-sm" @onclick="HandleResetPassword" disabled="@_resetInProgress">
                 <i class="fa-solid fa-key me-1"></i>Resetuj hasło
             </button>
@@ -80,6 +83,28 @@ else
             </div>
         </div>
     </div>
+
+    <Smakosz.Client.Components.Modal IsOpen="_roleModalOpen" Title="Zmień rolę użytkownika" OnClose="CloseRoleModal">
+        <div class="mb-3">
+            <label class="form-label fw-medium">Nowa rola</label>
+            <select class="form-select" @bind="_newRole">
+                <option value="User">User</option>
+                <option value="Moderator">Moderator</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-medium">Uzasadnienie (opcjonalne)</label>
+            <textarea class="form-control" rows="3" maxlength="500" @bind="_roleReason" placeholder="Powód zmiany roli, np. promocja na moderatora..."></textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary" @onclick="CloseRoleModal">Anuluj</button>
+            <button class="btn btn-primary" @onclick="SubmitRoleChange" disabled="@_roleSaving">
+                @if (_roleSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                Zapisz
+            </button>
+        </div>
+    </Smakosz.Client.Components.Modal>
 }
 
 @code {
@@ -124,5 +149,37 @@ else
         _resetInProgress = false;
         if (success) Toast.ShowSuccess("Link resetujący wysłany na email użytkownika.");
         else Toast.ShowError("Nie udało się wysłać linku resetującego.");
+    }
+
+    private bool _roleModalOpen;
+    private string _newRole = "User";
+    private string _roleReason = "";
+    private bool _roleSaving;
+
+    private void OpenRoleModal()
+    {
+        _newRole = _user?.Role ?? "User";
+        _roleReason = "";
+        _roleModalOpen = true;
+    }
+
+    private void CloseRoleModal() => _roleModalOpen = false;
+
+    private async Task SubmitRoleChange()
+    {
+        if (_user is null) return;
+        _roleSaving = true;
+        var success = await AdminService.ChangeUserRoleAsync(_user.PublicId, _newRole, string.IsNullOrWhiteSpace(_roleReason) ? null : _roleReason);
+        _roleSaving = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Rola użytkownika zmieniona.");
+            _roleModalOpen = false;
+            _user = await AdminService.GetUserAsync(Id);
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się zmienić roli. Sprawdź czy nie próbujesz zdegradować ostatniego administratora lub zmienić własnej roli.");
+        }
     }
 }

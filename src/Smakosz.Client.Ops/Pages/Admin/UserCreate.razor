@@ -1,0 +1,103 @@
+@page "/admin/users/new"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+@inject NavigationManager Navigation
+
+<PageTitle>Nowe konto - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="/admin/users" class="btn btn-outline-secondary btn-sm me-2">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold d-inline"><i class="fa-solid fa-user-plus me-2"></i>Nowe konto uprzywilejowane</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm" style="max-width:600px;">
+    <div class="card-body">
+        <p class="text-muted small mb-4">
+            Po utworzeniu konta uzytkownik dostanie email z linkiem aktywacyjnym (waznym 24h),
+            ktorym ustawi swoje haslo i bedzie mogl sie zalogowac.
+        </p>
+
+        <div class="mb-3">
+            <label class="form-label fw-medium">Email *</label>
+            <input type="email" class="form-control" @bind="_email" placeholder="np. moderator@smakosz.xyz" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-medium">Nazwa uzytkownika *</label>
+            <input type="text" class="form-control" @bind="_username" placeholder="np. anna-kowalska" />
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-medium d-block">Rola *</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" id="role-mod" name="role" value="Moderator" checked="@(_role == "Moderator")" @onchange='() => _role = "Moderator"' />
+                <label class="form-check-label" for="role-mod">Moderator</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" id="role-admin" name="role" value="Admin" checked="@(_role == "Admin")" @onchange='() => _role = "Admin"' />
+                <label class="form-check-label" for="role-admin">Administrator</label>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger small">@_error</div>
+        }
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="Submit" disabled="@_saving">
+                @if (_saving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                <i class="fa-solid fa-paper-plane me-1"></i>Utworz i wyslij zaproszenie
+            </button>
+            <a href="/admin/users" class="btn btn-outline-secondary">Anuluj</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private string _username = "";
+    private string _role = "Moderator";
+    private string? _error;
+    private bool _saving;
+
+    private async Task Submit()
+    {
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_email) || !_email.Contains('@'))
+        {
+            _error = "Podaj prawidlowy email.";
+            return;
+        }
+        if (_username.Length < 3)
+        {
+            _error = "Nazwa uzytkownika musi miec min. 3 znaki.";
+            return;
+        }
+        if (_role != "Admin" && _role != "Moderator")
+        {
+            _error = "Wybierz role Admin lub Moderator.";
+            return;
+        }
+
+        _saving = true;
+        var publicId = await AdminService.CreatePrivilegedAccountAsync(_email.Trim(), _username.Trim(), _role);
+        _saving = false;
+
+        if (publicId is null)
+        {
+            _error = "Nie udalo sie utworzyc konta. Sprawdz czy email i nazwa nie sa juz zajete.";
+            return;
+        }
+
+        Toast.ShowSuccess("Konto utworzone. Email z zaproszeniem zostal wyslany.");
+        Navigation.NavigateTo("/admin/users");
+    }
+}

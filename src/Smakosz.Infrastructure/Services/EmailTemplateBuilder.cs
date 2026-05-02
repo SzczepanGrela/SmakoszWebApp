@@ -65,6 +65,20 @@ public static class EmailTemplateBuilder
             """;
     }
 
+    public static string BuildInvitationSection(string username, string roleLabel, string link, string code)
+    {
+        return $"""
+            <h2 style="color:{BrandDark};margin:0 0 16px;">Zaproszenie do Smakosz</h2>
+            <p style="color:#333333;margin:0 0 12px;line-height:1.6;">Cze&#347;&#263; {username},</p>
+            <p style="color:#333333;margin:0 0 16px;line-height:1.6;">Administrator zaprosi&#322; Ci&#281; do zespo&#322;u Smakosz w roli {roleLabel}. Aby aktywowa&#263; konto, kliknij ponizszy link i ustaw swoje has&#322;o.</p>
+            <div style="text-align:center;margin:24px 0;">
+            <a href="{link}" style="display:inline-block;background-color:{BrandAccent};color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;">Aktywuj konto</a>
+            </div>
+            <p style="color:#666666;font-size:14px;margin:16px 0 0;">Link wygasa za 24 godziny. Je&#347;li nie spodziewa&#322;e&#347; si&#281; tej wiadomo&#347;ci, zignoruj j&#261;.</p>
+            <p style="color:#999999;font-size:12px;margin:16px 0 0;word-break:break-all;">Je&#347;li link nie dzia&#322;a, skopiuj go do przegl&#261;darki: {link}</p>
+            """;
+    }
+
     public static string BuildNotificationList(IReadOnlyList<NotificationItem> items)
     {
         var cards = string.Join(
