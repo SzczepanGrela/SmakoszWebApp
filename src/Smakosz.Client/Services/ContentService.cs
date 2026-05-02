@@ -14,6 +14,9 @@ public class ContentService : IContentService
     public Task<ContentPageDto?> GetTermsPageAsync()
         => _api.GetAsync<ContentPageDto>("/api/content/terms");
 
+    public Task<ContentPageDto?> GetPrivacyPageAsync()
+        => _api.GetAsync<ContentPageDto>("/api/content/privacy");
+
     public Task<ContactPageDto?> GetContactPageAsync()
         => _api.GetAsync<ContactPageDto>("/api/content/contact-info");
 

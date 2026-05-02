@@ -19,6 +19,7 @@ public class GetContentPageHandlerTests
 
     [Theory]
     [InlineData("terms")]
+    [InlineData("privacy")]
     [InlineData("contact")]
     public async Task Handle_AllStaticPages_ReturnContent(string slug)
     {
