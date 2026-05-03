@@ -60,19 +60,31 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructureCore(
         this IServiceCollection services,
-        string connectionString)
+        string connectionString,
+        bool isE2E = false)
     {
         services.AddDbContext<SmakoszDbContext>(options =>
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
-        services.AddMemoryCache();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IBusinessMetrics>(_ => new BusinessMetrics(Prometheus.Metrics.DefaultFactory));
-        services.AddSingleton<CachedConfigProvider>();
-        services.AddSingleton<IPublicConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
-        services.AddSingleton<IValidationConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
+
+        if (isE2E)
+        {
+            services.AddSingleton<Microsoft.Extensions.Caching.Memory.IMemoryCache, NullMemoryCache>();
+            services.AddSingleton<DirectConfigProvider>();
+            services.AddSingleton<IPublicConfigProvider>(sp => sp.GetRequiredService<DirectConfigProvider>());
+            services.AddSingleton<IValidationConfigProvider>(sp => sp.GetRequiredService<DirectConfigProvider>());
+        }
+        else
+        {
+            services.AddMemoryCache();
+            services.AddSingleton<CachedConfigProvider>();
+            services.AddSingleton<IPublicConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
+            services.AddSingleton<IValidationConfigProvider>(sp => sp.GetRequiredService<CachedConfigProvider>());
+        }
 
         return services;
     }
