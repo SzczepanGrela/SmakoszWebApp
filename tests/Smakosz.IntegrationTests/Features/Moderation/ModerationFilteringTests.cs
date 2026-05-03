@@ -42,9 +42,6 @@ public class ModerationFilteringTests : IntegrationTestBase
             db.Dishes.AddRange(dishApproved, dishNone, dishPending);
             db.MenuSections.AddRange(sectionApproved, sectionPending);
             await db.SaveChangesAsync();
-
-            businessUser.RestaurantId = restaurant.RestaurantId;
-            await db.SaveChangesAsync();
         });
     }
 

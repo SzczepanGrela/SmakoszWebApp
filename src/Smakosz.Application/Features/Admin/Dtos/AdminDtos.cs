@@ -368,6 +368,13 @@ public class AdminTicketDetailDto
     public string? AssignedAdminUsername { get; set; }
     public DateTime? CreatedAt { get; set; }
 
+    public int? RequesterId { get; set; }
+    public string? RequesterUsername { get; set; }
+    public string? RequesterEmail { get; set; }
+    public int? RestaurantId { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? RestaurantSlug { get; set; }
+
     public ContactInfoDto? Contact { get; set; }
     public PhotoModerationDto? Photo { get; set; }
     public ReviewModerationDto? Review { get; set; }

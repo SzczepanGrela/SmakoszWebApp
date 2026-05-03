@@ -16,6 +16,12 @@ public class SystemTicket : IAuditableEntity, IVersioned
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int Version { get; set; } = 1;
+    public int? RequesterId { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    public int? ResolvedByAdminId { get; set; }
+    public string? Resolution { get; set; }
 
     public User? AssignedAdmin { get; set; }
+    public User? Requester { get; set; }
+    public User? ResolvedByAdmin { get; set; }
 }

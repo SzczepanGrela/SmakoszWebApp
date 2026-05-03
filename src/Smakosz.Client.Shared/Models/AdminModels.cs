@@ -274,6 +274,19 @@ public class AdminRestaurantDetailDto
     public DateTime? UpdatedAt { get; set; }
 }
 
+public class AdminCreateRestaurantDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public int CityId { get; set; }
+    public int CuisineTypeId { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Description { get; set; }
+    public int? OwnerId { get; set; }
+    public int? TicketId { get; set; }
+}
+
 public class AdminRestaurantUpdateDto
 {
     public string? Name { get; set; }
@@ -392,6 +405,13 @@ public class AdminTicketDetailDto
     public string? Description { get; set; }
     public string? AssignedAdminUsername { get; set; }
     public DateTime? CreatedAt { get; set; }
+
+    public int? RequesterId { get; set; }
+    public string? RequesterUsername { get; set; }
+    public string? RequesterEmail { get; set; }
+    public int? RestaurantId { get; set; }
+    public string? RestaurantName { get; set; }
+    public string? RestaurantSlug { get; set; }
 
     public ContactInfoDto? Contact { get; set; }
     public AdminPhotoModerationDto? Photo { get; set; }

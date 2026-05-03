@@ -8,7 +8,6 @@ public class User : IAuditableEntity, ISoftDeletable, IHasPublicId
     public int UserId { get; set; }
     public Guid PublicId { get; set; }
     public string Username { get; set; } = string.Empty;
-    public int? RestaurantId { get; set; }
     public string Email { get; set; } = string.Empty;
     public bool EmailVerified { get; set; }
     public string PasswordHash { get; set; } = string.Empty;

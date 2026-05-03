@@ -25,6 +25,8 @@
     <button class="btn btn-sm @(_ticketTypeFilter == "EditRequest" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("EditRequest")'>Edycja</button>
     <button class="btn btn-sm @(_ticketTypeFilter == "IngredientSuggestion" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("IngredientSuggestion")'>Składnik</button>
     <button class="btn btn-sm @(_ticketTypeFilter == "DataCorrection" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("DataCorrection")'>Korekta</button>
+    <button class="btn btn-sm @(_ticketTypeFilter == "RestaurantClaim" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("RestaurantClaim")'>Claim</button>
+    <button class="btn btn-sm @(_ticketTypeFilter == "RestaurantRequest" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("RestaurantRequest")'>Nowa restauracja</button>
 </div>
 
 @if (_loading)
@@ -136,6 +138,8 @@ else
         "EditRequest" => "Edycja",
         "IngredientSuggestion" => "Składnik",
         "DataCorrection" => "Korekta",
+        "RestaurantClaim" => "Claim restauracji",
+        "RestaurantRequest" => "Nowa restauracja",
         _ => type
     };
 

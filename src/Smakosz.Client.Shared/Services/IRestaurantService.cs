@@ -9,6 +9,7 @@ public interface IRestaurantService
     Task<PagedResult<DishCardDto>?> GetDishesAsync(string slug, int page = 1, int pageSize = 20);
     Task<bool> SubmitCorrectionAsync(string slug, CreateDataCorrectionDto dto);
     Task<bool> SuggestIngredientAsync(string slug, CreateIngredientSuggestionDto dto);
+    Task<int?> ClaimRestaurantAsync(Guid publicId, string justification);
 }
 
 public record CreateDataCorrectionDto(string IssueType, string? Description, string? ProposedValue);

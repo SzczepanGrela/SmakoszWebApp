@@ -1,0 +1,197 @@
+@page "/admin/restaurants/new"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+@inject NavigationManager Nav
+
+<PageTitle>Nowa restauracja - Admin Smakosz</PageTitle>
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="@(_fromTicket.HasValue ? $"/admin/tickets/{_fromTicket.Value}" : "/admin/restaurants")" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-plus me-2"></i>Nowa restauracja</h2>
+</div>
+
+@if (_loadingTicket)
+{
+    <LoadingSpinner />
+}
+else
+{
+    @if (_fromTicket.HasValue)
+    {
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info me-2"></i>
+            Tworzenie restauracji ze zgloszenia #@_fromTicket
+            @if (!string.IsNullOrEmpty(_lockedOwnerUsername))
+            {
+                <span> | Zglaszajacy: <strong>@_lockedOwnerUsername</strong> (zostanie wlascicielem)</span>
+            }
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-medium">Nazwa restauracji *</label>
+                <input type="text" class="form-control" @bind="_dto.Name" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Adres *</label>
+                <input type="text" class="form-control" @bind="_dto.Address" placeholder="ul. Przykladowa 1, Warszawa" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Miasto *</label>
+                <select class="form-select" @bind="_dto.CityId">
+                    <option value="0">Wybierz miasto...</option>
+                    @foreach (var city in _cities)
+                    {
+                        <option value="@city.Id">@city.CityName</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">ID typu kuchni *</label>
+                <input type="number" class="form-control" min="1" @bind="_dto.CuisineTypeId" />
+                <small class="text-muted">Aktualna lista typow kuchni dostepna w bazie (cuisine_types).</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Telefon</label>
+                <input type="tel" class="form-control" @bind="_dto.Phone" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Email kontaktowy</label>
+                <input type="email" class="form-control" @bind="_dto.Email" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Opis</label>
+                <textarea class="form-control" rows="3" @bind="_dto.Description"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">ID wlasciciela (opcjonalnie)</label>
+                <input type="number" class="form-control" min="1" @bind="_ownerIdInput" disabled="@_ownerLocked" />
+                @if (_ownerLocked)
+                {
+                    <small class="text-muted">Wlasciciel zablokowany przez zgloszenie nr @_fromTicket.</small>
+                }
+                else
+                {
+                    <small class="text-muted">Pozostaw puste, aby utworzyc restauracje bez wlasciciela.</small>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                </div>
+            }
+
+            <button class="btn btn-primary" @onclick="Submit" disabled="@_submitting">
+                @if (_submitting) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                <i class="fa-solid fa-floppy-disk me-1"></i>Utworz restauracje
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private AdminCreateRestaurantDto _dto = new();
+    private List<AdminCityDto> _cities = [];
+    private int? _ownerIdInput;
+    private bool _ownerLocked;
+    private string? _lockedOwnerUsername;
+    private int? _fromTicket;
+    private bool _loadingTicket;
+    private bool _submitting;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var raw = uri.Query.TrimStart('?');
+        foreach (var pair in raw.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var eq = pair.IndexOf('=');
+            if (eq <= 0) continue;
+            var key = Uri.UnescapeDataString(pair[..eq]);
+            var val = Uri.UnescapeDataString(pair[(eq + 1)..]);
+            if (string.Equals(key, "fromTicket", StringComparison.OrdinalIgnoreCase) && int.TryParse(val, out var tid))
+            {
+                _fromTicket = tid;
+            }
+        }
+
+        var cityResult = await AdminService.GetCitiesAsync(1);
+        _cities = cityResult?.Data?.ToList() ?? [];
+
+        if (_fromTicket.HasValue)
+        {
+            _loadingTicket = true;
+            var ticket = await AdminService.GetTicketDetailAsync(_fromTicket.Value);
+            _loadingTicket = false;
+            if (ticket != null && ticket.TicketType == "RestaurantRequest" && !string.IsNullOrWhiteSpace(ticket.Description))
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(ticket.Description);
+                    var root = doc.RootElement;
+                    _dto.Name = GetString(root, "Name") ?? string.Empty;
+                    _dto.Address = GetString(root, "Address") ?? string.Empty;
+                    _dto.Phone = GetString(root, "Phone");
+                    _dto.Email = GetString(root, "Email");
+                    _dto.Description = GetString(root, "Description");
+                    _dto.CityId = GetInt(root, "CityId") ?? 0;
+                    _dto.CuisineTypeId = GetInt(root, "CuisineTypeId") ?? 0;
+                }
+                catch (System.Text.Json.JsonException) { }
+            }
+            if (ticket?.RequesterId.HasValue == true)
+            {
+                _ownerIdInput = ticket.RequesterId;
+                _ownerLocked = true;
+                _lockedOwnerUsername = ticket.RequesterUsername;
+            }
+        }
+    }
+
+    private static string? GetString(System.Text.Json.JsonElement el, string name)
+        => el.TryGetProperty(name, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String ? v.GetString() : null;
+
+    private static int? GetInt(System.Text.Json.JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var v)) return null;
+        if (v.ValueKind == System.Text.Json.JsonValueKind.Number && v.TryGetInt32(out var n)) return n;
+        if (v.ValueKind == System.Text.Json.JsonValueKind.String && int.TryParse(v.GetString(), out var s)) return s;
+        return null;
+    }
+
+    private async Task Submit()
+    {
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_dto.Name)) { _error = "Nazwa jest wymagana."; return; }
+        if (string.IsNullOrWhiteSpace(_dto.Address)) { _error = "Adres jest wymagany."; return; }
+        if (_dto.CityId <= 0) { _error = "Wybierz miasto."; return; }
+        if (_dto.CuisineTypeId <= 0) { _error = "Podaj ID typu kuchni."; return; }
+
+        _dto.OwnerId = _ownerIdInput;
+        _dto.TicketId = _fromTicket;
+
+        _submitting = true;
+        var newId = await AdminService.CreateRestaurantAsync(_dto);
+        _submitting = false;
+
+        if (newId.HasValue)
+        {
+            Toast.ShowSuccess($"Restauracja utworzona (#{newId.Value}).");
+            Nav.NavigateTo(_fromTicket.HasValue ? "/admin/tickets" : "/admin/restaurants");
+        }
+        else
+        {
+            _error = "Nie udalo sie utworzyc restauracji.";
+            Toast.ShowError(_error);
+        }
+    }
+}
