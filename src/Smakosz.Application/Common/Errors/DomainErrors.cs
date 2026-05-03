@@ -59,6 +59,15 @@ public static class DomainErrors
 
         public static readonly Error SameStatus =
             Error.Validation("RESTAURANT_SAME_STATUS", "Restauracja ma już ten status");
+
+        public static readonly Error AlreadyClaimed =
+            Error.Conflict("RESTAURANT_ALREADY_CLAIMED", "Ta restauracja ma już właściciela.");
+
+        public static readonly Error ClaimAlreadyPending =
+            Error.Conflict("CLAIM_ALREADY_PENDING", "Masz już oczekujące zgłoszenie przejęcia. Zaczekaj na weryfikację administratora.");
+
+        public static readonly Error RequestAlreadyPending =
+            Error.Conflict("REQUEST_ALREADY_PENDING", "Masz już oczekujące zgłoszenie nowej restauracji. Zaczekaj na weryfikację administratora.");
     }
 
     public static class Dish
