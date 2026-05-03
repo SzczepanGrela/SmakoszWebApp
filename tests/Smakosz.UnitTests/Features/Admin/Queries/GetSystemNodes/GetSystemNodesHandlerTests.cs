@@ -23,17 +23,19 @@ public class GetSystemNodesHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ReturnsAllNodes()
+    public async Task Handle_ReturnsOnlyExternalNodes()
     {
         _sets.SystemNodes.Add(new SystemNode { NodeId = "api-main", NodeType = NodeType.Api, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-1" });
         _sets.SystemNodes.Add(new SystemNode { NodeId = "gpu-worker-1", NodeType = NodeType.Gpu, Role = NodeRole.Worker, Status = "offline", GpuName = "RTX 3060" });
         _sets.SystemNodes.Add(new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online" });
+        _sets.SystemNodes.Add(new SystemNode { NodeId = "rpi-gateway", NodeType = NodeType.RpiGateway, Status = "online" });
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new GetSystemNodesQuery(), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.Should().HaveCount(3);
+        result.Value.Should().HaveCount(2);
+        result.Value.Select(n => n.NodeId).Should().BeEquivalentTo(new[] { "gpu-worker-1", "rpi-gateway" });
     }
 
     [Fact]

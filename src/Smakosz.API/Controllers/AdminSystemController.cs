@@ -17,6 +17,7 @@ using Smakosz.Application.Features.Admin.Queries.GetAuditLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSecurityLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemNodes;
+using Smakosz.Application.Features.Admin.Commands.WakeGpu;
 
 namespace Smakosz.API.Controllers;
 
@@ -166,6 +167,13 @@ public class AdminSystemController : ApiController
     public async Task<IActionResult> GetSystemNodes()
     {
         var result = await _mediator.Send(new GetSystemNodesQuery());
+        return ToActionResult(result);
+    }
+
+    [HttpPost("nodes/gpu/wake")]
+    public async Task<IActionResult> WakeGpu(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new WakeGpuCommand(), ct);
         return ToActionResult(result);
     }
 }

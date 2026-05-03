@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace Smakosz.Application.Common.Interfaces;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GpuWakeStatus
 {
     Sent,
