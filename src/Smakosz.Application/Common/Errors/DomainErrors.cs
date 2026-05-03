@@ -198,6 +198,9 @@ public static class DomainErrors
 
         public static readonly Error RegistrationPending =
             Error.Conflict("BUSINESS_REGISTRATION_PENDING", "Rejestracja w trakcie weryfikacji");
+
+        public static readonly Error UserAlreadyOwnsRestaurant =
+            Error.Conflict("BUSINESS_USER_ALREADY_OWNS_RESTAURANT", "Wybrany użytkownik posiada już restaurację");
     }
 
     public static class Admin
@@ -285,6 +288,15 @@ public static class DomainErrors
 
         public static readonly Error InvalidStatus =
             Error.Validation("TICKET_INVALID_STATUS", "Nieprawidłowy status zgłoszenia");
+
+        public static readonly Error WrongType =
+            Error.Validation("TICKET_WRONG_TYPE", "Nieprawidłowy typ zgłoszenia dla tej operacji");
+
+        public static readonly Error NotPending =
+            Error.Validation("TICKET_NOT_PENDING", "Zgłoszenie nie jest w stanie oczekującym");
+
+        public static readonly Error RequesterMismatch =
+            Error.Validation("TICKET_REQUESTER_MISMATCH", "Wybrany właściciel nie jest autorem zgłoszenia");
     }
 
     public static class EditRequest
