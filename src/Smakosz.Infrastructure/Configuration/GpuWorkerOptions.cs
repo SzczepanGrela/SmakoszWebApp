@@ -1,4 +1,4 @@
-namespace Smakosz.Orchestrator.Configuration;
+namespace Smakosz.Infrastructure.Configuration;
 
 public class GpuWorkerOptions
 {

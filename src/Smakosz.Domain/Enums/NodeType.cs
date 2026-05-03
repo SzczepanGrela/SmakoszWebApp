@@ -4,5 +4,6 @@ public enum NodeType
 {
     Api,
     Gpu,
-    Orchestrator
+    Orchestrator,
+    RpiGateway
 }

@@ -513,3 +513,9 @@ public class AdminSystemNodeDto
     public int? CurrentJobId { get; set; }
     public DateTime? LastHeartbeat { get; set; }
 }
+
+public class GpuWakeResultDto
+{
+    public string Status { get; set; } = default!;
+    public string? Message { get; set; }
+}

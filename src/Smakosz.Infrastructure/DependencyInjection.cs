@@ -25,6 +25,35 @@ public static class DependencyInjection
         services.AddInfrastructureRecommendations(configuration);
         services.AddInfrastructureMessaging(configuration);
         services.AddInfrastructureModels(configuration);
+        services.AddInfrastructureExternalServices(configuration);
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureExternalServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<RpiGatewayOptions>(configuration.GetSection(RpiGatewayOptions.SectionName));
+        services.Configure<GpuWorkerOptions>(configuration.GetSection(GpuWorkerOptions.SectionName));
+
+        services.AddHttpClient("GpuWorker", (sp, c) =>
+            {
+                var opts = sp.GetRequiredService<IOptions<GpuWorkerOptions>>().Value;
+                c.BaseAddress = new Uri(opts.Url);
+                c.Timeout = TimeSpan.FromSeconds(10);
+            });
+
+        services.AddHttpClient("RpiGateway", (sp, c) =>
+            {
+                var opts = sp.GetRequiredService<IOptions<RpiGatewayOptions>>().Value;
+                c.BaseAddress = new Uri(opts.Url);
+                if (!string.IsNullOrEmpty(opts.ApiToken))
+                    c.DefaultRequestHeaders.Add("X-API-Token", opts.ApiToken);
+                c.Timeout = TimeSpan.FromSeconds(10);
+            });
+
+        services.AddScoped<IGpuWakeService, RpiGatewayWakeService>();
 
         return services;
     }

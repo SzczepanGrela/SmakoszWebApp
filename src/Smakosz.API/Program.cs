@@ -32,6 +32,7 @@ builder.Services.AddInfrastructureAuth(builder.Configuration);
 builder.Services.AddInfrastructureStorage(builder.Configuration);
 builder.Services.AddInfrastructureRecommendations(builder.Configuration);
 builder.Services.AddInfrastructureMessaging(builder.Configuration);
+builder.Services.AddInfrastructureExternalServices(builder.Configuration);
 
 if (!builder.Environment.IsEnvironment("Testing"))
 {

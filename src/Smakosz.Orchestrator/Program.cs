@@ -22,6 +22,7 @@ builder.Services.AddInfrastructureCore(connectionString);
 builder.Services.AddInfrastructureStorage(builder.Configuration);
 builder.Services.AddInfrastructureMessaging(builder.Configuration);
 builder.Services.AddInfrastructureModels(builder.Configuration);
+builder.Services.AddInfrastructureExternalServices(builder.Configuration);
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -37,24 +38,7 @@ builder.Logging.AddDatabaseLogger(opts => opts.IgnoredPrefixes = ["Microsoft", "
 
 builder.Services.AddScoped<SmakoszDbContext>();
 
-builder.Services.Configure<GpuWorkerOptions>(builder.Configuration.GetSection(GpuWorkerOptions.SectionName));
-builder.Services.Configure<RpiGatewayOptions>(builder.Configuration.GetSection(RpiGatewayOptions.SectionName));
 builder.Services.Configure<NcfTrainingOptions>(builder.Configuration.GetSection(NcfTrainingOptions.SectionName));
-
-var gpuUrl = builder.Configuration.GetSection("GpuWorker")["Url"] ?? "http://localhost:8000";
-var rpiSection = builder.Configuration.GetSection("RpiGateway");
-var rpiUrl = rpiSection["Url"] ?? "http://localhost:5000";
-var rpiToken = rpiSection["ApiToken"] ?? "";
-
-builder.Services.AddHttpClient("GpuWorker", c => c.BaseAddress = new Uri(gpuUrl))
-    .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(10));
-builder.Services.AddHttpClient("RpiGateway", c =>
-    {
-        c.BaseAddress = new Uri(rpiUrl);
-        if (!string.IsNullOrEmpty(rpiToken))
-            c.DefaultRequestHeaders.Add("X-API-Token", rpiToken);
-    })
-    .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(10));
 
 builder.Services.AddHangfire(cfg => cfg
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)

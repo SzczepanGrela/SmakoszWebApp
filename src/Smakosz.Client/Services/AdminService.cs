@@ -318,6 +318,12 @@ public class AdminService : IAdminService
     public async Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync()
         => await _api.GetAsync<List<AdminSystemNodeDto>>("/api/admin/nodes");
 
+    public async Task<GpuWakeResultDto?> WakeGpuAsync()
+    {
+        var response = await _api.PostApiResponseAsync<GpuWakeResultDto>("/api/admin/nodes/gpu/wake", null);
+        return response.Success ? response.Data : null;
+    }
+
     public Task<PagedResult<AdminBannedIdentifierDto>?> GetBannedIdentifiersAsync(int page = 1, string? type = null, bool includeExpired = false)
     {
         var url = $"/api/admin/banned-identifiers?page={page}&includeExpired={includeExpired}";

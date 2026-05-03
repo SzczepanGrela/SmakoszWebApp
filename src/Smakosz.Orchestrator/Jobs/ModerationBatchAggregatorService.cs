@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
-using Smakosz.Orchestrator.Configuration;
+using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Orchestrator.Jobs;
 
@@ -15,6 +15,7 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
 {
     private readonly ISmakoszDbContext _db;
     private readonly IHttpClientFactory _httpFactory;
+    private readonly IGpuWakeService _gpuWake;
     private readonly IDateTimeProvider _clock;
     private readonly GpuWorkerOptions _gpuOptions;
     private readonly ILogger<ModerationBatchAggregatorService> _logger;
@@ -22,12 +23,14 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
     public ModerationBatchAggregatorService(
         ISmakoszDbContext db,
         IHttpClientFactory httpFactory,
+        IGpuWakeService gpuWake,
         IDateTimeProvider clock,
         IOptions<GpuWorkerOptions> gpuOptions,
         ILogger<ModerationBatchAggregatorService> logger)
     {
         _db = db;
         _httpFactory = httpFactory;
+        _gpuWake = gpuWake;
         _clock = clock;
         _gpuOptions = gpuOptions.Value;
         _logger = logger;
@@ -51,7 +54,7 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
         {
             await AggregateTextBatchesAsync(textBatchSize, ct);
             await AggregateImageBatchesAsync(imageBatchSize, ct);
-            await WakeGpuIfNeededAsync(ct);
+            await _gpuWake.WakeAsync(ct);
         }
         finally
         {
@@ -259,26 +262,6 @@ public class ModerationBatchAggregatorService : IModerationAggregationService
         {
             var sections = await _db.MenuSections.Where(ms => menuSectionIds.Contains(ms.SectionId)).ToListAsync(ct);
             foreach (var ms in sections) ms.ModerationStatus = ContentModerationStatus.Processing;
-        }
-    }
-
-    private async Task WakeGpuIfNeededAsync(CancellationToken ct)
-    {
-        try
-        {
-            var gpuNode = await _db.SystemNodes
-                .FirstOrDefaultAsync(n => n.NodeType == NodeType.Gpu, ct);
-
-            if (gpuNode is null || gpuNode.Status == "online")
-                return;
-
-            var rpiClient = _httpFactory.CreateClient("RpiGateway");
-            await rpiClient.PostAsync("/wake", null, ct);
-            _logger.LogInformation("Sent WoL to GPU worker via RPI gateway");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to wake GPU worker");
         }
     }
 

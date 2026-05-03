@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Admin.Dtos;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetSystemNodes;
 
@@ -26,6 +27,7 @@ public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorO
             return DomainErrors.Admin.Forbidden;
 
         var items = await _db.SystemNodes.AsNoTracking()
+            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RpiGateway)
             .OrderBy(n => n.NodeType)
             .Select(n => new SystemNodeDto
             {
