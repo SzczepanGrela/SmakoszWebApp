@@ -80,6 +80,23 @@ jobs:
       - name: Build
         run: dotnet build Smakosz.slnx --no-restore -c Release
 
+      - name: Generate test JWT keypair and E2E test config
+        run: |
+          openssl genpkey -algorithm RSA -out /tmp/jwt_private.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -in /tmp/jwt_private.pem -pubout -out /tmp/jwt_public.pem
+          PRIVATE_KEY=$(awk 'NF {sub(/\r/,""); printf "%s\\n", $0}' /tmp/jwt_private.pem)
+          mkdir -p tests/Smakosz.E2E/bin/Release/net10.0
+          cat > tests/Smakosz.E2E/bin/Release/net10.0/appsettings.json <<EOF
+          {
+            "ConnectionStrings": {
+              "E2E": "Host=localhost;Port=5432;Database=smakosz_e2e;Username=postgres;Password=Czteryzera"
+            },
+            "Jwt": {
+              "PrivateKey": "${PRIVATE_KEY}"
+            }
+          }
+          EOF
+
       - name: Install Playwright browsers
         run: pwsh tests/Smakosz.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
@@ -87,6 +104,14 @@ jobs:
         run: dotnet test tests/Smakosz.E2E/Smakosz.E2E.csproj --no-build -c Release --logger "trx;LogFileName=e2e.trx" --results-directory tests/Smakosz.E2E/TestResults
         env:
           ASPNETCORE_ENVIRONMENT: E2E
+          Jwt__PrivateKeyPath: /tmp/jwt_private.pem
+          Jwt__PublicKeyPath: /tmp/jwt_public.pem
+          Jwt__Issuer: Smakosz.API
+          Jwt__Audience: Smakosz.Client
+          CodeHasher__Secret: ci-test-codehasher-secret-32chars-min
+          Cors__AllowedOrigins__0: http://localhost:5003
+          Turnstile__SiteKey: 1x00000000000000000000AA
+          Turnstile__SecretKey: 1x0000000000000000000000000000000AA
 
       - name: Upload test results
         if: always()
