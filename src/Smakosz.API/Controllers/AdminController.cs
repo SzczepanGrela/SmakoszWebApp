@@ -7,7 +7,11 @@ using Smakosz.Application.Features.Admin.Commands.CreateIngredient;
 using Smakosz.Application.Features.Admin.Commands.DeleteCity;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
+using Smakosz.Application.Features.Admin.Commands.AdminCreateRestaurant;
 using Smakosz.Application.Features.Admin.Commands.AdminDisable2fa;
+using Smakosz.Application.Features.Admin.Commands.ApproveRestaurantClaim;
+using Smakosz.Application.Features.Admin.Commands.RejectNewRestaurantRequest;
+using Smakosz.Application.Features.Admin.Commands.RejectRestaurantClaim;
 using Smakosz.Application.Features.Admin.Commands.AdminResetUserPassword;
 using Smakosz.Application.Features.Admin.Commands.ChangeUserRole;
 using Smakosz.Application.Features.Admin.Commands.CreatePrivilegedAccount;
@@ -169,6 +173,43 @@ public class AdminController : ApiController
     public async Task<IActionResult> VerifyRestaurant(Guid publicId)
     {
         var result = await _mediator.Send(new VerifyRestaurantCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("restaurants")]
+    public async Task<IActionResult> CreateRestaurant([FromBody] AdminCreateRestaurantRequest request)
+    {
+        var result = await _mediator.Send(new AdminCreateRestaurantCommand(
+            request.Name,
+            request.Address,
+            request.CityId,
+            request.CuisineTypeId,
+            request.Phone,
+            request.Email,
+            request.Description,
+            request.OwnerId,
+            request.TicketId));
+        return ToCreatedResult(result, $"/api/admin/restaurants/by-id/{(result.IsError ? 0 : result.Value)}");
+    }
+
+    [HttpPost("tickets/{ticketId:int}/approve-claim")]
+    public async Task<IActionResult> ApproveRestaurantClaim(int ticketId)
+    {
+        var result = await _mediator.Send(new ApproveRestaurantClaimCommand(ticketId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("tickets/{ticketId:int}/reject-claim")]
+    public async Task<IActionResult> RejectRestaurantClaim(int ticketId, [FromBody] RejectTicketRequest request)
+    {
+        var result = await _mediator.Send(new RejectRestaurantClaimCommand(ticketId, request.Reason));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("tickets/{ticketId:int}/reject-request")]
+    public async Task<IActionResult> RejectNewRestaurantRequest(int ticketId, [FromBody] RejectTicketRequest request)
+    {
+        var result = await _mediator.Send(new RejectNewRestaurantRequestCommand(ticketId, request.Reason));
         return ToNoContentResult(result);
     }
 
@@ -426,6 +467,17 @@ public record UpdateTagRequest(string? Name, string? Category, string? TargetEnt
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
 public record ChangeRestaurantStatusRequest(string Status, string? Reason);
+public record AdminCreateRestaurantRequest(
+    string Name,
+    string Address,
+    int CityId,
+    int CuisineTypeId,
+    string? Phone,
+    string? Email,
+    string? Description,
+    int? OwnerId,
+    int? TicketId);
+public record RejectTicketRequest(string Reason);
 public record CreateBannedIdentifierRequest(string Type, string Value, string? Reason, DateTime? ExpiresAt);
 public record UpdateBannedIdentifierRequest(string? Reason, DateTime? ExpiresAt, bool ClearExpiration = false);
 public record CreateForbiddenWordRequest(string Word, string Category, bool IsRegex);
