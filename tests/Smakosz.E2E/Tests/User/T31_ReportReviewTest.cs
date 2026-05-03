@@ -48,10 +48,18 @@ public class T31_ReportReviewTest : SmakoszE2ETestBase
         http.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userToken);
 
+        // Retry once on 429 - the rate limiter on the public reviews endpoint can fire
+        // when many sequential E2E tests share the loopback IP and this test runs late in the suite.
         var reviewsResponse = await http.GetAsync(
             $"{TestConstants.ApiBaseUrl}/api/dishes/pizza-margherita/reviews");
+        if (reviewsResponse.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        {
+            await Task.Delay(2000);
+            reviewsResponse = await http.GetAsync(
+                $"{TestConstants.ApiBaseUrl}/api/dishes/pizza-margherita/reviews");
+        }
         Assert.That(reviewsResponse.IsSuccessStatusCode, Is.True,
-            "Should be able to fetch reviews for pizza-margherita");
+            $"Should be able to fetch reviews for pizza-margherita. Got: {reviewsResponse.StatusCode}");
 
         var reviewsJson = await reviewsResponse.Content.ReadAsStringAsync();
         using var reviewsDoc = JsonDocument.Parse(reviewsJson);
