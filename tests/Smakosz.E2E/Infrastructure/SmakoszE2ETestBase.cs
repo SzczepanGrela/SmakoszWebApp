@@ -15,8 +15,8 @@ public class SmakoszE2ETestBase : PageTest
         };
     }
 
-    [OneTimeSetUp]
-    public async Task ResetDatabaseBeforeFixture()
+    [SetUp]
+    public async Task ResetDatabaseBeforeEachTest()
     {
         await E2EDatabaseSeeder.ResetAsync();
     }
