@@ -27,7 +27,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructureCore(
-    builder.Configuration.GetConnectionString("DefaultConnection")!);
+    builder.Configuration.GetConnectionString("DefaultConnection")!,
+    isE2E: builder.Environment.IsEnvironment("E2E"));
 builder.Services.AddInfrastructureAuth(builder.Configuration);
 builder.Services.AddInfrastructureStorage(builder.Configuration);
 builder.Services.AddInfrastructureRecommendations(builder.Configuration);
