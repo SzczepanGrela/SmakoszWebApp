@@ -21,7 +21,6 @@ public class DeleteAccountTests : IntegrationTestBase
             var user = SeedHelpers.CreateUser(1, "jan-kowalski", "jan@smakosz.test", hash);
             var restaurantOwner = SeedHelpers.CreateUser(50, "restaurator", "restaurator@smakosz.test", hash);
             var restaurant = SeedHelpers.CreateRestaurant(1, "Pizzeria Roma", city.CityId, ownerId: 50);
-            restaurantOwner.RestaurantId = restaurant.RestaurantId;
 
             db.Cities.Add(city);
             db.Users.AddRange(user, restaurantOwner);

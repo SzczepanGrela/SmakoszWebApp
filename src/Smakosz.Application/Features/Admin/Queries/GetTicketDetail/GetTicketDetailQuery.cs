@@ -30,6 +30,7 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
         var ticket = await _db.SystemTickets
             .AsNoTracking()
             .Include(t => t.AssignedAdmin)
+            .Include(t => t.Requester)
             .FirstOrDefaultAsync(t => t.TicketId == request.TicketId, cancellationToken);
 
         if (ticket is null)
@@ -44,7 +45,10 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
             Priority = ticket.Priority,
             Description = ticket.Description,
             AssignedAdminUsername = ticket.AssignedAdmin?.Username,
-            CreatedAt = ticket.CreatedAt
+            CreatedAt = ticket.CreatedAt,
+            RequesterId = ticket.RequesterId,
+            RequesterUsername = ticket.Requester?.Username,
+            RequesterEmail = ticket.Requester?.Email
         };
 
         switch (ticket.TicketType)
@@ -161,6 +165,18 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
                         CreatedAt = suggestion.CreatedAt,
                         ReviewedAt = suggestion.ReviewedAt
                     };
+                }
+                break;
+
+            case TicketType.RestaurantClaim:
+                var claimedRestaurant = await _db.Restaurants
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.RestaurantId == (int)ticket.ReferenceId, cancellationToken);
+                if (claimedRestaurant != null)
+                {
+                    dto.RestaurantId = claimedRestaurant.RestaurantId;
+                    dto.RestaurantName = claimedRestaurant.RestaurantName;
+                    dto.RestaurantSlug = claimedRestaurant.Slug;
                 }
                 break;
         }

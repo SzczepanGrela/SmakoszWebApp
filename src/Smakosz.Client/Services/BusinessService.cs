@@ -121,10 +121,10 @@ public class BusinessService : IBusinessService
     public Task<RegistrationStatusDto?> GetRegistrationStatusAsync()
         => _api.GetAsync<RegistrationStatusDto>("/api/business/registration-status");
 
-    public async Task<bool> RegisterBusinessAsync(BusinessRestaurantDto dto)
+    public async Task<int?> RequestNewRestaurantAsync(NewRestaurantRequestDto dto)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/business/register", dto);
-        return response.Success;
+        var response = await _api.PostApiResponseAsync<int>("/api/restaurants/request", dto);
+        return response.Success ? response.Data : null;
     }
 
     public async Task<bool> CreateMenuSectionAsync(string name)

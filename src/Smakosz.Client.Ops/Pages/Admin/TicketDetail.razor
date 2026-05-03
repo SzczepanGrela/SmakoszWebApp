@@ -59,6 +59,12 @@ else
         case "DataCorrection":
             @RenderDataCorrectionPanel()
             break;
+        case "RestaurantClaim":
+            @RenderRestaurantClaimPanel()
+            break;
+        case "RestaurantRequest":
+            @RenderRestaurantRequestPanel()
+            break;
     }
 }
 
@@ -570,6 +576,180 @@ else
         "EditRequest" => "Edycja",
         "IngredientSuggestion" => "Składnik",
         "DataCorrection" => "Korekta",
+        "RestaurantClaim" => "Claim restauracji",
+        "RestaurantRequest" => "Nowa restauracja",
         _ => type
     };
+
+    private RestaurantRequestPayload? _requestPayload;
+
+    private RenderFragment RenderRestaurantClaimPanel() => __builder =>
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-handshake me-2"></i>Claim restauracji</h5></div>
+            <div class="card-body">
+                <dl class="row mb-3">
+                    <dt class="col-sm-3">Restauracja</dt>
+                    <dd class="col-sm-9">
+                        @if (_detail!.RestaurantId.HasValue)
+                        {
+                            <a href="/admin/restaurants/@_detail.RestaurantId">
+                                @(_detail.RestaurantName ?? $"#{_detail.RestaurantId}")
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">#@_detail.ReferenceId (nie znaleziono)</span>
+                        }
+                    </dd>
+                    <dt class="col-sm-3">Zgłaszający</dt>
+                    <dd class="col-sm-9">
+                        @if (_detail.RequesterUsername != null)
+                        {
+                            <strong>@_detail.RequesterUsername</strong>
+                            @if (!string.IsNullOrEmpty(_detail.RequesterEmail))
+                            {
+                                <span class="text-muted"> (@_detail.RequesterEmail)</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </dd>
+                </dl>
+                <div class="p-3 bg-light rounded" style="white-space:pre-line;">@(_detail.Description ?? "(brak uzasadnienia)")</div>
+            </div>
+        </div>
+
+        @if (!IsResolved)
+        {
+            @RenderRejectionInput()
+            <div class="d-flex gap-2">
+                <button class="btn btn-success" disabled="@_actionInProgress" @onclick="ApproveClaim">
+                    <i class="fa-solid fa-check me-1"></i>Zaakceptuj claim
+                </button>
+                <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectClaim">
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                </button>
+            </div>
+        }
+    };
+
+    private async Task ApproveClaim()
+    {
+        _actionInProgress = true;
+        var ok = await AdminService.ApproveRestaurantClaimAsync(Id);
+        _actionInProgress = false;
+        if (ok) { Toast.ShowSuccess("Claim zaakceptowany."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Nie udalo sie zaakceptowac claim.");
+    }
+
+    private async Task RejectClaim()
+    {
+        if (string.IsNullOrWhiteSpace(_rejectionReason))
+        {
+            Toast.ShowError("Wpisz powod odrzucenia.");
+            return;
+        }
+        _actionInProgress = true;
+        var ok = await AdminService.RejectRestaurantClaimAsync(Id, _rejectionReason);
+        _actionInProgress = false;
+        if (ok) { Toast.ShowSuccess("Claim odrzucony."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Nie udalo sie odrzucic claim.");
+    }
+
+    private RenderFragment RenderRestaurantRequestPanel() => __builder =>
+    {
+        if (_requestPayload == null && !string.IsNullOrWhiteSpace(_detail!.Description))
+        {
+            try
+            {
+                _requestPayload = System.Text.Json.JsonSerializer.Deserialize<RestaurantRequestPayload>(
+                    _detail.Description,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (System.Text.Json.JsonException) { _requestPayload = null; }
+        }
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-store me-2"></i>Nowa restauracja - propozycja</h5></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Zgłaszający</dt>
+                    <dd class="col-sm-9">
+                        @if (_detail!.RequesterUsername != null)
+                        {
+                            <strong>@_detail.RequesterUsername</strong>
+                            @if (!string.IsNullOrEmpty(_detail.RequesterEmail))
+                            {
+                                <span class="text-muted"> (@_detail.RequesterEmail)</span>
+                            }
+                        }
+                        else { <span class="text-muted">-</span> }
+                    </dd>
+                    @if (_requestPayload != null)
+                    {
+                        <dt class="col-sm-3">Nazwa</dt>
+                        <dd class="col-sm-9">@(_requestPayload.Name ?? "-")</dd>
+                        <dt class="col-sm-3">Adres</dt>
+                        <dd class="col-sm-9">@(_requestPayload.Address ?? "-")</dd>
+                        <dt class="col-sm-3">Miasto (id)</dt>
+                        <dd class="col-sm-9">@(_requestPayload.CityId?.ToString() ?? "-")</dd>
+                        <dt class="col-sm-3">Typ kuchni (id)</dt>
+                        <dd class="col-sm-9">@(_requestPayload.CuisineTypeId?.ToString() ?? "-")</dd>
+                        <dt class="col-sm-3">Telefon</dt>
+                        <dd class="col-sm-9">@(_requestPayload.Phone ?? "-")</dd>
+                        <dt class="col-sm-3">Email</dt>
+                        <dd class="col-sm-9">@(_requestPayload.Email ?? "-")</dd>
+                        <dt class="col-sm-3">Opis</dt>
+                        <dd class="col-sm-9" style="white-space:pre-line;">@(_requestPayload.Description ?? "-")</dd>
+                    }
+                    else
+                    {
+                        <dt class="col-sm-3">Treść</dt>
+                        <dd class="col-sm-9" style="white-space:pre-line;">@(_detail.Description ?? "(brak)")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (!IsResolved)
+        {
+            @RenderRejectionInput()
+            <div class="d-flex gap-2">
+                <a href="/admin/restaurants/new?fromTicket=@Id" class="btn btn-success">
+                    <i class="fa-solid fa-plus me-1"></i>Utworz restauracje
+                </a>
+                <button class="btn btn-danger" disabled="@_actionInProgress" @onclick="RejectNewRequest">
+                    <i class="fa-solid fa-xmark me-1"></i>Odrzuc
+                </button>
+            </div>
+        }
+    };
+
+    private async Task RejectNewRequest()
+    {
+        if (string.IsNullOrWhiteSpace(_rejectionReason))
+        {
+            Toast.ShowError("Wpisz powod odrzucenia.");
+            return;
+        }
+        _actionInProgress = true;
+        var ok = await AdminService.RejectNewRestaurantRequestAsync(Id, _rejectionReason);
+        _actionInProgress = false;
+        if (ok) { Toast.ShowSuccess("Zgloszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        else Toast.ShowError("Nie udalo sie odrzucic zgloszenia.");
+    }
+
+    private class RestaurantRequestPayload
+    {
+        public string? Name { get; set; }
+        public string? Address { get; set; }
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+        public string? Description { get; set; }
+        public int? CityId { get; set; }
+        public int? CuisineTypeId { get; set; }
+    }
 }

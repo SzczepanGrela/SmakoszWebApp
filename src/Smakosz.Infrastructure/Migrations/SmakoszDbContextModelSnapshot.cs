@@ -19,7 +19,7 @@ namespace Smakosz.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
@@ -1407,7 +1407,9 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDatabaseName("ix_restaurants_cuisine_type_id");
 
                     b.HasIndex("OwnerId")
-                        .HasDatabaseName("ix_restaurants_owner_id");
+                        .IsUnique()
+                        .HasDatabaseName("ix_restaurants_owner_id_unique")
+                        .HasFilter("owner_id IS NOT NULL");
 
                     b.HasIndex("PublicId")
                         .IsUnique()
@@ -2941,6 +2943,23 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("reference_id");
 
+                    b.Property<int?>("RequesterId")
+                        .HasColumnType("integer")
+                        .HasColumnName("requester_id");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("resolution");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<int?>("ResolvedByAdminId")
+                        .HasColumnType("integer")
+                        .HasColumnName("resolved_by_admin_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -2973,12 +2992,21 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasDatabaseName("ix_tickets_assigned_admin_id")
                         .HasFilter("assigned_admin_id IS NOT NULL");
 
+                    b.HasIndex("RequesterId")
+                        .HasDatabaseName("ix_tickets_requester_id");
+
+                    b.HasIndex("ResolvedByAdminId")
+                        .HasDatabaseName("ix_tickets_resolved_by_admin_id");
+
                     b.HasIndex("Status", "Priority")
                         .IsDescending(false, true)
                         .HasDatabaseName("ix_tickets_status_priority");
 
                     b.HasIndex("TicketType", "ReferenceId")
                         .HasDatabaseName("ix_tickets_ticket_type_reference_id");
+
+                    b.HasIndex("TicketType", "Status")
+                        .HasDatabaseName("ix_tickets_ticket_type_status");
 
                     b.ToTable("tickets", "system");
                 });
@@ -3139,10 +3167,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("public_id");
 
-                    b.Property<int?>("RestaurantId")
-                        .HasColumnType("integer")
-                        .HasColumnName("restaurant_id");
-
                     b.Property<int>("ReviewCount")
                         .HasColumnType("integer")
                         .HasColumnName("review_count");
@@ -3246,10 +3270,6 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasIndex("PublicId")
                         .IsUnique()
                         .HasDatabaseName("ix_users_public_id");
-
-                    b.HasIndex("RestaurantId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_restaurant_id");
 
                     b.HasIndex("Role")
                         .HasDatabaseName("ix_users_role");
@@ -3976,16 +3996,27 @@ namespace Smakosz.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_tickets_users_assigned_admin_id");
 
+                    b.HasOne("Smakosz.Domain.Entities.User", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_tickets_users_requester_id");
+
+                    b.HasOne("Smakosz.Domain.Entities.User", "ResolvedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByAdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_tickets_users_resolved_by_admin_id");
+
                     b.Navigation("AssignedAdmin");
+
+                    b.Navigation("Requester");
+
+                    b.Navigation("ResolvedByAdmin");
                 });
 
             modelBuilder.Entity("Smakosz.Domain.Entities.User", b =>
                 {
-                    b.HasOne("Smakosz.Domain.Entities.Restaurant", null)
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .HasConstraintName("fk_users_restaurants_restaurant_id");
-
                     b.HasOne("Smakosz.Domain.Entities.City", "SecretHomeCity")
                         .WithMany()
                         .HasForeignKey("SecretHomeCityId")

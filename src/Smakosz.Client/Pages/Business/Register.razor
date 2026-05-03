@@ -5,101 +5,73 @@
 @inject ToastService Toast
 @inject SmakoszApiClient Api
 
-<PageTitle>Rejestracja restauracji - Smakosz</PageTitle>
+<PageTitle>Zgłoś nowa restauracje - Smakosz</PageTitle>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-4"><i class="fa-solid fa-store me-2"></i>Zarejestruj restaurację</h1>
+            <h1 class="mb-3"><i class="fa-solid fa-store me-2"></i>Zgłoś nowa restauracje</h1>
+            <p class="text-muted mb-4">
+                Twoja restauracja nie istnieje jeszcze na Smakoszu? Wypelnij formularz, a administrator
+                zweryfikuje zgloszenie i utworzy wpis. Jesli restauracja juz tu jest, znajdz ja w
+                <a href="/restaurants">katalogu</a> i kliknij "Czy to twoja restauracja?".
+            </p>
 
-            <StepWizard Steps="@_steps" @bind-CurrentStep="_currentStep" OnFinish="HandleSubmit">
-                @if (_currentStep == 0)
-                {
-                    <div class="card shadow-sm">
-                        <div class="card-header"><h5 class="mb-0">Podstawowe informacje</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Nazwa restauracji *</label>
-                                <input type="text" class="form-control" @bind="_model.Name" />
-                            </div>
-                        </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Nazwa restauracji *</label>
+                        <input type="text" class="form-control" @bind="_model.Name" />
                     </div>
-                }
-                else if (_currentStep == 1)
-                {
-                    <div class="card shadow-sm">
-                        <div class="card-header"><h5 class="mb-0">Dane kontaktowe</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Miasto</label>
-                                <select class="form-select" @bind="_model.CityId">
-                                    <option value="">Wybierz miasto...</option>
-                                    @foreach (var city in _cities)
-                                    {
-                                        <option value="@city.Id">@city.Name</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Adres *</label>
-                                <input type="text" class="form-control" @bind="_model.Address" placeholder="ul. Przykładowa 1, Warszawa" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Telefon</label>
-                                <input type="tel" class="form-control" @bind="_model.Phone" placeholder="+48 123 456 789" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Email</label>
-                                <input type="email" class="form-control" @bind="_model.Email" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Strona www</label>
-                                <input type="url" class="form-control" @bind="_model.Website" placeholder="https://..." />
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Adres *</label>
+                        <input type="text" class="form-control" @bind="_model.Address"
+                               placeholder="ul. Przykładowa 1, Warszawa" />
                     </div>
-                }
-                else
-                {
-                    <div class="card shadow-sm">
-                        <div class="card-header"><h5 class="mb-0">Opis i podsumowanie</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Opis restauracji</label>
-                                <textarea class="form-control" rows="4" @bind="_model.Description"
-                                          placeholder="Opowiedz o swojej restauracji..."></textarea>
-                            </div>
-                            <hr />
-                            <h6 class="fw-bold">Podsumowanie</h6>
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">Nazwa</dt>
-                                <dd class="col-sm-8">@_model.Name</dd>
-                                <dt class="col-sm-4">Adres</dt>
-                                <dd class="col-sm-8">@(_model.Address ?? "Nie podano")</dd>
-                                <dt class="col-sm-4">Telefon</dt>
-                                <dd class="col-sm-8">@(_model.Phone ?? "Nie podano")</dd>
-                            </dl>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Miasto</label>
+                        <select class="form-select" @bind="_model.CityId">
+                            <option value="">Wybierz miasto...</option>
+                            @foreach (var city in _cities)
+                            {
+                                <option value="@city.Id">@city.Name</option>
+                            }
+                        </select>
                     </div>
-                }
-            </StepWizard>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Telefon</label>
+                        <input type="tel" class="form-control" @bind="_model.Phone" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Email kontaktowy restauracji</label>
+                        <input type="email" class="form-control" @bind="_model.Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Opis (opcjonalnie)</label>
+                        <textarea class="form-control" rows="3" @bind="_model.Description"></textarea>
+                    </div>
 
-            @if (!string.IsNullOrEmpty(_error))
-            {
-                <div class="alert alert-danger mt-3">
-                    <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>@_error
+                        </div>
+                    }
+
+                    <button class="btn btn-primary" @onclick="HandleSubmit" disabled="@_submitting">
+                        <i class="fa-solid fa-paper-plane me-2"></i>Wyslij zgloszenie
+                    </button>
                 </div>
-            }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private BusinessRestaurantDto _model = new();
-    private int _currentStep;
+    private NewRestaurantRequestDto _model = new();
     private string? _error;
+    private bool _submitting;
     private List<CityDto> _cities = [];
-    private readonly List<string> _steps = ["Podstawowe", "Kontakt", "Podsumowanie"];
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,21 +80,30 @@
 
     private async Task HandleSubmit()
     {
-        if (string.IsNullOrWhiteSpace(_model.Name))
+        _error = null;
+        if (string.IsNullOrWhiteSpace(_model.Name) || _model.Name.Length < 2)
         {
-            _error = "Nazwa restauracji jest wymagana.";
+            _error = "Nazwa restauracji jest wymagana (min 2 znaki).";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_model.Address) || _model.Address.Length < 5)
+        {
+            _error = "Adres jest wymagany (min 5 znakow).";
             return;
         }
 
-        var success = await BusinessService.RegisterBusinessAsync(_model);
-        if (success)
+        _submitting = true;
+        var ticketId = await BusinessService.RequestNewRestaurantAsync(_model);
+        _submitting = false;
+
+        if (ticketId.HasValue)
         {
-            Toast.ShowSuccess("Wniosek o rejestrację został wysłany!");
-            Navigation.NavigateTo("/business/pending");
+            Toast.ShowSuccess("Twoje zgloszenie zostalo wyslane do administratora.");
+            Navigation.NavigateTo("/me/claims");
         }
         else
         {
-            _error = "Nie udało się wysłać wniosku. Spróbuj ponownie.";
+            _error = "Nie udalo sie wyslac zgloszenia. Sprobuj ponownie.";
         }
     }
 }

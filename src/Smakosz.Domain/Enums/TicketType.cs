@@ -8,5 +8,7 @@ public enum TicketType
     EditRequest,
     IngredientSuggestion,
     DataCorrection,
-    Contact
+    Contact,
+    RestaurantClaim,
+    RestaurantRequest
 }

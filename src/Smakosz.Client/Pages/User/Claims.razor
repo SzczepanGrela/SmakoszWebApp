@@ -1,0 +1,81 @@
+@page "/me/claims"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject SmakoszApiClient Api
+
+<PageTitle>Moje zgłoszenia restauracji - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-3"><i class="fa-solid fa-list-check me-2"></i>Moje zgłoszenia</h1>
+    <p class="text-muted">Lista Twoich zgloszen przejecia restauracji i prosb o dodanie nowych wpisow.</p>
+
+    @if (_loading)
+    {
+        <div class="text-center"><div class="spinner-border"></div></div>
+    }
+    else if (_tickets.Count == 0)
+    {
+        <div class="alert alert-info">Nie masz jeszcze zadnych zgloszen.</div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var t in _tickets)
+            {
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">
+                                @(t.TicketType == "RestaurantClaim" ? "Przejęcie restauracji" : "Zgłoszenie nowej restauracji")
+                            </h6>
+                            <small class="text-muted">@t.CreatedAt?.ToString("yyyy-MM-dd HH:mm")</small>
+                        </div>
+                        <span class="badge @StatusBadgeClass(t.Status)">@StatusLabel(t.Status)</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(t.Resolution) && t.Status == "Rejected")
+                    {
+                        <div class="mt-2 small text-danger">
+                            <strong>Powód odrzucenia:</strong> @t.Resolution
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<MyTicketDto> _tickets = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Api.GetAsync<List<MyTicketDto>>("/api/me/restaurant-tickets");
+        _tickets = result ?? [];
+        _loading = false;
+    }
+
+    private string StatusBadgeClass(string status) => status switch
+    {
+        "Open" => "bg-warning",
+        "Resolved" => "bg-success",
+        "Rejected" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    private string StatusLabel(string status) => status switch
+    {
+        "Open" => "Oczekuje",
+        "Resolved" => "Zaakceptowane",
+        "Rejected" => "Odrzucone",
+        _ => status
+    };
+
+    public class MyTicketDto
+    {
+        public int TicketId { get; set; }
+        public string TicketType { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime? CreatedAt { get; set; }
+        public string? Resolution { get; set; }
+    }
+}

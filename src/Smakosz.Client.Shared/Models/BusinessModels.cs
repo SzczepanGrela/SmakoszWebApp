@@ -48,6 +48,17 @@ public class CityDto
     public string Name { get; set; } = default!;
 }
 
+public class NewRestaurantRequestDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Description { get; set; }
+    public int? CityId { get; set; }
+    public int? CuisineTypeId { get; set; }
+}
+
 public class EditRequestSummaryDto
 {
     public int RequestId { get; set; }

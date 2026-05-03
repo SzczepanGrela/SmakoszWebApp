@@ -32,6 +32,9 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
         builder.Property(x => x.Description)
             .HasMaxLength(5000);
 
+        builder.Property(x => x.Resolution)
+            .HasMaxLength(2000);
+
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
@@ -48,6 +51,16 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
             .HasForeignKey(x => x.AssignedAdminId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(x => x.Requester)
+            .WithMany()
+            .HasForeignKey(x => x.RequesterId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(x => x.ResolvedByAdmin)
+            .WithMany()
+            .HasForeignKey(x => x.ResolvedByAdminId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(x => new { x.TicketType, x.ReferenceId });
 
         builder.HasIndex(x => new { x.Status, x.Priority })
@@ -55,5 +68,9 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
 
         builder.HasIndex(x => x.AssignedAdminId)
             .HasFilter("assigned_admin_id IS NOT NULL");
+
+        builder.HasIndex(x => x.RequesterId);
+
+        builder.HasIndex(x => new { x.TicketType, x.Status });
     }
 }

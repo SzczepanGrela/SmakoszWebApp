@@ -28,4 +28,10 @@ public class RestaurantService : IRestaurantService
         var response = await _api.PostApiResponseAsync<object>($"/api/restaurants/{slug}/ingredient-suggestions", dto);
         return response.Success;
     }
+
+    public async Task<int?> ClaimRestaurantAsync(Guid publicId, string justification)
+    {
+        var response = await _api.PostApiResponseAsync<int>($"/api/restaurants/{publicId}/claim", new { Justification = justification });
+        return response.Success ? response.Data : null;
+    }
 }
