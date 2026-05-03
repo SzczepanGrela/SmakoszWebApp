@@ -11,9 +11,6 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
     [Test]
     public async Task User_CanEditAndDeleteOwnReview_ViaApi()
     {
-        // Uses anna-nowak (User2) reviewing kebab-duzy to avoid conflicts
-        // with T02 (jan->pepperoni), T10 (jan->tiramisu) and seed data.
-
         using var http = new HttpClient();
         var token = E2EAuthHelper.GenerateToken(2, TestConstants.User2Username, TestConstants.User2Email, "User");
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
