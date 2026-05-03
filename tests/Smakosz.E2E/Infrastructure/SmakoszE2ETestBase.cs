@@ -15,6 +15,12 @@ public class SmakoszE2ETestBase : PageTest
         };
     }
 
+    [OneTimeSetUp]
+    public async Task ResetDatabaseBeforeFixture()
+    {
+        await E2EDatabaseSeeder.ResetAsync();
+    }
+
     protected async Task NavigateAndWaitAsync(string path, WaitUntilState waitUntil = WaitUntilState.NetworkIdle)
     {
         var url = path.StartsWith("http")
