@@ -76,24 +76,47 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/ingredients")" href="/admin/ingredients">
-                            <i class="fa-solid fa-carrot me-2"></i>Składniki
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/ingredient-suggestions")" href="/admin/ingredient-suggestions">
                             <i class="fa-solid fa-lightbulb me-2"></i>Sugestie składników
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/cities")" href="/admin/cities">
-                            <i class="fa-solid fa-city me-2"></i>Miasta
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/tags")" href="/admin/tags">
-                            <i class="fa-solid fa-tags me-2"></i>Tagi
-                        </a>
+                        <button type="button" class="nav-link w-100 text-start d-flex align-items-center @(IsDictionaryActive() ? "active" : "")"
+                                @onclick="() => _dictOpen = !_dictOpen"
+                                aria-expanded="@(_dictOpen ? "true" : "false")">
+                            <i class="fa-solid fa-folder-tree me-2"></i>Słowniki
+                            <i class="fa-solid @(_dictOpen ? "fa-chevron-down" : "fa-chevron-right") ms-auto small"></i>
+                        </button>
+                        @if (_dictOpen)
+                        {
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/cities")" href="/admin/cities">
+                                        <i class="fa-solid fa-city me-2"></i>Miasta
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/cuisine-types")" href="/admin/cuisine-types">
+                                        <i class="fa-solid fa-bowl-food me-2"></i>Kuchnie
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/ingredients")" href="/admin/ingredients">
+                                        <i class="fa-solid fa-carrot me-2"></i>Składniki
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/tags")" href="/admin/tags">
+                                        <i class="fa-solid fa-tags me-2"></i>Tagi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/rejection-reasons")" href="/admin/rejection-reasons">
+                                        <i class="fa-solid fa-circle-xmark me-2"></i>Powody odrzucenia
+                                    </a>
+                                </li>
+                            </ul>
+                        }
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/forbidden-words")" href="/admin/forbidden-words">
@@ -103,11 +126,6 @@
                     <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/banned-identifiers")" href="/admin/banned-identifiers">
                             <i class="fa-solid fa-shield-halved me-2"></i>Zbanowane identyfikatory
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/rejection-reasons")" href="/admin/rejection-reasons">
-                            <i class="fa-solid fa-circle-xmark me-2"></i>Powody odrzucenia
                         </a>
                     </li>
                     <li class="nav-item">
@@ -222,24 +240,47 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/ingredients")" href="/admin/ingredients">
-                            <i class="fa-solid fa-carrot me-2"></i>Składniki
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/ingredient-suggestions")" href="/admin/ingredient-suggestions">
                             <i class="fa-solid fa-lightbulb me-2"></i>Sugestie składników
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/cities")" href="/admin/cities">
-                            <i class="fa-solid fa-city me-2"></i>Miasta
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/tags")" href="/admin/tags">
-                            <i class="fa-solid fa-tags me-2"></i>Tagi
-                        </a>
+                        <button type="button" class="nav-link w-100 text-start d-flex align-items-center @(IsDictionaryActive() ? "active" : "")"
+                                @onclick="() => _dictOpen = !_dictOpen"
+                                aria-expanded="@(_dictOpen ? "true" : "false")">
+                            <i class="fa-solid fa-folder-tree me-2"></i>Słowniki
+                            <i class="fa-solid @(_dictOpen ? "fa-chevron-down" : "fa-chevron-right") ms-auto small"></i>
+                        </button>
+                        @if (_dictOpen)
+                        {
+                            <ul class="nav flex-column ms-3">
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/cities")" href="/admin/cities">
+                                        <i class="fa-solid fa-city me-2"></i>Miasta
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/cuisine-types")" href="/admin/cuisine-types">
+                                        <i class="fa-solid fa-bowl-food me-2"></i>Kuchnie
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/ingredients")" href="/admin/ingredients">
+                                        <i class="fa-solid fa-carrot me-2"></i>Składniki
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/tags")" href="/admin/tags">
+                                        <i class="fa-solid fa-tags me-2"></i>Tagi
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link @ActiveClass("/admin/rejection-reasons")" href="/admin/rejection-reasons">
+                                        <i class="fa-solid fa-circle-xmark me-2"></i>Powody odrzucenia
+                                    </a>
+                                </li>
+                            </ul>
+                        }
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/forbidden-words")" href="/admin/forbidden-words">
@@ -249,11 +290,6 @@
                     <li class="nav-item">
                         <a class="nav-link @ActiveClass("/admin/banned-identifiers")" href="/admin/banned-identifiers">
                             <i class="fa-solid fa-shield-halved me-2"></i>Zbanowane identyfikatory
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @ActiveClass("/admin/rejection-reasons")" href="/admin/rejection-reasons">
-                            <i class="fa-solid fa-circle-xmark me-2"></i>Powody odrzucenia
                         </a>
                     </li>
                     <li class="nav-item">
@@ -324,11 +360,37 @@
 <ToastContainer />
 
 @code {
+    private static readonly string[] DictionaryPaths =
+    {
+        "/admin/cities",
+        "/admin/cuisine-types",
+        "/admin/ingredients",
+        "/admin/tags",
+        "/admin/rejection-reasons"
+    };
+
+    private bool _dictOpen;
+
+    protected override void OnInitialized()
+    {
+        _dictOpen = IsDictionaryActive();
+    }
+
     private string ActiveClass(string href, bool exact = false)
     {
         var uri = Navigation.ToBaseRelativePath(Navigation.Uri);
         if (exact)
             return (uri == "admin" || uri == "admin/") ? "active" : "";
         return Navigation.Uri.Contains(href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+
+    private bool IsDictionaryActive()
+    {
+        foreach (var path in DictionaryPaths)
+        {
+            if (Navigation.Uri.Contains(path, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
     }
 }

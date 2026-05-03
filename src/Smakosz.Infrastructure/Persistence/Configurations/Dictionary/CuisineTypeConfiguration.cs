@@ -21,6 +21,9 @@ public class CuisineTypeConfiguration : IEntityTypeConfiguration<CuisineType>
         builder.Property(x => x.Icon)
             .HasMaxLength(10);
 
+        builder.Property(x => x.IsActive)
+            .HasDefaultValue(true);
+
         builder.HasIndex(x => x.Name)
             .IsUnique();
     }

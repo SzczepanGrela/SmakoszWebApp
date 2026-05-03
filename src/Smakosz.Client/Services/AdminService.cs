@@ -219,6 +219,24 @@ public class AdminService : IAdminService
     public async Task<bool> DeleteCityAsync(int id)
         => await _api.DeleteAsync($"/api/admin/cities/{id}");
 
+    public Task<PagedResult<AdminCuisineTypeDto>?> GetCuisineTypesAsync(int page = 1, string? search = null)
+        => _api.GetAsync<PagedResult<AdminCuisineTypeDto>>($"/api/admin/cuisine-types?page={page}&search={search}");
+
+    public async Task<bool> CreateCuisineTypeAsync(AdminCuisineTypeDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/cuisine-types", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> UpdateCuisineTypeAsync(int id, AdminCuisineTypeDto dto)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/cuisine-types/{id}", dto);
+        return response.Success;
+    }
+
+    public async Task<bool> DeleteCuisineTypeAsync(int id)
+        => await _api.DeleteAsync($"/api/admin/cuisine-types/{id}");
+
     public Task<PagedResult<AdminTagDto>?> GetTagsAsync(int page = 1, string? search = null)
         => _api.GetAsync<PagedResult<AdminTagDto>>($"/api/admin/tags?page={page}&search={search}");
 

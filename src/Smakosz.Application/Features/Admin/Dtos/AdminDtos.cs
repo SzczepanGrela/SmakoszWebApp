@@ -222,6 +222,16 @@ public class AdminCityDto
     public int RestaurantCount { get; set; }
 }
 
+public class AdminCuisineTypeDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int RestaurantCount { get; set; }
+}
+
 public class AdminTagDto
 {
     public int TagId { get; set; }

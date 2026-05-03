@@ -266,6 +266,18 @@ public static class DomainErrors
             Error.Conflict("TAG_ALREADY_EXISTS", "Tag o podanej nazwie już istnieje");
     }
 
+    public static class CuisineType
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("CUISINE_TYPE_NOT_FOUND", "Kuchnia nie została znaleziona");
+
+        public static readonly Error AlreadyExists =
+            Error.Conflict("CUISINE_TYPE_ALREADY_EXISTS", "Kuchnia o podanej nazwie już istnieje");
+
+        public static readonly Error HasRestaurants =
+            Error.Conflict("CUISINE_TYPE_HAS_RESTAURANTS", "Nie można usunąć kuchni używanej przez restauracje");
+    }
+
     public static class Ingredient
     {
         public static readonly Error NotFound =

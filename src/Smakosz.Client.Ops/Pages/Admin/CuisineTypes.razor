@@ -1,0 +1,155 @@
+@page "/admin/cuisine-types"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject ToastService Toast
+
+<PageTitle>Kuchnie - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-bowl-food me-2"></i>Kuchnie</h2>
+    <button class="btn btn-primary btn-sm" @onclick="ShowAddForm">
+        <i class="fa-solid fa-plus me-1"></i>Dodaj kuchnię
+    </button>
+</div>
+
+@if (_showForm)
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">@(_editingId.HasValue ? "Edytuj" : "Nowa") kuchnia</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-medium">Nazwa techniczna *</label>
+                    <input type="text" class="form-control" @bind="_form.Name" maxlength="50" />
+                </div>
+                <div class="col-md-5 mb-3">
+                    <label class="form-label fw-medium">Nazwa wyświetlana *</label>
+                    <input type="text" class="form-control" @bind="_form.DisplayName" maxlength="100" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-medium">Ikona</label>
+                    <input type="text" class="form-control" @bind="_form.Icon" maxlength="10" placeholder="np. 🍕" />
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="cuisineActive" @bind="_form.IsActive" />
+                <label class="form-check-label" for="cuisineActive">Aktywna (widoczna w dropdownach)</label>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" @onclick="SaveCuisine">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Zapisz
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_cuisines == null || !_cuisines.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-bowl-food" Title="Brak kuchni" />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>Ikona</th><th>Nazwa wyświetlana</th><th>Nazwa techniczna</th><th>Aktywna</th><th>Restauracje</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var cuisine in _cuisines.Data)
+                {
+                    <tr>
+                        <td>@(cuisine.Icon ?? "-")</td>
+                        <td class="fw-medium">@cuisine.DisplayName</td>
+                        <td class="text-muted small">@cuisine.Name</td>
+                        <td>
+                            @if (cuisine.IsActive)
+                            {
+                                <span class="badge bg-success">Tak</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Nie</span>
+                            }
+                        </td>
+                        <td>@cuisine.RestaurantCount</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditCuisine(cuisine)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteCuisine(cuisine)" disabled="@(cuisine.RestaurantCount > 0)" title="@(cuisine.RestaurantCount > 0 ? "Nie można usunąć, kuchnia używana przez restauracje" : "Usuń")">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (_cuisines.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_cuisines.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminCuisineTypeDto>? _cuisines;
+    private bool _loading = true;
+    private bool _showForm;
+    private int? _editingId;
+    private AdminCuisineTypeDto _form = new();
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _cuisines = await AdminService.GetCuisineTypesAsync(page);
+        _loading = false;
+    }
+
+    private void ShowAddForm() { _form = new() { IsActive = true }; _editingId = null; _showForm = true; }
+
+    private void EditCuisine(AdminCuisineTypeDto cuisine)
+    {
+        _form = new()
+        {
+            Id = cuisine.Id,
+            Name = cuisine.Name,
+            DisplayName = cuisine.DisplayName,
+            Icon = cuisine.Icon,
+            IsActive = cuisine.IsActive
+        };
+        _editingId = cuisine.Id;
+        _showForm = true;
+    }
+
+    private void CancelForm() { _showForm = false; _editingId = null; }
+
+    private async Task SaveCuisine()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name) || string.IsNullOrWhiteSpace(_form.DisplayName)) return;
+        bool success;
+        if (_editingId.HasValue)
+            success = await AdminService.UpdateCuisineTypeAsync(_editingId.Value, _form);
+        else
+            success = await AdminService.CreateCuisineTypeAsync(_form);
+
+        if (success) { Toast.ShowSuccess("Kuchnia zapisana."); _showForm = false; await LoadPage(1); }
+        else Toast.ShowError("Nie udało się zapisać.");
+    }
+
+    private async Task DeleteCuisine(AdminCuisineTypeDto cuisine)
+    {
+        var success = await AdminService.DeleteCuisineTypeAsync(cuisine.Id);
+        if (success) { Toast.ShowSuccess("Kuchnia usunięta."); await LoadPage(1); }
+        else Toast.ShowError("Nie można usunąć kuchni używanej przez restauracje.");
+    }
+}

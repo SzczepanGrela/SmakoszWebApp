@@ -43,6 +43,10 @@ public interface IAdminService
     Task<bool> CreateCityAsync(AdminCityDto dto);
     Task<bool> UpdateCityAsync(int id, AdminCityDto dto);
     Task<bool> DeleteCityAsync(int id);
+    Task<PagedResult<AdminCuisineTypeDto>?> GetCuisineTypesAsync(int page = 1, string? search = null);
+    Task<bool> CreateCuisineTypeAsync(AdminCuisineTypeDto dto);
+    Task<bool> UpdateCuisineTypeAsync(int id, AdminCuisineTypeDto dto);
+    Task<bool> DeleteCuisineTypeAsync(int id);
     Task<PagedResult<AdminTagDto>?> GetTagsAsync(int page = 1, string? search = null);
     Task<bool> CreateTagAsync(AdminTagDto dto);
     Task<bool> UpdateTagAsync(int id, AdminTagDto dto);
