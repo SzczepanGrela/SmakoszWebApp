@@ -25,6 +25,7 @@ public class GetRestaurantBySlugHandler : IRequestHandler<GetRestaurantBySlugQue
         var restaurant = await _db.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
+            .Include(r => r.Cuisine)
             .Include(r => r.OpeningHours)
             .Include(r => r.MenuSections)
             .FirstOrDefaultAsync(r => r.Slug == request.Slug, cancellationToken);
