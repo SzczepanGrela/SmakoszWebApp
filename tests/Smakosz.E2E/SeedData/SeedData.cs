@@ -571,7 +571,8 @@ public static class SeedData
         db.SystemNodes.AddRange(
             new SystemNode { NodeId = "api-main", NodeType = NodeType.Api, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.1", LastHeartbeat = DateTime.UtcNow },
             new SystemNode { NodeId = "gpu-worker-1", NodeType = NodeType.Gpu, Role = NodeRole.Worker, Status = "offline", GpuName = "RTX 3060", GpuMemoryTotal = 12288, GpuMemoryUsed = 0, LastHeartbeat = DateTime.UtcNow.AddDays(-1) },
-            new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.2", LastHeartbeat = DateTime.UtcNow });
+            new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.2", LastHeartbeat = DateTime.UtcNow },
+            new SystemNode { NodeId = "rpi-gateway", NodeType = NodeType.RpiGateway, Status = "online", Hostname = "raspberrypi", IpAddress = "10.0.0.3", LastHeartbeat = DateTime.UtcNow });
 
         // Second save: link marco to his restaurant (breaks circular dependency)
         marco.RestaurantId = 1;

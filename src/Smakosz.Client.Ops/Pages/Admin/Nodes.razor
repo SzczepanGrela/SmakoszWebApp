@@ -2,6 +2,7 @@
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
+@inject Smakosz.Client.Services.ToastService Toast
 
 <PageTitle>Monitoring węzłów - Admin Smakosz</PageTitle>
 
@@ -83,6 +84,17 @@ else
                                 <strong>Aktywne zadanie:</strong> #@node.CurrentJobId
                             </div>
                         }
+
+                        @if (node.NodeType == "Gpu" && node.Status != "online")
+                        {
+                            <hr class="my-2" />
+                            <button class="btn btn-warning btn-sm w-100"
+                                    @onclick="() => WakeGpu(node)"
+                                    disabled="@_isWaking">
+                                <i class="fa-solid fa-power-off me-1"></i>
+                                @(_isWaking ? "Budzenie..." : "Obudź GPU")
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -93,6 +105,7 @@ else
 @code {
     private List<AdminSystemNodeDto>? _nodes;
     private bool _loading = true;
+    private bool _isWaking;
 
     protected override async Task OnInitializedAsync() => await LoadNodes();
 
@@ -101,6 +114,56 @@ else
         _loading = true;
         _nodes = await AdminService.GetSystemNodesAsync();
         _loading = false;
+    }
+
+    private async Task WakeGpu(AdminSystemNodeDto node)
+    {
+        _isWaking = true;
+        try
+        {
+            var result = await AdminService.WakeGpuAsync();
+            switch (result?.Status)
+            {
+                case "Sent":
+                    Toast.ShowInfo("Magic packet wysłany. GPU powinien być online w ~60s.");
+                    await PollForOnlineAsync(node.NodeId, 90);
+                    break;
+                case "AlreadyOnline":
+                    Toast.ShowSuccess("GPU już online.");
+                    await LoadNodes();
+                    break;
+                case "RateLimited":
+                    Toast.ShowWarning("Zaczekaj sekundę przed kolejną próbą.");
+                    break;
+                case "GpuNodeNotFound":
+                    Toast.ShowError("Brak zarejestrowanego węzła GPU.");
+                    break;
+                default:
+                    Toast.ShowError($"Błąd bramy: {result?.Message ?? "nieznany"}");
+                    break;
+            }
+        }
+        finally
+        {
+            _isWaking = false;
+        }
+    }
+
+    private async Task PollForOnlineAsync(string nodeId, int timeoutSeconds)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(5000);
+            await LoadNodes();
+            var gpu = _nodes?.FirstOrDefault(n => n.NodeId == nodeId);
+            if (gpu?.Status == "online")
+            {
+                Toast.ShowSuccess("GPU online.");
+                return;
+            }
+        }
+        Toast.ShowWarning("GPU nie odpowiedział w 90s. Sprawdź fizycznie.");
     }
 
     private static string StatusBadge(string? status) => status switch
