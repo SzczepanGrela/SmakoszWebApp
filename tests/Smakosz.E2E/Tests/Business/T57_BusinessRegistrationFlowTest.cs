@@ -1,4 +1,7 @@
-﻿using Smakosz.E2E.Infrastructure;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using Smakosz.E2E.Infrastructure;
 
 namespace Smakosz.E2E.Tests.Business;
 
@@ -6,93 +9,47 @@ namespace Smakosz.E2E.Tests.Business;
 public class T57_BusinessRegistrationFlowTest : SmakoszE2ETestBase
 {
     [Test]
-    public async Task User_CanRegisterBusinessViaStepWizard()
+    public async Task User_CanRequestNewRestaurantViaTicketFlow()
     {
-        await LoginViaLocalStorageAsync(TestConstants.UserEmail, TestConstants.UserPassword);
+        using var http = new HttpClient();
+        var token = E2EAuthHelper.GenerateToken(2, TestConstants.User2Username, TestConstants.User2Email, "User");
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        await NavigateAndWaitAsync("/business/register");
-        await WaitForBlazorLoadedAsync();
-
-        await AssertPageContainsTextAsync("Zarejestruj restaurację");
-
-        var stepWizard = Page.Locator(".step-wizard");
-        await Expect(stepWizard).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
-
-        await AssertPageContainsTextAsync("Podstawowe informacje");
-
-        var nameInput = Page.Locator("input[type='text'].form-control").First;
-        await Expect(nameInput).ToBeVisibleAsync();
-        await nameInput.FillAsync("E2E Testowa Restauracja");
-
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Dalej" }).ClickAsync();
-        await Page.WaitForTimeoutAsync(1000);
-
-        await AssertPageContainsTextAsync("Dane kontaktowe");
-
-        var addressInput = Page.Locator("input[placeholder='ul. Przykładowa 1, Warszawa']").First;
-        if (await addressInput.CountAsync() == 0)
-            addressInput = Page.Locator("input[type='text'].form-control").First;
-        await addressInput.FillAsync("ul. Testowa 1, Warszawa");
-
-        var phoneInput = Page.Locator("input[type='tel'].form-control").First;
-        if (await phoneInput.CountAsync() > 0)
+        var payload = JsonSerializer.Serialize(new
         {
-            await phoneInput.FillAsync("+48 111 222 333");
+            name = "E2E Testowa Restauracja",
+            address = "ul. Testowa 1, Warszawa",
+            phone = "+48 111 222 333",
+            email = "kontakt@e2e-test.pl",
+            description = "Restauracja zgloszona w tescie E2E.",
+            cityId = (int?)null,
+            cuisineTypeId = (int?)null
+        });
+        var response = await http.PostAsync(
+            $"{TestConstants.ApiBaseUrl}/api/restaurants/request",
+            new StringContent(payload, Encoding.UTF8, "application/json"));
+
+        Assert.That(response.IsSuccessStatusCode, Is.True,
+            $"Request endpoint should accept the payload. Got {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+
+        using (var conn = new Npgsql.NpgsqlConnection(TestConstants.ConnectionString))
+        {
+            await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(*) FROM system.tickets
+                WHERE ticket_type = 'restaurant_request'
+                  AND requester_id = 2
+                  AND status = 'open'";
+            var count = (long)(await cmd.ExecuteScalarAsync())!;
+            Assert.That(count, Is.GreaterThanOrEqualTo(1),
+                "A RestaurantRequest ticket should exist for the user after submitting the form.");
         }
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Dalej" }).ClickAsync();
-        await Page.WaitForTimeoutAsync(1000);
-
-        var descriptionTextarea = Page.Locator("textarea.form-control").First;
-        if (await descriptionTextarea.CountAsync() > 0)
-        {
-            await descriptionTextarea.FillAsync("Restauracja testowa utworzona w teście E2E.");
-        }
-
-        var pageContent = await Page.ContentAsync();
-        Assert.That(pageContent.Contains("E2E Testowa Restauracja"), Is.True,
-            "Summary should contain the restaurant name");
-
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Zakoncz" }).ClickAsync();
-
-        // Either toast + redirect, or error
-        var redirectTask = Page.WaitForURLAsync(
-            url => url.Contains("/business/pending") || url.Contains("/business/dashboard"),
-            new PageWaitForURLOptions { Timeout = 15_000 });
-        var toastTask = Page.GetByText("Wniosek o rejestrację został wysłany!").First.WaitForAsync(
-            new LocatorWaitForOptions { Timeout = 15_000 });
-        var errorTask = Page.Locator(".alert-danger").First.WaitForAsync(
-            new LocatorWaitForOptions { Timeout = 15_000 });
-
-        await Task.WhenAny(redirectTask, toastTask, errorTask);
-
-        if (Page.Url.Contains("/business/pending"))
-        {
-            await WaitForBlazorLoadedAsync();
-            pageContent = await Page.ContentAsync();
-            Assert.That(
-                pageContent.Contains("Wniosek w trakcie weryfikacji") || pageContent.Contains("wniosek"),
-                Is.True,
-                "Pending page should show verification status");
-        }
-        else
-        {
-            var toastVisible = await Page.GetByText("Wniosek o rejestrację został wysłany!").First.IsVisibleAsync();
-            var errorVisible = await Page.Locator(".alert-danger").First.IsVisibleAsync();
-
-            if (errorVisible)
-            {
-                var errorText = await Page.Locator(".alert-danger").First.TextContentAsync();
-                // If the user already has a business, that's expected
-                if (errorText!.Contains("już") || errorText.Contains("istnieje") ||
-                    errorText.Contains("Nie udało się") || errorText.Contains("Spróbuj ponownie"))
-                    Assert.Pass($"Registration blocked or API error in E2E: {errorText}");
-                else
-                    Assert.Fail($"Unexpected registration error: {errorText}");
-            }
-
-            Assert.That(toastVisible || Page.Url.Contains("/business"), Is.True,
-                "Expected success toast or redirect after registration");
-        }
+        var duplicate = await http.PostAsync(
+            $"{TestConstants.ApiBaseUrl}/api/restaurants/request",
+            new StringContent(payload, Encoding.UTF8, "application/json"));
+        Assert.That((int)duplicate.StatusCode, Is.EqualTo(409),
+            "A second pending request from the same user should be rejected with 409.");
     }
 }

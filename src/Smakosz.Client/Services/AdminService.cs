@@ -127,8 +127,36 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null)
-        => _api.GetAsync<PagedResult<AdminRestaurantDto>>($"/api/admin/restaurants?page={page}&search={search}");
+    public Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null, bool? isOrphan = null)
+    {
+        var url = $"/api/admin/restaurants?page={page}&search={search}";
+        if (isOrphan.HasValue) url += $"&isOrphan={isOrphan.Value.ToString().ToLower()}";
+        return _api.GetAsync<PagedResult<AdminRestaurantDto>>(url);
+    }
+
+    public async Task<int?> CreateRestaurantAsync(AdminCreateRestaurantDto dto)
+    {
+        var response = await _api.PostApiResponseAsync<int>("/api/admin/restaurants", dto);
+        return response.Success ? response.Data : null;
+    }
+
+    public async Task<bool> ApproveRestaurantClaimAsync(int ticketId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/tickets/{ticketId}/approve-claim", null);
+        return response.Success;
+    }
+
+    public async Task<bool> RejectRestaurantClaimAsync(int ticketId, string reason)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/tickets/{ticketId}/reject-claim", new { Reason = reason });
+        return response.Success;
+    }
+
+    public async Task<bool> RejectNewRestaurantRequestAsync(int ticketId, string reason)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/tickets/{ticketId}/reject-request", new { Reason = reason });
+        return response.Success;
+    }
 
     public Task<AdminRestaurantDetailDto?> GetRestaurantDetailAsync(int id)
         => _api.GetAsync<AdminRestaurantDetailDto>($"/api/admin/restaurants/by-id/{id}");

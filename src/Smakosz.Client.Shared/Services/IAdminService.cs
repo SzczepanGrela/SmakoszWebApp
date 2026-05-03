@@ -25,7 +25,11 @@ public interface IAdminService
     Task<bool> ResetUserPasswordAsync(Guid publicId);
     Task<Guid?> CreatePrivilegedAccountAsync(string email, string username, string role);
     Task<bool> ChangeUserRoleAsync(Guid publicId, string newRole, string? reason);
-    Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null);
+    Task<PagedResult<AdminRestaurantDto>?> GetRestaurantsAsync(int page = 1, string? search = null, bool? isOrphan = null);
+    Task<int?> CreateRestaurantAsync(AdminCreateRestaurantDto dto);
+    Task<bool> ApproveRestaurantClaimAsync(int ticketId);
+    Task<bool> RejectRestaurantClaimAsync(int ticketId, string reason);
+    Task<bool> RejectNewRestaurantRequestAsync(int ticketId, string reason);
     Task<AdminRestaurantDetailDto?> GetRestaurantDetailAsync(int id);
     Task<bool> UpdateRestaurantAsync(Guid publicId, AdminRestaurantUpdateDto dto);
     Task<bool> ChangeRestaurantStatusAsync(Guid publicId, string status, string? reason);

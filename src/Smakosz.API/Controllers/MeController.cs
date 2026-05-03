@@ -24,6 +24,7 @@ using Smakosz.Application.Features.Me.Queries.GetMyFollowers;
 using Smakosz.Application.Features.Me.Queries.GetMyFollowing;
 using Smakosz.Application.Features.Me.Queries.GetMyNotifications;
 using Smakosz.Application.Features.Me.Queries.GetMyProfile;
+using Smakosz.Application.Features.Me.Queries.GetMyRestaurantTickets;
 using Smakosz.Application.Features.Me.Queries.GetMyReviews;
 using Smakosz.Application.Features.Me.Queries.GetMySessions;
 using Smakosz.Application.Features.Me.Queries.GetNotificationSettings;
@@ -171,6 +172,13 @@ public class MeController : ApiController
         [FromQuery] int pageSize = 20)
     {
         var result = await _mediator.Send(new GetMyReviewsQuery(new PaginationParams(page, pageSize)));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("restaurant-tickets")]
+    public async Task<IActionResult> GetMyRestaurantTickets()
+    {
+        var result = await _mediator.Send(new GetMyRestaurantTicketsQuery());
         return ToActionResult(result);
     }
 

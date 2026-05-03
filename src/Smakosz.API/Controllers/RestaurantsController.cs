@@ -3,6 +3,8 @@ using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.DataCorrections.Commands.CreateDataCorrection;
 using Smakosz.Application.Features.Dishes.Queries.GetDishesByRestaurant;
 using Smakosz.Application.Features.IngredientSuggestions.Commands.CreateIngredientSuggestion;
+using Smakosz.Application.Features.Restaurants.Commands.RequestNewRestaurant;
+using Smakosz.Application.Features.Restaurants.Commands.RequestRestaurantClaim;
 using Smakosz.Application.Features.Restaurants.Queries.GetRestaurantBySlug;
 using Smakosz.Application.Features.Restaurants.Queries.GetRestaurants;
 
@@ -74,7 +76,39 @@ public class RestaurantsController : ApiController
             slug, request.SuggestedName));
         return ToNoContentResult(result);
     }
+
+    [Authorize]
+    [HttpPost("{publicId:guid}/claim")]
+    public async Task<IActionResult> ClaimRestaurant(Guid publicId, [FromBody] ClaimRestaurantRequest request)
+    {
+        var result = await _mediator.Send(new RequestRestaurantClaimCommand(publicId, request.Justification));
+        return ToCreatedResult(result, $"/api/me/tickets/{(result.IsError ? 0 : result.Value)}");
+    }
+
+    [Authorize]
+    [HttpPost("request")]
+    public async Task<IActionResult> RequestNewRestaurant([FromBody] RequestNewRestaurantRequest request)
+    {
+        var result = await _mediator.Send(new RequestNewRestaurantCommand(
+            request.Name,
+            request.Address,
+            request.Phone,
+            request.Email,
+            request.Description,
+            request.CityId,
+            request.CuisineTypeId));
+        return ToCreatedResult(result, $"/api/me/tickets/{(result.IsError ? 0 : result.Value)}");
+    }
 }
 
 public record CreateCorrectionRequest(string IssueType, string? Description, string? ProposedValue);
 public record CreateIngredientSuggestionRequest(string SuggestedName);
+public record ClaimRestaurantRequest(string Justification);
+public record RequestNewRestaurantRequest(
+    string Name,
+    string Address,
+    string? Phone,
+    string? Email,
+    string? Description,
+    int? CityId,
+    int? CuisineTypeId);

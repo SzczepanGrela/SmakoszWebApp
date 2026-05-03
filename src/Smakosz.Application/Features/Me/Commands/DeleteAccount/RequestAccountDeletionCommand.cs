@@ -47,7 +47,9 @@ public class RequestAccountDeletionHandler : IRequestHandler<RequestAccountDelet
         if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
             return DomainErrors.Auth.InvalidCredentials;
 
-        if (user.RestaurantId.HasValue)
+        var ownsRestaurant = await _db.Restaurants
+            .AnyAsync(r => r.OwnerId == userId, cancellationToken);
+        if (ownsRestaurant)
             return DomainErrors.Account.IsRestaurantOwner;
 
         var code = await _verificationCodeService.CreateCodeAsync(

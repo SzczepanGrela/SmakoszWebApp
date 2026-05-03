@@ -1,0 +1,75 @@
+@inject IRestaurantService RestaurantService
+
+<div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Zgłoś przejęcie restauracji</h5>
+                <button type="button" class="btn-close" @onclick="OnClose"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Restauracja: <strong>@Restaurant?.RestaurantName</strong>
+                </p>
+                <p class="text-muted small">
+                    Opisz, dlaczego jestes wlascicielem tej restauracji. Administrator zweryfikuje
+                    zgloszenie i moze skontaktowac sie z Toba w celu potwierdzenia.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label">Uzasadnienie *</label>
+                    <textarea class="form-control" rows="5" @bind="_justification"
+                              placeholder="Np. Jestem wlascicielem od 2018, mam dokumenty NIP/REGON..."></textarea>
+                    <div class="form-text">@_justification.Length / 2000 znakow (min 10)</div>
+                </div>
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger mb-0">@_error</div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="OnClose">Anuluj</button>
+                <button class="btn btn-primary" @onclick="Submit" disabled="@_submitting">
+                    <i class="fa-solid fa-paper-plane me-2"></i>Wyslij zgloszenie
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public RestaurantDetailDto? Restaurant { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSubmitted { get; set; }
+
+    private string _justification = "";
+    private string? _error;
+    private bool _submitting;
+
+    private async Task Submit()
+    {
+        _error = null;
+        if (_justification.Length < 10)
+        {
+            _error = "Uzasadnienie musi miec co najmniej 10 znakow.";
+            return;
+        }
+        if (Restaurant is null)
+        {
+            _error = "Brak danych restauracji.";
+            return;
+        }
+
+        _submitting = true;
+        var ticketId = await RestaurantService.ClaimRestaurantAsync(Restaurant.PublicId, _justification);
+        _submitting = false;
+
+        if (ticketId.HasValue)
+        {
+            await OnSubmitted.InvokeAsync();
+        }
+        else
+        {
+            _error = "Nie udalo sie wyslac zgloszenia. Mozliwe, ze restauracja ma juz wlasciciela lub masz inne oczekujace zgloszenie.";
+        }
+    }
+}

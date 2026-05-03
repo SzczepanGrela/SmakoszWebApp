@@ -70,7 +70,6 @@ public static class SeedHelpers
             Role = UserRole.Restaurant,
             IsActive = true,
             Slug = "restaurator",
-            RestaurantId = null,
             CreatedAt = DateTime.UtcNow,
         };
     }

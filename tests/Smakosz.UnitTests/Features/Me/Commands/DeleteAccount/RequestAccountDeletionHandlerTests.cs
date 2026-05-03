@@ -75,8 +75,9 @@ public class RequestAccountDeletionHandlerTests
     [Fact]
     public async Task Handle_RestaurantOwner_ReturnsForbidden()
     {
-        var user = new UserBuilder().WithId(1).WithPasswordHash("hash").WithRestaurantId(1).Build();
+        var user = new UserBuilder().WithId(1).WithPasswordHash("hash").Build();
         _sets.Users.Add(user);
+        _sets.Restaurants.Add(new Smakosz.Domain.Entities.Restaurant { RestaurantId = 1, OwnerId = 1, RestaurantName = "Test", Slug = "test", CreatedAt = DateTime.UtcNow });
         DbContextMockFactory.Refresh(_db, _sets);
         _passwordHasher.Verify("Password123!", "hash").Returns(true);
 

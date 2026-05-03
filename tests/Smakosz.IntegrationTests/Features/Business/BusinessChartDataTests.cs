@@ -21,9 +21,6 @@ public class BusinessChartDataTests : IntegrationTestBase
             db.Users.AddRange(businessUser, regularUser);
             db.Restaurants.Add(restaurant);
             await db.SaveChangesAsync();
-
-            businessUser.RestaurantId = restaurant.RestaurantId;
-            await db.SaveChangesAsync();
         });
     }
 

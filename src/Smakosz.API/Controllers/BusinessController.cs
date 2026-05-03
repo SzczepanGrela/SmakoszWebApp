@@ -5,7 +5,6 @@ using Smakosz.Application.Features.Business.Commands.CreateDish;
 using Smakosz.Application.Features.Business.Commands.CreateMenuSection;
 using Smakosz.Application.Features.Business.Commands.DeleteDish;
 using Smakosz.Application.Features.Business.Commands.DeleteMenuSection;
-using Smakosz.Application.Features.Business.Commands.RegisterBusiness;
 using Smakosz.Application.Features.Business.Commands.ReorderMenuSections;
 using Smakosz.Application.Features.Business.Commands.UpdateDish;
 using Smakosz.Application.Features.Business.Commands.SetDishIngredients;
@@ -68,14 +67,6 @@ public class BusinessController : ApiController
     {
         var result = await _mediator.Send(new GetRegistrationStatusQuery());
         return ToActionResult(result);
-    }
-
-    [Authorize]
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterBusiness([FromBody] RegisterBusinessCommand command)
-    {
-        var result = await _mediator.Send(command);
-        return ToCreatedResult(result, $"/api/business/restaurant");
     }
 
     [HttpGet("opening-hours")]

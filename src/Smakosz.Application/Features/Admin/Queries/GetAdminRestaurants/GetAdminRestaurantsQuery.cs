@@ -8,7 +8,7 @@ using Smakosz.Application.Features.Admin.Dtos;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 
-public record GetAdminRestaurantsQuery(PaginationParams Pagination, string? Search = null)
+public record GetAdminRestaurantsQuery(PaginationParams Pagination, string? Search = null, bool? IsOrphan = null)
     : IRequest<ErrorOr<PagedResult<AdminRestaurantDto>>>;
 
 public class GetAdminRestaurantsHandler : IRequestHandler<GetAdminRestaurantsQuery, ErrorOr<PagedResult<AdminRestaurantDto>>>
@@ -33,6 +33,11 @@ public class GetAdminRestaurantsHandler : IRequestHandler<GetAdminRestaurantsQue
         {
             var search = request.Search.ToLower();
             query = query.Where(r => r.RestaurantName.ToLower().Contains(search));
+        }
+
+        if (request.IsOrphan == true)
+        {
+            query = query.Where(r => r.OwnerId == null);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

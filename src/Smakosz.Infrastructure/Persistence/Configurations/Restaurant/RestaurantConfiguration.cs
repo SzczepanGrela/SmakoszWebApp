@@ -99,7 +99,11 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
         builder.HasIndex(x => x.CityId);
         builder.HasIndex(x => x.CuisineTypeId);
         builder.HasIndex(x => x.Status);
-        builder.HasIndex(x => x.OwnerId);
+        builder.HasIndex(x => x.OwnerId)
+            .IsUnique()
+            .HasFilter("owner_id IS NOT NULL")
+            .HasDatabaseName("ix_restaurants_owner_id_unique");
+
         builder.HasIndex(x => new { x.IsVerified, x.OwnerId });
     }
 }

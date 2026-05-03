@@ -35,9 +35,6 @@ public class ForbiddenWordsTests : IntegrationTestBase
             db.Reviews.Add(review);
             await db.SaveChangesAsync();
 
-            businessUser.RestaurantId = restaurant.RestaurantId;
-            await db.SaveChangesAsync();
-
             _dishPublicId = dish.PublicId;
             _reviewPublicId = review.PublicId;
             _menuSectionId = menuSection.SectionId;

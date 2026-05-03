@@ -208,6 +208,9 @@ else
                                         </button>
                                     </Authorized>
                                 </AuthorizeView>
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => _showClaimModal = true">
+                                    <i class="fa-solid fa-user-tag me-1"></i>Czy to twoja restauracja?
+                                </button>
                             </div>
                         </div>
                     </Authorized>
@@ -240,6 +243,13 @@ else
             </div>
         </div>
     </div>
+}
+
+@if (_showClaimModal && _restaurant != null)
+{
+    <ClaimRestaurantModal Restaurant="@_restaurant"
+                          OnClose="() => _showClaimModal = false"
+                          OnSubmitted="HandleClaimSubmitted" />
 }
 
 @if (_showCorrectionModal)
@@ -343,6 +353,8 @@ else
     private bool _ingredientIsLactoseFree = true;
     private bool _ingredientSubmitting;
 
+    private bool _showClaimModal;
+
     protected override async Task OnInitializedAsync()
     {
         _mapsEmbedApiKey = Configuration["GoogleMaps:EmbedApiKey"];
@@ -394,6 +406,14 @@ else
 
         if (success)
             _restaurant.IsFavorite = !_restaurant.IsFavorite;
+    }
+
+    private Task HandleClaimSubmitted()
+    {
+        _showClaimModal = false;
+        Toast.ShowSuccess("Zgloszenie przejecia zostalo wyslane do administratora.");
+        Navigation.NavigateTo("/me/claims");
+        return Task.CompletedTask;
     }
 
     private async Task SubmitCorrection()
