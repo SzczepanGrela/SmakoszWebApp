@@ -29,6 +29,8 @@ async function onInstall(event) {
 
     const cache = await caches.open(cacheName);
     await cache.addAll(assetsRequests);
+
+    await self.skipWaiting();
 }
 
 async function onActivate(event) {
@@ -58,7 +60,17 @@ async function onFetch(event) {
     if (cachedResponse) return cachedResponse;
 
     try {
-        return await fetch(event.request);
+        const response = await fetch(event.request);
+        // Self heal: if a hashed framework asset is gone from origin, the local SW manifest is
+        // stale. Unregister and reload so the next page load picks up a fresh SW.
+        const url = new URL(event.request.url);
+        if (response.status === 404 && url.pathname.startsWith('/_framework/')) {
+            console.warn('Service worker: stale asset 404, unregistering and reloading', url.pathname);
+            await self.registration.unregister();
+            const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            allClients.forEach(c => c.navigate(c.url));
+        }
+        return response;
     } catch {
         return new Response('', { status: 503 });
     }
