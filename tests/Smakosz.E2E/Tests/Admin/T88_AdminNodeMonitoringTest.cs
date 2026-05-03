@@ -38,7 +38,7 @@ public class T88_AdminNodeMonitoringTest : SmakoszE2ETestBase
         var offlineBadge = gpuCard.Locator(".badge", new() { HasText = "offline" });
         await Expect(offlineBadge).ToBeVisibleAsync();
 
-        var refreshBtn = Page.Locator("button", new() { HasText = "Odśwież" });
+        var refreshBtn = Page.Locator("button.btn-outline-primary", new() { HasText = "Odśwież" }).First;
         await Expect(refreshBtn).ToBeVisibleAsync();
     }
 }

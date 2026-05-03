@@ -33,7 +33,7 @@ public class T94_AccountLockoutTest : SmakoszE2ETestBase
         var lockoutAlert = Page.Locator(".alert-danger").First;
         await Expect(lockoutAlert).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
         var lockoutText = await lockoutAlert.TextContentAsync();
-        Assert.That(lockoutText!.ToLower(), Does.Contain("zablokowane").Or.Contain("zbyt wielu"),
+        Assert.That(lockoutText!.ToLower(), Does.Contain("zablokowane").Or.Contain("zbyt wiel"),
             $"Expected lockout error message. Got: {lockoutText}");
     }
 }

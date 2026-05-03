@@ -52,6 +52,8 @@ public class T03_BusinessDishManagementTest : SmakoszE2ETestBase
             caloriesInput = Page.Locator("input[type='number']").Nth(1);
         await caloriesInput.FillAsync("720");
 
+        await Page.Locator("#dishCategory").SelectOptionAsync(new SelectOptionValue { Index = 1 });
+
         apiCalls.Clear();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Dodaj danie" }).ClickAsync();
 

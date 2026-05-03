@@ -15,17 +15,30 @@ public class SmakoszE2ETestBase : PageTest
         };
     }
 
-    protected async Task NavigateAndWaitAsync(string path)
+    protected async Task NavigateAndWaitAsync(string path, WaitUntilState waitUntil = WaitUntilState.NetworkIdle)
     {
         var url = path.StartsWith("http")
             ? path
             : $"{TestConstants.ClientBaseUrl}{path}";
 
-        await Page.GotoAsync(url, new PageGotoOptions
+        try
         {
-            WaitUntil = WaitUntilState.NetworkIdle,
-            Timeout = 30_000,
-        });
+            await Page.GotoAsync(url, new PageGotoOptions
+            {
+                WaitUntil = waitUntil,
+                Timeout = 30_000,
+            });
+        }
+        catch (TimeoutException)
+        {
+            // Some pages keep firing background requests (image loads, polling) and never reach NetworkIdle.
+            // Fall back to DOMContentLoaded so the test can still proceed once Blazor is ready.
+            await Page.GotoAsync(url, new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+                Timeout = 30_000,
+            });
+        }
 
         await WaitForBlazorLoadedAsync();
     }
