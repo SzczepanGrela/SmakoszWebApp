@@ -16,10 +16,15 @@ public class T98_AdminReviewStructuredRejectionTest : SmakoszE2ETestBase
         var userToken = E2EAuthHelper.GenerateToken(2, TestConstants.User2Username, TestConstants.User2Email, "User");
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
 
+        var dishLookup = await http.GetAsync($"{TestConstants.ApiBaseUrl}/api/dishes/kebab-duzy");
+        Assert.That(dishLookup.IsSuccessStatusCode, Is.True,
+            $"Dish lookup should succeed: {dishLookup.StatusCode}");
+        using var dishDoc = JsonDocument.Parse(await dishLookup.Content.ReadAsStringAsync());
+        var dishPublicId = dishDoc.RootElement.GetProperty("data").GetProperty("publicId").GetGuid();
+
         var reviewPayload = JsonSerializer.Serialize(new
         {
-            dishId = 3,
-            restaurantId = 2,
+            dishPublicId,
             dishRating = 7,
             serviceRating = 6,
             cleanlinessRating = 6,
@@ -31,10 +36,8 @@ public class T98_AdminReviewStructuredRejectionTest : SmakoszE2ETestBase
             $"{TestConstants.ApiBaseUrl}/api/reviews",
             new StringContent(reviewPayload, Encoding.UTF8, "application/json"));
 
-        if (!createResponse.IsSuccessStatusCode)
-        {
-            Assert.Pass($"Review creation failed ({createResponse.StatusCode}) - test skipped (likely duplicate).");
-        }
+        Assert.That(createResponse.IsSuccessStatusCode, Is.True,
+            $"Review creation should succeed: {createResponse.StatusCode}. Body: {await createResponse.Content.ReadAsStringAsync()}");
 
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer", E2EAuthHelper.GenerateAdminToken());
@@ -80,9 +83,9 @@ public class T98_AdminReviewStructuredRejectionTest : SmakoszE2ETestBase
             $"{TestConstants.ApiBaseUrl}/api/me/notifications?page=1&pageSize=10");
         var notificationsJson = await notificationsResponse.Content.ReadAsStringAsync();
 
-        Assert.That(notificationsJson, Does.Contain("Recenzja jest spamem"),
+        Assert.That(notificationsJson, Does.Contain("Recenzja ma charakter spamu"),
             "Notification message should contain first template text from text_spam");
-        Assert.That(notificationsJson, Does.Contain("Recenzja nie dotyczy lokalu"),
+        Assert.That(notificationsJson, Does.Contain("Recenzja nie dotyczy"),
             "Notification message should contain second template text from text_offtopic");
         Assert.That(notificationsJson, Does.Contain("Dodatkowa uwaga moderatora"),
             "Notification message should contain moderator note marker");
