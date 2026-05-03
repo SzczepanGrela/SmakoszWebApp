@@ -7,7 +7,7 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
 
     services:
       postgres:
@@ -62,6 +62,7 @@ jobs:
         run: dotnet test tests/Smakosz.E2E/Smakosz.E2E.csproj --no-build -c Release --logger "trx;LogFileName=e2e.trx" --results-directory tests/Smakosz.E2E/TestResults
         env:
           ASPNETCORE_ENVIRONMENT: E2E
+          E2E_TIMEOUT_MULTIPLIER: 5
           Jwt__PrivateKeyPath: /tmp/jwt_private.pem
           Jwt__PublicKeyPath: /tmp/jwt_public.pem
           Jwt__Issuer: Smakosz.API

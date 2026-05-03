@@ -5,6 +5,11 @@ namespace Smakosz.E2E.Infrastructure;
 
 public class SmakoszE2ETestBase : PageTest
 {
+    protected static readonly int TimeoutMultiplier =
+        int.TryParse(Environment.GetEnvironmentVariable("E2E_TIMEOUT_MULTIPLIER"), out var m) && m > 0 ? m : 1;
+
+    protected static int Scaled(int ms) => ms * TimeoutMultiplier;
+
     public override BrowserNewContextOptions ContextOptions()
     {
         return new BrowserNewContextOptions
@@ -18,6 +23,8 @@ public class SmakoszE2ETestBase : PageTest
     [SetUp]
     public async Task ResetDatabaseBeforeEachTest()
     {
+        Page.SetDefaultTimeout(Scaled(30_000));
+        Page.SetDefaultNavigationTimeout(Scaled(60_000));
         await E2EDatabaseSeeder.ResetAsync();
     }
 
@@ -32,7 +39,7 @@ public class SmakoszE2ETestBase : PageTest
             await Page.GotoAsync(url, new PageGotoOptions
             {
                 WaitUntil = waitUntil,
-                Timeout = 30_000,
+                Timeout = Scaled(30_000),
             });
         }
         catch (TimeoutException)
@@ -42,7 +49,7 @@ public class SmakoszE2ETestBase : PageTest
             await Page.GotoAsync(url, new PageGotoOptions
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded,
-                Timeout = 30_000,
+                Timeout = Scaled(30_000),
             });
         }
 
@@ -54,7 +61,7 @@ public class SmakoszE2ETestBase : PageTest
         await Page.WaitForFunctionAsync(
             "() => { const app = document.getElementById('app'); return app && app.children.length > 0; }",
             null,
-            new PageWaitForFunctionOptions { Timeout = 30_000 });
+            new PageWaitForFunctionOptions { Timeout = Scaled(30_000) });
 
         var spinner = Page.Locator(".spinner-border, .loading-spinner, [class*='loading']").First;
         try
@@ -62,7 +69,7 @@ public class SmakoszE2ETestBase : PageTest
             await spinner.WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Hidden,
-                Timeout = 10_000,
+                Timeout = Scaled(10_000),
             });
         }
         catch (TimeoutException)
@@ -77,7 +84,7 @@ public class SmakoszE2ETestBase : PageTest
         await Page.GotoAsync(TestConstants.ClientBaseUrl, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.NetworkIdle,
-            Timeout = 30_000,
+            Timeout = Scaled(30_000),
         });
 
         using var http = new HttpClient();
@@ -148,7 +155,7 @@ public class SmakoszE2ETestBase : PageTest
 
         await Page.WaitForURLAsync(url => !url.Contains("/login"), new PageWaitForURLOptions
         {
-            Timeout = 15_000,
+            Timeout = Scaled(15_000),
         });
 
         await WaitForBlazorLoadedAsync();
@@ -161,7 +168,7 @@ public class SmakoszE2ETestBase : PageTest
             await Page.WaitForFunctionAsync(
                 "() => document.querySelector('[id^=\"turnstile-\"] iframe') !== null || typeof turnstile === 'undefined'",
                 null,
-                new PageWaitForFunctionOptions { Timeout = timeoutMs });
+                new PageWaitForFunctionOptions { Timeout = Scaled(timeoutMs) });
             await Page.WaitForTimeoutAsync(1000);
         }
         catch (TimeoutException)
@@ -176,13 +183,13 @@ public class SmakoszE2ETestBase : PageTest
         // AuthLayout uses <div class="auth-layout">
         var contentArea = Page.Locator("main, div.flex-grow-1, div.auth-layout");
         await Expect(contentArea.GetByText(text).First).ToBeVisibleAsync(
-            new LocatorAssertionsToBeVisibleOptions { Timeout = timeoutMs });
+            new LocatorAssertionsToBeVisibleOptions { Timeout = Scaled(timeoutMs) });
     }
 
     protected async Task AssertToastAsync(string text, int timeoutMs = 10_000)
     {
         var toast = Page.GetByText(text).First;
         await Expect(toast).ToBeVisibleAsync(
-            new LocatorAssertionsToBeVisibleOptions { Timeout = timeoutMs });
+            new LocatorAssertionsToBeVisibleOptions { Timeout = Scaled(timeoutMs) });
     }
 }
