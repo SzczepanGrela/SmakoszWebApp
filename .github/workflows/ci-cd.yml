@@ -139,3 +139,22 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_SSH_PORT }} \
             smakosz@${{ secrets.VPS_HOST }} bash /home/smakosz/deploy-launcher.sh
+
+  cf-purge:
+    name: Purge Cloudflare cache
+    needs: deploy-vps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge service worker and entry point from Cloudflare
+        run: |
+          curl -fsS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"files":[
+              "https://smakosz.xyz/service-worker.js",
+              "https://smakosz.xyz/service-worker-assets.js",
+              "https://smakosz.xyz/index.html",
+              "https://smakosz.xyz/appsettings.json",
+              "https://smakosz.xyz/"
+            ]}'
