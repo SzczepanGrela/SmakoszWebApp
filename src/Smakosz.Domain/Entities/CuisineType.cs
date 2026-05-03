@@ -6,4 +6,5 @@ public class CuisineType
     public string Name { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string? Icon { get; set; }
+    public bool IsActive { get; set; } = true;
 }

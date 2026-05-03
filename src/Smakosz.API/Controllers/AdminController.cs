@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.RateLimiting;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Commands.BanUser;
 using Smakosz.Application.Features.Admin.Commands.CreateCity;
+using Smakosz.Application.Features.Admin.Commands.CreateCuisineType;
 using Smakosz.Application.Features.Admin.Commands.CreateIngredient;
 using Smakosz.Application.Features.Admin.Commands.DeleteCity;
+using Smakosz.Application.Features.Admin.Commands.DeleteCuisineType;
 using Smakosz.Application.Features.Admin.Commands.DeleteIngredient;
 using Smakosz.Application.Features.Admin.Commands.ReviewIngredientSuggestion;
 using Smakosz.Application.Features.Admin.Commands.AdminCreateRestaurant;
@@ -35,6 +37,7 @@ using Smakosz.Application.Features.Admin.Commands.CreateTag;
 using Smakosz.Application.Features.Admin.Commands.DeleteRejectionReason;
 using Smakosz.Application.Features.Admin.Commands.DeleteTag;
 using Smakosz.Application.Features.Admin.Commands.UpdateCity;
+using Smakosz.Application.Features.Admin.Commands.UpdateCuisineType;
 using Smakosz.Application.Features.Admin.Commands.UpdateIngredient;
 using Smakosz.Application.Features.Admin.Commands.UpdateRejectionReason;
 using Smakosz.Application.Features.Admin.Commands.UpdateTag;
@@ -42,6 +45,7 @@ using Smakosz.Application.Features.Admin.Queries.GetAdminIngredients;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurantDetail;
 using Smakosz.Application.Features.Admin.Queries.GetAdminRestaurants;
 using Smakosz.Application.Features.Admin.Queries.GetCities;
+using Smakosz.Application.Features.Admin.Queries.GetCuisineTypes;
 using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
 using Smakosz.Application.Features.Admin.Queries.GetTags;
 using Smakosz.Application.Features.Admin.Queries.GetUserDetail;
@@ -367,6 +371,37 @@ public class AdminController : ApiController
         return ToNoContentResult(result);
     }
 
+    [HttpGet("cuisine-types")]
+    public async Task<IActionResult> GetCuisineTypes(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null)
+    {
+        var result = await _mediator.Send(new GetCuisineTypesQuery(new PaginationParams(page, pageSize), search));
+        return ToActionResult(result);
+    }
+
+    [HttpPost("cuisine-types")]
+    public async Task<IActionResult> CreateCuisineType([FromBody] CreateCuisineTypeRequest request)
+    {
+        var result = await _mediator.Send(new CreateCuisineTypeCommand(request.Name, request.DisplayName, request.Icon, request.IsActive));
+        return ToCreatedResult(result);
+    }
+
+    [HttpPut("cuisine-types/{cuisineTypeId:int}")]
+    public async Task<IActionResult> UpdateCuisineType(int cuisineTypeId, [FromBody] UpdateCuisineTypeRequest request)
+    {
+        var result = await _mediator.Send(new UpdateCuisineTypeCommand(cuisineTypeId, request.Name, request.DisplayName, request.Icon, request.IsActive));
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("cuisine-types/{cuisineTypeId:int}")]
+    public async Task<IActionResult> DeleteCuisineType(int cuisineTypeId)
+    {
+        var result = await _mediator.Send(new DeleteCuisineTypeCommand(cuisineTypeId));
+        return ToNoContentResult(result);
+    }
+
     [HttpGet("tags")]
     public async Task<IActionResult> GetTags(
         [FromQuery] int page = 1,
@@ -467,6 +502,8 @@ public record CreateTagRequest(string Name, string Category, string TargetEntity
 public record UpdateTagRequest(string? Name, string? Category, string? TargetEntity, string? DisplayColor);
 public record CreateCityRequest(string Name, string? Region);
 public record UpdateCityRequest(string? Name, string? Region);
+public record CreateCuisineTypeRequest(string Name, string DisplayName, string? Icon, bool IsActive);
+public record UpdateCuisineTypeRequest(string? Name, string? DisplayName, string? Icon, bool? IsActive);
 public record ChangeRestaurantStatusRequest(string Status, string? Reason);
 public record AdminCreateRestaurantRequest(
     string Name,
