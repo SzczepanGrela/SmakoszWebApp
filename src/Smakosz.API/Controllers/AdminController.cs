@@ -125,9 +125,10 @@ public class AdminController : ApiController
     public async Task<IActionResult> GetRestaurants(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] bool? isOrphan = null)
     {
-        var result = await _mediator.Send(new GetAdminRestaurantsQuery(new PaginationParams(page, pageSize), search));
+        var result = await _mediator.Send(new GetAdminRestaurantsQuery(new PaginationParams(page, pageSize), search, isOrphan));
         return ToActionResult(result);
     }
 
