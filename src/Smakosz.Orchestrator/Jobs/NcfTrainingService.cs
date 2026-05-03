@@ -18,6 +18,7 @@ public class NcfTrainingService : INcfTrainingService
     private readonly INcfModelStorageService _modelStorage;
     private readonly IBackgroundJobClient _jobs;
     private readonly IHttpClientFactory _httpFactory;
+    private readonly IGpuWakeService _gpuWake;
     private readonly IDateTimeProvider _clock;
     private readonly NcfTrainingOptions _options;
     private readonly IModerationAggregationService _moderationService;
@@ -28,6 +29,7 @@ public class NcfTrainingService : INcfTrainingService
         INcfModelStorageService modelStorage,
         IBackgroundJobClient jobs,
         IHttpClientFactory httpFactory,
+        IGpuWakeService gpuWake,
         IDateTimeProvider clock,
         IOptions<NcfTrainingOptions> options,
         IModerationAggregationService moderationService,
@@ -37,6 +39,7 @@ public class NcfTrainingService : INcfTrainingService
         _modelStorage = modelStorage;
         _jobs = jobs;
         _httpFactory = httpFactory;
+        _gpuWake = gpuWake;
         _clock = clock;
         _options = options.Value;
         _moderationService = moderationService;
@@ -114,11 +117,11 @@ public class NcfTrainingService : INcfTrainingService
         {
             var health = await gpuClient.GetAsync("/health", ct);
             if (!health.IsSuccessStatusCode)
-                await WakeGpuAsync(ct);
+                await _gpuWake.WakeAsync(ct);
         }
         catch
         {
-            await WakeGpuAsync(ct);
+            await _gpuWake.WakeAsync(ct);
         }
 
         _jobs.Enqueue<INcfModelStorageService>(x => x.CleanupOldFilesAsync("ncf-training/", 2, CancellationToken.None));
@@ -130,17 +133,4 @@ public class NcfTrainingService : INcfTrainingService
         return Result.Success;
     }
 
-    private async Task WakeGpuAsync(CancellationToken ct)
-    {
-        try
-        {
-            var rpiClient = _httpFactory.CreateClient("RpiGateway");
-            await rpiClient.PostAsync("/wake", null, ct);
-            _logger.LogInformation("ncf-training: sent WoL request via RPI gateway");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "ncf-training: failed to send WoL request");
-        }
-    }
 }
