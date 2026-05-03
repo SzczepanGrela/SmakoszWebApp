@@ -53,6 +53,8 @@ public static class DependencyInjection
                 c.Timeout = TimeSpan.FromSeconds(10);
             });
 
+        services.AddScoped<IGpuWakeService, RpiGatewayWakeService>();
+
         return services;
     }
 
