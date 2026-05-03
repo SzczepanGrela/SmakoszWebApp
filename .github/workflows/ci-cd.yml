@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/szczepangrela/smakoszwebapp
@@ -41,9 +45,62 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
 
+  e2e:
+    name: E2E Tests
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Czteryzera
+          POSTGRES_DB: smakosz_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Install Playwright browsers
+        run: pwsh tests/Smakosz.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run E2E tests
+        run: dotnet test tests/Smakosz.E2E/Smakosz.E2E.csproj --no-build -c Release --logger "trx;LogFileName=e2e.trx" --results-directory tests/Smakosz.E2E/TestResults
+        env:
+          ASPNETCORE_ENVIRONMENT: E2E
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            tests/Smakosz.E2E/TestResults/**
+            tests/Smakosz.E2E/playwright-traces/**
+          retention-days: 7
+
   build-images:
     name: Build & Push Images
-    needs: test
+    needs: [test, e2e]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
