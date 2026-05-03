@@ -190,7 +190,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowClient");
-app.UseRateLimiter();
+if (!app.Environment.IsEnvironment("E2E"))
+    app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpMetrics();
