@@ -35,7 +35,6 @@ public class UserBuilder
     public UserBuilder WithAvatarUrl(string url) { _user.AvatarUrl = url; return this; }
     public UserBuilder AsInactive() { _user.IsActive = false; return this; }
     public UserBuilder AsBanned() { _user.IsBanned = true; return this; }
-    public UserBuilder WithRestaurantId(int restaurantId) { _user.RestaurantId = restaurantId; return this; }
     public UserBuilder AsDeleted() { _user.IsDeleted = true; _user.DeletedAt = DateTime.UtcNow; return this; }
     public UserBuilder AsEmailNotVerified() { _user.EmailVerified = false; return this; }
     public UserBuilder With2faEnabled() { _user.Is2faEnabled = true; return this; }

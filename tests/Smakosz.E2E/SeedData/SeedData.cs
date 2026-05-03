@@ -574,8 +574,6 @@ public static class SeedData
             new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.2", LastHeartbeat = DateTime.UtcNow },
             new SystemNode { NodeId = "rpi-gateway", NodeType = NodeType.RpiGateway, Status = "online", Hostname = "raspberrypi", IpAddress = "10.0.0.3", LastHeartbeat = DateTime.UtcNow });
 
-        // Second save: link marco to his restaurant (breaks circular dependency)
-        marco.RestaurantId = 1;
         await db.SaveChangesAsync();
 
         // Without this, the next auto-generated ID would conflict with seeded rows

@@ -80,11 +80,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.SecretPreferredAmbiance)
             .HasMaxLength(100);
 
-        builder.HasOne<Domain.Entities.Restaurant>()
-            .WithMany()
-            .HasForeignKey(x => x.RestaurantId)
-            .OnDelete(DeleteBehavior.ClientSetNull);
-
         builder.HasOne(x => x.SecretHomeCity)
             .WithMany()
             .HasForeignKey(x => x.SecretHomeCityId);
@@ -101,9 +96,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnique();
 
         builder.HasIndex(x => x.Email)
-            .IsUnique();
-
-        builder.HasIndex(x => x.RestaurantId)
             .IsUnique();
 
         builder.HasIndex(x => x.Slug)
