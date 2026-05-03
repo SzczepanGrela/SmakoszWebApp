@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
-using Smakosz.Orchestrator.Configuration;
+using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Orchestrator.Jobs;
 

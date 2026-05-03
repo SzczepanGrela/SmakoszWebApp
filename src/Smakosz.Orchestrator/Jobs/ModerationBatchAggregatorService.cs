@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
-using Smakosz.Orchestrator.Configuration;
+using Smakosz.Infrastructure.Configuration;
 
 namespace Smakosz.Orchestrator.Jobs;
 
