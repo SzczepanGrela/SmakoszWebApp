@@ -38,8 +38,6 @@ public static class E2EDatabaseSeeder
 
         await context.Database.MigrateAsync();
 
-        await context.ApplySqlObjectsAsync();
-
         await Smakosz.E2E.SeedData.SeedData.SeedAsync(context);
     }
 

@@ -54,7 +54,6 @@ public static class PostgresFixture
             await using (var ctx = new SmakoszDbContext(optionsBuilder.Options))
             {
                 await ctx.Database.MigrateAsync();
-                await ctx.ApplySqlObjectsAsync();
             }
 
             await using (var respawnConn = new NpgsqlConnection(container.GetConnectionString()))

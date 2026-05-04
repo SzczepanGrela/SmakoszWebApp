@@ -70,6 +70,9 @@ public static class DependencyInjection
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IBusinessMetrics>(_ => new BusinessMetrics(Prometheus.Metrics.DefaultFactory));
+        services.AddScoped<ICounterUpdater, CounterUpdater>();
+        services.AddScoped<IReviewVisibilityRecalculator, ReviewVisibilityRecalculator>();
+        services.AddScoped<IPrimaryPhotoSyncer, PrimaryPhotoSyncer>();
 
         if (isE2E)
         {

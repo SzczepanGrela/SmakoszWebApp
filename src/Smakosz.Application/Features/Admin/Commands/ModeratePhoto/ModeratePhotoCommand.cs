@@ -44,11 +44,15 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IReviewVisibilityRecalculator _visibility;
+    private readonly IPrimaryPhotoSyncer _photoSyncer;
 
-    public ModeratePhotoHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public ModeratePhotoHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IReviewVisibilityRecalculator visibility, IPrimaryPhotoSyncer photoSyncer)
     {
         _db = db;
         _currentUser = currentUser;
+        _visibility = visibility;
+        _photoSyncer = photoSyncer;
     }
 
     public async Task<ErrorOr<Success>> Handle(ModeratePhotoCommand request, CancellationToken cancellationToken)
@@ -81,6 +85,10 @@ public class ModeratePhotoHandler : IRequestHandler<ModeratePhotoCommand, ErrorO
             asset, request.Approve, resolvedText, appliedCodes, _db, _currentUser, cancellationToken);
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        if (asset.EntityType == MediaEntityType.Review)
+            await _visibility.EvaluateAsync(asset.EntityId, cancellationToken);
+        await _photoSyncer.SyncToEntityAsync(asset.AssetId, cancellationToken);
 
         return Result.Success;
     }

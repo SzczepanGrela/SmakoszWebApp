@@ -12,11 +12,13 @@ public class UnfollowUserHandler : IRequestHandler<UnfollowUserCommand, ErrorOr<
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICounterUpdater _counter;
 
-    public UnfollowUserHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public UnfollowUserHandler(ISmakoszDbContext db, ICurrentUserService currentUser, ICounterUpdater counter)
     {
         _db = db;
         _currentUser = currentUser;
+        _counter = counter;
     }
 
     public async Task<ErrorOr<Success>> Handle(UnfollowUserCommand request, CancellationToken cancellationToken)
@@ -48,11 +50,10 @@ public class UnfollowUserHandler : IRequestHandler<UnfollowUserCommand, ErrorOr<
             return DomainErrors.Follow.NotFollowing;
 
         _db.UserFollows.Remove(follow);
-
-        targetUser.FollowersCount = Math.Max(0, targetUser.FollowersCount - 1);
-        currentUser.FollowingCount = Math.Max(0, currentUser.FollowingCount - 1);
-
         await _db.SaveChangesAsync(cancellationToken);
+
+        await _counter.DecrementFollowersAsync(targetUser.UserId, cancellationToken);
+        await _counter.DecrementFollowingAsync(_currentUser.UserId.Value, cancellationToken);
 
         return Result.Success;
     }

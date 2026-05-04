@@ -17,11 +17,13 @@ public class ToggleReviewLikeHandler : IRequestHandler<ToggleReviewLikeCommand, 
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICounterUpdater _counter;
 
-    public ToggleReviewLikeHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public ToggleReviewLikeHandler(ISmakoszDbContext db, ICurrentUserService currentUser, ICounterUpdater counter)
     {
         _db = db;
         _currentUser = currentUser;
+        _counter = counter;
     }
 
     public async Task<ErrorOr<ToggleReviewLikeResult>> Handle(ToggleReviewLikeCommand request, CancellationToken cancellationToken)
@@ -44,7 +46,6 @@ public class ToggleReviewLikeHandler : IRequestHandler<ToggleReviewLikeCommand, 
         if (existingLike is not null)
         {
             _db.ReviewLikes.Remove(existingLike);
-            review.HelpfulCount = Math.Max(0, review.HelpfulCount - 1);
         }
         else
         {
@@ -54,7 +55,6 @@ public class ToggleReviewLikeHandler : IRequestHandler<ToggleReviewLikeCommand, 
                 ReviewId = review.ReviewId,
                 CreatedAt = DateTime.UtcNow
             });
-            review.HelpfulCount++;
 
             var groupKey = $"like:review:{review.ReviewId}";
             var existingNotification = await _db.Notifications
@@ -95,8 +95,18 @@ public class ToggleReviewLikeHandler : IRequestHandler<ToggleReviewLikeCommand, 
 
         await _db.SaveChangesAsync(cancellationToken);
 
+        if (existingLike is null)
+            await _counter.IncrementHelpfulAsync(review.ReviewId, cancellationToken);
+        else
+            await _counter.DecrementHelpfulAsync(review.ReviewId, cancellationToken);
+
+        var freshHelpfulCount = await _db.Reviews
+            .Where(r => r.ReviewId == review.ReviewId)
+            .Select(r => r.HelpfulCount)
+            .FirstAsync(cancellationToken);
+
         return new ToggleReviewLikeResult(
             IsLiked: existingLike is null,
-            HelpfulCount: review.HelpfulCount);
+            HelpfulCount: freshHelpfulCount);
     }
 }

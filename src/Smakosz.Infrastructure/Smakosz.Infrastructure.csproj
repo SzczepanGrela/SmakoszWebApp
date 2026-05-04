@@ -35,8 +35,5 @@
     <ProjectReference Include="..\Smakosz.Application\Smakosz.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="SqlObjects\**\*.sql" />
-  </ItemGroup>
 
 </Project>

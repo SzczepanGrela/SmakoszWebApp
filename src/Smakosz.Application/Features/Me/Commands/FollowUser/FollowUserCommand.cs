@@ -15,11 +15,13 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICounterUpdater _counter;
 
-    public FollowUserHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public FollowUserHandler(ISmakoszDbContext db, ICurrentUserService currentUser, ICounterUpdater counter)
     {
         _db = db;
         _currentUser = currentUser;
+        _counter = counter;
     }
 
     public async Task<ErrorOr<Success>> Handle(FollowUserCommand request, CancellationToken cancellationToken)
@@ -59,9 +61,6 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
             CreatedAt = DateTime.UtcNow
         });
 
-        targetUser.FollowersCount++;
-        currentUser.FollowingCount++;
-
         var groupKey = $"follow:{targetUser.UserId}";
         var existingNotification = await _db.Notifications
             .FirstOrDefaultAsync(n => n.UserId == targetUser.UserId
@@ -99,6 +98,10 @@ public class FollowUserHandler : IRequestHandler<FollowUserCommand, ErrorOr<Succ
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await _counter.IncrementFollowersAsync(targetUser.UserId, cancellationToken);
+        await _counter.IncrementFollowingAsync(_currentUser.UserId.Value, cancellationToken);
+
         return Result.Success;
     }
 }

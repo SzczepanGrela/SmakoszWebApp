@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Admin.Commands.ModerateReview;
 using Smakosz.Domain.Entities;
@@ -14,13 +15,15 @@ public class ModerateReviewHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IReviewVisibilityRecalculator _visibility;
     private readonly ModerateReviewHandler _handler;
 
     public ModerateReviewHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAdminUser();
-        _handler = new ModerateReviewHandler(_db, _currentUser);
+        _visibility = Substitute.For<IReviewVisibilityRecalculator>();
+        _handler = new ModerateReviewHandler(_db, _currentUser, _visibility);
     }
 
     private void SeedReasons()
@@ -215,7 +218,7 @@ public class ModerateReviewHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new ModerateReviewHandler(_db, nonAdmin);
+        var handler = new ModerateReviewHandler(_db, nonAdmin, _visibility);
 
         var result = await handler.Handle(
             new ModerateReviewCommand(Guid.NewGuid(), true, null, null),

@@ -17,13 +17,15 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
     private readonly ICurrentUserService _currentUser;
     private readonly IForbiddenWordService _forbiddenWords;
     private readonly IBusinessMetrics _metrics;
+    private readonly ICounterUpdater _counter;
 
-    public CreateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords, IBusinessMetrics metrics)
+    public CreateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IForbiddenWordService forbiddenWords, IBusinessMetrics metrics, ICounterUpdater counter)
     {
         _db = db;
         _currentUser = currentUser;
         _forbiddenWords = forbiddenWords;
         _metrics = metrics;
+        _counter = counter;
     }
 
     public async Task<ErrorOr<ReviewCardDto>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -73,6 +75,9 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync(cancellationToken);
         _metrics.RecordReviewSubmitted();
+
+        await _counter.IncrementUserReviewCountAsync(_currentUser.UserId.Value, cancellationToken);
+        await _counter.IncrementDishReviewCountAsync(dish.DishId, cancellationToken);
 
         if (review.ModerationStatus == ContentModerationStatus.Pending)
         {

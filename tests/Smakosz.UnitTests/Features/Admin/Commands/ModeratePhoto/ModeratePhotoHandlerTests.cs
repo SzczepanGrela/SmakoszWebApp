@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Admin.Commands.ModeratePhoto;
 using Smakosz.Domain.Entities;
@@ -14,13 +15,17 @@ public class ModeratePhotoHandlerTests
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
+    private readonly IReviewVisibilityRecalculator _visibility;
+    private readonly IPrimaryPhotoSyncer _photoSyncer;
     private readonly ModeratePhotoHandler _handler;
 
     public ModeratePhotoHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAdminUser();
-        _handler = new ModeratePhotoHandler(_db, _currentUser);
+        _visibility = Substitute.For<IReviewVisibilityRecalculator>();
+        _photoSyncer = Substitute.For<IPrimaryPhotoSyncer>();
+        _handler = new ModeratePhotoHandler(_db, _currentUser, _visibility, _photoSyncer);
     }
 
     private void SeedReasons()
@@ -173,7 +178,7 @@ public class ModeratePhotoHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new ModeratePhotoHandler(_db, nonAdmin);
+        var handler = new ModeratePhotoHandler(_db, nonAdmin, _visibility, _photoSyncer);
 
         var result = await handler.Handle(
             new ModeratePhotoCommand(Guid.NewGuid(), true, null, null),

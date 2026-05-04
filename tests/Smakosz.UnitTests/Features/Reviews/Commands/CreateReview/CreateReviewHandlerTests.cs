@@ -15,6 +15,7 @@ public class CreateReviewHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly IForbiddenWordService _forbiddenWords;
+    private readonly ICounterUpdater _counter;
     private readonly CreateReviewHandler _handler;
 
     public CreateReviewHandlerTests()
@@ -22,7 +23,8 @@ public class CreateReviewHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
         _forbiddenWords = Substitute.For<IForbiddenWordService>();
-        _handler = new CreateReviewHandler(_db, _currentUser, _forbiddenWords, Substitute.For<IBusinessMetrics>());
+        _counter = Substitute.For<ICounterUpdater>();
+        _handler = new CreateReviewHandler(_db, _currentUser, _forbiddenWords, Substitute.For<IBusinessMetrics>(), _counter);
     }
 
     private CreateReviewCommand ValidCommand(Guid dishPublicId) => new(
@@ -78,7 +80,7 @@ public class CreateReviewHandlerTests
     public async Task Handle_NotAuthenticated_ReturnsError()
     {
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        var handler = new CreateReviewHandler(_db, anonymousUser, _forbiddenWords, Substitute.For<IBusinessMetrics>());
+        var handler = new CreateReviewHandler(_db, anonymousUser, _forbiddenWords, Substitute.For<IBusinessMetrics>(), _counter);
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
 
@@ -157,7 +159,7 @@ public class CreateReviewHandlerTests
     public async Task Handle_NonUserRole_ReturnsUserRoleOnlyError()
     {
         var restaurantUser = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "restaurant");
-        var handler = new CreateReviewHandler(_db, restaurantUser, _forbiddenWords, Substitute.For<IBusinessMetrics>());
+        var handler = new CreateReviewHandler(_db, restaurantUser, _forbiddenWords, Substitute.For<IBusinessMetrics>(), _counter);
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()), CancellationToken.None);
 

@@ -177,7 +177,6 @@ if (!app.Environment.IsEnvironment("Testing"))
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<SmakoszDbContext>();
     await db.Database.MigrateAsync();
-    await db.ApplySqlObjectsAsync();
 }
 
 app.UseForwardedHeaders();

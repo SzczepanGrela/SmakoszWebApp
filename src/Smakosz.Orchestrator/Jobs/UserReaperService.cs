@@ -11,15 +11,18 @@ public class UserReaperService
     private readonly SmakoszDbContext _db;
     private readonly IDateTimeProvider _clock;
     private readonly ILogger<UserReaperService> _logger;
+    private readonly ICounterUpdater _counter;
 
     public UserReaperService(
         SmakoszDbContext db,
         IDateTimeProvider clock,
-        ILogger<UserReaperService> logger)
+        ILogger<UserReaperService> logger,
+        ICounterUpdater counter)
     {
         _db = db;
         _clock = clock;
         _logger = logger;
+        _counter = counter;
     }
 
     public async Task ReapAsync(CancellationToken ct)
@@ -38,10 +41,43 @@ public class UserReaperService
 
         foreach (var userId in usersToDelete)
         {
+            // Counter triggers fire per row on DELETE; with the triggers gone, decrement helpful_count, dish.review_count and follower counts here before bulk deletes wipe the source rows.
+            var dishReviewCounts = await _db.Reviews.IgnoreQueryFilters()
+                .Where(r => r.UserId == userId)
+                .GroupBy(r => r.DishId)
+                .Select(g => new { DishId = g.Key, Delta = g.Count() })
+                .ToListAsync(ct);
+            var totalReviews = dishReviewCounts.Sum(x => x.Delta);
+
+            var likedReviewIds = await _db.ReviewLikes
+                .Where(rl => rl.UserId == userId)
+                .Select(rl => rl.ReviewId)
+                .ToListAsync(ct);
+
+            var followedTargets = await _db.UserFollows
+                .Where(uf => uf.FollowerId == userId)
+                .Select(uf => uf.FollowedId)
+                .ToListAsync(ct);
+            var followerSources = await _db.UserFollows
+                .Where(uf => uf.FollowedId == userId)
+                .Select(uf => uf.FollowerId)
+                .ToListAsync(ct);
+
             await _db.Reviews.IgnoreQueryFilters()
                 .Where(r => r.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.ReviewLikes
                 .Where(rl => rl.UserId == userId).ExecuteDeleteAsync(ct);
+
+            foreach (var entry in dishReviewCounts)
+                await _counter.DecrementDishReviewCountAsync(entry.DishId, entry.Delta, ct);
+            if (totalReviews > 0)
+                await _counter.DecrementUserReviewCountAsync(userId, totalReviews, ct);
+            foreach (var reviewId in likedReviewIds)
+                await _counter.DecrementHelpfulAsync(reviewId, ct);
+            foreach (var followedId in followedTargets)
+                await _counter.DecrementFollowersAsync(followedId, ct);
+            foreach (var followerId in followerSources)
+                await _counter.DecrementFollowingAsync(followerId, ct);
             await _db.Notifications
                 .Where(n => n.UserId == userId).ExecuteDeleteAsync(ct);
             await _db.UserSessions
