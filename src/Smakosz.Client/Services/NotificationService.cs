@@ -8,6 +8,8 @@ public class NotificationService : INotificationService
 
     public NotificationService(SmakoszApiClient api) => _api = api;
 
+    public event Action? UnreadCountChanged;
+
     public Task<PagedResult<NotificationDto>?> GetNotificationsAsync(int page = 1)
         => _api.GetAsync<PagedResult<NotificationDto>>($"/api/me/notifications?page={page}");
 
@@ -15,8 +17,14 @@ public class NotificationService : INotificationService
         => await _api.GetAsync<int>("/api/me/notifications/unread-count");
 
     public async Task MarkAsReadAsync(int id)
-        => await _api.PutApiResponseAsync<object>($"/api/me/notifications/{id}/read", null);
+    {
+        await _api.PutApiResponseAsync<object>($"/api/me/notifications/{id}/read", null);
+        UnreadCountChanged?.Invoke();
+    }
 
     public async Task MarkAllAsReadAsync()
-        => await _api.PutApiResponseAsync<object>("/api/me/notifications/read-all", null);
+    {
+        await _api.PutApiResponseAsync<object>("/api/me/notifications/read-all", null);
+        UnreadCountChanged?.Invoke();
+    }
 }

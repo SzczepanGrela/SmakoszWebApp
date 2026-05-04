@@ -15,12 +15,22 @@
 
     protected override async Task OnInitializedAsync()
     {
+        NotificationService.UnreadCountChanged += OnUnreadCountChanged;
         await RefreshCount();
         _timer = new System.Threading.Timer(async _ =>
         {
             await RefreshCount();
             await InvokeAsync(StateHasChanged);
         }, null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+    }
+
+    private void OnUnreadCountChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshCount();
+            StateHasChanged();
+        });
     }
 
     private async Task RefreshCount()
@@ -37,6 +47,7 @@
 
     public void Dispose()
     {
+        NotificationService.UnreadCountChanged -= OnUnreadCountChanged;
         _timer?.Dispose();
     }
 }
