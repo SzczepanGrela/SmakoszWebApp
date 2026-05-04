@@ -469,7 +469,7 @@ def _generate_system_nodes(db: DatabaseConnection) -> int:
     now_naive = datetime.utcnow().replace(microsecond=0)
     nodes = [
         {
-            "node_id": "rpi-gateway",
+            "node_id": "rbpi-gateway",
             "ip_address": "100.64.0.10",
             "mac_address": None,
             "wol_gateway_id": None,
@@ -488,7 +488,7 @@ def _generate_system_nodes(db: DatabaseConnection) -> int:
             "node_id": "gpu-worker",
             "ip_address": "100.64.0.20",
             "mac_address": "AA:BB:CC:DD:EE:FF",
-            "wol_gateway_id": "rpi-gateway",
+            "wol_gateway_id": "rbpi-gateway",
             "role": "worker",
             "status": "offline",
             "node_type": "gpu",

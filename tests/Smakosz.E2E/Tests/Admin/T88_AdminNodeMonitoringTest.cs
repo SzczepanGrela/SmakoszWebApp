@@ -26,14 +26,14 @@ public class T88_AdminNodeMonitoringTest : SmakoszE2ETestBase
         await nodeCards.First.WaitForAsync(new LocatorWaitForOptions { Timeout = 15_000 });
         var cardCount = await nodeCards.CountAsync();
         Assert.That(cardCount, Is.GreaterThanOrEqualTo(2),
-            "Should show at least the gpu-worker and rpi-gateway cards");
+            "Should show at least the gpu-worker and rbpi-gateway cards");
 
         var gpuCard = Page.Locator(".card", new() { HasText = "gpu-worker-1" });
         await Expect(gpuCard).ToBeVisibleAsync();
         var offlineBadge = gpuCard.Locator(".badge", new() { HasText = "offline" });
         await Expect(offlineBadge).ToBeVisibleAsync();
 
-        var rpiCard = Page.Locator(".card", new() { HasText = "rpi-gateway" });
+        var rpiCard = Page.Locator(".card", new() { HasText = "rbpi-gateway" });
         await Expect(rpiCard).ToBeVisibleAsync();
 
         var refreshBtn = Page.Locator("button.btn-outline-primary", new() { HasText = "Odśwież" }).First;

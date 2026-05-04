@@ -34,7 +34,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<RpiGatewayOptions>(configuration.GetSection(RpiGatewayOptions.SectionName));
+        services.Configure<RbpiGatewayOptions>(configuration.GetSection(RbpiGatewayOptions.SectionName));
         services.Configure<GpuWorkerOptions>(configuration.GetSection(GpuWorkerOptions.SectionName));
 
         services.AddHttpClient("GpuWorker", (sp, c) =>
@@ -44,16 +44,16 @@ public static class DependencyInjection
                 c.Timeout = TimeSpan.FromSeconds(10);
             });
 
-        services.AddHttpClient("RpiGateway", (sp, c) =>
+        services.AddHttpClient("RbpiGateway", (sp, c) =>
             {
-                var opts = sp.GetRequiredService<IOptions<RpiGatewayOptions>>().Value;
+                var opts = sp.GetRequiredService<IOptions<RbpiGatewayOptions>>().Value;
                 c.BaseAddress = new Uri(opts.Url);
                 if (!string.IsNullOrEmpty(opts.ApiToken))
                     c.DefaultRequestHeaders.Add("X-API-Token", opts.ApiToken);
                 c.Timeout = TimeSpan.FromSeconds(10);
             });
 
-        services.AddScoped<IGpuWakeService, RpiGatewayWakeService>();
+        services.AddScoped<IGpuWakeService, RbpiGatewayWakeService>();
 
         return services;
     }

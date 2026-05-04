@@ -17,9 +17,9 @@
   "GpuWorker": {
     "Url": "http://<TAILSCALE_GPU_IP>:8000"
   },
-  "RpiGateway": {
-    "Url": "http://<TAILSCALE_RPI_IP>:5000",
-    "ApiToken": "<RPI_GATEWAY_API_TOKEN>"
+  "RbpiGateway": {
+    "Url": "http://<TAILSCALE_RBPI_IP>:5000",
+    "ApiToken": "<RBPI_GATEWAY_API_TOKEN>"
   },
   "WorkerAuth": {
     "ApiKey": "<WORKER_API_KEY>"

@@ -12,7 +12,7 @@ using Smakosz.UnitTests.Common.TestInfrastructure;
 namespace Smakosz.UnitTests.Infrastructure.Services;
 
 [Trait("Category", "Handlers")]
-public class RpiGatewayWakeServiceTests
+public class RbpiGatewayWakeServiceTests
 {
     private readonly ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
@@ -20,7 +20,7 @@ public class RpiGatewayWakeServiceTests
     private readonly IDateTimeProvider _clock;
     private readonly DateTime _now = new(2026, 5, 3, 12, 0, 0, DateTimeKind.Utc);
 
-    public RpiGatewayWakeServiceTests()
+    public RbpiGatewayWakeServiceTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
         _cache = new MemoryCache(new MemoryCacheOptions());
@@ -28,11 +28,11 @@ public class RpiGatewayWakeServiceTests
         _clock.UtcNow.Returns(_now);
     }
 
-    private RpiGatewayWakeService CreateService(StubHttpMessageHandler handler)
+    private RbpiGatewayWakeService CreateService(StubHttpMessageHandler handler)
     {
         var factory = Substitute.For<IHttpClientFactory>();
-        factory.CreateClient("RpiGateway").Returns(new HttpClient(handler) { BaseAddress = new Uri("http://rpi.local") });
-        return new RpiGatewayWakeService(_db, factory, _cache, _clock, NullLogger<RpiGatewayWakeService>.Instance);
+        factory.CreateClient("RbpiGateway").Returns(new HttpClient(handler) { BaseAddress = new Uri("http://rbpi.local") });
+        return new RbpiGatewayWakeService(_db, factory, _cache, _clock, NullLogger<RbpiGatewayWakeService>.Instance);
     }
 
     [Fact]

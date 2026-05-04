@@ -27,7 +27,7 @@ public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorO
             return DomainErrors.Admin.Forbidden;
 
         var items = await _db.SystemNodes.AsNoTracking()
-            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RpiGateway)
+            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RbpiGateway)
             .OrderBy(n => n.NodeType)
             .Select(n => new SystemNodeDto
             {

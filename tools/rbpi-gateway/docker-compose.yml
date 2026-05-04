@@ -1,7 +1,7 @@
 services:
-  rpi-gateway:
-    image: ghcr.io/szczepangrela/smakoszwebapp/rpi-gateway:latest
-    container_name: rpi-gateway
+  rbpi-gateway:
+    image: ghcr.io/szczepangrela/smakoszwebapp/rbpi-gateway:latest
+    container_name: rbpi-gateway
     restart: unless-stopped
     network_mode: host
     env_file:
