@@ -1,14 +1,12 @@
-﻿using Hangfire;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Infrastructure.Logging;
-using Smakosz.Infrastructure.Persistence;
 using Smakosz.Infrastructure.Services;
 using Smakosz.IntegrationTests.Infrastructure.Stubs;
 
@@ -16,7 +14,12 @@ namespace Smakosz.IntegrationTests.Infrastructure;
 
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _dbName = $"SmakoszTest_{Guid.NewGuid():N}";
+    private readonly string _connectionString;
+
+    public TestWebApplicationFactory(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -26,7 +29,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         {
             var testConfig = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Host=localhost",
+                ["ConnectionStrings:DefaultConnection"] = _connectionString,
                 ["Jwt:PrivateKey"] = TestAuthHelper.JwtPrivateKey,
                 ["Jwt:PublicKey"] = TestAuthHelper.JwtPublicKey,
                 ["Jwt:Issuer"] = TestAuthHelper.JwtIssuer,
@@ -42,28 +45,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            var toRemove = services.Where(d =>
-                d.ServiceType == typeof(DbContextOptions<SmakoszDbContext>) ||
-                d.ServiceType == typeof(SmakoszDbContext) ||
-                d.ServiceType == typeof(ISmakoszDbContext) ||
-                (d.ServiceType.IsGenericType &&
-                 d.ServiceType.GetGenericTypeDefinition().FullName?.Contains("IDbContextOptionsConfiguration") == true) ||
-                d.ServiceType.FullName?.Contains("IDbContextOptionsConfiguration") == true
-            ).ToList();
-
-            foreach (var descriptor in toRemove)
-                services.Remove(descriptor);
-
-            services.RemoveAll<DbContextOptions>();
-
-            services.AddDbContext<SmakoszDbContext>((sp, options) =>
-            {
-                options.UseInMemoryDatabase(_dbName);
-            });
-
-            services.AddScoped<ISmakoszDbContext>(sp =>
-                sp.GetRequiredService<SmakoszDbContext>());
-
             services.RemoveAll<INcfTrainingService>();
             services.AddScoped<INcfTrainingService, StubNcfTrainingService>();
 
@@ -88,11 +69,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IImageProcessingService>();
             services.AddSingleton<IImageProcessingService, StubImageProcessingService>();
 
-            // Remove Hangfire services - no PostgreSQL in tests
+            // Hangfire client/server require Postgres-backed storage in prod; tests do not exercise background jobs synchronously.
             services.RemoveAll<IBackgroundJobClient>();
             services.RemoveAll<IRecurringJobManager>();
 
-            // Remove database logger - no real DB in tests
+            // DbLoggerProvider writes log events to the real Logs table; tests do not need that side effect.
             var dbLoggerDescriptor = services.FirstOrDefault(d =>
                 d.ImplementationType == typeof(DbLoggerProvider) ||
                 (d.ServiceType == typeof(ILoggerProvider) &&
@@ -134,10 +115,10 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         return client;
     }
 
-    public async Task SeedDataAsync(Func<SmakoszDbContext, Task> seedAction)
+    public async Task SeedDataAsync(Func<Smakosz.Infrastructure.Persistence.SmakoszDbContext, Task> seedAction)
     {
         using var scope = Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SmakoszDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<Smakosz.Infrastructure.Persistence.SmakoszDbContext>();
         await seedAction(db);
     }
 

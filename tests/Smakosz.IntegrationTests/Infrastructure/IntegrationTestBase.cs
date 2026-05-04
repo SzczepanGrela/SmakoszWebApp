@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Smakosz.API.Common;
 
 namespace Smakosz.IntegrationTests.Infrastructure;
@@ -15,9 +15,13 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
-        Factory = new TestWebApplicationFactory();
+        await PostgresFixture.EnsureStartedAsync();
+        Factory = new TestWebApplicationFactory(PostgresFixture.ConnectionString);
         AnonymousClient = Factory.CreateAnonymousClient();
+        await Factory.SeedDataAsync(SeedHelpers.SeedFkDefaultsAsync);
         await SeedAsync();
+        // Tests insert rows with explicit primary key values, so the underlying SERIAL/IDENTITY sequence still points at 1; the next API-driven insert without an explicit id collides with the seed row unless we bump every sequence past its current max.
+        await PostgresFixture.AdvanceSequencesAsync();
     }
 
     protected virtual Task SeedAsync() => Task.CompletedTask;
@@ -26,6 +30,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     {
         AnonymousClient.Dispose();
         await Factory.DisposeAsync();
+        await PostgresFixture.ResetAsync();
     }
 
     protected static async Task<T?> DeserializeResponse<T>(HttpResponseMessage response)

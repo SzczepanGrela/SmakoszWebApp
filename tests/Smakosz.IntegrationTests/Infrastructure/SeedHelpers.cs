@@ -1,4 +1,5 @@
-﻿using Smakosz.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
 using Smakosz.Infrastructure.Persistence;
 
@@ -17,6 +18,26 @@ public static class SeedHelpers
             Region = region,
             CreatedAt = DateTime.UtcNow,
         };
+    }
+
+    public static CuisineType CreateCuisineType(int cuisineTypeId, string name)
+    {
+        return new CuisineType
+        {
+            CuisineTypeId = cuisineTypeId,
+            Name = name,
+            DisplayName = name,
+        };
+    }
+
+    // Postgres enforces foreign keys that the previous in-memory provider silently ignored, so every test that creates a Restaurant referencing CuisineTypeId 1 or 2 needs these two rows present first.
+    public static async Task SeedFkDefaultsAsync(SmakoszDbContext db)
+    {
+        if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == 1))
+            db.CuisineTypes.Add(CreateCuisineType(1, "Włoska"));
+        if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == 2))
+            db.CuisineTypes.Add(CreateCuisineType(2, "Turecka"));
+        await db.SaveChangesAsync();
     }
 
     public static User CreateUser(

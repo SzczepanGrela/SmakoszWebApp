@@ -9,17 +9,18 @@ public class ApiHealthEndpointsTests : IAsyncLifetime
     private TestWebApplicationFactory _factory = null!;
     private HttpClient _client = null!;
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        _factory = new HealthCheckTestFactory();
+        await PostgresFixture.EnsureStartedAsync();
+        _factory = new HealthCheckTestFactory(PostgresFixture.ConnectionString);
         _client = _factory.CreateAnonymousClient();
-        return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
         _client.Dispose();
         await _factory.DisposeAsync();
+        await PostgresFixture.ResetAsync();
     }
 
     [Fact]
@@ -63,6 +64,8 @@ public class ApiHealthEndpointsTests : IAsyncLifetime
 
 internal class HealthCheckTestFactory : TestWebApplicationFactory
 {
+    public HealthCheckTestFactory(string connectionString) : base(connectionString) { }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         base.ConfigureWebHost(builder);

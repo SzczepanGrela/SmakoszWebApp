@@ -7,17 +7,18 @@ public class MetricsEndpointTests : IAsyncLifetime
     private TestWebApplicationFactory _factory = null!;
     private HttpClient _client = null!;
 
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        _factory = new TestWebApplicationFactory();
+        await PostgresFixture.EnsureStartedAsync();
+        _factory = new TestWebApplicationFactory(PostgresFixture.ConnectionString);
         _client = _factory.CreateAnonymousClient();
-        return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
         _client.Dispose();
         await _factory.DisposeAsync();
+        await PostgresFixture.ResetAsync();
     }
 
     [Fact]
