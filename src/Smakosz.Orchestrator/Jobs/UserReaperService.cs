@@ -68,9 +68,12 @@ public class UserReaperService
 
             foreach (var asset in mediaUrls)
             {
+                var r2Key = ExtractR2Key(asset.Url);
+                if (r2Key.StartsWith("seed/", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 _db.FilesToDelete.Add(new FileToDelete
                 {
-                    R2Key = ExtractR2Key(asset.Url),
+                    R2Key = r2Key,
                     Bucket = "smakosz-photos",
                     Reason = "user_hard_delete",
                     SourceEntity = "MediaAsset",
@@ -80,6 +83,10 @@ public class UserReaperService
             }
             if (mediaUrls.Count > 0)
                 await _db.SaveChangesAsync(ct);
+
+            await _db.MediaAssets
+                .Where(ma => ma.UploadedBy == userId && EF.Functions.Like(ma.Url, "%seed/%"))
+                .ExecuteUpdateAsync(s => s.SetProperty(m => m.UploadedBy, _ => null), ct);
 
             await _db.MediaAssets
                 .Where(ma => ma.UploadedBy == userId).ExecuteDeleteAsync(ct);

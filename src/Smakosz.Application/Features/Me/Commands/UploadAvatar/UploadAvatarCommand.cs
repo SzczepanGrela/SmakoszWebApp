@@ -1,6 +1,7 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
@@ -30,6 +31,7 @@ public class UploadAvatarHandler : IRequestHandler<UploadAvatarCommand, ErrorOr<
     private readonly IImageProcessingService _imageProcessor;
     private readonly IPublicConfigProvider _configProvider;
     private readonly IBusinessMetrics _metrics;
+    private readonly ILogger<UploadAvatarHandler> _logger;
 
     public UploadAvatarHandler(
         ISmakoszDbContext db,
@@ -37,7 +39,8 @@ public class UploadAvatarHandler : IRequestHandler<UploadAvatarCommand, ErrorOr<
         IFileStorageService storage,
         IImageProcessingService imageProcessor,
         IPublicConfigProvider configProvider,
-        IBusinessMetrics metrics)
+        IBusinessMetrics metrics,
+        ILogger<UploadAvatarHandler> logger)
     {
         _db = db;
         _currentUser = currentUser;
@@ -45,6 +48,7 @@ public class UploadAvatarHandler : IRequestHandler<UploadAvatarCommand, ErrorOr<
         _imageProcessor = imageProcessor;
         _configProvider = configProvider;
         _metrics = metrics;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<UploadAvatarResult>> Handle(UploadAvatarCommand request, CancellationToken cancellationToken)
@@ -77,51 +81,63 @@ public class UploadAvatarHandler : IRequestHandler<UploadAvatarCommand, ErrorOr<
         var variants = ImageVariants.ForEntityType(MediaEntityType.User);
         var uploadResult = await _storage.UploadAsync(request.File, slug, folder, variants, cancellationToken);
 
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        try
         {
-            var previousAsset = await _db.MediaAssets
-                .FirstOrDefaultAsync(a => a.EntityType == MediaEntityType.User && a.EntityId == userId, cancellationToken);
-
-            EnqueueR2Cleanup(user.AvatarUrl, "avatar_replaced", userId);
-
-            if (previousAsset is not null)
-                _db.MediaAssets.Remove(previousAsset);
-        }
-
-        user.AvatarUrl = uploadResult.PublicUrl;
-        user.AvatarBlurhash = uploadResult.Blurhash;
-
-        var asset = new MediaAsset
-        {
-            EntityType = MediaEntityType.User,
-            EntityId = userId,
-            Url = uploadResult.PublicUrl,
-            Blurhash = uploadResult.Blurhash,
-            Width = uploadResult.Width,
-            Height = uploadResult.Height,
-            ModerationStatus = ContentModerationStatus.Approved,
-            UploadedBy = userId
-        };
-        _db.MediaAssets.Add(asset);
-
-        await _db.SaveChangesAsync(cancellationToken);
-
-        if (!ModerationPolicyHelper.IsAutoApproved(_currentUser))
-        {
-            _db.SystemTickets.Add(new SystemTicket
+            if (!string.IsNullOrEmpty(user.AvatarUrl))
             {
-                TicketType = TicketType.Photo,
-                ReferenceId = asset.AssetId,
-                Status = TicketStatus.Open,
-                Priority = 3,
-                Description = "Nowy avatar użytkownika wymaga moderacji"
-            });
+                var previousAsset = await _db.MediaAssets
+                    .FirstOrDefaultAsync(a => a.EntityType == MediaEntityType.User && a.EntityId == userId, cancellationToken);
+
+                EnqueueR2Cleanup(user.AvatarUrl, "avatar_replaced", userId);
+
+                if (previousAsset is not null)
+                    _db.MediaAssets.Remove(previousAsset);
+            }
+
+            user.AvatarUrl = uploadResult.PublicUrl;
+            user.AvatarBlurhash = uploadResult.Blurhash;
+
+            var asset = new MediaAsset
+            {
+                EntityType = MediaEntityType.User,
+                EntityId = userId,
+                Url = uploadResult.PublicUrl,
+                Blurhash = uploadResult.Blurhash,
+                Width = uploadResult.Width,
+                Height = uploadResult.Height,
+                ModerationStatus = ContentModerationStatus.Approved,
+                UploadedBy = userId
+            };
+            _db.MediaAssets.Add(asset);
+
             await _db.SaveChangesAsync(cancellationToken);
+
+            if (!ModerationPolicyHelper.IsAutoApproved(_currentUser))
+            {
+                _db.SystemTickets.Add(new SystemTicket
+                {
+                    TicketType = TicketType.Photo,
+                    ReferenceId = asset.AssetId,
+                    Status = TicketStatus.Open,
+                    Priority = 3,
+                    Description = "Nowy avatar użytkownika wymaga moderacji"
+                });
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+
+            _logger.LogInformation("Uploaded avatar asset {AssetId} for user {UserId}", asset.AssetId, userId);
+
+            _metrics.RecordPhotoUpload("user");
+
+            return new UploadAvatarResult(uploadResult.PublicUrl, uploadResult.Blurhash);
         }
-
-        _metrics.RecordPhotoUpload("user");
-
-        return new UploadAvatarResult(uploadResult.PublicUrl, uploadResult.Blurhash);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Avatar upload DB save failed for user {UserId}, rolling back R2 object {Key}", userId, uploadResult.Key);
+            try { await _storage.DeleteAsync(uploadResult.Key, cancellationToken); }
+            catch (Exception cleanupEx) { _logger.LogError(cleanupEx, "Compensating R2 delete failed for {Key}", uploadResult.Key); }
+            throw;
+        }
     }
 
     private void EnqueueR2Cleanup(string url, string reason, int userId)

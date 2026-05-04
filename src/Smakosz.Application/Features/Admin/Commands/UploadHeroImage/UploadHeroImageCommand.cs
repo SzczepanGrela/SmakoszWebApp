@@ -1,5 +1,6 @@
 using ErrorOr;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
@@ -27,6 +28,7 @@ public class UploadHeroImageHandler : IRequestHandler<UploadHeroImageCommand, Er
     private readonly IImageProcessingService _imageProcessor;
     private readonly IPublicConfigProvider _configProvider;
     private readonly IBusinessMetrics _metrics;
+    private readonly ILogger<UploadHeroImageHandler> _logger;
 
     public UploadHeroImageHandler(
         ISmakoszDbContext db,
@@ -34,7 +36,8 @@ public class UploadHeroImageHandler : IRequestHandler<UploadHeroImageCommand, Er
         IFileStorageService storage,
         IImageProcessingService imageProcessor,
         IPublicConfigProvider configProvider,
-        IBusinessMetrics metrics)
+        IBusinessMetrics metrics,
+        ILogger<UploadHeroImageHandler> logger)
     {
         _db = db;
         _currentUser = currentUser;
@@ -42,6 +45,7 @@ public class UploadHeroImageHandler : IRequestHandler<UploadHeroImageCommand, Er
         _imageProcessor = imageProcessor;
         _configProvider = configProvider;
         _metrics = metrics;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<UploadHeroImageResult>> Handle(UploadHeroImageCommand request, CancellationToken cancellationToken)
@@ -72,23 +76,35 @@ public class UploadHeroImageHandler : IRequestHandler<UploadHeroImageCommand, Er
         var variants = ImageVariants.ForEntityType(MediaEntityType.Hero);
         var uploadResult = await _storage.UploadAsync(request.File, slug, folder, variants, cancellationToken);
 
-        var asset = new MediaAsset
+        try
         {
-            EntityType = MediaEntityType.Hero,
-            EntityId = 0,
-            Url = uploadResult.PublicUrl,
-            Blurhash = uploadResult.Blurhash,
-            Width = uploadResult.Width,
-            Height = uploadResult.Height,
-            ModerationStatus = ContentModerationStatus.Approved,
-            UploadedBy = _currentUser.UserId.Value,
-            CreditText = request.CreditText
-        };
-        _db.MediaAssets.Add(asset);
-        await _db.SaveChangesAsync(cancellationToken);
+            var asset = new MediaAsset
+            {
+                EntityType = MediaEntityType.Hero,
+                EntityId = 0,
+                Url = uploadResult.PublicUrl,
+                Blurhash = uploadResult.Blurhash,
+                Width = uploadResult.Width,
+                Height = uploadResult.Height,
+                ModerationStatus = ContentModerationStatus.Approved,
+                UploadedBy = _currentUser.UserId.Value,
+                CreditText = request.CreditText
+            };
+            _db.MediaAssets.Add(asset);
+            await _db.SaveChangesAsync(cancellationToken);
 
-        _metrics.RecordPhotoUpload("hero");
+            _logger.LogInformation("Uploaded hero image {AssetId} by user {UserId}", asset.AssetId, _currentUser.UserId);
 
-        return new UploadHeroImageResult(asset.PublicId, asset.Url, asset.Blurhash, asset.CreditText, asset.CreatedAt);
+            _metrics.RecordPhotoUpload("hero");
+
+            return new UploadHeroImageResult(asset.PublicId, asset.Url, asset.Blurhash, asset.CreditText, asset.CreatedAt);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Hero image upload DB save failed, rolling back R2 object {Key}", uploadResult.Key);
+            try { await _storage.DeleteAsync(uploadResult.Key, cancellationToken); }
+            catch (Exception cleanupEx) { _logger.LogError(cleanupEx, "Compensating R2 delete failed for {Key}", uploadResult.Key); }
+            throw;
+        }
     }
 }

@@ -186,6 +186,12 @@ public static class DomainErrors
 
         public static readonly Error UnreadableImage =
             Error.Validation("MEDIA_UNREADABLE_IMAGE", "Nie udało się odczytać wymiarów obrazu");
+
+        public static readonly Error FileTooSmall =
+            Error.Validation("MEDIA_FILE_TOO_SMALL", "Plik jest zbyt mały");
+
+        public static readonly Error EntityNotFound =
+            Error.Validation("MEDIA_ENTITY_NOT_FOUND", "Encja docelowa nie istnieje");
     }
 
     public static class Content

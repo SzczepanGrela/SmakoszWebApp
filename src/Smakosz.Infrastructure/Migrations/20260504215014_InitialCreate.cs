@@ -105,7 +105,8 @@ namespace Smakosz.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     display_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    icon = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true)
+                    icon = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
@@ -379,6 +380,65 @@ namespace Smakosz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    email_verified = table.Column<bool>(type: "boolean", nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    security_stamp = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    first_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    full_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    avatar_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    avatar_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false),
+                    is_banned = table.Column<bool>(type: "boolean", nullable: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    followers_count = table.Column<int>(type: "integer", nullable: false),
+                    following_count = table.Column<int>(type: "integer", nullable: false),
+                    slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    is2fa_enabled = table.Column<bool>(type: "boolean", nullable: false),
+                    review_count = table.Column<int>(type: "integer", nullable: false),
+                    photo_count = table.Column<int>(type: "integer", nullable: false),
+                    failed_login_count = table.Column<int>(type: "integer", nullable: false),
+                    locked_until_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    secret_home_city_id = table.Column<int>(type: "integer", nullable: true),
+                    secret_total_review_count = table.Column<int>(type: "integer", nullable: true),
+                    secret_travel_propensity = table.Column<double>(type: "double precision", nullable: true),
+                    secret_enjoyed_archetypes = table.Column<string>(type: "jsonb", nullable: true),
+                    secret_chance_dine_random = table.Column<double>(type: "double precision", nullable: true),
+                    secret_chance_pick_random_dish = table.Column<double>(type: "double precision", nullable: true),
+                    secret_cross_impact_factor = table.Column<double>(type: "double precision", nullable: true),
+                    secret_mood_propensity = table.Column<double>(type: "double precision", nullable: true),
+                    secret_is_influencer = table.Column<bool>(type: "boolean", nullable: false),
+                    secret_rating_baseline = table.Column<double>(type: "double precision", nullable: false, defaultValue: 6.0),
+                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
+                    secret_ingredient_preferences = table.Column<string>(type: "jsonb", nullable: true),
+                    secret_cleanliness_preference = table.Column<string>(type: "jsonb", nullable: true),
+                    secret_preferred_ambiance = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_users", x => x.user_id);
+                    table.ForeignKey(
+                        name: "fk_users_cities_secret_home_city_id",
+                        column: x => x.secret_home_city_id,
+                        principalTable: "cities",
+                        principalColumn: "city_id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "dish_variants",
                 columns: table => new
                 {
@@ -437,36 +497,6 @@ namespace Smakosz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "job_progress",
-                schema: "system",
-                columns: table => new
-                {
-                    progress_id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    job_id = table.Column<int>(type: "integer", nullable: false),
-                    epoch = table.Column<int>(type: "integer", nullable: true),
-                    loss = table.Column<double>(type: "double precision", nullable: true),
-                    accuracy = table.Column<double>(type: "double precision", nullable: true),
-                    learning_rate = table.Column<double>(type: "double precision", nullable: true),
-                    current_step = table.Column<int>(type: "integer", nullable: true),
-                    total_steps = table.Column<int>(type: "integer", nullable: true),
-                    percentage = table.Column<double>(type: "double precision", nullable: true, computedColumnSql: "CASE WHEN total_steps > 0 THEN (current_step::double precision / total_steps) * 100 ELSE 0 END", stored: true),
-                    metadata = table.Column<string>(type: "jsonb", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_job_progress", x => x.progress_id);
-                    table.ForeignKey(
-                        name: "fk_job_progress_jobs_job_id",
-                        column: x => x.job_id,
-                        principalSchema: "system",
-                        principalTable: "jobs",
-                        principalColumn: "job_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "banned_identifiers",
                 schema: "system",
                 columns: table => new
@@ -483,135 +513,12 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_banned_identifiers", x => x.ban_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "data_correction_requests",
-                columns: table => new
-                {
-                    request_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    user_id = table.Column<int>(type: "integer", nullable: true),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    issue_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    proposed_value = table.Column<string>(type: "jsonb", nullable: true),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "pending"),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    response_deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_data_correction_requests", x => x.request_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "dish_ingredients",
-                columns: table => new
-                {
-                    dish_id = table.Column<int>(type: "integer", nullable: false),
-                    ingredient_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_dish_ingredients", x => new { x.dish_id, x.ingredient_id });
                     table.ForeignKey(
-                        name: "fk_dish_ingredients_ingredients_ingredient_id",
-                        column: x => x.ingredient_id,
-                        principalTable: "ingredients",
-                        principalColumn: "ingredient_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "dish_section_assignments",
-                columns: table => new
-                {
-                    dish_id = table.Column<int>(type: "integer", nullable: false),
-                    section_id = table.Column<int>(type: "integer", nullable: false),
-                    display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_dish_section_assignments", x => new { x.dish_id, x.section_id });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "dish_tags",
-                columns: table => new
-                {
-                    dish_id = table.Column<int>(type: "integer", nullable: false),
-                    tag_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_dish_tags", x => new { x.dish_id, x.tag_id });
-                    table.ForeignKey(
-                        name: "fk_dish_tags_tags_tag_id",
-                        column: x => x.tag_id,
-                        principalTable: "tags",
-                        principalColumn: "tag_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "dishes",
-                columns: table => new
-                {
-                    dish_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: true),
-                    dish_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
-                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    trending_score = table.Column<decimal>(type: "numeric(10,4)", nullable: true),
-                    is_vegetarian = table.Column<bool>(type: "boolean", nullable: false),
-                    is_vegan = table.Column<bool>(type: "boolean", nullable: false),
-                    is_gluten_free = table.Column<bool>(type: "boolean", nullable: false),
-                    is_lactose_free = table.Column<bool>(type: "boolean", nullable: false),
-                    is_spicy = table.Column<bool>(type: "boolean", nullable: false),
-                    ingredients_json = table.Column<string>(type: "jsonb", nullable: true),
-                    is_available = table.Column<bool>(type: "boolean", nullable: false),
-                    calories = table.Column<int>(type: "integer", nullable: true),
-                    image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    avg_rating = table.Column<double>(type: "double precision", nullable: true),
-                    review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    secret_variant_id = table.Column<int>(type: "integer", nullable: true),
-                    secret_base_price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
-                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
-                    secret_penalty_vector = table.Column<string>(type: "jsonb", nullable: true),
-                    secret_quality = table.Column<double>(type: "double precision", nullable: true),
-                    secret_popularity_factor = table.Column<double>(type: "double precision", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_dishes", x => x.dish_id);
-                    table.ForeignKey(
-                        name: "fk_dishes_dish_variants_secret_variant_id",
-                        column: x => x.secret_variant_id,
-                        principalTable: "dish_variants",
-                        principalColumn: "variant_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "favorite_restaurants",
-                columns: table => new
-                {
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_favorite_restaurants", x => new { x.user_id, x.restaurant_id });
+                        name: "fk_banned_identifiers_users_banned_by",
+                        column: x => x.banned_by,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -630,40 +537,11 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_forbidden_words", x => x.word_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ingredient_suggestions",
-                columns: table => new
-                {
-                    suggestion_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    user_id = table.Column<int>(type: "integer", nullable: true),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    suggested_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    icon_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    icon_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    is_allergen = table.Column<bool>(type: "boolean", nullable: false),
-                    is_vegetarian = table.Column<bool>(type: "boolean", nullable: false),
-                    is_vegan = table.Column<bool>(type: "boolean", nullable: false),
-                    is_gluten_free = table.Column<bool>(type: "boolean", nullable: false),
-                    is_lactose_free = table.Column<bool>(type: "boolean", nullable: false),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    admin_note = table.Column<string>(type: "text", nullable: true),
-                    reviewed_by_admin_id = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    merged_ingredient_id = table.Column<int>(type: "integer", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_ingredient_suggestions", x => x.suggestion_id);
                     table.ForeignKey(
-                        name: "fk_ingredient_suggestions_ingredients_merged_ingredient_id",
-                        column: x => x.merged_ingredient_id,
-                        principalTable: "ingredients",
-                        principalColumn: "ingredient_id",
+                        name: "fk_forbidden_words_users_added_by",
+                        column: x => x.added_by,
+                        principalTable: "users",
+                        principalColumn: "user_id",
                         onDelete: ReferentialAction.SetNull);
                 });
 
@@ -691,23 +569,12 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_media_assets", x => x.asset_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "menu_sections",
-                columns: table => new
-                {
-                    section_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    section_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_menu_sections", x => x.section_id);
+                    table.ForeignKey(
+                        name: "fk_media_assets_users_uploaded_by",
+                        column: x => x.uploaded_by,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -730,6 +597,12 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_moderation_logs", x => x.log_id);
+                    table.ForeignKey(
+                        name: "fk_moderation_logs_users_processed_by",
+                        column: x => x.processed_by,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -761,6 +634,18 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_notifications", x => x.notification_id);
+                    table.ForeignKey(
+                        name: "fk_notifications_users_actor_id",
+                        column: x => x.actor_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_notifications_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -779,23 +664,11 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_push_subscriptions", x => x.push_subscription_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "report_reason_assignments",
-                columns: table => new
-                {
-                    report_id = table.Column<int>(type: "integer", nullable: false),
-                    reason_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_report_reason_assignments", x => new { x.report_id, x.reason_code });
                     table.ForeignKey(
-                        name: "fk_report_reason_assignments_report_reason_definitions_reason_",
-                        column: x => x.reason_code,
-                        principalTable: "report_reason_definitions",
-                        principalColumn: "reason_code",
+                        name: "fk_push_subscriptions_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -818,77 +691,17 @@ namespace Smakosz.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_reports", x => x.report_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "restaurant_edit_requests",
-                columns: table => new
-                {
-                    request_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    change_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    change_scope = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    target_entity_id = table.Column<int>(type: "integer", nullable: true),
-                    payload = table.Column<string>(type: "jsonb", nullable: false),
-                    new_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    new_description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    new_address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    new_cuisine_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    new_phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    new_website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    new_image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    new_image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    reviewed_by = table.Column<int>(type: "integer", nullable: true),
-                    reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    rejection_reason = table.Column<string>(type: "text", nullable: true),
-                    admin_note = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    resolved_by_admin_id = table.Column<int>(type: "integer", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_restaurant_edit_requests", x => x.request_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "restaurant_opening_hours",
-                columns: table => new
-                {
-                    hours_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    day_of_week = table.Column<int>(type: "integer", nullable: false),
-                    open_time = table.Column<TimeOnly>(type: "time", nullable: false),
-                    close_time = table.Column<TimeOnly>(type: "time", nullable: false),
-                    is_closed = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_restaurant_opening_hours", x => x.hours_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "restaurant_tags",
-                columns: table => new
-                {
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    tag_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_restaurant_tags", x => new { x.restaurant_id, x.tag_id });
                     table.ForeignKey(
-                        name: "fk_restaurant_tags_tags_tag_id",
-                        column: x => x.tag_id,
-                        principalTable: "tags",
-                        principalColumn: "tag_id",
+                        name: "fk_reports_users_reporter_id",
+                        column: x => x.reporter_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_reports_users_resolved_by_admin_id",
+                        column: x => x.resolved_by_admin_id,
+                        principalTable: "users",
+                        principalColumn: "user_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -900,7 +713,7 @@ namespace Smakosz.Infrastructure.Migrations
                     public_id = table.Column<Guid>(type: "uuid", nullable: false),
                     city_id = table.Column<int>(type: "integer", nullable: true),
                     restaurant_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    cuisine_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    cuisine_type_id = table.Column<int>(type: "integer", nullable: true),
                     price_level = table.Column<int>(type: "integer", nullable: true),
                     address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     postal_code = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
@@ -942,146 +755,18 @@ namespace Smakosz.Infrastructure.Migrations
                         column: x => x.city_id,
                         principalTable: "cities",
                         principalColumn: "city_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "users",
-                columns: table => new
-                {
-                    user_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: true),
-                    email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    email_verified = table.Column<bool>(type: "boolean", nullable: false),
-                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    security_stamp = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    first_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    full_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    avatar_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    avatar_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false),
-                    is_banned = table.Column<bool>(type: "boolean", nullable: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    followers_count = table.Column<int>(type: "integer", nullable: false),
-                    following_count = table.Column<int>(type: "integer", nullable: false),
-                    slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    is2fa_enabled = table.Column<bool>(type: "boolean", nullable: false),
-                    review_count = table.Column<int>(type: "integer", nullable: false),
-                    photo_count = table.Column<int>(type: "integer", nullable: false),
-                    failed_login_count = table.Column<int>(type: "integer", nullable: false),
-                    locked_until_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    secret_home_city_id = table.Column<int>(type: "integer", nullable: true),
-                    secret_total_review_count = table.Column<int>(type: "integer", nullable: true),
-                    secret_travel_propensity = table.Column<double>(type: "double precision", nullable: true),
-                    secret_enjoyed_archetypes = table.Column<string>(type: "jsonb", nullable: true),
-                    secret_chance_dine_random = table.Column<double>(type: "double precision", nullable: true),
-                    secret_chance_pick_random_dish = table.Column<double>(type: "double precision", nullable: true),
-                    secret_cross_impact_factor = table.Column<double>(type: "double precision", nullable: true),
-                    secret_mood_propensity = table.Column<double>(type: "double precision", nullable: true),
-                    secret_is_influencer = table.Column<bool>(type: "boolean", nullable: false),
-                    secret_rating_baseline = table.Column<double>(type: "double precision", nullable: false, defaultValue: 6.0),
-                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
-                    secret_ingredient_preferences = table.Column<string>(type: "jsonb", nullable: true),
-                    secret_cleanliness_preference = table.Column<string>(type: "jsonb", nullable: true),
-                    secret_preferred_ambiance = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_users", x => x.user_id);
                     table.ForeignKey(
-                        name: "fk_users_cities_secret_home_city_id",
-                        column: x => x.secret_home_city_id,
-                        principalTable: "cities",
-                        principalColumn: "city_id");
+                        name: "fk_restaurants_cuisine_types_cuisine_type_id",
+                        column: x => x.cuisine_type_id,
+                        principalTable: "cuisine_types",
+                        principalColumn: "cuisine_type_id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "fk_users_restaurants_restaurant_id",
-                        column: x => x.restaurant_id,
-                        principalTable: "restaurants",
-                        principalColumn: "restaurant_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "reviews",
-                columns: table => new
-                {
-                    review_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    dish_id = table.Column<int>(type: "integer", nullable: false),
-                    visit_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    dish_rating = table.Column<int>(type: "integer", nullable: false),
-                    service_rating = table.Column<int>(type: "integer", nullable: false),
-                    cleanliness_rating = table.Column<int>(type: "integer", nullable: false),
-                    ambiance_rating = table.Column<int>(type: "integer", nullable: false),
-                    content = table.Column<string>(type: "text", nullable: true),
-                    is_visible = table.Column<bool>(type: "boolean", nullable: false),
-                    content_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    content_rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    helpful_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    is_approved = table.Column<bool>(type: "boolean", nullable: true),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_reviews", x => x.review_id);
-                    table.ForeignKey(
-                        name: "fk_reviews_dishes_dish_id",
-                        column: x => x.dish_id,
-                        principalTable: "dishes",
-                        principalColumn: "dish_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_reviews_restaurants_restaurant_id",
-                        column: x => x.restaurant_id,
-                        principalTable: "restaurants",
-                        principalColumn: "restaurant_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_reviews_users_user_id",
-                        column: x => x.user_id,
+                        name: "fk_restaurants_users_owner_id",
+                        column: x => x.owner_id,
                         principalTable: "users",
                         principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "saved_dishes",
-                columns: table => new
-                {
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    dish_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_saved_dishes", x => new { x.user_id, x.dish_id });
-                    table.ForeignKey(
-                        name: "fk_saved_dishes_dishes_dish_id",
-                        column: x => x.dish_id,
-                        principalTable: "dishes",
-                        principalColumn: "dish_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "fk_saved_dishes_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "users",
-                        principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -1149,7 +834,11 @@ namespace Smakosz.Infrastructure.Migrations
                     locked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
-                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    requester_id = table.Column<int>(type: "integer", nullable: true),
+                    resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    resolved_by_admin_id = table.Column<int>(type: "integer", nullable: true),
+                    resolution = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1157,6 +846,18 @@ namespace Smakosz.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "fk_tickets_users_assigned_admin_id",
                         column: x => x.assigned_admin_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_tickets_users_requester_id",
+                        column: x => x.requester_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_tickets_users_resolved_by_admin_id",
+                        column: x => x.resolved_by_admin_id,
                         principalTable: "users",
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.SetNull);
@@ -1257,6 +958,498 @@ namespace Smakosz.Infrastructure.Migrations
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "job_progress",
+                schema: "system",
+                columns: table => new
+                {
+                    progress_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    job_id = table.Column<int>(type: "integer", nullable: false),
+                    epoch = table.Column<int>(type: "integer", nullable: true),
+                    loss = table.Column<double>(type: "double precision", nullable: true),
+                    accuracy = table.Column<double>(type: "double precision", nullable: true),
+                    learning_rate = table.Column<double>(type: "double precision", nullable: true),
+                    current_step = table.Column<int>(type: "integer", nullable: true),
+                    total_steps = table.Column<int>(type: "integer", nullable: true),
+                    percentage = table.Column<double>(type: "double precision", nullable: true, computedColumnSql: "CASE WHEN total_steps > 0 THEN (current_step::double precision / total_steps) * 100 ELSE 0 END", stored: true),
+                    metadata = table.Column<string>(type: "jsonb", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_job_progress", x => x.progress_id);
+                    table.ForeignKey(
+                        name: "fk_job_progress_jobs_job_id",
+                        column: x => x.job_id,
+                        principalSchema: "system",
+                        principalTable: "jobs",
+                        principalColumn: "job_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "report_reason_assignments",
+                columns: table => new
+                {
+                    report_id = table.Column<int>(type: "integer", nullable: false),
+                    reason_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_report_reason_assignments", x => new { x.report_id, x.reason_code });
+                    table.ForeignKey(
+                        name: "fk_report_reason_assignments_report_reason_definitions_reason_",
+                        column: x => x.reason_code,
+                        principalTable: "report_reason_definitions",
+                        principalColumn: "reason_code",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_report_reason_assignments_reports_report_id",
+                        column: x => x.report_id,
+                        principalTable: "reports",
+                        principalColumn: "report_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "data_correction_requests",
+                columns: table => new
+                {
+                    request_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: true),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    issue_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    proposed_value = table.Column<string>(type: "jsonb", nullable: true),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "pending"),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    response_deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_data_correction_requests", x => x.request_id);
+                    table.ForeignKey(
+                        name: "fk_data_correction_requests_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_data_correction_requests_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "dishes",
+                columns: table => new
+                {
+                    dish_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: true),
+                    dish_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
+                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    trending_score = table.Column<decimal>(type: "numeric(10,4)", nullable: true),
+                    is_vegetarian = table.Column<bool>(type: "boolean", nullable: false),
+                    is_vegan = table.Column<bool>(type: "boolean", nullable: false),
+                    is_gluten_free = table.Column<bool>(type: "boolean", nullable: false),
+                    is_lactose_free = table.Column<bool>(type: "boolean", nullable: false),
+                    ingredients_json = table.Column<string>(type: "jsonb", nullable: true),
+                    is_available = table.Column<bool>(type: "boolean", nullable: false),
+                    calories = table.Column<int>(type: "integer", nullable: true),
+                    image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    avg_rating = table.Column<double>(type: "double precision", nullable: true),
+                    review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    secret_variant_id = table.Column<int>(type: "integer", nullable: true),
+                    secret_base_price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
+                    secret_characteristics_vector = table.Column<string>(type: "jsonb", nullable: false, defaultValue: "{}"),
+                    secret_penalty_vector = table.Column<string>(type: "jsonb", nullable: true),
+                    secret_quality = table.Column<double>(type: "double precision", nullable: true),
+                    secret_popularity_factor = table.Column<double>(type: "double precision", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_dishes", x => x.dish_id);
+                    table.ForeignKey(
+                        name: "fk_dishes_dish_variants_secret_variant_id",
+                        column: x => x.secret_variant_id,
+                        principalTable: "dish_variants",
+                        principalColumn: "variant_id");
+                    table.ForeignKey(
+                        name: "fk_dishes_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "favorite_restaurants",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_favorite_restaurants", x => new { x.user_id, x.restaurant_id });
+                    table.ForeignKey(
+                        name: "fk_favorite_restaurants_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_favorite_restaurants_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ingredient_suggestions",
+                columns: table => new
+                {
+                    suggestion_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: true),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    suggested_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    icon_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    icon_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    is_allergen = table.Column<bool>(type: "boolean", nullable: false),
+                    is_vegetarian = table.Column<bool>(type: "boolean", nullable: false),
+                    is_vegan = table.Column<bool>(type: "boolean", nullable: false),
+                    is_gluten_free = table.Column<bool>(type: "boolean", nullable: false),
+                    is_lactose_free = table.Column<bool>(type: "boolean", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    admin_note = table.Column<string>(type: "text", nullable: true),
+                    reviewed_by_admin_id = table.Column<int>(type: "integer", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    merged_ingredient_id = table.Column<int>(type: "integer", nullable: true),
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_ingredient_suggestions", x => x.suggestion_id);
+                    table.ForeignKey(
+                        name: "fk_ingredient_suggestions_ingredients_merged_ingredient_id",
+                        column: x => x.merged_ingredient_id,
+                        principalTable: "ingredients",
+                        principalColumn: "ingredient_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_ingredient_suggestions_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_ingredient_suggestions_users_reviewed_by_admin_id",
+                        column: x => x.reviewed_by_admin_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_ingredient_suggestions_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "menu_sections",
+                columns: table => new
+                {
+                    section_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    section_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_menu_sections", x => x.section_id);
+                    table.ForeignKey(
+                        name: "fk_menu_sections_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "restaurant_edit_requests",
+                columns: table => new
+                {
+                    request_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    change_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    change_scope = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    target_entity_id = table.Column<int>(type: "integer", nullable: true),
+                    payload = table.Column<string>(type: "jsonb", nullable: false),
+                    new_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    new_description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    new_address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    new_cuisine_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    new_phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    new_website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    new_image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    new_image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    reviewed_by = table.Column<int>(type: "integer", nullable: true),
+                    reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    rejection_reason = table.Column<string>(type: "text", nullable: true),
+                    admin_note = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    resolved_by_admin_id = table.Column<int>(type: "integer", nullable: true),
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_restaurant_edit_requests", x => x.request_id);
+                    table.ForeignKey(
+                        name: "fk_restaurant_edit_requests_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_restaurant_edit_requests_users_resolved_by_admin_id",
+                        column: x => x.resolved_by_admin_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_restaurant_edit_requests_users_reviewed_by",
+                        column: x => x.reviewed_by,
+                        principalTable: "users",
+                        principalColumn: "user_id");
+                    table.ForeignKey(
+                        name: "fk_restaurant_edit_requests_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "restaurant_opening_hours",
+                columns: table => new
+                {
+                    hours_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    day_of_week = table.Column<int>(type: "integer", nullable: false),
+                    open_time = table.Column<TimeOnly>(type: "time", nullable: false),
+                    close_time = table.Column<TimeOnly>(type: "time", nullable: false),
+                    is_closed = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_restaurant_opening_hours", x => x.hours_id);
+                    table.ForeignKey(
+                        name: "fk_restaurant_opening_hours_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "restaurant_tags",
+                columns: table => new
+                {
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    tag_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_restaurant_tags", x => new { x.restaurant_id, x.tag_id });
+                    table.ForeignKey(
+                        name: "fk_restaurant_tags_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_restaurant_tags_tags_tag_id",
+                        column: x => x.tag_id,
+                        principalTable: "tags",
+                        principalColumn: "tag_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "dish_ingredients",
+                columns: table => new
+                {
+                    dish_id = table.Column<int>(type: "integer", nullable: false),
+                    ingredient_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_dish_ingredients", x => new { x.dish_id, x.ingredient_id });
+                    table.ForeignKey(
+                        name: "fk_dish_ingredients_dishes_dish_id",
+                        column: x => x.dish_id,
+                        principalTable: "dishes",
+                        principalColumn: "dish_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_dish_ingredients_ingredients_ingredient_id",
+                        column: x => x.ingredient_id,
+                        principalTable: "ingredients",
+                        principalColumn: "ingredient_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "dish_tags",
+                columns: table => new
+                {
+                    dish_id = table.Column<int>(type: "integer", nullable: false),
+                    tag_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_dish_tags", x => new { x.dish_id, x.tag_id });
+                    table.ForeignKey(
+                        name: "fk_dish_tags_dishes_dish_id",
+                        column: x => x.dish_id,
+                        principalTable: "dishes",
+                        principalColumn: "dish_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_dish_tags_tags_tag_id",
+                        column: x => x.tag_id,
+                        principalTable: "tags",
+                        principalColumn: "tag_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "reviews",
+                columns: table => new
+                {
+                    review_id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    public_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
+                    dish_id = table.Column<int>(type: "integer", nullable: false),
+                    visit_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    dish_rating = table.Column<int>(type: "integer", nullable: false),
+                    service_rating = table.Column<int>(type: "integer", nullable: false),
+                    cleanliness_rating = table.Column<int>(type: "integer", nullable: false),
+                    ambiance_rating = table.Column<int>(type: "integer", nullable: false),
+                    content = table.Column<string>(type: "text", nullable: true),
+                    is_visible = table.Column<bool>(type: "boolean", nullable: false),
+                    content_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    content_rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    helpful_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    is_approved = table.Column<bool>(type: "boolean", nullable: true),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_reviews", x => x.review_id);
+                    table.ForeignKey(
+                        name: "fk_reviews_dishes_dish_id",
+                        column: x => x.dish_id,
+                        principalTable: "dishes",
+                        principalColumn: "dish_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_reviews_restaurants_restaurant_id",
+                        column: x => x.restaurant_id,
+                        principalTable: "restaurants",
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_reviews_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "saved_dishes",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    dish_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_saved_dishes", x => new { x.user_id, x.dish_id });
+                    table.ForeignKey(
+                        name: "fk_saved_dishes_dishes_dish_id",
+                        column: x => x.dish_id,
+                        principalTable: "dishes",
+                        principalColumn: "dish_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_saved_dishes_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "dish_section_assignments",
+                columns: table => new
+                {
+                    dish_id = table.Column<int>(type: "integer", nullable: false),
+                    section_id = table.Column<int>(type: "integer", nullable: false),
+                    display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_dish_section_assignments", x => new { x.dish_id, x.section_id });
+                    table.ForeignKey(
+                        name: "fk_dish_section_assignments_dishes_dish_id",
+                        column: x => x.dish_id,
+                        principalTable: "dishes",
+                        principalColumn: "dish_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_dish_section_assignments_menu_sections_section_id",
+                        column: x => x.section_id,
+                        principalTable: "menu_sections",
+                        principalColumn: "section_id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1769,9 +1962,9 @@ namespace Smakosz.Infrastructure.Migrations
                 column: "city_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_restaurants_cuisine_type",
+                name: "ix_restaurants_cuisine_type_id",
                 table: "restaurants",
-                column: "cuisine_type");
+                column: "cuisine_type_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_restaurants_is_verified_owner_id",
@@ -1779,9 +1972,11 @@ namespace Smakosz.Infrastructure.Migrations
                 columns: new[] { "is_verified", "owner_id" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_restaurants_owner_id",
+                name: "ix_restaurants_owner_id_unique",
                 table: "restaurants",
-                column: "owner_id");
+                column: "owner_id",
+                unique: true,
+                filter: "owner_id IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "ix_restaurants_public_id",
@@ -1904,6 +2099,18 @@ namespace Smakosz.Infrastructure.Migrations
                 filter: "assigned_admin_id IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "ix_tickets_requester_id",
+                schema: "system",
+                table: "tickets",
+                column: "requester_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tickets_resolved_by_admin_id",
+                schema: "system",
+                table: "tickets",
+                column: "resolved_by_admin_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tickets_status_priority",
                 schema: "system",
                 table: "tickets",
@@ -1915,6 +2122,12 @@ namespace Smakosz.Infrastructure.Migrations
                 schema: "system",
                 table: "tickets",
                 columns: new[] { "ticket_type", "reference_id" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tickets_ticket_type_status",
+                schema: "system",
+                table: "tickets",
+                columns: new[] { "ticket_type", "status" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_follows_followed_id_created_at",
@@ -1950,12 +2163,6 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_users_public_id",
                 table: "users",
                 column: "public_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_users_restaurant_id",
-                table: "users",
-                column: "restaurant_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1995,255 +2202,11 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "ix_verification_codes_user_id",
                 table: "verification_codes",
                 column: "user_id");
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_banned_identifiers_users_banned_by",
-                schema: "system",
-                table: "banned_identifiers",
-                column: "banned_by",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_data_correction_requests_restaurants_restaurant_id",
-                table: "data_correction_requests",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_data_correction_requests_users_user_id",
-                table: "data_correction_requests",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_dish_ingredients_dishes_dish_id",
-                table: "dish_ingredients",
-                column: "dish_id",
-                principalTable: "dishes",
-                principalColumn: "dish_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_dish_section_assignments_dishes_dish_id",
-                table: "dish_section_assignments",
-                column: "dish_id",
-                principalTable: "dishes",
-                principalColumn: "dish_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_dish_section_assignments_menu_sections_section_id",
-                table: "dish_section_assignments",
-                column: "section_id",
-                principalTable: "menu_sections",
-                principalColumn: "section_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_dish_tags_dishes_dish_id",
-                table: "dish_tags",
-                column: "dish_id",
-                principalTable: "dishes",
-                principalColumn: "dish_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_dishes_restaurants_restaurant_id",
-                table: "dishes",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id");
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_favorite_restaurants_restaurants_restaurant_id",
-                table: "favorite_restaurants",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_favorite_restaurants_users_user_id",
-                table: "favorite_restaurants",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_forbidden_words_users_added_by",
-                schema: "system",
-                table: "forbidden_words",
-                column: "added_by",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_ingredient_suggestions_restaurants_restaurant_id",
-                table: "ingredient_suggestions",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_ingredient_suggestions_users_reviewed_by_admin_id",
-                table: "ingredient_suggestions",
-                column: "reviewed_by_admin_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_ingredient_suggestions_users_user_id",
-                table: "ingredient_suggestions",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_media_assets_users_uploaded_by",
-                table: "media_assets",
-                column: "uploaded_by",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_menu_sections_restaurants_restaurant_id",
-                table: "menu_sections",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_moderation_logs_users_processed_by",
-                schema: "system",
-                table: "moderation_logs",
-                column: "processed_by",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_notifications_users_actor_id",
-                table: "notifications",
-                column: "actor_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_notifications_users_user_id",
-                table: "notifications",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_push_subscriptions_users_user_id",
-                table: "push_subscriptions",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_report_reason_assignments_reports_report_id",
-                table: "report_reason_assignments",
-                column: "report_id",
-                principalTable: "reports",
-                principalColumn: "report_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_reports_users_reporter_id",
-                table: "reports",
-                column: "reporter_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_reports_users_resolved_by_admin_id",
-                table: "reports",
-                column: "resolved_by_admin_id",
-                principalTable: "users",
-                principalColumn: "user_id");
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_edit_requests_restaurants_restaurant_id",
-                table: "restaurant_edit_requests",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_edit_requests_users_resolved_by_admin_id",
-                table: "restaurant_edit_requests",
-                column: "resolved_by_admin_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_edit_requests_users_reviewed_by",
-                table: "restaurant_edit_requests",
-                column: "reviewed_by",
-                principalTable: "users",
-                principalColumn: "user_id");
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_edit_requests_users_user_id",
-                table: "restaurant_edit_requests",
-                column: "user_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_opening_hours_restaurants_restaurant_id",
-                table: "restaurant_opening_hours",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurant_tags_restaurants_restaurant_id",
-                table: "restaurant_tags",
-                column: "restaurant_id",
-                principalTable: "restaurants",
-                principalColumn: "restaurant_id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "fk_restaurants_users_owner_id",
-                table: "restaurants",
-                column: "owner_id",
-                principalTable: "users",
-                principalColumn: "user_id",
-                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "fk_restaurants_users_owner_id",
-                table: "restaurants");
-
             migrationBuilder.DropTable(
                 name: "ai_logs",
                 schema: "system");
@@ -2258,9 +2221,6 @@ namespace Smakosz.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "config",
                 schema: "system");
-
-            migrationBuilder.DropTable(
-                name: "cuisine_types");
 
             migrationBuilder.DropTable(
                 name: "data_correction_requests");
@@ -2406,13 +2366,16 @@ namespace Smakosz.Infrastructure.Migrations
                 name: "dish_variants");
 
             migrationBuilder.DropTable(
+                name: "restaurants");
+
+            migrationBuilder.DropTable(
                 name: "dish_archetypes");
 
             migrationBuilder.DropTable(
-                name: "users");
+                name: "cuisine_types");
 
             migrationBuilder.DropTable(
-                name: "restaurants");
+                name: "users");
 
             migrationBuilder.DropTable(
                 name: "cities");
