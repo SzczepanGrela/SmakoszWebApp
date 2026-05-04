@@ -187,7 +187,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     user_city_assignments = allocate_users_to_cities(cities, num_users, blueprints_dir="blueprints")
     num_standard_users = len(user_city_assignments)
 
-    user_data = []
+    restaurant_user_data: list[dict] = []
+    standard_user_data: list[dict] = []
 
     claimed_restaurants = [r for r in restaurants if random.random() < 0.70]
 
@@ -207,7 +208,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         else:
             last_login = join_date
 
-        user_data.append(
+        restaurant_user_data.append(
             {
                 "public_id": str(uuid.uuid4()),
                 "username": username,
@@ -223,7 +224,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "security_stamp": str(uuid.uuid4()),
                 "role": "restaurant",
                 "secret_home_city_id": r_city_id,
-                "restaurant_id": r_id,
                 "created_at": to_sql_datetime(join_date),
                 "last_login_at": to_sql_datetime(last_login),
                 "is_active": True,
@@ -334,7 +334,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             secret_rating_baseline = max(1.0, min(10.0, random.gauss(8.5, 1.0)))
         secret_rating_baseline = round(secret_rating_baseline, 2)
 
-        user_data.append(
+        standard_user_data.append(
             {
                 "public_id": str(uuid.uuid4()),
                 "username": username,
@@ -350,7 +350,6 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
                 "security_stamp": str(uuid.uuid4()),
                 "role": role,
                 "secret_home_city_id": city_id,
-                "restaurant_id": None,
                 "created_at": to_sql_datetime(join_date),
                 "last_login_at": to_sql_datetime(last_login),
                 "is_active": is_active,
@@ -382,24 +381,27 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             }
         )
 
-    db.insert_bulk("users", user_data)
+    restaurant_user_ids = db.insert_bulk_returning("users", restaurant_user_data, "user_id") if restaurant_user_data else []
+    db.insert_bulk("users", standard_user_data)
 
-    logger.info("Syncing restaurant owners...")
-    db.execute_query("""
-        UPDATE restaurants r
-        SET owner_id = u.user_id
-        FROM users u
-        WHERE u.restaurant_id = r.restaurant_id
-          AND u.role = 'restaurant'
-    """)
-    db.commit()
+    if restaurant_user_ids:
+        logger.info(f"Syncing {len(restaurant_user_ids)} restaurant owners via direct mapping...")
+        owner_pairs = list(zip([r[0] for r in claimed_restaurants], restaurant_user_ids))
+        from psycopg2.extras import execute_values
+        execute_values(
+            db.cursor,
+            "UPDATE restaurants r SET owner_id = v.user_id FROM (VALUES %s) AS v(restaurant_id, user_id) WHERE r.restaurant_id = v.restaurant_id",
+            owner_pairs,
+        )
+        db.commit()
 
     _insert_user_avatars_to_media_assets(db, photo_pools)
     _assign_saved_dishes(db)
     _generate_user_notification_settings(db)
 
+    total_users = len(restaurant_user_data) + len(standard_user_data)
     duration = time.time() - start_time
-    logger.info(f"Generated {len(user_data)} users in {duration:.2f}s")
+    logger.info(f"Generated {total_users} users in {duration:.2f}s")
 
 def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: PhotoPools):
     logger.info("Inserting user avatars into media_assets...")

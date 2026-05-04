@@ -903,18 +903,20 @@ class DatasetStatistics:
                 "All ratings must be between 1 and 10",
             ),
             (
-                "Restaurant role without restaurant_id",
-                """SELECT COUNT(*) FROM users
-                   WHERE role = 'restaurant' AND restaurant_id IS NULL""",
+                "Restaurant owners with non-restaurant role",
+                """SELECT COUNT(*) FROM restaurants r
+                   JOIN users u ON r.owner_id = u.user_id
+                   WHERE r.owner_id IS NOT NULL AND u.role != 'restaurant'""",
                 "0",
-                "Users with restaurant role must have a restaurant_id",
+                "Users referenced as restaurants.owner_id must have role='restaurant'",
             ),
             (
-                "Non-restaurant role with restaurant_id",
-                """SELECT COUNT(*) FROM users
-                   WHERE role != 'restaurant' AND restaurant_id IS NOT NULL""",
+                "Users with restaurant role but unowned",
+                """SELECT COUNT(*) FROM users u
+                   WHERE u.role = 'restaurant'
+                     AND NOT EXISTS (SELECT 1 FROM restaurants r WHERE r.owner_id = u.user_id)""",
                 "0",
-                "Users without restaurant role should not have a restaurant_id",
+                "Every restaurant-role user must own at least one restaurant",
             ),
             (
                 "Rejected but visible reviews",
