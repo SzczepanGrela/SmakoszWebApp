@@ -29,6 +29,8 @@ jobs:
           filters: |
             rbpi-gateway:
               - 'tools/rbpi-gateway/**'
+              - 'infra/rbpi/**'
+              - 'infra/scripts/deploy-rbpi.sh'
               - '.github/workflows/ci-cd.yml'
 
   test:

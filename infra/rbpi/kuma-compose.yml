@@ -1,0 +1,11 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: always
+    mem_limit: 128m
+    mem_reservation: 64m
+    ports:
+      - "3001:3001"
+    volumes:
+      - /home/smakosz/kuma/data:/app/data
