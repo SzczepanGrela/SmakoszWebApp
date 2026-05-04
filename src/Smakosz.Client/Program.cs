@@ -16,12 +16,20 @@ builder.Services.AddHttpClient("SmakoszAPI", client =>
         ?? builder.HostEnvironment.BaseAddress.TrimEnd('/'));
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+// Raw client without AuthTokenHandler so TokenRefreshService can call /api/auth/refresh without recursion.
+builder.Services.AddHttpClient(TokenRefreshService.RawClientName, client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
+        ?? builder.HostEnvironment.BaseAddress.TrimEnd('/'));
+});
+
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("SmakoszAPI"));
 
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<ITokenRefreshService, TokenRefreshService>();
 builder.Services.AddScoped<JwtAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthStateProvider>());
 

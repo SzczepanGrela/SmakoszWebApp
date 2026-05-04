@@ -8,11 +8,13 @@ namespace Smakosz.Client.Auth;
 public class JwtAuthStateProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService _localStorage;
+    private readonly ITokenRefreshService _refresh;
     private readonly ClaimsPrincipal _anonymous = new(new ClaimsIdentity());
 
-    public JwtAuthStateProvider(ILocalStorageService localStorage)
+    public JwtAuthStateProvider(ILocalStorageService localStorage, ITokenRefreshService refresh)
     {
         _localStorage = localStorage;
+        _refresh = refresh;
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -25,15 +27,15 @@ public class JwtAuthStateProvider : AuthenticationStateProvider
         if (identity == null)
             return new AuthenticationState(_anonymous);
 
-        var expClaim = identity.FindFirst("exp");
-        if (expClaim != null && long.TryParse(expClaim.Value, out var exp))
+        if (IsExpired(identity))
         {
-            var expDate = DateTimeOffset.FromUnixTimeSeconds(exp);
-            if (expDate <= DateTimeOffset.UtcNow)
-            {
-                await _localStorage.RemoveItemAsync("auth_token");
+            var newToken = await _refresh.TryRefreshAsync();
+            if (string.IsNullOrWhiteSpace(newToken))
                 return new AuthenticationState(_anonymous);
-            }
+
+            identity = ParseClaimsFromJwt(newToken);
+            if (identity == null)
+                return new AuthenticationState(_anonymous);
         }
 
         return new AuthenticationState(new ClaimsPrincipal(identity));
@@ -49,6 +51,14 @@ public class JwtAuthStateProvider : AuthenticationStateProvider
     public void NotifyUserLogout()
     {
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_anonymous)));
+    }
+
+    private static bool IsExpired(ClaimsIdentity identity)
+    {
+        var expClaim = identity.FindFirst("exp");
+        if (expClaim == null || !long.TryParse(expClaim.Value, out var exp))
+            return false;
+        return DateTimeOffset.FromUnixTimeSeconds(exp) <= DateTimeOffset.UtcNow;
     }
 
     private static ClaimsIdentity? ParseClaimsFromJwt(string token)
