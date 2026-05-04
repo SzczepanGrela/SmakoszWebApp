@@ -262,7 +262,7 @@ jobs:
       - name: Deploy
         run: |
           ssh -i ~/.ssh/deploy_key -p ${{ secrets.RBPI_SSH_PORT }} \
-            smakosz-rbpi-gateway@${{ secrets.RBPI_HOST }} bash /home/smakosz-rbpi-gateway/deploy-launcher.sh
+            smakosz@${{ secrets.RBPI_HOST }} bash /home/smakosz/deploy-launcher.sh
 
       - name: Health check via Tailscale
         run: |
