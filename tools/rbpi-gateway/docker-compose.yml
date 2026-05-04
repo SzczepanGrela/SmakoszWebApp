@@ -4,8 +4,10 @@ services:
     container_name: rbpi-gateway
     restart: unless-stopped
     network_mode: host
+    mem_limit: 64m
+    mem_reservation: 32m
     env_file:
-      - /home/smakosz-rbpi-gateway/.env
+      - /home/smakosz/.env
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:5000/health || exit 1"]
       interval: 30s
