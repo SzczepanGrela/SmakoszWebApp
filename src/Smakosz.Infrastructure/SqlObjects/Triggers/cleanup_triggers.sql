@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION queue_file_deletion()
 RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.url IS NOT NULL THEN
-        INSERT INTO system.files_to_delete (r2_key, source_entity)
+        INSERT INTO system.files_to_delete (r2key, source_entity)
         VALUES (OLD.url, TG_TABLE_NAME);
     END IF;
     RETURN OLD;

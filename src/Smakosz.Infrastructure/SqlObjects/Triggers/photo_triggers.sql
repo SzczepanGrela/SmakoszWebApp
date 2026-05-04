@@ -9,7 +9,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.is_primary = TRUE THEN
         -- Queue old primary photo files for R2 cleanup
-        INSERT INTO files_to_delete (r2_key, bucket, reason, source_entity, source_id, queued_at)
+        INSERT INTO system.files_to_delete (r2key, bucket, reason, source_entity, source_id, queued_at)
         SELECT
             substring(url FROM 'https?://[^/]+/(.+)'),
             'smakosz-photos',
@@ -52,13 +52,10 @@ BEGIN
     IF NEW.is_primary = TRUE AND NEW.status = 'approved' THEN
         CASE NEW.entity_type
             WHEN 'restaurant' THEN
+                -- No avatar sync: owner avatar is independent of restaurant primary photo.
                 UPDATE restaurants
                 SET image_url = NEW.url,
                     image_blurhash = NEW.blurhash
-                WHERE restaurant_id = NEW.entity_id;
-
-                UPDATE users
-                SET avatar_url = NEW.url
                 WHERE restaurant_id = NEW.entity_id;
 
             WHEN 'dish' THEN
