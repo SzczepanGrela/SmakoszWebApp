@@ -19,7 +19,7 @@ public interface IAdminService
     Task<PagedResult<AdminEditRequestDto>?> GetEditRequestsAsync(int page = 1, int? restaurantId = null);
     Task<bool> ProcessEditRequestAsync(int id, string action, string? reason = null);
     Task<PagedResult<AdminUserDto>?> GetUsersAsync(int page = 1, string? search = null, string? role = null);
-    Task<AdminUserDto?> GetUserAsync(int userId);
+    Task<AdminUserDto?> GetUserAsync(Guid publicId);
     Task<bool> UpdateUserAsync(Guid publicId, string action);
     Task<bool> Disable2faForUserAsync(Guid publicId);
     Task<bool> ResetUserPasswordAsync(Guid publicId);

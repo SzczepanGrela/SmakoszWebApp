@@ -53,7 +53,7 @@ else
                 {
                     <tr>
                         <td class="fw-medium">
-                            <a href="/admin/users/@user.UserId" class="text-decoration-none" style="color:var(--accent-color);">@user.Username</a>
+                            <a href="/admin/users/@user.PublicId" class="text-decoration-none" style="color:var(--accent-color);">@user.Username</a>
                         </td>
                         <td>@user.Email @(user.EmailVerified ? "" : "(niezweryfikowany)")</td>
                         <td><span class="badge bg-info">@user.Role</span></td>

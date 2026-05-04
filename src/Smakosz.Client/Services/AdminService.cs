@@ -89,8 +89,8 @@ public class AdminService : IAdminService
         return _api.GetAsync<PagedResult<AdminUserDto>>(query);
     }
 
-    public Task<AdminUserDto?> GetUserAsync(int userId)
-        => _api.GetAsync<AdminUserDto>($"/api/admin/users/{userId}");
+    public Task<AdminUserDto?> GetUserAsync(Guid publicId)
+        => _api.GetAsync<AdminUserDto>($"/api/admin/users/{publicId}");
 
     public async Task<bool> UpdateUserAsync(Guid publicId, string action)
     {

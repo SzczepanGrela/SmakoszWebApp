@@ -1,4 +1,4 @@
-@page "/admin/users/{Id:int}"
+@page "/admin/users/{PublicId:guid}"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @using System.Security.Claims
@@ -120,14 +120,14 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public Guid PublicId { get; set; }
 
     private AdminUserDto? _user;
     private bool _loading = true;
     private bool _resetInProgress;
     private int? _currentUserId;
 
-    private bool IsSelfProfile => _currentUserId.HasValue && Id == _currentUserId.Value;
+    private bool IsSelfProfile => _currentUserId.HasValue && _user?.UserId == _currentUserId.Value;
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,7 +136,7 @@ else
         if (subClaim != null && int.TryParse(subClaim.Value, out var userId))
             _currentUserId = userId;
 
-        _user = await AdminService.GetUserAsync(Id);
+        _user = await AdminService.GetUserAsync(PublicId);
         _loading = false;
     }
 
@@ -158,7 +158,7 @@ else
         if (success)
         {
             Toast.ShowSuccess("Użytkownik zaktualizowany.");
-            _user = await AdminService.GetUserAsync(Id);
+            _user = await AdminService.GetUserAsync(PublicId);
         }
         else Toast.ShowError("Operacja nieudana.");
     }
@@ -169,7 +169,7 @@ else
         if (success)
         {
             Toast.ShowSuccess("Weryfikacja dwuetapowa wyłączona.");
-            _user = await AdminService.GetUserAsync(Id);
+            _user = await AdminService.GetUserAsync(PublicId);
         }
         else Toast.ShowError("Nie udało się wyłączyć 2FA.");
     }
@@ -207,7 +207,7 @@ else
         {
             Toast.ShowSuccess("Rola użytkownika zmieniona.");
             _roleModalOpen = false;
-            _user = await AdminService.GetUserAsync(Id);
+            _user = await AdminService.GetUserAsync(PublicId);
         }
         else
         {
