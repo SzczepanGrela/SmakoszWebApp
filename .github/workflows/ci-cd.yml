@@ -20,15 +20,15 @@ jobs:
     name: Detect path changes
     runs-on: ubuntu-latest
     outputs:
-      rpi-gateway: ${{ steps.filter.outputs.rpi-gateway }}
+      rbpi-gateway: ${{ steps.filter.outputs.rbpi-gateway }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
-            rpi-gateway:
-              - 'tools/rpi-gateway/**'
+            rbpi-gateway:
+              - 'tools/rbpi-gateway/**'
               - '.github/workflows/ci-cd.yml'
 
   test:
@@ -122,12 +122,12 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
             ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
 
-  build-rpi-gateway:
-    name: Build RPi Gateway image
+  build-rbpi-gateway:
+    name: Build RBPI Gateway image
     needs: [test, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rpi-gateway == 'true')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rbpi-gateway == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -157,15 +157,15 @@ jobs:
       - name: Build & push arm64 image
         uses: docker/build-push-action@v6
         with:
-          context: tools/rpi-gateway
-          file: tools/rpi-gateway/Dockerfile
+          context: tools/rbpi-gateway
+          file: tools/rbpi-gateway/Dockerfile
           platforms: linux/arm64
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}/rpi-gateway:latest
-            ${{ env.IMAGE_PREFIX }}/rpi-gateway:${{ env.SHORT_SHA }}
-          cache-from: type=gha,scope=rpi-gateway
-          cache-to: type=gha,mode=max,scope=rpi-gateway
+            ${{ env.IMAGE_PREFIX }}/rbpi-gateway:latest
+            ${{ env.IMAGE_PREFIX }}/rbpi-gateway:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=rbpi-gateway
+          cache-to: type=gha,mode=max,scope=rbpi-gateway
 
   deploy-vps:
     name: Deploy to VPS
@@ -219,15 +219,15 @@ jobs:
               "https://smakosz.xyz/"
             ]}'
 
-  deploy-rpi:
-    name: Deploy RPi Gateway
-    needs: [build-rpi-gateway, changes]
+  deploy-rbpi:
+    name: Deploy RBPI Gateway
+    needs: [build-rbpi-gateway, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rpi-gateway == 'true')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rbpi-gateway == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: deploy-rpi
+      group: deploy-rbpi
       cancel-in-progress: false
     permissions:
       contents: read
@@ -239,26 +239,35 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          oauth-client-id: ${{ secrets.TS_CLIENT_ID_RPI }}
-          audience: ${{ secrets.TS_AUDIENCE_RPI }}
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID_RBPI }}
+          audience: ${{ secrets.TS_AUDIENCE_RBPI }}
           tags: tag:ci-rbpi
 
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY_RPI }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.DEPLOY_SSH_KEY_RBPI }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.RPI_SSH_PORT }} ${{ secrets.RPI_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          for i in 1 2 3 4 5; do
+            if ssh-keyscan -p ${{ secrets.RBPI_SSH_PORT }} ${{ secrets.RBPI_HOST }} >> ~/.ssh/known_hosts 2>&1; then
+              echo "ssh-keyscan succeeded on attempt $i"
+              exit 0
+            fi
+            echo "ssh-keyscan attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "ssh-keyscan failed after 5 attempts"
+          exit 1
 
       - name: Deploy
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.RPI_SSH_PORT }} \
-            smakosz-rbpi-gateway@${{ secrets.RPI_HOST }} bash /home/smakosz-rbpi-gateway/deploy-launcher.sh
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.RBPI_SSH_PORT }} \
+            smakosz@${{ secrets.RBPI_HOST }} bash /home/smakosz/deploy-launcher.sh
 
       - name: Health check via Tailscale
         run: |
           for i in 1 2 3; do
-            if curl -fsS --max-time 5 "http://${{ secrets.RPI_HOST }}:5000/health"; then
+            if curl -fsS --max-time 5 "http://${{ secrets.RBPI_HOST }}:5000/health"; then
               echo "Health check OK"
               exit 0
             fi

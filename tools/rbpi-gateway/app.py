@@ -15,7 +15,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     stream=sys.stdout,
 )
-logger = logging.getLogger("rpi-gateway")
+logger = logging.getLogger("rbpi-gateway")
 
 app = Flask(__name__)
 
@@ -30,7 +30,7 @@ def require_token(f):
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "service": "rpi-gateway"})
+    return jsonify({"status": "ok", "service": "rbpi-gateway"})
 
 def _start_gpu_worker_after_boot():
     if not config.HOMELAB_API_URL:
@@ -75,5 +75,5 @@ def wake_gpu_worker():
 
 if __name__ == "__main__":
     config.validate()
-    logger.info("Starting rpi-gateway (port=%d)", config.PORT)
+    logger.info("Starting rbpi-gateway (port=%d)", config.PORT)
     app.run(host="0.0.0.0", port=config.PORT)

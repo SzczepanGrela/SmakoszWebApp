@@ -6,7 +6,7 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Infrastructure.Services;
 
-public class RpiGatewayWakeService : IGpuWakeService
+public class RbpiGatewayWakeService : IGpuWakeService
 {
     private const string ThrottleCacheKey = "gpu-wake-throttle";
     private static readonly TimeSpan ThrottleWindow = TimeSpan.FromSeconds(1);
@@ -15,14 +15,14 @@ public class RpiGatewayWakeService : IGpuWakeService
     private readonly IHttpClientFactory _httpFactory;
     private readonly IMemoryCache _cache;
     private readonly IDateTimeProvider _clock;
-    private readonly ILogger<RpiGatewayWakeService> _logger;
+    private readonly ILogger<RbpiGatewayWakeService> _logger;
 
-    public RpiGatewayWakeService(
+    public RbpiGatewayWakeService(
         ISmakoszDbContext db,
         IHttpClientFactory httpFactory,
         IMemoryCache cache,
         IDateTimeProvider clock,
-        ILogger<RpiGatewayWakeService> logger)
+        ILogger<RbpiGatewayWakeService> logger)
     {
         _db = db;
         _httpFactory = httpFactory;
@@ -45,14 +45,14 @@ public class RpiGatewayWakeService : IGpuWakeService
         if (_cache.TryGetValue(ThrottleCacheKey, out _))
             return new GpuWakeResult(GpuWakeStatus.RateLimited);
 
-        var client = _httpFactory.CreateClient("RpiGateway");
+        var client = _httpFactory.CreateClient("RbpiGateway");
         try
         {
             var response = await client.PostAsync("/wake", null, ct);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(
-                    "gpu-wake: RPi gateway responded with {StatusCode}",
+                    "gpu-wake: RBPI gateway responded with {StatusCode}",
                     response.StatusCode);
                 return new GpuWakeResult(
                     GpuWakeStatus.GatewayFailed,
@@ -61,7 +61,7 @@ public class RpiGatewayWakeService : IGpuWakeService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "gpu-wake: failed to reach RPi gateway");
+            _logger.LogWarning(ex, "gpu-wake: failed to reach RBPI gateway");
             return new GpuWakeResult(GpuWakeStatus.GatewayFailed, ex.Message);
         }
 

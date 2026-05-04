@@ -33,9 +33,9 @@ public class HeartbeatMonitorServiceTests
         factory.CreateClient("GpuWorker").Returns(_ =>
             new HttpClient(gpuHandler ?? new StubHttpMessageHandler(HttpStatusCode.OK))
             { BaseAddress = new Uri("http://gpu.local") });
-        factory.CreateClient("RpiGateway").Returns(_ =>
+        factory.CreateClient("RbpiGateway").Returns(_ =>
             new HttpClient(rpiHandler ?? new StubHttpMessageHandler(HttpStatusCode.OK))
-            { BaseAddress = new Uri("http://rpi.local") });
+            { BaseAddress = new Uri("http://rbpi.local") });
         return new HeartbeatMonitorService(_db, factory, _clock, NullLogger<HeartbeatMonitorService>.Instance);
     }
 
@@ -43,7 +43,7 @@ public class HeartbeatMonitorServiceTests
     public async Task CheckAsync_BothHealthy_MarksBothOnline_UpdatesHeartbeat()
     {
         var gpu = new SystemNode { NodeId = "gpu-worker", NodeType = NodeType.Gpu, Status = "offline" };
-        var rpi = new SystemNode { NodeId = "rpi-gateway", NodeType = NodeType.RpiGateway, Status = "offline" };
+        var rpi = new SystemNode { NodeId = "rbpi-gateway", NodeType = NodeType.RbpiGateway, Status = "offline" };
         _sets.SystemNodes.Add(gpu);
         _sets.SystemNodes.Add(rpi);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -61,7 +61,7 @@ public class HeartbeatMonitorServiceTests
     [Fact]
     public async Task CheckAsync_RpiHttp500_MarksRpiDegraded()
     {
-        var rpi = new SystemNode { NodeId = "rpi-gateway", NodeType = NodeType.RpiGateway, Status = "online" };
+        var rpi = new SystemNode { NodeId = "rbpi-gateway", NodeType = NodeType.RbpiGateway, Status = "online" };
         _sets.SystemNodes.Add(rpi);
         DbContextMockFactory.Refresh(_db, _sets);
         var service = CreateService(rpiHandler: new StubHttpMessageHandler(HttpStatusCode.InternalServerError));
