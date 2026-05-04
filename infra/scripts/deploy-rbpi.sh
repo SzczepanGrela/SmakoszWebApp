@@ -7,9 +7,15 @@ echo "$$" > "$DEPLOY_LOCKFILE"
 
 cd /home/smakosz
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/tools/rbpi-gateway/docker-compose.yml -o docker-compose.yml
-
 docker compose pull
 docker compose up -d --remove-orphans
+
+mkdir -p /home/smakosz/kuma
+cd /home/smakosz/kuma
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/rbpi/kuma-compose.yml -o docker-compose.yml
+docker compose pull
+docker compose up -d --remove-orphans
+
 docker image prune -f
 
 check_health() {
