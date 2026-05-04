@@ -1,0 +1,14 @@
+services:
+  rbpi-gateway:
+    image: ghcr.io/szczepangrela/smakoszwebapp/rbpi-gateway:latest
+    container_name: rbpi-gateway
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - /home/smakosz-rbpi-gateway/.env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:5000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

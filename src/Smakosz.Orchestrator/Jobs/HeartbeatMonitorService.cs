@@ -27,7 +27,7 @@ public class HeartbeatMonitorService
     public async Task CheckAsync(CancellationToken ct)
     {
         var nodes = await _db.SystemNodes
-            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RpiGateway)
+            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RbpiGateway)
             .ToListAsync(ct);
 
         foreach (var node in nodes)
@@ -35,7 +35,7 @@ public class HeartbeatMonitorService
             var clientName = node.NodeType switch
             {
                 NodeType.Gpu => "GpuWorker",
-                NodeType.RpiGateway => "RpiGateway",
+                NodeType.RbpiGateway => "RbpiGateway",
                 _ => null
             };
             if (clientName is null) continue;
