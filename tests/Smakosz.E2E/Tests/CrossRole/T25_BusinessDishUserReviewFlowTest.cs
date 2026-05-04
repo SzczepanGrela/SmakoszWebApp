@@ -85,7 +85,7 @@ public class T25_BusinessDishUserReviewFlowTest : SmakoszE2ETestBase
         await ratingContainers.Nth(3).Locator("i.interactive-star").Nth(7).ClickAsync(); // Atmosfera: 8
 
         await Page.Locator("textarea.form-control").FillAsync("Panna cotta pyszna, delikatna i kremowa!");
-        await Page.Locator("input[type='date']").FillAsync(DateTime.Today.ToString("yyyy-MM-dd"));
+        await Page.Locator("input[type='date']").FillAsync(DateTime.UtcNow.Date.ToString("yyyy-MM-dd"));
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();
 

@@ -37,7 +37,7 @@ public class T23_ModeratorReviewModerationTest : SmakoszE2ETestBase
                 cleanlinessRating = 8,
                 ambianceRating = 8,
                 content = "Recenzja do moderacji moderatora z T23.",
-                visitDate = DateTime.Today.ToString("yyyy-MM-dd"),
+                visitDate = DateTime.UtcNow.Date.ToString("yyyy-MM-dd"),
             });
             await http.PostAsync(
                 $"{TestConstants.ApiBaseUrl}/api/reviews",

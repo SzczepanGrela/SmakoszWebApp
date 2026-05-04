@@ -77,7 +77,7 @@ public class T02_RegisterLoginReviewTest : SmakoszE2ETestBase
 
         await Page.Locator("textarea.form-control").FillAsync("Testowa recenzja z testu E2E. Pizza pepperoni byla swietna!");
 
-        var today = DateTime.Today.ToString("yyyy-MM-dd");
+        var today = DateTime.UtcNow.Date.ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(today);
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();

@@ -6,12 +6,12 @@ namespace Smakosz.E2E.Infrastructure;
 
 public static class E2EDatabaseSeeder
 {
-    // Tables truncated on per-fixture reset. Dictionaries seeded by EF migrations
-    // (cuisine_types, tags with category dish_category, rejection_reasons,
-    // system.home_page_cache, system.site_stats) are intentionally excluded so
-    // migration InsertData rows survive the reset. SeedData own additions to
-    // dictionaries use unique high IDs (1001+) and are guarded for idempotency
-    // so the second SeedAsync call after a reset does not collide.
+    // Tables truncated on per-test reset. Dictionaries seeded by EF migrations
+    // (rejection_reasons, system.home_page_cache, system.site_stats) are
+    // intentionally excluded so migration InsertData rows survive the reset.
+    // SeedData own additions to dictionaries (cuisine_types, tags including
+    // dish_category) use unique high IDs (1001+) and are wiped explicitly
+    // below so the re-seed below stays idempotent without colliding.
     private static readonly string[] TruncateTables =
     {
         "system.ai_logs", "system.banned_identifiers", "system.config",
@@ -46,11 +46,13 @@ public static class E2EDatabaseSeeder
         await using var conn = new NpgsqlConnection(TestConstants.ConnectionString);
         await conn.OpenAsync();
 
-        // Also wipe dictionary rows that SeedData itself adds (high IDs) so the
-        // re-seed below stays idempotent without touching migration rows.
+        // Also wipe dictionary rows that SeedData itself adds (high IDs or
+        // E2E-prefixed codes) so the re-seed below stays idempotent without
+        // touching migration rows.
         var deleteOwnDictionaryRows = @"
             DELETE FROM cuisine_types WHERE cuisine_type_id >= 1001;
             DELETE FROM tags WHERE tag_id >= 1001;
+            DELETE FROM rejection_reasons WHERE reason_code IN ('text_spam', 'text_offtopic', 'photo_inappropriate');
         ";
 
         var truncateSql = $"TRUNCATE TABLE {string.Join(", ", TruncateTables)} RESTART IDENTITY CASCADE;";

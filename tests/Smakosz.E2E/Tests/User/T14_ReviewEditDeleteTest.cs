@@ -48,7 +48,7 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
             cleanlinessRating = 7,
             ambianceRating = 7,
             content = "Recenzja kebab do edycji i usuniecia z testu E2E.",
-            visitDate = DateTime.Today.ToString("yyyy-MM-dd"),
+            visitDate = DateTime.UtcNow.Date.ToString("yyyy-MM-dd"),
         });
         var createResponse = await http.PostAsync(
             $"{TestConstants.ApiBaseUrl}/api/reviews",
@@ -74,7 +74,7 @@ public class T14_ReviewEditDeleteTest : SmakoszE2ETestBase
             cleanlinessRating = 8,
             ambianceRating = 8,
             content = "Zaktualizowana recenzja z testu E2E - kebab fantastyczny!",
-            visitDate = DateTime.Today.ToString("yyyy-MM-dd"),
+            visitDate = DateTime.UtcNow.Date.ToString("yyyy-MM-dd"),
         });
         var editResponse = await http.PutAsync(
             $"{TestConstants.ApiBaseUrl}/api/reviews/{reviewPublicId}",

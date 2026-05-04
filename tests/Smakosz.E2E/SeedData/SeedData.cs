@@ -273,13 +273,47 @@ public static class SeedData
         var tagNaWynos = new Tag { TagId = 1001, TagName = "Na wynos", Category = "feature", DisplayColor = "#28a745", CreatedAt = DateTime.UtcNow };
         var tagSezonowe = new Tag { TagId = 1002, TagName = "Sezonowe", Category = "feature", DisplayColor = "#fd7e14", CreatedAt = DateTime.UtcNow };
         var tagNowosc = new Tag { TagId = 1003, TagName = "Nowosc", Category = "feature", DisplayColor = "#007bff", CreatedAt = DateTime.UtcNow };
-        db.Tags.AddRange(tagNaWynos, tagSezonowe, tagNowosc);
+        var tagPizza = new Tag { TagId = 1004, TagName = "Pizza", Category = "dish_category", DisplayColor = "#ff5722", TargetEntity = TagTargetEntity.Dish, CreatedAt = DateTime.UtcNow };
+        var tagBurger = new Tag { TagId = 1005, TagName = "Burger", Category = "dish_category", DisplayColor = "#795548", TargetEntity = TagTargetEntity.Dish, CreatedAt = DateTime.UtcNow };
+        var tagKebab = new Tag { TagId = 1006, TagName = "Kebab", Category = "dish_category", DisplayColor = "#e64a19", TargetEntity = TagTargetEntity.Dish, CreatedAt = DateTime.UtcNow };
+        var tagSushi = new Tag { TagId = 1007, TagName = "Sushi", Category = "dish_category", DisplayColor = "#00897b", TargetEntity = TagTargetEntity.Dish, CreatedAt = DateTime.UtcNow };
+        var tagDeser = new Tag { TagId = 1008, TagName = "Deser", Category = "dish_category", DisplayColor = "#ec407a", TargetEntity = TagTargetEntity.Dish, CreatedAt = DateTime.UtcNow };
+        db.Tags.AddRange(tagNaWynos, tagSezonowe, tagNowosc, tagPizza, tagBurger, tagKebab, tagSushi, tagDeser);
 
         db.DishTags.AddRange(
             new DishTag { DishId = 1, TagId = 1001 }, // Margherita -> Na wynos
             new DishTag { DishId = 1, TagId = 1002 }, // Margherita -> Sezonowe
             new DishTag { DishId = 3, TagId = 1001 }, // Kebab -> Na wynos
             new DishTag { DishId = 4, TagId = 1003 }); // Tiramisu -> Nowosc
+
+        db.RejectionReasons.AddRange(
+            new RejectionReason
+            {
+                ReasonCode = "text_spam",
+                Category = RejectionReasonCategory.Text,
+                AdminLabel = "Spam / reklama",
+                UserMessageTemplate = "Recenzja ma charakter spamu i zostala usunieta.",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+            },
+            new RejectionReason
+            {
+                ReasonCode = "text_offtopic",
+                Category = RejectionReasonCategory.Text,
+                AdminLabel = "Niezwiazane z tematem",
+                UserMessageTemplate = "Recenzja nie dotyczy ocenianego dania ani restauracji.",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+            },
+            new RejectionReason
+            {
+                ReasonCode = "photo_inappropriate",
+                Category = RejectionReasonCategory.Photo,
+                AdminLabel = "Nieodpowiednie zdjecie",
+                UserMessageTemplate = "Zdjęcie narusza regulamin serwisu.",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+            });
 
         await db.SaveChangesAsync();
 

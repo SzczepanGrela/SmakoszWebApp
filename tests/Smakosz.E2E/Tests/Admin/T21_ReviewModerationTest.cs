@@ -24,7 +24,7 @@ public class T21_ReviewModerationTest : SmakoszE2ETestBase
             cleanlinessRating = 7,
             ambianceRating = 7,
             content = "Recenzja do moderacji admina z T21.",
-            visitDate = DateTime.Today.ToString("yyyy-MM-dd"),
+            visitDate = DateTime.UtcNow.Date.ToString("yyyy-MM-dd"),
         });
         var createResponse = await http.PostAsync(
             $"{TestConstants.ApiBaseUrl}/api/reviews",

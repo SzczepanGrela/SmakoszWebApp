@@ -104,7 +104,7 @@ public class T10_FullUserJourneyTest : SmakoszE2ETestBase
             "Najlepsze tiramisu jakie jadlem! Test E2E full journey.");
 
         // Use yesterday to avoid UTC timezone edge case
-        var yesterday = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+        var yesterday = DateTime.UtcNow.Date.AddDays(-1).ToString("yyyy-MM-dd");
         await Page.Locator("input[type='date']").FillAsync(yesterday);
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Opublikuj recenzję" }).ClickAsync();
