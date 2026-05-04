@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Powody odrzucenia - Admin Smakosz</PageTitle>
 
@@ -220,6 +221,7 @@ else
 
     private async Task DeleteReason(AdminRejectionReasonDto r)
     {
+        if (!await Confirm.AskAsync($"Czy na pewno chcesz usunąć powód odrzucenia „{r.AdminLabel}”?")) return;
         var success = await AdminService.DeleteRejectionReasonAsync(r.ReasonCode);
         if (success)
         {

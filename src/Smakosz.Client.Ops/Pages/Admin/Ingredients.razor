@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Składniki - Admin Smakosz</PageTitle>
 
@@ -75,7 +76,7 @@ else
                             <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => EditIngredient(ing)">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteIngredient(ing.IngredientId)">
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteIngredient(ing)">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -124,9 +125,10 @@ else
         else Toast.ShowError("Nie udało się zapisać.");
     }
 
-    private async Task DeleteIngredient(int id)
+    private async Task DeleteIngredient(AdminIngredientDto ing)
     {
-        var success = await AdminService.DeleteIngredientAsync(id);
+        if (!await Confirm.AskAsync($"Czy na pewno chcesz usunąć składnik {ing.IngredientName}?")) return;
+        var success = await AdminService.DeleteIngredientAsync(ing.IngredientId);
         if (success) { Toast.ShowSuccess("Składnik usunięty."); await LoadPage(1); }
         else Toast.ShowError("Nie udało się usunąć.");
     }

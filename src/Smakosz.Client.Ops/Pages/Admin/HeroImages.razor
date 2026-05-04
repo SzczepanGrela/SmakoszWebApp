@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Hero images - Admin Smakosz</PageTitle>
 
@@ -103,6 +104,7 @@ else
 
     private async Task DeleteImage(Guid publicId)
     {
+        if (!await Confirm.AskAsync("Czy na pewno chcesz usunąć to hero image?")) return;
         _deleting = true;
         var success = await AdminService.DeleteHeroImageAsync(publicId);
         if (success)

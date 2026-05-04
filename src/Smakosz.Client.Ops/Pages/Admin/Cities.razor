@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Miasta - Admin Smakosz</PageTitle>
 
@@ -115,6 +116,7 @@ else
 
     private async Task DeleteCity(AdminCityDto city)
     {
+        if (!await Confirm.AskAsync($"Czy na pewno chcesz usunąć miasto {city.CityName}?")) return;
         var success = await AdminService.DeleteCityAsync(city.Id);
         if (success) { Toast.ShowSuccess("Miasto usunięte."); await LoadPage(1); }
         else Toast.ShowError("Nie udało się usunąć miasta.");

@@ -12,6 +12,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         AuthContext = this.AddTestAuthorization();
 
         Services.AddSingleton<ToastService>();
+        Services.AddSingleton<IConfirmService>(new AutoConfirmService());
 
         Services.AddSingleton(Substitute.For<IHomeService>());
         Services.AddSingleton(Substitute.For<IDishService>());
@@ -34,5 +35,20 @@ public abstract class BunitTestBase : Bunit.TestContext
     {
         AuthContext.SetAuthorized(username);
         AuthContext.SetRoles(role);
+    }
+
+    // Auto-confirm prompts in tests so destructive actions wired through IConfirmService are exercised end-to-end.
+    private sealed class AutoConfirmService : IConfirmService
+    {
+        public event Action? StateChanged;
+        public bool IsOpen => false;
+        public string Message => "";
+        public Task<bool> AskAsync(string message)
+        {
+            StateChanged?.Invoke();
+            return Task.FromResult(true);
+        }
+        public void Confirm() { }
+        public void Cancel() { }
     }
 }

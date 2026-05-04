@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Zbanowane identyfikatory - Admin Smakosz</PageTitle>
 
@@ -206,6 +207,7 @@ else
 
     private async Task DeleteBan(AdminBannedIdentifierDto b)
     {
+        if (!await Confirm.AskAsync($"Czy na pewno chcesz usunąć ban dla {b.Value}?")) return;
         var success = await AdminService.DeleteBannedIdentifierAsync(b.BanId);
         if (success) { Toast.ShowSuccess("Usunieto."); await LoadPage(1); }
         else Toast.ShowError("Nie udalo sie usunac.");

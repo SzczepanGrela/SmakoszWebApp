@@ -1,0 +1,24 @@
+@implements IDisposable
+@inject IConfirmService Confirm
+
+<ConfirmModal IsOpen="@Confirm.IsOpen"
+              Message="@Confirm.Message"
+              OnConfirm="HandleConfirm"
+              OnCancel="HandleCancel" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Confirm.StateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
+
+    private void HandleConfirm() => Confirm.Confirm();
+    private void HandleCancel() => Confirm.Cancel();
+
+    public void Dispose()
+    {
+        Confirm.StateChanged -= OnStateChanged;
+    }
+}

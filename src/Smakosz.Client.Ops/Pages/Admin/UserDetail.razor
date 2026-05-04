@@ -7,6 +7,7 @@
 @inject IAdminService AdminService
 @inject ToastService Toast
 @inject AuthenticationStateProvider AuthState
+@inject IConfirmService Confirm
 
 <PageTitle>Użytkownik - Admin Smakosz</PageTitle>
 
@@ -116,7 +117,6 @@ else
         </div>
     </Smakosz.Client.Components.Modal>
 
-    <ConfirmModal IsOpen="_confirmOpen" Message="@_confirmMessage" OnConfirm="ExecuteConfirmedAction" OnCancel="CloseConfirm" />
 }
 
 @code {
@@ -140,17 +140,29 @@ else
         _loading = false;
     }
 
-    private void ConfirmBan()
-        => RequestConfirm($"Czy na pewno chcesz zbanować użytkownika {_user!.Username}?", () => UserAction("ban"));
+    private async Task ConfirmBan()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz zbanować użytkownika {_user!.Username}?"))
+            await UserAction("ban");
+    }
 
-    private void ConfirmUnban()
-        => RequestConfirm($"Czy na pewno chcesz odbanować użytkownika {_user!.Username}?", () => UserAction("unban"));
+    private async Task ConfirmUnban()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz odbanować użytkownika {_user!.Username}?"))
+            await UserAction("unban");
+    }
 
-    private void ConfirmDisable2fa()
-        => RequestConfirm($"Czy na pewno chcesz wyłączyć 2FA dla użytkownika {_user!.Username}?", HandleDisable2fa);
+    private async Task ConfirmDisable2fa()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz wyłączyć 2FA dla użytkownika {_user!.Username}?"))
+            await HandleDisable2fa();
+    }
 
-    private void ConfirmResetPassword()
-        => RequestConfirm($"Czy na pewno chcesz zresetować hasło użytkownika {_user!.Username}?", HandleResetPassword);
+    private async Task ConfirmResetPassword()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz zresetować hasło użytkownika {_user!.Username}?"))
+            await HandleResetPassword();
+    }
 
     private async Task UserAction(string action)
     {
@@ -215,28 +227,4 @@ else
         }
     }
 
-    private bool _confirmOpen;
-    private string _confirmMessage = "";
-    private Func<Task>? _pendingAction;
-
-    private void RequestConfirm(string message, Func<Task> action)
-    {
-        _confirmMessage = message;
-        _pendingAction = action;
-        _confirmOpen = true;
-    }
-
-    private async Task ExecuteConfirmedAction()
-    {
-        _confirmOpen = false;
-        var action = _pendingAction;
-        _pendingAction = null;
-        if (action is not null) await action();
-    }
-
-    private void CloseConfirm()
-    {
-        _confirmOpen = false;
-        _pendingAction = null;
-    }
 }

@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject IConfirmService Confirm
 
 <PageTitle>Tagi - Admin Smakosz</PageTitle>
 
@@ -162,6 +163,7 @@ else
 
     private async Task DeleteTag(AdminTagDto tag)
     {
+        if (!await Confirm.AskAsync($"Czy na pewno chcesz usunąć tag {tag.TagName}?")) return;
         var success = await AdminService.DeleteTagAsync(tag.TagId);
         if (success) { Toast.ShowSuccess("Tag usunięty."); await LoadPage(1); }
         else Toast.ShowError("Nie udało się usunąć tagu.");

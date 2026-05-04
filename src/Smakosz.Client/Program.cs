@@ -36,6 +36,7 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredServ
 builder.Services.AddScoped<SmakoszApiClient>();
 
 builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<IConfirmService, ConfirmService>();
 
 builder.Services.AddScoped<IHomeService, HomeService>();
 builder.Services.AddScoped<IDishService, DishService>();
