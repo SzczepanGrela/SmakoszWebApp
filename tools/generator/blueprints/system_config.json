@@ -215,6 +215,26 @@
       "description": "Maksymalny rozmiar strony API.",
       "is_public": true
     },
+    "search.suggest.similarity_threshold": {
+      "value": "0.2",
+      "description": "Trigram similarity cutoff dla autocomplete suggest. Niższa wartość = więcej tolerancji literówek.",
+      "is_public": false
+    },
+    "search.fullsearch.similarity_threshold": {
+      "value": "0.3",
+      "description": "Trigram similarity cutoff dla pełnej wyszukiwarki. Wyższa wartość = bardziej restrykcyjne wyniki.",
+      "is_public": false
+    },
+    "ratelimit.search-suggest.permit_limit": {
+      "value": "60",
+      "description": "Liczba zapytań do /api/search/suggest na okno czasowe per IP.",
+      "is_public": false
+    },
+    "ratelimit.search-suggest.window_seconds": {
+      "value": "60",
+      "description": "Długość okna rate limitera dla /api/search/suggest w sekundach.",
+      "is_public": false
+    },
     "trending.window_days": {
       "value": "7",
       "description": "Okno czasowe Bayesian Average (dni).",

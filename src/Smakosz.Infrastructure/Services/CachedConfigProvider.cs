@@ -45,6 +45,15 @@ public class CachedConfigProvider : IPublicConfigProvider, IValidationConfigProv
         return raw is not null && int.TryParse(raw, out var value) ? value : defaultValue;
     }
 
+    public async Task<double> GetDoubleAsync(string key, double defaultValue, CancellationToken ct)
+    {
+        var raw = await GetValueAsync(key, ct);
+        return raw is not null
+               && double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var value)
+            ? value
+            : defaultValue;
+    }
+
     public async Task<bool> GetBoolAsync(string key, bool defaultValue, CancellationToken ct)
     {
         var raw = await GetValueAsync(key, ct);

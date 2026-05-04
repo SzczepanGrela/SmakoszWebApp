@@ -39,6 +39,7 @@ public class MockDbSets
     public List<DishVariant> DishVariants { get; } = new();
     public List<Tag> Tags { get; } = new();
     public List<SearchHistory> SearchHistories { get; } = new();
+    public List<SearchAutocomplete> SearchAutocompletes { get; } = new();
     public List<ReportReasonDefinition> ReportReasonDefinitions { get; } = new();
     public List<RejectionReason> RejectionReasons { get; } = new();
     public List<ReportReasonAssignment> ReportReasonAssignments { get; } = new();
@@ -125,6 +126,7 @@ public static class DbContextMockFactory
         WireDbSet(() => sets.DishVariants, v => context.DishVariants.Returns(v), sets.DishVariants);
         WireDbSet(() => sets.Tags, v => context.Tags.Returns(v), sets.Tags);
         WireDbSet(() => sets.SearchHistories, v => context.SearchHistories.Returns(v), sets.SearchHistories);
+        WireDbSet(() => sets.SearchAutocompletes, v => context.SearchAutocompletes.Returns(v), sets.SearchAutocompletes);
         WireDbSet(() => sets.ReportReasonDefinitions, v => context.ReportReasonDefinitions.Returns(v), sets.ReportReasonDefinitions);
         WireDbSet(() => sets.RejectionReasons, v => context.RejectionReasons.Returns(v), sets.RejectionReasons);
         WireDbSet(() => sets.ReportReasonAssignments, v => context.ReportReasonAssignments.Returns(v), sets.ReportReasonAssignments);

@@ -67,6 +67,7 @@ public class SearchController : ApiController
     }
 
     [HttpGet("suggest")]
+    [EnableRateLimiting("search-suggest")]
     public async Task<IActionResult> Suggest([FromQuery(Name = "q")] string? query, [FromQuery] int limit = 7)
     {
         var result = await _mediator.Send(new SearchSuggestQuery(query ?? "", limit));

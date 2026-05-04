@@ -14,13 +14,18 @@ namespace Smakosz.Application.Features.Search.Queries.SearchQuery;
 
 public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDto>>
 {
+    private const string SimilarityThresholdKey = "search.fullsearch.similarity_threshold";
+    private const double DefaultSimilarityThreshold = 0.3;
+
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IPublicConfigProvider _config;
 
-    public SearchHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public SearchHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IPublicConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<SearchResultDto>> Handle(SearchQuery request, CancellationToken cancellationToken)
@@ -35,6 +40,8 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             });
             await _db.SaveChangesAsync(cancellationToken);
         }
+
+        var similarityThreshold = await _config.GetDoubleAsync(SimilarityThresholdKey, DefaultSimilarityThreshold, cancellationToken);
 
         var cuisineList = !string.IsNullOrWhiteSpace(request.Cuisines)
             ? request.Cuisines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
@@ -63,14 +70,14 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
 
         if (request.Type is "restaurants" or "all")
         {
-            var (items, count) = await SearchRestaurants(request, cuisineList, tagList, cancellationToken);
+            var (items, count) = await SearchRestaurants(request, cuisineList, tagList, similarityThreshold, cancellationToken);
             restaurants = items;
             totalCount += count;
         }
 
         if (request.Type is "dishes" or "all")
         {
-            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, dishCategoryList, featureList, moodList, occasionList, spiceList, cancellationToken);
+            var (items, count) = await SearchDishes(request, cuisineList, dietaryList, tagList, dishCategoryList, featureList, moodList, occasionList, spiceList, similarityThreshold, cancellationToken);
             dishes = items;
             totalCount += count;
         }
@@ -102,6 +109,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         SearchQuery request,
         List<string> cuisineList,
         List<string> tagList,
+        double similarityThreshold,
         CancellationToken cancellationToken)
     {
         var query = _db.Restaurants
@@ -111,15 +119,16 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             .Where(r => r.Status == RestaurantStatus.Active)
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(request.Query))
+        var hasQuery = !string.IsNullOrWhiteSpace(request.Query);
+        var term = hasQuery ? request.Query!.ToLower() : string.Empty;
+
+        if (hasQuery)
         {
-            var term = request.Query.ToLower();
             query = query.Where(r =>
-                EF.Functions.ILike(r.RestaurantName, $"%{term}%") ||
-                EF.Functions.TrigramsWordSimilarity(term, r.RestaurantName.ToLower()) > 0.3 ||
-                (r.Description != null && EF.Functions.ILike(r.Description, $"%{term}%")) ||
-                (r.Cuisine != null && EF.Functions.ILike(r.Cuisine.DisplayName, $"%{term}%")) ||
-                _db.RestaurantTags.Any(rt => rt.RestaurantId == r.RestaurantId && EF.Functions.ILike(rt.Tag.TagName, $"%{term}%")));
+                EF.Functions.TrigramsWordSimilarity(term, r.RestaurantName.ToLower()) > similarityThreshold ||
+                (r.Description != null && EF.Functions.TrigramsWordSimilarity(term, r.Description.ToLower()) > similarityThreshold) ||
+                (r.Cuisine != null && EF.Functions.TrigramsWordSimilarity(term, r.Cuisine.DisplayName.ToLower()) > similarityThreshold) ||
+                _db.RestaurantTags.Any(rt => rt.RestaurantId == r.RestaurantId && EF.Functions.TrigramsWordSimilarity(term, rt.Tag.TagName.ToLower()) > similarityThreshold));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Location))
@@ -140,14 +149,19 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         if (request.MaxPrice.HasValue)
             query = query.Where(r => r.PriceLevel <= request.MaxPrice.Value);
 
-        query = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant()) switch
+        // When the user gave a query and did not override sort, rank by trigram similarity so the most relevant matches surface first; popularity becomes the tiebreak. Explicit sort modes (name/price/trending) bypass relevance.
+        var (sortBy, sortDir) = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant());
+        query = sortBy switch
         {
-            ("name", "asc") => query.OrderBy(r => r.RestaurantName),
-            ("name", _) => query.OrderByDescending(r => r.RestaurantName),
-            ("price", "asc") => query.OrderBy(r => r.PriceLevel),
-            ("price", _) => query.OrderByDescending(r => r.PriceLevel),
-            ("trending", _) => query.OrderByDescending(r => r.TrendingScore),
-            (_, "asc") => query.OrderBy(r => r.AvgFoodScore),
+            "name" when sortDir == "asc" => query.OrderBy(r => r.RestaurantName),
+            "name" => query.OrderByDescending(r => r.RestaurantName),
+            "price" when sortDir == "asc" => query.OrderBy(r => r.PriceLevel),
+            "price" => query.OrderByDescending(r => r.PriceLevel),
+            "trending" => query.OrderByDescending(r => r.TrendingScore),
+            _ when hasQuery => query
+                .OrderByDescending(r => EF.Functions.TrigramsWordSimilarity(term, r.RestaurantName.ToLower()))
+                .ThenByDescending(r => r.AvgFoodScore),
+            _ when sortDir == "asc" => query.OrderBy(r => r.AvgFoodScore),
             _ => query.OrderByDescending(r => r.AvgFoodScore)
         };
 
@@ -185,6 +199,7 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         List<string> moodList,
         List<string> occasionList,
         List<string> spiceList,
+        double similarityThreshold,
         CancellationToken cancellationToken)
     {
         var query = _db.Dishes
@@ -196,15 +211,16 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
             .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(request.Query))
+        var hasQuery = !string.IsNullOrWhiteSpace(request.Query);
+        var term = hasQuery ? request.Query!.ToLower() : string.Empty;
+
+        if (hasQuery)
         {
-            var term = request.Query.ToLower();
             query = query.Where(d =>
-                EF.Functions.ILike(d.DishName, $"%{term}%") ||
-                EF.Functions.TrigramsWordSimilarity(term, d.DishName.ToLower()) > 0.3 ||
-                (d.Description != null && EF.Functions.ILike(d.Description, $"%{term}%")) ||
-                (d.Restaurant!.Cuisine != null && EF.Functions.ILike(d.Restaurant.Cuisine.DisplayName, $"%{term}%")) ||
-                d.DishTags.Any(dt => EF.Functions.ILike(dt.Tag.TagName, $"%{term}%")));
+                EF.Functions.TrigramsWordSimilarity(term, d.DishName.ToLower()) > similarityThreshold ||
+                (d.Description != null && EF.Functions.TrigramsWordSimilarity(term, d.Description.ToLower()) > similarityThreshold) ||
+                (d.Restaurant!.Cuisine != null && EF.Functions.TrigramsWordSimilarity(term, d.Restaurant.Cuisine.DisplayName.ToLower()) > similarityThreshold) ||
+                d.DishTags.Any(dt => EF.Functions.TrigramsWordSimilarity(term, dt.Tag.TagName.ToLower()) > similarityThreshold));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Location))
@@ -274,14 +290,18 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             };
         }
 
-        query = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant()) switch
+        var (sortBy, sortDir) = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant());
+        query = sortBy switch
         {
-            ("name", "asc") => query.OrderBy(d => d.DishName),
-            ("name", _) => query.OrderByDescending(d => d.DishName),
-            ("price", "asc") => query.OrderBy(d => d.Price),
-            ("price", _) => query.OrderByDescending(d => d.Price),
-            ("trending", _) => query.OrderByDescending(d => d.TrendingScore),
-            (_, "asc") => query.OrderBy(d => d.AvgRating),
+            "name" when sortDir == "asc" => query.OrderBy(d => d.DishName),
+            "name" => query.OrderByDescending(d => d.DishName),
+            "price" when sortDir == "asc" => query.OrderBy(d => d.Price),
+            "price" => query.OrderByDescending(d => d.Price),
+            "trending" => query.OrderByDescending(d => d.TrendingScore),
+            _ when hasQuery => query
+                .OrderByDescending(d => EF.Functions.TrigramsWordSimilarity(term, d.DishName.ToLower()))
+                .ThenByDescending(d => d.AvgRating),
+            _ when sortDir == "asc" => query.OrderBy(d => d.AvgRating),
             _ => query.OrderByDescending(d => d.AvgRating)
         };
 

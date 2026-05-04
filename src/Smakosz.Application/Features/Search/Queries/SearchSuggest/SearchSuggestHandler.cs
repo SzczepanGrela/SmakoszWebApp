@@ -3,76 +3,56 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Search.Dtos;
-using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Search.Queries.SearchSuggest;
 
 public class SearchSuggestHandler : IRequestHandler<SearchSuggestQuery, ErrorOr<List<SuggestItemDto>>>
 {
-    private readonly ISmakoszDbContext _db;
+    private const string SimilarityThresholdKey = "search.suggest.similarity_threshold";
+    private const double DefaultSimilarityThreshold = 0.2;
 
-    public SearchSuggestHandler(ISmakoszDbContext db)
+    private readonly ISmakoszDbContext _db;
+    private readonly IPublicConfigProvider _config;
+
+    public SearchSuggestHandler(ISmakoszDbContext db, IPublicConfigProvider config)
     {
         _db = db;
+        _config = config;
     }
 
     public async Task<ErrorOr<List<SuggestItemDto>>> Handle(SearchSuggestQuery request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Query) || request.Query.Length < 2)
+        if (string.IsNullOrWhiteSpace(request.Query) || request.Query.Trim().Length < 2)
             return new List<SuggestItemDto>();
 
-        var term = request.Query.Trim().ToLower();
+        var term = request.Query.Trim().ToLowerInvariant();
         var limit = Math.Clamp(request.Limit, 1, 10);
+        var threshold = await _config.GetDoubleAsync(SimilarityThresholdKey, DefaultSimilarityThreshold, ct);
 
-        var dishes = await SearchDishes(term, limit, ct);
-        var remaining = limit - dishes.Count;
-        var restaurants = remaining > 0
-            ? await SearchRestaurants(term, remaining, ct)
-            : [];
-
-        return dishes.Concat(restaurants).ToList();
-    }
-
-    private async Task<List<SuggestItemDto>> SearchDishes(string term, int limit, CancellationToken ct)
-    {
-        return await _db.Dishes
+        // Read from search_autocomplete view so Postgres pushes similarity through UNION ALL onto trgm_idx_restaurants_name and trgm_idx_dishes_name. Prefix matches win first because typing the start of a name is the strongest signal of intent, then trigram similarity, then priority (restaurants before dishes when scores tie).
+        var rows = await _db.SearchAutocompletes
+            .FromSqlInterpolated($@"
+                SELECT type, id, name, slug, subtitle, icon, image_blurhash, name_normalized, priority
+                FROM search_autocomplete
+                WHERE similarity(name_normalized, f_unaccent(lower({term}))) >= {threshold}
+                ORDER BY
+                    CASE WHEN name_normalized LIKE f_unaccent(lower({term})) || '%' THEN 0 ELSE 1 END,
+                    similarity(name_normalized, f_unaccent(lower({term}))) DESC,
+                    priority ASC
+                LIMIT {limit}")
             .AsNoTracking()
-            .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active)
-            .Where(d => EF.Functions.ILike(d.DishName, $"%{term}%"))
-            .OrderBy(d => !EF.Functions.ILike(d.DishName, $"{term}%"))
-            .ThenByDescending(d => d.ReviewCount)
-            .Take(limit)
-            .Select(d => new SuggestItemDto
-            {
-                Type = "dish",
-                Name = d.DishName,
-                Slug = d.Slug ?? string.Empty,
-                Subtitle = d.Restaurant != null ? d.Restaurant.RestaurantName : null,
-                ImageUrl = d.ImageUrl != null ? d.ImageUrl.Replace(".webp", "_tiny.webp") : null,
-                ImageBlurhash = d.ImageBlurhash
-            })
             .ToListAsync(ct);
-    }
 
-    private async Task<List<SuggestItemDto>> SearchRestaurants(string term, int limit, CancellationToken ct)
-    {
-        return await _db.Restaurants
-            .AsNoTracking()
-            .Include(r => r.Cuisine)
-            .Where(r => r.Status == RestaurantStatus.Active)
-            .Where(r => EF.Functions.ILike(r.RestaurantName, $"%{term}%"))
-            .OrderBy(r => !EF.Functions.ILike(r.RestaurantName, $"{term}%"))
-            .ThenByDescending(r => r.AvgFoodScore)
-            .Take(limit)
+        return rows
             .Select(r => new SuggestItemDto
             {
-                Type = "restaurant",
-                Name = r.RestaurantName,
+                Type = r.Type,
+                Name = r.Name,
                 Slug = r.Slug ?? string.Empty,
-                Subtitle = r.Cuisine != null ? r.Cuisine.DisplayName : null,
-                ImageUrl = r.ImageUrl != null ? r.ImageUrl.Replace(".webp", "_tiny.webp") : null,
+                Subtitle = r.Subtitle,
+                ImageUrl = r.Icon is not null ? r.Icon.Replace(".webp", "_tiny.webp") : null,
                 ImageBlurhash = r.ImageBlurhash
             })
-            .ToListAsync(ct);
+            .ToList();
     }
 }

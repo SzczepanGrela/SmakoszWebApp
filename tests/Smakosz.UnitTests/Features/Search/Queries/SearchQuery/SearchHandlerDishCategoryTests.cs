@@ -1,4 +1,6 @@
 using FluentAssertions;
+using NSubstitute;
+using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Enums;
@@ -20,7 +22,10 @@ public class SearchHandlerDishCategoryTests
     {
         (_db, _sets) = DbContextMockFactory.Create();
         var anonymousUser = MockExtensions.CreateAnonymousUser();
-        _handler = new AppSearch.SearchHandler(_db, anonymousUser);
+        var config = Substitute.For<IPublicConfigProvider>();
+        config.GetDoubleAsync(Arg.Any<string>(), Arg.Any<double>(), Arg.Any<CancellationToken>())
+            .Returns(call => Task.FromResult(call.ArgAt<double>(1)));
+        _handler = new AppSearch.SearchHandler(_db, anonymousUser, config);
     }
 
     [Fact]

@@ -163,6 +163,7 @@ builder.Services.AddRateLimiter(options =>
     AddFixedWindowPolicy(options, "auth", "ratelimit.auth", 10, 60);
     AddFixedWindowPolicy(options, "upload", "ratelimit.upload", 10, 60);
     AddFixedWindowPolicy(options, "search", "ratelimit.search", 30, 60);
+    AddFixedWindowPolicy(options, "search-suggest", "ratelimit.search-suggest", 60, 60);
     AddFixedWindowPolicy(options, "general", "ratelimit.general", 60, 60);
 });
 

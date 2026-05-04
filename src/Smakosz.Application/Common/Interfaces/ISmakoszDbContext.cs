@@ -19,6 +19,7 @@ public interface ISmakoszDbContext
     DbSet<UserFollow> UserFollows { get; }
     DbSet<VerificationCode> VerificationCodes { get; }
     DbSet<SearchHistory> SearchHistories { get; }
+    DbSet<SearchAutocomplete> SearchAutocompletes { get; }
 
     DbSet<Restaurant> Restaurants { get; }
     DbSet<RestaurantOpeningHours> RestaurantOpeningHours { get; }

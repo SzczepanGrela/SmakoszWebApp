@@ -81,6 +81,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
+    public DbSet<SearchAutocomplete> SearchAutocompletes => Set<SearchAutocomplete>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
     public DbSet<Restaurant> Restaurants => Set<Restaurant>();

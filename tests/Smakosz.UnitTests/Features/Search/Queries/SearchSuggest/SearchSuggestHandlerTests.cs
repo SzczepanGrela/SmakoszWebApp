@@ -1,7 +1,8 @@
 using FluentAssertions;
+using NSubstitute;
+using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Search.Queries.SearchSuggest;
 using Smakosz.UnitTests.Common.TestInfrastructure;
-using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
 namespace Smakosz.UnitTests.Features.Search.Queries.SearchSuggest;
 
@@ -10,16 +11,19 @@ public class SearchSuggestHandlerTests
 {
     private readonly Smakosz.Application.Common.Interfaces.ISmakoszDbContext _db;
     private readonly MockDbSets _sets;
+    private readonly IPublicConfigProvider _config;
     private readonly SearchSuggestHandler _handler;
 
     public SearchSuggestHandlerTests()
     {
         (_db, _sets) = DbContextMockFactory.Create();
-        _handler = new SearchSuggestHandler(_db);
+        _config = Substitute.For<IPublicConfigProvider>();
+        _config.GetDoubleAsync(Arg.Any<string>(), Arg.Any<double>(), Arg.Any<CancellationToken>())
+            .Returns(call => Task.FromResult(call.ArgAt<double>(1)));
+        _handler = new SearchSuggestHandler(_db, _config);
     }
 
-    // ILike throws outside EF query translation, so query-matching tests
-    // are covered by integration tests. Unit tests cover validation and edge cases.
+    // FromSqlInterpolated requires a real database connection so similarity-matching tests live in IntegrationTests; these unit tests cover the input validation paths that short-circuit before any query runs.
 
     [Fact]
     public async Task EmptyQuery_ReturnsEmpty()
@@ -49,22 +53,11 @@ public class SearchSuggestHandlerTests
     }
 
     [Fact]
-    public async Task LimitIsClamped_ToMaxTen()
+    public async Task SingleCharacterAfterTrim_ReturnsEmpty()
     {
-        var query = new SearchSuggestQuery("test", Limit: 50);
-
-        var result = await _handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(new SearchSuggestQuery("  b  "), CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task LimitIsClamped_ToMinOne()
-    {
-        var query = new SearchSuggestQuery("test", Limit: -5);
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEmpty();
     }
 }
