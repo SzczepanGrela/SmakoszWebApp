@@ -188,13 +188,16 @@ public class AdminService : IAdminService
 
     public async Task<bool> CreateIngredientAsync(AdminIngredientDto dto)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/admin/ingredients", dto);
+        // Backend expects { Name, IsAllergen, IsVegetarian, IsVegan, IsGlutenFree, IsLactoseFree }; DTO uses IngredientName.
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/ingredients",
+            new { Name = dto.IngredientName, dto.IsAllergen, dto.IsVegetarian, dto.IsVegan, IsGlutenFree = false, IsLactoseFree = false });
         return response.Success;
     }
 
     public async Task<bool> UpdateIngredientAsync(int id, AdminIngredientDto dto)
     {
-        var response = await _api.PutApiResponseAsync<object>($"/api/admin/ingredients/{id}", dto);
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/ingredients/{id}",
+            new { Name = dto.IngredientName, dto.IsAllergen, dto.IsVegetarian, dto.IsVegan, IsGlutenFree = (bool?)null, IsLactoseFree = (bool?)null });
         return response.Success;
     }
 
@@ -206,13 +209,14 @@ public class AdminService : IAdminService
 
     public async Task<bool> CreateCityAsync(AdminCityDto dto)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/admin/cities", dto);
+        // Backend expects { Name, Region }; AdminCityDto exposes CityName for display, so reshape here.
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/cities", new { Name = dto.CityName, Region = dto.Region });
         return response.Success;
     }
 
     public async Task<bool> UpdateCityAsync(int id, AdminCityDto dto)
     {
-        var response = await _api.PutApiResponseAsync<object>($"/api/admin/cities/{id}", dto);
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/cities/{id}", new { Name = dto.CityName, Region = dto.Region });
         return response.Success;
     }
 
@@ -242,13 +246,16 @@ public class AdminService : IAdminService
 
     public async Task<bool> CreateTagAsync(AdminTagDto dto)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/admin/tags", dto);
+        // Backend expects { Name, Category, TargetEntity, DisplayColor }; DTO uses TagName.
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/tags",
+            new { Name = dto.TagName, dto.Category, dto.TargetEntity, dto.DisplayColor });
         return response.Success;
     }
 
     public async Task<bool> UpdateTagAsync(int id, AdminTagDto dto)
     {
-        var response = await _api.PutApiResponseAsync<object>($"/api/admin/tags/{id}", dto);
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/tags/{id}",
+            new { Name = dto.TagName, dto.Category, dto.TargetEntity, dto.DisplayColor });
         return response.Success;
     }
 
