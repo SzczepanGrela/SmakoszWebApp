@@ -226,6 +226,9 @@ public static class DomainErrors
         public static readonly Error CannotChangeOwnRole =
             Error.Validation("ADMIN_CANNOT_CHANGE_OWN_ROLE", "Administrator nie może zmienić własnej roli");
 
+        public static readonly Error CannotBanSelf =
+            Error.Validation("ADMIN_CANNOT_BAN_SELF", "Administrator nie może zbanować własnego konta");
+
         public static readonly Error CannotDemoteLastAdmin =
             Error.Validation("ADMIN_CANNOT_DEMOTE_LAST_ADMIN", "Nie można zdegradować ostatniego administratora");
 

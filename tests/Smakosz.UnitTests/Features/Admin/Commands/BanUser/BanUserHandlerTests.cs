@@ -56,4 +56,19 @@ public class BanUserHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("ADMIN_FORBIDDEN");
     }
+
+    [Fact]
+    public async Task Handle_AdminBanningSelf_ReturnsError()
+    {
+        var selfPublicId = Guid.NewGuid();
+        var self = new UserBuilder().WithId(99).WithPublicId(selfPublicId).Build();
+        _sets.Users.Add(self);
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new BanUserCommand(selfPublicId), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("ADMIN_CANNOT_BAN_SELF");
+        self.IsBanned.Should().BeFalse();
+    }
 }

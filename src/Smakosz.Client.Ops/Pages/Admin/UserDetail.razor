@@ -1,8 +1,12 @@
 @page "/admin/users/{Id:int}"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Smakosz.Client.Components
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject AuthenticationStateProvider AuthState
 
 <PageTitle>Użytkownik - Admin Smakosz</PageTitle>
 
@@ -26,25 +30,31 @@ else
         <div class="d-flex gap-2">
             @if (_user.Is2faEnabled)
             {
-                <button class="btn btn-warning btn-sm" @onclick="HandleDisable2fa">
+                <button class="btn btn-warning btn-sm" @onclick="ConfirmDisable2fa">
                     <i class="fa-solid fa-shield-halved me-1"></i>Wyłącz 2FA
                 </button>
             }
             <button class="btn btn-secondary btn-sm" @onclick="OpenRoleModal">
                 <i class="fa-solid fa-user-tag me-1"></i>Zmień rolę
             </button>
-            <button class="btn btn-info btn-sm" @onclick="HandleResetPassword" disabled="@_resetInProgress">
+            <button class="btn btn-info btn-sm" @onclick="ConfirmResetPassword" disabled="@_resetInProgress">
                 <i class="fa-solid fa-key me-1"></i>Resetuj hasło
             </button>
-            @if (_user.Status == "Banned")
+            @if (IsSelfProfile)
             {
-                <button class="btn btn-success btn-sm" @onclick='() => UserAction("unban")'>
+                <button class="btn btn-outline-danger btn-sm" disabled title="Nie możesz zbanować własnego konta">
+                    <i class="fa-solid fa-ban me-1"></i>Zbanuj
+                </button>
+            }
+            else if (_user.Status == "Banned")
+            {
+                <button class="btn btn-success btn-sm" @onclick='ConfirmUnban'>
                     <i class="fa-solid fa-unlock me-1"></i>Odbanuj
                 </button>
             }
             else
             {
-                <button class="btn btn-danger btn-sm" @onclick='() => UserAction("ban")'>
+                <button class="btn btn-danger btn-sm" @onclick='ConfirmBan'>
                     <i class="fa-solid fa-ban me-1"></i>Zbanuj
                 </button>
             }
@@ -105,6 +115,8 @@ else
             </button>
         </div>
     </Smakosz.Client.Components.Modal>
+
+    <ConfirmModal IsOpen="_confirmOpen" Message="@_confirmMessage" OnConfirm="ExecuteConfirmedAction" OnCancel="CloseConfirm" />
 }
 
 @code {
@@ -113,12 +125,32 @@ else
     private AdminUserDto? _user;
     private bool _loading = true;
     private bool _resetInProgress;
+    private int? _currentUserId;
+
+    private bool IsSelfProfile => _currentUserId.HasValue && Id == _currentUserId.Value;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        var subClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (subClaim != null && int.TryParse(subClaim.Value, out var userId))
+            _currentUserId = userId;
+
         _user = await AdminService.GetUserAsync(Id);
         _loading = false;
     }
+
+    private void ConfirmBan()
+        => RequestConfirm($"Czy na pewno chcesz zbanować użytkownika {_user!.Username}?", () => UserAction("ban"));
+
+    private void ConfirmUnban()
+        => RequestConfirm($"Czy na pewno chcesz odbanować użytkownika {_user!.Username}?", () => UserAction("unban"));
+
+    private void ConfirmDisable2fa()
+        => RequestConfirm($"Czy na pewno chcesz wyłączyć 2FA dla użytkownika {_user!.Username}?", HandleDisable2fa);
+
+    private void ConfirmResetPassword()
+        => RequestConfirm($"Czy na pewno chcesz zresetować hasło użytkownika {_user!.Username}?", HandleResetPassword);
 
     private async Task UserAction(string action)
     {
@@ -181,5 +213,30 @@ else
         {
             Toast.ShowError("Nie udało się zmienić roli. Sprawdź czy nie próbujesz zdegradować ostatniego administratora lub zmienić własnej roli.");
         }
+    }
+
+    private bool _confirmOpen;
+    private string _confirmMessage = "";
+    private Func<Task>? _pendingAction;
+
+    private void RequestConfirm(string message, Func<Task> action)
+    {
+        _confirmMessage = message;
+        _pendingAction = action;
+        _confirmOpen = true;
+    }
+
+    private async Task ExecuteConfirmedAction()
+    {
+        _confirmOpen = false;
+        var action = _pendingAction;
+        _pendingAction = null;
+        if (action is not null) await action();
+    }
+
+    private void CloseConfirm()
+    {
+        _confirmOpen = false;
+        _pendingAction = null;
     }
 }

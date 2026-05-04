@@ -34,6 +34,9 @@ public class BanUserHandler : IRequestHandler<BanUserCommand, ErrorOr<Success>>
         if (user is null)
             return DomainErrors.User.NotFound;
 
+        if (_currentUser.UserId.HasValue && user.UserId == _currentUser.UserId.Value)
+            return DomainErrors.Admin.CannotBanSelf;
+
         user.IsBanned = true;
 
         var alreadyBanned = await _db.BannedIdentifiers.AnyAsync(
