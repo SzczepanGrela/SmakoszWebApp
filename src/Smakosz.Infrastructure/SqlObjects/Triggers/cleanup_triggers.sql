@@ -4,7 +4,8 @@
 CREATE OR REPLACE FUNCTION queue_file_deletion()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.url IS NOT NULL THEN
+    -- Seed assets are shared; do not enqueue them for deletion even if a media_asset row referencing one is removed.
+    IF OLD.url IS NOT NULL AND OLD.url NOT LIKE '%/seed/%' THEN
         INSERT INTO system.files_to_delete (r2key, source_entity)
         VALUES (OLD.url, TG_TABLE_NAME);
     END IF;

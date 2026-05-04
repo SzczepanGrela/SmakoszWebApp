@@ -25,8 +25,9 @@ public class R2CleanupService
 
     public async Task CleanupAsync(CancellationToken ct)
     {
+        // Seed assets are shared across many users; never delete them from R2 even if a stale enqueue slipped through.
         var batch = await _db.FilesToDelete
-            .Where(f => f.ProcessedAt == null)
+            .Where(f => f.ProcessedAt == null && !f.R2Key.StartsWith("seed/"))
             .OrderBy(f => f.QueuedAt)
             .Take(50)
             .ToListAsync(ct);

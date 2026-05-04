@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION enforce_primary_photo()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.is_primary = TRUE THEN
-        -- Queue old primary photo files for R2 cleanup
+        -- Queue old primary photo files for R2 cleanup, except seed assets which are shared across entities.
         INSERT INTO system.files_to_delete (r2key, bucket, reason, source_entity, source_id, queued_at)
         SELECT
             substring(url FROM 'https?://[^/]+/(.+)'),
@@ -22,7 +22,8 @@ BEGIN
           AND entity_id = NEW.entity_id
           AND asset_id != NEW.asset_id
           AND is_primary = TRUE
-          AND url IS NOT NULL;
+          AND url IS NOT NULL
+          AND url NOT LIKE '%/seed/%';
 
         UPDATE media_assets
         SET is_primary = FALSE
