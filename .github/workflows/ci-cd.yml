@@ -16,6 +16,21 @@ env:
   IMAGE_PREFIX: ghcr.io/szczepangrela/smakoszwebapp
 
 jobs:
+  changes:
+    name: Detect path changes
+    runs-on: ubuntu-latest
+    outputs:
+      rpi-gateway: ${{ steps.filter.outputs.rpi-gateway }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            rpi-gateway:
+              - 'tools/rpi-gateway/**'
+              - '.github/workflows/ci-cd.yml'
+
   test:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -107,6 +122,51 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
             ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
 
+  build-rpi-gateway:
+    name: Build RPi Gateway image
+    needs: [test, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rpi-gateway == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push arm64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: tools/rpi-gateway
+          file: tools/rpi-gateway/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/rpi-gateway:latest
+            ${{ env.IMAGE_PREFIX }}/rpi-gateway:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=rpi-gateway
+          cache-to: type=gha,mode=max,scope=rpi-gateway
+
   deploy-vps:
     name: Deploy to VPS
     needs: build-images
@@ -158,3 +218,52 @@ jobs:
               "https://smakosz.xyz/appsettings.json",
               "https://smakosz.xyz/"
             ]}'
+
+  deploy-rpi:
+    name: Deploy RPi Gateway
+    needs: [build-rpi-gateway, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rpi-gateway == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-rpi
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID_RPI }}
+          audience: ${{ secrets.TS_AUDIENCE_RPI }}
+          tags: tag:ci-rbpi
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY_RPI }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.RPI_SSH_PORT }} ${{ secrets.RPI_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.RPI_SSH_PORT }} \
+            smakosz-rbpi-gateway@${{ secrets.RPI_HOST }} bash /home/smakosz-rbpi-gateway/deploy-launcher.sh
+
+      - name: Health check via Tailscale
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS --max-time 5 "http://${{ secrets.RPI_HOST }}:5000/health"; then
+              echo "Health check OK"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "Health check failed after 3 attempts"
+          exit 1
