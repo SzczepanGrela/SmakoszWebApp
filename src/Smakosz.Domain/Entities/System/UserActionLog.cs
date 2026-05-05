@@ -9,7 +9,7 @@ public class UserActionLog
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
     public string? Reason { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public User User { get; set; } = default!;
     public User? Actor { get; set; }
