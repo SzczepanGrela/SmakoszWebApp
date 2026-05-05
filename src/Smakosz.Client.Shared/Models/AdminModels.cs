@@ -602,7 +602,18 @@ public class AdminUserRestaurantClaimDto
     public int RestaurantId { get; set; }
     public string RestaurantName { get; set; } = default!;
     public string Status { get; set; } = default!;
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class AdminUserReviewDto
+{
+    public Guid PublicId { get; set; }
+    public Guid DishPublicId { get; set; }
+    public string DishName { get; set; } = default!;
+    public string RestaurantName { get; set; } = default!;
+    public int DishRating { get; set; }
+    public string ModerationStatus { get; set; } = default!;
+    public DateTime? CreatedAt { get; set; }
 }
 
 public record TicketSummaryDto(string TicketType, int OpenCount, DateTime? OldestOpenAt);

@@ -507,5 +507,16 @@ public class AdminUserRestaurantClaimDto
     public int RestaurantId { get; init; }
     public string RestaurantName { get; init; } = default!;
     public string Status { get; init; } = default!;
-    public DateTime CreatedAt { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
+public class AdminUserReviewDto
+{
+    public Guid PublicId { get; init; }
+    public Guid DishPublicId { get; init; }
+    public string DishName { get; init; } = default!;
+    public string RestaurantName { get; init; } = default!;
+    public int DishRating { get; init; }
+    public string ModerationStatus { get; init; } = default!;
+    public DateTime? CreatedAt { get; init; }
 }
