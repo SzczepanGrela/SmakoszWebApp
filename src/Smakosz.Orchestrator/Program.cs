@@ -8,6 +8,7 @@ using Smakosz.Infrastructure;
 using Smakosz.Infrastructure.Logging;
 using Smakosz.Infrastructure.Persistence;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Orchestrator.Authorization;
 using Smakosz.Orchestrator.Configuration;
 using Smakosz.Orchestrator.HealthChecks;
 using Smakosz.Orchestrator.Jobs;
@@ -122,7 +123,10 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     Predicate = _ => false
 });
 
-app.MapHangfireDashboard("/hangfire");
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new TailnetDashboardAuthorizationFilter() }
+});
 
 var utc = new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc };
 

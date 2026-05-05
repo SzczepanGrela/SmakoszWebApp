@@ -13,6 +13,8 @@ docker compose up -d --remove-orphans
 mkdir -p /home/smakosz/kuma
 cd /home/smakosz/kuma
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/rbpi/kuma-compose.yml -o docker-compose.yml
+export TAILSCALE_IP=$(tailscale ip -4 | head -1)
+[ -n "$TAILSCALE_IP" ] || { echo "ERROR: tailscale ip -4 returned empty, aborting Kuma deploy"; exit 1; }
 docker compose pull
 docker compose up -d --remove-orphans
 
