@@ -2,6 +2,8 @@ import random
 import uuid
 from datetime import datetime
 
+from uuid6 import uuid7
+
 from algorithms.on_the_fly_calculator import get_contextual_preferences
 from algorithms.rating_strategies import calculate_review_ratings
 from utils.date_generator import to_sql_datetime
@@ -70,7 +72,7 @@ def generate_single_review(
 
     dish_rating_value = int(round(ratings["food_score"]))
     review_data = {
-        "public_id": str(uuid.uuid4()),
+        "public_id": str(uuid7()),
         "user_id": user["user_id"],
         "restaurant_id": restaurant["restaurant_id"],
         "dish_id": dish["dish_id"],

@@ -5,6 +5,7 @@ import time
 import uuid
 
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from algorithms.preference_calculator import DIMENSIONS, add_dish_variance, apply_restaurant_bias
 from config import GENERATION_CONFIG
@@ -249,7 +250,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
             photos_buffer.append(
                 {
-                    "public_id": str(uuid.uuid4()),
+                    "public_id": str(uuid7()),
                     "entity_type": "dish",
                     "entity_id": dish_id,
                     "url": meta["photo"]["url"],
@@ -377,7 +378,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
 
             dish_buffer.append(
                 {
-                    "public_id": str(uuid.uuid4()),
+                    "public_id": str(uuid7()),
                     "restaurant_id": restaurant_id,
                     "secret_variant_id": variant_id,
                     "dish_name": dish_name,

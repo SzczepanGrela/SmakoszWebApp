@@ -55,7 +55,6 @@ public class CreatePrivilegedAccountHandler : IRequestHandler<CreatePrivilegedAc
 
         var user = new User
         {
-            PublicId = Guid.NewGuid(),
             Username = request.Username,
             Email = normalizedEmail,
             PasswordHash = string.Empty,

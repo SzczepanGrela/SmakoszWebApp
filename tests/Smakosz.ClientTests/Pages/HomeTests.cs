@@ -33,7 +33,7 @@ public class HomeTests : BunitTestBase
         [
             new ReviewCardDto
             {
-                PublicId = Guid.NewGuid(),
+                PublicId = Guid.CreateVersion7(),
                 DishRating = 8, ServiceRating = 7, CleanlinessRating = 9, AmbianceRating = 8,
                 Content = "Swietne!",
                 Author = new UserSummaryDto { Slug = "jan", Username = "Jan" },

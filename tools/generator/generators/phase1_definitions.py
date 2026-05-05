@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from config import PHOTO_CONFIG
 from orchestration.context import ExecutionContext
@@ -499,7 +500,7 @@ class HeroImagesPhase(BasePhase):
                     credit_text = f"{img.get('credit_user', 'Unknown')} / Unsplash"
                 hero_data.append(
                     {
-                        "public_id": str(uuid.uuid4()),
+                        "public_id": str(uuid7()),
                         "entity_type": "hero",
                         "entity_id": idx,
                         "url": url,

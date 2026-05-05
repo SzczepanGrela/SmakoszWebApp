@@ -13,7 +13,7 @@ public class AddReviewTests : BunitTestBase
 
     private static DishDetailDto CreateDish() => new()
     {
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         Slug = "pizza-margherita",
         DishName = "Pizza Margherita",
         RestaurantName = "Pizzeria Roma",

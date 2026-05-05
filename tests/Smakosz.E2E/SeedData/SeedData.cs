@@ -49,7 +49,7 @@ public static class SeedData
         var jan = new User
         {
             UserId = 1,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "jan-kowalski",
             Email = "jan.kowalski@gmail.com",
             PasswordHash = passwordHash,
@@ -64,7 +64,7 @@ public static class SeedData
         var anna = new User
         {
             UserId = 2,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "anna-nowak",
             Email = "anna.nowak@wp.pl",
             PasswordHash = passwordHash,
@@ -79,7 +79,7 @@ public static class SeedData
         var marco = new User
         {
             UserId = 3,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "marco-rossi",
             Email = "marco.rossi@pizzeriaroma.pl",
             PasswordHash = passwordHash,
@@ -94,7 +94,7 @@ public static class SeedData
         var admin = new User
         {
             UserId = 4,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "administrator",
             Email = "admin@smakosz.pl",
             PasswordHash = passwordHash,
@@ -109,7 +109,7 @@ public static class SeedData
         var banned = new User
         {
             UserId = 5,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "zbanowany",
             Email = "zbanowany@smakosz.test",
             PasswordHash = passwordHash,
@@ -125,7 +125,7 @@ public static class SeedData
         var moderator = new User
         {
             UserId = 6,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "moderator",
             Email = "moderator@smakosz.test",
             PasswordHash = passwordHash,
@@ -142,7 +142,7 @@ public static class SeedData
         var pizzeriaRoma = new Restaurant
         {
             RestaurantId = 1,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             RestaurantName = "Pizzeria Roma",
             Slug = "pizzeria-roma",
             CuisineTypeId = 1001,
@@ -160,7 +160,7 @@ public static class SeedData
         var sultanKebab = new Restaurant
         {
             RestaurantId = 2,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             RestaurantName = "Sultan Kebab",
             Slug = "sultan-kebab",
             CuisineTypeId = 1002,
@@ -177,7 +177,7 @@ public static class SeedData
         var nowaRestauracja = new Restaurant
         {
             RestaurantId = 3,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             RestaurantName = "Nowa Restauracja",
             Slug = "nowa-restauracja",
             CuisineTypeId = 1003,
@@ -193,7 +193,7 @@ public static class SeedData
         var margherita = new Dish
         {
             DishId = 1,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = "Pizza Margherita",
             Slug = "pizza-margherita",
             RestaurantId = 1,
@@ -209,7 +209,7 @@ public static class SeedData
         var pepperoni = new Dish
         {
             DishId = 2,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = "Pizza Pepperoni",
             Slug = "pizza-pepperoni",
             RestaurantId = 1,
@@ -224,7 +224,7 @@ public static class SeedData
         var kebabDuzy = new Dish
         {
             DishId = 3,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = "Kebab Duzy",
             Slug = "kebab-duzy",
             RestaurantId = 2,
@@ -239,7 +239,7 @@ public static class SeedData
         var tiramisu = new Dish
         {
             DishId = 4,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = "Tiramisu",
             Slug = "tiramisu",
             RestaurantId = 1,
@@ -255,7 +255,7 @@ public static class SeedData
         var pendingDish = new Dish
         {
             DishId = 5,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = "Pizza Testowa Pending",
             Slug = "pizza-testowa-pending",
             RestaurantId = 1,
@@ -363,7 +363,7 @@ public static class SeedData
         var review1 = new Review
         {
             ReviewId = 1,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             UserId = 1,
             DishId = 1,
             RestaurantId = 1,
@@ -380,7 +380,7 @@ public static class SeedData
         var review2 = new Review
         {
             ReviewId = 2,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             UserId = 2,
             DishId = 1,
             RestaurantId = 1,
@@ -397,7 +397,7 @@ public static class SeedData
         var review3 = new Review
         {
             ReviewId = 3,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             UserId = 1,
             DishId = 3,
             RestaurantId = 2,
@@ -414,7 +414,7 @@ public static class SeedData
         var pendingReview = new Review
         {
             ReviewId = 4,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             UserId = 2, // anna-nowak
             DishId = 4, // Tiramisu
             RestaurantId = 1, // Pizzeria Roma
@@ -436,7 +436,7 @@ public static class SeedData
             bonusDishes.Add(new Dish
             {
                 DishId = dishId,
-                PublicId = Guid.NewGuid(),
+                PublicId = Guid.CreateVersion7(),
                 DishName = $"Bonus Dish {i + 1}",
                 Slug = $"bonus-dish-{i + 1}",
                 RestaurantId = 1,
@@ -450,7 +450,7 @@ public static class SeedData
             bonusReviews.Add(new Review
             {
                 ReviewId = 100 + i,
-                PublicId = Guid.NewGuid(),
+                PublicId = Guid.CreateVersion7(),
                 UserId = 2,
                 DishId = dishId,
                 RestaurantId = 1,
@@ -505,7 +505,7 @@ public static class SeedData
 
         var pendingPhoto = new MediaAsset
         {
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             EntityType = MediaEntityType.Restaurant,
             EntityId = 1, // Pizzeria Roma
             Url = "https://placeholder.test/pizza.jpg",
@@ -518,7 +518,7 @@ public static class SeedData
         var heroImage = new MediaAsset
         {
             AssetId = 100,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             EntityType = MediaEntityType.Hero,
             Url = "/images/restaurant-placeholder.svg",
             CreditText = "Test Hero Image",

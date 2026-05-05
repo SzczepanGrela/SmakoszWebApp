@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from multiprocessing import Pool, cpu_count
 
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from algorithms.dish_selector import select_dish_from_menu
 from algorithms.restaurant_selector import select_restaurants_for_user
@@ -220,7 +221,7 @@ def _write_review(
         db.insert_single(
             "media_assets",
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 **review_result["user_photo"],
                 "entity_type": "review",
                 "entity_id": review_id,

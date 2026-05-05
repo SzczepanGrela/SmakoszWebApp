@@ -4,6 +4,7 @@ using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.Generator;
 using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.UnitTests.Common.TestInfrastructure;
 
@@ -86,7 +87,13 @@ public static class DbContextMockFactory
         var mock = backingList.AsQueryable().BuildMockDbSet();
 
         mock.When(x => x.Add(Arg.Any<T>()))
-            .Do(ci => backingList.Add(ci.Arg<T>()));
+            .Do(ci =>
+            {
+                var entity = ci.Arg<T>();
+                if (entity is IHasPublicId pub && pub.PublicId == Guid.Empty)
+                    pub.PublicId = Guid.CreateVersion7();
+                backingList.Add(entity);
+            });
 
         mock.When(x => x.Remove(Arg.Any<T>()))
             .Do(ci => backingList.Remove(ci.Arg<T>()));

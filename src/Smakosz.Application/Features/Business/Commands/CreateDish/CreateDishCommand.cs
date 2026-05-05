@@ -95,7 +95,6 @@ public class CreateDishHandler : IRequestHandler<CreateDishCommand, ErrorOr<int>
             Calories = request.Calories,
             IsAvailable = request.IsAvailable,
             ModerationStatus = ContentModerationStatus.Pending,
-            PublicId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow
         };
 

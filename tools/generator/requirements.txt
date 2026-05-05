@@ -8,6 +8,7 @@ scipy>=1.10.0
 tqdm
 blurhash>=1.1.4
 argon2-cffi>=23.1.0
+uuid6>=2024.7.10
 
 # Code Quality Tools
 ruff>=0.1.0

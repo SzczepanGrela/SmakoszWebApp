@@ -8,7 +8,7 @@ public class DishBuilder
     private readonly Dish _dish = new()
     {
         DishId = 1,
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         DishName = "Test Dish",
         Slug = "test-dish",
         Price = 29.99m,

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from argon2 import PasswordHasher as Argon2Hasher
 from scipy.stats import beta as beta_dist
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from config import GENERATION_CONFIG
 from data_access import UserDAO
@@ -210,7 +211,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
         restaurant_user_data.append(
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 "username": username,
                 "slug": slugify(username),
                 "email": email,
@@ -336,7 +337,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
 
         standard_user_data.append(
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 "username": username,
                 "slug": slugify(username),
                 "email": email,
@@ -419,7 +420,7 @@ def _insert_user_avatars_to_media_assets(db: DatabaseConnection, photo_pools: Ph
     ):
         avatar_data.append(
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 "entity_type": "user",
                 "entity_id": user_id,
                 "url": avatar_url,

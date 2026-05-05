@@ -8,7 +8,7 @@ public class ReviewBuilder
     private readonly Review _review = new()
     {
         ReviewId = 1,
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         UserId = 1,
         DishId = 1,
         RestaurantId = 1,

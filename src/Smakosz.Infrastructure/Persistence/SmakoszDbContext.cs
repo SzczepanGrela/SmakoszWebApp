@@ -52,7 +52,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
             if (entry.Entity is IHasPublicId pub
                 && entry.State == EntityState.Added
                 && pub.PublicId == Guid.Empty)
-                pub.PublicId = Guid.NewGuid();
+                pub.PublicId = Guid.CreateVersion7();
 
             if (entry.State == EntityState.Added)
             {

@@ -84,7 +84,7 @@ public class SearchHandlerRegressionTests : IntegrationTestBase
         return new Restaurant
         {
             RestaurantId = id,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             RestaurantName = name,
             Slug = name.ToLowerInvariant().Replace(' ', '-'),
             CuisineTypeId = cuisineId,
@@ -102,7 +102,7 @@ public class SearchHandlerRegressionTests : IntegrationTestBase
         return new Dish
         {
             DishId = id,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = name,
             Slug = name.ToLowerInvariant().Replace(' ', '-'),
             RestaurantId = restaurantId,

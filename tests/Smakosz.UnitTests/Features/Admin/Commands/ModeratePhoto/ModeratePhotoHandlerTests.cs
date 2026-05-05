@@ -65,7 +65,7 @@ public class ModeratePhotoHandlerTests
         var asset = new MediaAsset
         {
             AssetId = 1,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             EntityType = MediaEntityType.Dish,
             EntityId = 1,
             Url = "http://img.jpg",

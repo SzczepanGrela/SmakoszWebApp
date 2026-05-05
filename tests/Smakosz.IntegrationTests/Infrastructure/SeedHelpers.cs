@@ -56,7 +56,7 @@ public static class SeedHelpers
         return new User
         {
             UserId = userId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = username,
             Email = email,
             PasswordHash = passwordHash ?? "placeholder-will-be-set",
@@ -73,7 +73,7 @@ public static class SeedHelpers
         return new User
         {
             UserId = userId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "administrator",
             Email = "admin@smakosz.test",
             PasswordHash = passwordHash ?? "placeholder-will-be-set",
@@ -90,7 +90,7 @@ public static class SeedHelpers
         return new User
         {
             UserId = userId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "restaurator",
             Email = "restaurator@smakosz.test",
             PasswordHash = passwordHash ?? "placeholder-will-be-set",
@@ -107,7 +107,7 @@ public static class SeedHelpers
         return new User
         {
             UserId = userId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "zbanowany",
             Email = "zbanowany@smakosz.test",
             PasswordHash = passwordHash ?? "placeholder-will-be-set",
@@ -125,7 +125,7 @@ public static class SeedHelpers
         return new User
         {
             UserId = userId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             Username = "zablokowany",
             Email = "zablokowany@smakosz.test",
             PasswordHash = passwordHash ?? "placeholder-will-be-set",
@@ -148,7 +148,7 @@ public static class SeedHelpers
         return new Restaurant
         {
             RestaurantId = restaurantId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             RestaurantName = name,
             Slug = name.ToLower().Replace(" ", "-"),
             CuisineTypeId = 1,
@@ -171,7 +171,7 @@ public static class SeedHelpers
         return new Dish
         {
             DishId = dishId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             DishName = name,
             Slug = name.ToLower().Replace(" ", "-"),
             RestaurantId = restaurantId,
@@ -193,7 +193,7 @@ public static class SeedHelpers
         return new Review
         {
             ReviewId = reviewId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             UserId = userId,
             DishId = dishId,
             RestaurantId = restaurantId,

@@ -5,6 +5,7 @@ import time
 import uuid
 
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from config import GENERATION_CONFIG
 from data_access import RestaurantDAO
@@ -202,7 +203,7 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
 
             restaurant_data.append(
                 {
-                    "public_id": str(uuid.uuid4()),
+                    "public_id": str(uuid7()),
                     "city_id": city_id,
                     "restaurant_name": name,
                     "cuisine_type_id": _resolve_cuisine_id(theme),
@@ -357,7 +358,7 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools, p
 
         photo_data.append(
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 "entity_type": "restaurant",
                 "entity_id": restaurant_id,
                 "url": primary_image_url,
@@ -374,7 +375,7 @@ def _assign_restaurant_photos(db: DatabaseConnection, photo_pools: PhotoPools, p
             additional_photo_metadata = photo_pools.get_restaurant_photo(theme, restaurant_id)
             photo_data.append(
                 {
-                    "public_id": str(uuid.uuid4()),
+                    "public_id": str(uuid7()),
                     "entity_type": "restaurant",
                     "entity_id": restaurant_id,
                     "url": additional_photo_metadata["url"],

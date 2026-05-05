@@ -8,7 +8,7 @@ public class RestaurantBuilder
     private readonly Restaurant _restaurant = new()
     {
         RestaurantId = 1,
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         RestaurantName = "Test Restaurant",
         Slug = "test-restaurant",
         Status = RestaurantStatus.Active,

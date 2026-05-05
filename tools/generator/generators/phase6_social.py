@@ -8,6 +8,7 @@ from multiprocessing import Pool, cpu_count
 
 import numpy as np
 from tqdm import tqdm
+from uuid6 import uuid7
 
 from config import GENERATION_CONFIG, get_connection_params
 from data_access import CityDAO, RestaurantDAO, ReviewDAO, UserDAO
@@ -316,7 +317,7 @@ def _generate_welcome_notifications(db: DatabaseConnection, user_ids: list[int])
     for user_id in welcome_users:
         notifications_buffer.append(
             {
-                "public_id": str(uuid.uuid4()),
+                "public_id": str(uuid7()),
                 "user_id": int(user_id),
                 "type": "system",
                 "title": "Witamy w Smakoszu!",

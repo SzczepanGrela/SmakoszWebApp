@@ -115,7 +115,7 @@ public class UserDetailExtensionTests : IntegrationTestBase
 
             db.MediaAssets.Add(new MediaAsset
             {
-                PublicId = Guid.NewGuid(),
+                PublicId = Guid.CreateVersion7(),
                 EntityType = MediaEntityType.Restaurant,
                 EntityId = 1,
                 Url = "https://cdn.example.com/photo.jpg",

@@ -8,7 +8,7 @@ public class UserBuilder
     private readonly User _user = new()
     {
         UserId = 1,
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         Username = "testuser",
         Email = "test@example.com",
         PasswordHash = "hashed_password",

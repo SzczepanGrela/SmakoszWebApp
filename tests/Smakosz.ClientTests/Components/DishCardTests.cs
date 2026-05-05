@@ -6,7 +6,7 @@ public class DishCardTests : BunitTestBase
 {
     private static DishCardDto CreateDish() => new()
     {
-        PublicId = Guid.NewGuid(),
+        PublicId = Guid.CreateVersion7(),
         Slug = "pizza-margherita",
         DishName = "Pizza Margherita",
         Price = 29.99m,

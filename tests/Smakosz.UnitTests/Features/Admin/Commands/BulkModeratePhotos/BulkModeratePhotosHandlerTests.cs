@@ -53,7 +53,7 @@ public class BulkModeratePhotosHandlerTests
         var asset = new MediaAsset
         {
             AssetId = assetId,
-            PublicId = Guid.NewGuid(),
+            PublicId = Guid.CreateVersion7(),
             EntityType = MediaEntityType.Dish,
             EntityId = assetId,
             Url = $"http://img-{assetId}.jpg",

@@ -77,7 +77,6 @@ public class AdminCreateRestaurantHandler : IRequestHandler<AdminCreateRestauran
         var now = DateTime.UtcNow;
         var restaurant = new Restaurant
         {
-            PublicId = Guid.NewGuid(),
             OwnerId = request.OwnerId,
             RestaurantName = request.Name,
             Address = request.Address,

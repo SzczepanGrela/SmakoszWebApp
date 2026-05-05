@@ -30,7 +30,7 @@ public class DeleteMediaHandlerTests
     {
         var asset = new MediaAsset
         {
-            AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
+            AssetId = 1, PublicId = Guid.CreateVersion7(), EntityType = MediaEntityType.Dish,
             Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 1
         };
         _sets.MediaAssets.Add(asset);
@@ -49,7 +49,7 @@ public class DeleteMediaHandlerTests
         var handler = new DeleteMediaHandler(_db, adminUser, _storage);
         var asset = new MediaAsset
         {
-            AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
+            AssetId = 1, PublicId = Guid.CreateVersion7(), EntityType = MediaEntityType.Dish,
             Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 999
         };
         _sets.MediaAssets.Add(asset);
@@ -66,7 +66,7 @@ public class DeleteMediaHandlerTests
     {
         var asset = new MediaAsset
         {
-            AssetId = 1, PublicId = Guid.NewGuid(), EntityType = MediaEntityType.Dish,
+            AssetId = 1, PublicId = Guid.CreateVersion7(), EntityType = MediaEntityType.Dish,
             Url = "http://img.jpg", ModerationStatus = ContentModerationStatus.Approved, UploadedBy = 999
         };
         _sets.MediaAssets.Add(asset);
