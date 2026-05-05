@@ -244,6 +244,11 @@
       "value": "7",
       "description": "Liczba dni SLA dla właściciela restauracji na reakcję na zgłoszenie korekty danych.",
       "is_public": false
+    },
+    "nodes.stale_threshold_days": {
+      "value": "7",
+      "description": "Liczba dni bez heartbeatu po której node uznawany za stale i pojawia się przycisk Usuń w /admin/nodes.",
+      "is_public": false
     }
   }
 }

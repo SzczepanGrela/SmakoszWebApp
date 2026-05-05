@@ -4,13 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Admin.Dtos;
-using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetSystemNodes;
 
-public record GetSystemNodesQuery() : IRequest<ErrorOr<List<SystemNodeDto>>>;
+public record GetSystemNodesQuery() : IRequest<ErrorOr<SystemNodesResponseDto>>;
 
-public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorOr<List<SystemNodeDto>>>
+public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorOr<SystemNodesResponseDto>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
@@ -21,14 +20,14 @@ public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorO
         _currentUser = currentUser;
     }
 
-    public async Task<ErrorOr<List<SystemNodeDto>>> Handle(GetSystemNodesQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<SystemNodesResponseDto>> Handle(GetSystemNodesQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
 
         var items = await _db.SystemNodes.AsNoTracking()
-            .Where(n => n.NodeType == NodeType.Gpu || n.NodeType == NodeType.RbpiGateway)
             .OrderBy(n => n.NodeType)
+            .ThenBy(n => n.NodeId)
             .Select(n => new SystemNodeDto
             {
                 NodeId = n.NodeId,
@@ -45,6 +44,13 @@ public class GetSystemNodesHandler : IRequestHandler<GetSystemNodesQuery, ErrorO
             })
             .ToListAsync(cancellationToken);
 
-        return items;
+        var thresholdRow = await _db.SystemConfigs
+            .AsNoTracking()
+            .Where(c => c.Key == "nodes.stale_threshold_days")
+            .Select(c => c.Value)
+            .FirstOrDefaultAsync(cancellationToken);
+        var thresholdDays = int.TryParse(thresholdRow, out var t) ? t : 7;
+
+        return new SystemNodesResponseDto { Nodes = items, StaleThresholdDays = thresholdDays };
     }
 }

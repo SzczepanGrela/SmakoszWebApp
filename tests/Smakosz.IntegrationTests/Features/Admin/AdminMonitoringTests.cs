@@ -1,8 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 using Smakosz.IntegrationTests.Infrastructure;
+using System.Text;
+using System.Text.Json;
 
 namespace Smakosz.IntegrationTests.Features.Admin;
 
@@ -119,5 +123,151 @@ public class AdminMonitoringTests : IntegrationTestBase
         var response = await client.GetAsync("/api/admin/nodes");
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetSystemNodes_ResponseIncludesStaleThresholdDays()
+    {
+        using var client = Factory.CreateAdminClient(99, "administrator");
+
+        var response = await client.GetAsync("/api/admin/nodes");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("staleThresholdDays");
+        body.Should().Contain("nodes");
+    }
+
+    [Fact]
+    public async Task AddNode_AsAdmin_ReturnsNoContent_AndPersists()
+    {
+        await Factory.SeedDataAsync(async db =>
+        {
+            db.SystemNodes.Add(new SystemNode
+            {
+                NodeId = "rbpi-test-gw",
+                NodeType = NodeType.RbpiGateway,
+                Status = "online",
+                LastHeartbeat = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync();
+        });
+
+        using var client = Factory.CreateAdminClient(99, "administrator");
+        var payload = JsonSerializer.Serialize(new
+        {
+            NodeId = "test-gpu-add",
+            NodeType = "gpu",
+            MacAddress = "AA:BB:CC:DD:EE:FF",
+            WolGatewayId = "rbpi-test-gw"
+        });
+
+        var response = await client.PostAsync("/api/admin/nodes",
+            new StringContent(payload, Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ISmakoszDbContext>();
+        var added = await db.SystemNodes.FirstOrDefaultAsync(n => n.NodeId == "test-gpu-add");
+        added.Should().NotBeNull();
+        added!.NodeType.Should().Be(NodeType.Gpu);
+    }
+
+    [Fact]
+    public async Task AddNode_DuplicateNodeId_Returns409()
+    {
+        using var client = Factory.CreateAdminClient(99, "administrator");
+        var payload = JsonSerializer.Serialize(new
+        {
+            NodeId = "api-main",
+            NodeType = "api",
+            MacAddress = (string?)null,
+            WolGatewayId = (string?)null
+        });
+
+        var response = await client.PostAsync("/api/admin/nodes",
+            new StringContent(payload, Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task AddNode_GpuWithoutMac_Returns422()
+    {
+        using var client = Factory.CreateAdminClient(99, "administrator");
+        var payload = JsonSerializer.Serialize(new
+        {
+            NodeId = "test-gpu-incomplete",
+            NodeType = "gpu",
+            MacAddress = (string?)null,
+            WolGatewayId = "api-main"
+        });
+
+        var response = await client.PostAsync("/api/admin/nodes",
+            new StringContent(payload, Encoding.UTF8, "application/json"));
+
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task DeleteNode_RecentHeartbeat_Returns409()
+    {
+        using var client = Factory.CreateAdminClient(99, "administrator");
+
+        var response = await client.DeleteAsync("/api/admin/nodes/api-main");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task DeleteNode_OldHeartbeat_ReturnsNoContent()
+    {
+        await Factory.SeedDataAsync(async db =>
+        {
+            db.SystemNodes.Add(new SystemNode
+            {
+                NodeId = "stale-node-it",
+                NodeType = NodeType.Api,
+                Status = "offline",
+                LastHeartbeat = DateTime.UtcNow.AddDays(-30)
+            });
+            await db.SaveChangesAsync();
+        });
+
+        using var client = Factory.CreateAdminClient(99, "administrator");
+        var response = await client.DeleteAsync("/api/admin/nodes/stale-node-it");
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ISmakoszDbContext>();
+        var deleted = await db.SystemNodes.FirstOrDefaultAsync(n => n.NodeId == "stale-node-it");
+        deleted.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteNode_AsUser_Returns403()
+    {
+        using var client = Factory.CreateUserClient(1, "jan-kowalski");
+        var response = await client.DeleteAsync("/api/admin/nodes/api-main");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ScheduleNcfTraining_InsertsPendingRowImmediately()
+    {
+        using var client = Factory.CreateAdminClient(99, "administrator");
+
+        var response = await client.PostAsync("/api/admin/ncf-training/schedule", null);
+
+        response.StatusCode.Should().BeOneOf(
+            HttpStatusCode.OK, HttpStatusCode.NoContent,
+            HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ISmakoszDbContext>();
+        var jobs = await db.SystemJobs.Where(j => j.Type == "ncf_training").ToListAsync();
+        jobs.Should().NotBeEmpty();
+        jobs.Should().Contain(j => j.Status == JobStatus.Pending);
     }
 }

@@ -571,10 +571,24 @@ public class AdminSystemNodeDto
     public DateTime? LastHeartbeat { get; set; }
 }
 
+public class AdminSystemNodesResponseDto
+{
+    public List<AdminSystemNodeDto> Nodes { get; set; } = new();
+    public int StaleThresholdDays { get; set; } = 7;
+}
+
 public class GpuWakeResultDto
 {
     public string Status { get; set; } = default!;
     public string? Message { get; set; }
+}
+
+public class AddSystemNodeRequest
+{
+    public string NodeId { get; set; } = string.Empty;
+    public string NodeType { get; set; } = "gpu";
+    public string? MacAddress { get; set; }
+    public string? WolGatewayId { get; set; }
 }
 
 public class AdminUserActionLogDto

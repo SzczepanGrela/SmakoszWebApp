@@ -416,8 +416,17 @@ public class AdminService : IAdminService
         return _api.GetAsync<PagedResult<AdminAiLogDto>>(url);
     }
 
-    public async Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync()
-        => await _api.GetAsync<List<AdminSystemNodeDto>>("/api/admin/nodes");
+    public async Task<AdminSystemNodesResponseDto?> GetSystemNodesAsync()
+        => await _api.GetAsync<AdminSystemNodesResponseDto>("/api/admin/nodes");
+
+    public async Task<(bool Success, string? ErrorMessage)> AddSystemNodeAsync(AddSystemNodeRequest dto)
+    {
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/nodes", dto);
+        return (response.Success, response.Error?.GetDisplayMessage());
+    }
+
+    public async Task<bool> DeleteSystemNodeAsync(string nodeId)
+        => await _api.DeleteAsync($"/api/admin/nodes/{nodeId}");
 
     public async Task<GpuWakeResultDto?> WakeGpuAsync()
     {

@@ -480,6 +480,12 @@ public class SystemNodeDto
     public DateTime? LastHeartbeat { get; set; }
 }
 
+public class SystemNodesResponseDto
+{
+    public List<SystemNodeDto> Nodes { get; set; } = new();
+    public int StaleThresholdDays { get; set; } = 7;
+}
+
 public record TicketSummaryDto(string TicketType, int OpenCount, DateTime? OldestOpenAt);
 
 public class AdminUserActionLogDto

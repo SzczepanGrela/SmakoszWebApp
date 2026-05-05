@@ -428,4 +428,19 @@ public static class DomainErrors
         public static readonly Error UnknownReasonCode =
             Error.Validation("REJECTION_REASON_UNKNOWN_CODE", "Nieznany kod powodu odrzucenia");
     }
+
+    public static class Node
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("NODE_NOT_FOUND", "Node nie został znaleziony");
+
+        public static readonly Error AlreadyExists =
+            Error.Conflict("NODE_ALREADY_EXISTS", "Node o tym NodeId już istnieje");
+
+        public static readonly Error NotStale =
+            Error.Conflict("NODE_NOT_STALE", "Node nie jest stale i nie można go usunąć");
+
+        public static readonly Error InvalidGatewayReference =
+            Error.Validation("NODE_INVALID_GATEWAY", "Wskazany WolGatewayId nie istnieje albo nie jest typu orchestrator/gateway");
+    }
 }

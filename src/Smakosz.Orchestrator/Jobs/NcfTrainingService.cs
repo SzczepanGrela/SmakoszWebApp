@@ -93,14 +93,28 @@ public class NcfTrainingService : INcfTrainingService
             review_count = reviews.Count
         });
 
-        _db.SystemJobs.Add(new SystemJob
+        var job = await _db.SystemJobs
+            .Where(j => j.Type == "ncf_training" && j.Status == JobStatus.Pending)
+            .OrderByDescending(j => j.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (job is null)
         {
-            Type = "ncf_training",
-            Status = JobStatus.Pending,
-            Payload = payload,
-            CreatedAt = now,
-            MaxAttempts = 3
-        });
+            _logger.LogWarning("ncf-training: no pre-inserted pending row found, creating fallback");
+            job = new SystemJob
+            {
+                Type = "ncf_training",
+                Status = JobStatus.Pending,
+                Payload = payload,
+                CreatedAt = now,
+                MaxAttempts = 3
+            };
+            _db.SystemJobs.Add(job);
+        }
+        else
+        {
+            job.Payload = payload;
+        }
 
         await _db.SaveChangesAsync(ct);
 

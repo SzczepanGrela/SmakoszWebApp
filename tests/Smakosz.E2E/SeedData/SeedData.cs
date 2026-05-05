@@ -655,7 +655,8 @@ public static class SeedData
             new SystemNode { NodeId = "api-main", NodeType = NodeType.Api, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.1", LastHeartbeat = DateTime.UtcNow },
             new SystemNode { NodeId = "gpu-worker-1", NodeType = NodeType.Gpu, Role = NodeRole.Worker, Status = "offline", GpuName = "GTX 1060", GpuMemoryTotal = 6144, GpuMemoryUsed = 0, LastHeartbeat = DateTime.UtcNow.AddDays(-1) },
             new SystemNode { NodeId = "orchestrator", NodeType = NodeType.Orchestrator, Role = NodeRole.Dispatcher, Status = "online", Hostname = "vps-hetzner", IpAddress = "10.0.0.2", LastHeartbeat = DateTime.UtcNow },
-            new SystemNode { NodeId = "rbpi-gateway", NodeType = NodeType.RbpiGateway, Status = "online", Hostname = "raspberrypi", IpAddress = "10.0.0.3", LastHeartbeat = DateTime.UtcNow });
+            new SystemNode { NodeId = "rbpi-gateway", NodeType = NodeType.RbpiGateway, Status = "online", Hostname = "raspberrypi", IpAddress = "10.0.0.3", LastHeartbeat = DateTime.UtcNow },
+            new SystemNode { NodeId = "dead-test-node", NodeType = NodeType.Api, Status = "offline", Hostname = "dead-host", IpAddress = "10.0.0.99", LastHeartbeat = DateTime.UtcNow.AddDays(-30) });
 
         await db.SaveChangesAsync();
 

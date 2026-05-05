@@ -1,16 +1,27 @@
 @page "/admin/nodes"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@implements IAsyncDisposable
 @inject IAdminService AdminService
 @inject Smakosz.Client.Services.ToastService Toast
+@inject Smakosz.Client.Services.IConfirmService Confirm
 
 <PageTitle>Monitoring węzłów - Admin Smakosz</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0"><i class="fa-solid fa-server me-2"></i>Monitoring węzłów</h2>
-    <button class="btn btn-outline-primary btn-sm" @onclick="LoadNodes">
-        <i class="fa-solid fa-arrows-rotate me-1"></i>Odśwież
-    </button>
+    <div class="d-flex align-items-center gap-2">
+        @if (_lastRefresh.HasValue)
+        {
+            <small class="text-muted">Ostatnia aktualizacja: @_lastRefresh.Value.ToString("HH:mm:ss")</small>
+        }
+        <button class="btn btn-primary btn-sm" @onclick="ShowAddModal">
+            <i class="fa-solid fa-plus me-1"></i>Dodaj node
+        </button>
+        <button class="btn btn-outline-primary btn-sm" @onclick="LoadNodes">
+            <i class="fa-solid fa-arrows-rotate me-1"></i>Odśwież
+        </button>
+    </div>
 </div>
 
 @if (_loading)
@@ -95,6 +106,14 @@ else
                                 @(_isWaking ? "Budzenie..." : "Obudź GPU")
                             </button>
                         }
+
+                        @if (IsStale(node))
+                        {
+                            <hr class="my-2" />
+                            <button class="btn btn-outline-danger btn-sm w-100" @onclick="() => ConfirmDelete(node)">
+                                <i class="fa-solid fa-trash me-1"></i>Usuń (stale @StaleAge(node))
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -102,18 +121,103 @@ else
     </div>
 }
 
+@if (_showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dodaj node</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddModal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">NodeId</label>
+                        <input type="text" class="form-control" @bind="_addRequest.NodeId" placeholder="gpu-worker-1" />
+                        <small class="text-muted">Tylko małe litery, cyfry, myślnik. Max 64 znaki.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ</label>
+                        <select class="form-select" @bind="_addRequest.NodeType">
+                            <option value="gpu">gpu</option>
+                            <option value="orchestrator">orchestrator</option>
+                            <option value="api">api</option>
+                            <option value="rbpigateway">rbpigateway</option>
+                        </select>
+                    </div>
+                    @if (string.Equals(_addRequest.NodeType, "gpu", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">MAC Address</label>
+                            <input type="text" class="form-control" @bind="_addRequest.MacAddress" placeholder="AA:BB:CC:DD:EE:FF" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Wake gateway</label>
+                            <select class="form-select" @bind="_addRequest.WolGatewayId">
+                                <option value="">-- wybierz orchestrator/gateway --</option>
+                                @if (_nodes is not null)
+                                {
+                                    @foreach (var n in _nodes.Where(n => n.NodeType == "Orchestrator" || n.NodeType == "RbpiGateway"))
+                                    {
+                                        <option value="@n.NodeId">@n.NodeId</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseAddModal" disabled="@_addSaving">Anuluj</button>
+                    <button class="btn btn-primary" @onclick="SubmitAdd" disabled="@_addSaving">
+                        @(_addSaving ? "Dodawanie..." : "Dodaj")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<AdminSystemNodeDto>? _nodes;
     private bool _loading = true;
     private bool _isWaking;
+    private int _staleThresholdDays = 7;
+    private DateTime? _lastRefresh;
+    private System.Threading.Timer? _refreshTimer;
+    private bool _showAddModal;
+    private bool _addSaving;
+    private AddSystemNodeRequest _addRequest = new() { NodeType = "gpu" };
 
-    protected override async Task OnInitializedAsync() => await LoadNodes();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNodes();
+        _refreshTimer = new System.Threading.Timer(
+            async _ =>
+            {
+                if (!_showAddModal)
+                    await InvokeAsync(LoadNodes);
+            },
+            null,
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromSeconds(30));
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_refreshTimer is not null)
+            await _refreshTimer.DisposeAsync();
+    }
 
     private async Task LoadNodes()
     {
-        _loading = true;
-        _nodes = await AdminService.GetSystemNodesAsync();
+        var initial = _nodes is null;
+        if (initial) _loading = true;
+        var response = await AdminService.GetSystemNodesAsync();
+        _nodes = response?.Nodes;
+        _staleThresholdDays = response?.StaleThresholdDays ?? 7;
+        _lastRefresh = DateTime.Now;
         _loading = false;
+        StateHasChanged();
     }
 
     private async Task WakeGpu(AdminSystemNodeDto node)
@@ -136,7 +240,10 @@ else
                     Toast.ShowWarning("Zaczekaj sekundę przed kolejną próbą.");
                     break;
                 case "GpuNodeNotFound":
-                    Toast.ShowError("Brak zarejestrowanego węzła GPU.");
+                    Toast.ShowError("Brak zarejestrowanego węzła GPU. Dodaj go najpierw przyciskiem 'Dodaj node'.");
+                    break;
+                case "GatewayFailed":
+                    Toast.ShowError($"Gateway nie odpowiedział: {result?.Message ?? "(brak detali)"}. Sprawdź konfigurację RbpiGateway lub czy daemon działa.");
                     break;
                 default:
                     Toast.ShowError($"Błąd bramy: {result?.Message ?? "nieznany"}");
@@ -164,6 +271,66 @@ else
             }
         }
         Toast.ShowWarning("GPU nie odpowiedział w 90s. Sprawdź fizycznie.");
+    }
+
+    private bool IsStale(AdminSystemNodeDto node)
+        => node.LastHeartbeat is null
+           || node.LastHeartbeat < DateTime.UtcNow.AddDays(-_staleThresholdDays);
+
+    private string StaleAge(AdminSystemNodeDto node)
+    {
+        if (node.LastHeartbeat is null) return "never";
+        var diff = DateTime.UtcNow - node.LastHeartbeat.Value;
+        return diff.TotalDays >= 1 ? $"{(int)diff.TotalDays}d" : $"{(int)diff.TotalHours}h";
+    }
+
+    private void ShowAddModal()
+    {
+        _addRequest = new AddSystemNodeRequest { NodeType = "gpu" };
+        _showAddModal = true;
+    }
+
+    private void CloseAddModal() => _showAddModal = false;
+
+    private async Task SubmitAdd()
+    {
+        _addSaving = true;
+        try
+        {
+            var (ok, err) = await AdminService.AddSystemNodeAsync(_addRequest);
+            if (ok)
+            {
+                Toast.ShowSuccess("Node dodany.");
+                _showAddModal = false;
+                await LoadNodes();
+            }
+            else
+            {
+                Toast.ShowError(err ?? "Nie udało się dodać node'a.");
+            }
+        }
+        finally
+        {
+            _addSaving = false;
+        }
+    }
+
+    private async Task ConfirmDelete(AdminSystemNodeDto node)
+    {
+        var lastHb = node.LastHeartbeat?.ToString("yyyy-MM-dd HH:mm") ?? "never";
+        if (await Confirm.AskAsync($"Usuńąć node {node.NodeId}? Ostatni heartbeat: {lastHb}"))
+        {
+            var ok = await AdminService.DeleteSystemNodeAsync(node.NodeId);
+            if (ok)
+            {
+                Toast.ShowSuccess("Node usunięty.");
+                await LoadNodes();
+            }
+            else
+            {
+                Toast.ShowError("Nie udało się usunąć node'a (sprawdź czy faktycznie jest stale).");
+            }
+        }
     }
 
     private static string StatusBadge(string? status) => status switch

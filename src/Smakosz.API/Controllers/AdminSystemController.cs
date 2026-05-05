@@ -18,6 +18,8 @@ using Smakosz.Application.Features.Admin.Queries.GetSecurityLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSystemNodes;
 using Smakosz.Application.Features.Admin.Commands.WakeGpu;
+using Smakosz.Application.Features.Admin.Commands.AddSystemNode;
+using Smakosz.Application.Features.Admin.Commands.DeleteSystemNode;
 
 namespace Smakosz.API.Controllers;
 
@@ -176,7 +178,24 @@ public class AdminSystemController : ApiController
         var result = await _mediator.Send(new WakeGpuCommand(), ct);
         return ToActionResult(result);
     }
+
+    [HttpPost("nodes")]
+    public async Task<IActionResult> AddNode([FromBody] AddNodeRequest body, CancellationToken ct)
+    {
+        var result = await _mediator.Send(
+            new AddSystemNodeCommand(body.NodeId, body.NodeType, body.MacAddress, body.WolGatewayId),
+            ct);
+        return ToNoContentResult(result);
+    }
+
+    [HttpDelete("nodes/{nodeId}")]
+    public async Task<IActionResult> DeleteNode(string nodeId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeleteSystemNodeCommand(nodeId), ct);
+        return ToNoContentResult(result);
+    }
 }
 
+public record AddNodeRequest(string NodeId, string NodeType, string? MacAddress, string? WolGatewayId);
 public record UpdateSystemConfigRequest(string Key, string Value);
 public record CreateJobRequest(string Type, int Priority, string? Payload, string? EntityId, string? EntityType);

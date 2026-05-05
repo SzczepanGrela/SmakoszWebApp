@@ -16,6 +16,7 @@ public class ScheduleNcfTrainingHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly INcfTrainingService _ncfService;
+    private readonly IDateTimeProvider _clock;
     private readonly ScheduleNcfTrainingHandler _handler;
 
     public ScheduleNcfTrainingHandlerTests()
@@ -23,9 +24,11 @@ public class ScheduleNcfTrainingHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAdminUser();
         _ncfService = Substitute.For<INcfTrainingService>();
+        _clock = Substitute.For<IDateTimeProvider>();
+        _clock.UtcNow.Returns(new DateTime(2026, 5, 6, 12, 0, 0, DateTimeKind.Utc));
         _ncfService.ScheduleAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success);
-        _handler = new ScheduleNcfTrainingHandler(_db, _currentUser, _ncfService);
+        _handler = new ScheduleNcfTrainingHandler(_db, _currentUser, _ncfService, _clock);
     }
 
     [Fact]
@@ -82,7 +85,7 @@ public class ScheduleNcfTrainingHandlerTests
     public async Task Handle_InsufficientReviews_PropagatesError()
     {
         _ncfService.ScheduleAsync(Arg.Any<CancellationToken>())
-            .Returns(Error.Validation("NCF_INSUFFICIENT_REVIEWS", "Za mało recenzji"));
+            .Returns(Error.Validation("NCF_INSUFFICIENT_REVIEWS", "Za malo recenzji"));
 
         var result = await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
 
@@ -94,11 +97,47 @@ public class ScheduleNcfTrainingHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new ScheduleNcfTrainingHandler(_db, nonAdmin, _ncfService);
+        var handler = new ScheduleNcfTrainingHandler(_db, nonAdmin, _ncfService, _clock);
 
         var result = await handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("ADMIN_FORBIDDEN");
+    }
+
+    [Fact]
+    public async Task Handle_NoBlockingJob_InsertsPendingRowBeforeServiceCall()
+    {
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _sets.SystemJobs.Should().HaveCount(1);
+        _sets.SystemJobs[0].Type.Should().Be("ncf_training");
+        _sets.SystemJobs[0].Status.Should().Be(JobStatus.Pending);
+    }
+
+    [Fact]
+    public async Task Handle_PendingJobExists_ReturnsConflict_DoesNotInsertExtra()
+    {
+        _sets.SystemJobs.Add(new SystemJob { JobId = 1, Type = "ncf_training", Status = JobStatus.Pending, CreatedAt = new DateTime(2026, 5, 1, 10, 0, 0) });
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("NCF_ALREADY_SCHEDULED");
+        _sets.SystemJobs.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task Handle_AfterInsert_CallsService()
+    {
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        await _handler.Handle(new ScheduleNcfTrainingCommand(), CancellationToken.None);
+
+        await _ncfService.Received(1).ScheduleAsync(Arg.Any<CancellationToken>());
     }
 }

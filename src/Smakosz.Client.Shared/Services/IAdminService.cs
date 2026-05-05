@@ -84,7 +84,9 @@ public interface IAdminService
     Task<PagedResult<AdminEmailLogDto>?> GetEmailLogsAsync(int page = 1, string? status = null, string? type = null);
     Task<PagedResult<AdminModerationLogDto>?> GetModerationLogsAsync(int page = 1, string? actor = null, string? entityType = null);
     Task<PagedResult<AdminAiLogDto>?> GetAiLogsAsync(int page = 1, string? modelType = null, bool? fallback = null);
-    Task<List<AdminSystemNodeDto>?> GetSystemNodesAsync();
+    Task<AdminSystemNodesResponseDto?> GetSystemNodesAsync();
+    Task<(bool Success, string? ErrorMessage)> AddSystemNodeAsync(AddSystemNodeRequest dto);
+    Task<bool> DeleteSystemNodeAsync(string nodeId);
     Task<GpuWakeResultDto?> WakeGpuAsync();
     Task<PagedResult<AdminBannedIdentifierDto>?> GetBannedIdentifiersAsync(int page = 1, string? type = null, bool includeExpired = false);
     Task<bool> CreateBannedIdentifierAsync(AdminBannedIdentifierDto dto);

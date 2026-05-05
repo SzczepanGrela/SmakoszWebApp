@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
@@ -14,15 +15,18 @@ public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCom
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly INcfTrainingService _ncfTrainingService;
+    private readonly IDateTimeProvider _clock;
 
     public ScheduleNcfTrainingHandler(
         ISmakoszDbContext db,
         ICurrentUserService currentUser,
-        INcfTrainingService ncfTrainingService)
+        INcfTrainingService ncfTrainingService,
+        IDateTimeProvider clock)
     {
         _db = db;
         _currentUser = currentUser;
         _ncfTrainingService = ncfTrainingService;
+        _clock = clock;
     }
 
     public async Task<ErrorOr<Success>> Handle(ScheduleNcfTrainingCommand request, CancellationToken cancellationToken)
@@ -41,6 +45,19 @@ public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCom
                 $"Trening NCF jest już {(blockingJob.Status == JobStatus.Pending ? "oczekujący" : "w trakcie")} " +
                 $"(Job #{blockingJob.JobId}, utworzony {blockingJob.CreatedAt:dd.MM HH:mm}). " +
                 $"Anuluj go najpierw.");
+
+        _db.SystemJobs.Add(new SystemJob
+        {
+            Type = "ncf_training",
+            Status = JobStatus.Pending,
+            Priority = 10,
+            Payload = null,
+            Progress = 0,
+            Attempts = 0,
+            MaxAttempts = 3,
+            CreatedAt = _clock.UtcNow
+        });
+        await _db.SaveChangesAsync(cancellationToken);
 
         return await _ncfTrainingService.ScheduleAsync(cancellationToken);
     }
