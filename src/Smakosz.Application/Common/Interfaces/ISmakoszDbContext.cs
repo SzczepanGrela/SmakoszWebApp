@@ -58,6 +58,7 @@ public interface ISmakoszDbContext
     DbSet<SecurityLog> SecurityLogs { get; }
     DbSet<EmailLog> EmailLogs { get; }
     DbSet<ModerationLog> ModerationLogs { get; }
+    DbSet<UserActionLog> UserActionLogs { get; }
     DbSet<AiLog> AiLogs { get; }
     DbSet<SystemTicket> SystemTickets { get; }
     DbSet<BannedIdentifier> BannedIdentifiers { get; }

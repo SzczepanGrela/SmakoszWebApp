@@ -116,6 +116,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
     public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<ModerationLog> ModerationLogs => Set<ModerationLog>();
+    public DbSet<UserActionLog> UserActionLogs => Set<UserActionLog>();
     public DbSet<AiLog> AiLogs => Set<AiLog>();
     public DbSet<SystemTicket> SystemTickets => Set<SystemTicket>();
     public DbSet<BannedIdentifier> BannedIdentifiers => Set<BannedIdentifier>();
