@@ -399,7 +399,7 @@ def generate_dishes(db: DatabaseConnection, blueprints_dir: str = "blueprints", 
                     "image_blurhash": primary_photo_metadata.get("blurhash"),
                     "calories": calories,
                     "created_at": restaurant.get("created_at"),
-                    "moderation_status": "none",
+                    "moderation_status": "approved" if is_available else "none",
                 }
             )
 

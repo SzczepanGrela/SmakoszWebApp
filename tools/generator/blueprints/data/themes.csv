@@ -1,19 +1,19 @@
 id,name,distribution_chance,pixabay_term,dish_count_mean,dish_count_sigma,budget_prob,casual_prob,fine_dining_prob,display_name,icon
 1,Kebab,0.1133,restaurant counter interior fast food,12,3,0.8,0.2,0.0,Turecka,🥙
-2,Burgerownia,0.0755,burger restaurant interior bar stools,15,3,0.4,0.6,0.0,Amerykanska,🍔
+2,Burgerownia,0.0755,burger restaurant interior bar stools,15,3,0.4,0.6,0.0,Amerykańska,🍔
 3,Kuchnia Polska,0.0944,rustic restaurant interior wooden tables,25,5,0.2,0.7,0.1,Polska,🥟
-4,Sushi Bar,0.0755,sushi bar counter restaurant interior,40,8,0.1,0.6,0.3,Japonska,🍣
+4,Sushi Bar,0.0755,sushi bar counter restaurant interior,40,8,0.1,0.6,0.3,Japońska,🍣
 5,Kuchnia Indyjska,0.0113,colorful restaurant interior warm lighting,30,6,0.2,0.7,0.1,Indyjska,🍛
-6,Bar Meksykański,0.0189,colorful restaurant bar interior festive,28,6,0.2,0.7,0.1,Meksykanska,🌮
+6,Bar Meksykański,0.0189,colorful restaurant bar interior festive,28,6,0.2,0.7,0.1,Meksykańska,🌮
 7,Francuskie Bistro,0.0113,bistro interior elegant cafe tables,20,4,0.0,0.6,0.4,Francuska,🥐
-8,Steakhouse,0.0189,steakhouse restaurant interior dark wood,20,4,0.0,0.4,0.6,Amerykanska,🥩
-9,Ramen Bar,0.0189,noodle bar interior restaurant counter,35,7,0.2,0.7,0.1,Japonska,🍜
+8,Steakhouse,0.0189,steakhouse restaurant interior dark wood,20,4,0.0,0.4,0.6,Amerykańska,🥩
+9,Ramen Bar,0.0189,noodle bar interior restaurant counter,35,7,0.2,0.7,0.1,Japońska,🍜
 10,Kuchnia Wietnamska,0.0378,restaurant interior lanterns warm ambiance,35,7,0.2,0.7,0.1,Wietnamska,🍜
 11,Grecka Taverna,0.0142,taverna restaurant interior mediterranean,28,5,0.2,0.7,0.1,Grecka,🥗
-12,Korean BBQ,0.0094,restaurant interior grill table dining,26,6,0.2,0.7,0.1,Koreanska,🥩
-13,Bar Tapas,0.0094,tapas bar interior wine glasses,18,4,0.2,0.7,0.1,Hiszpanska,🍲
-14,Amerykański Diner,0.0189,american diner interior retro neon,20,5,0.2,0.7,0.1,Amerykanska,🌭
-15,Restauracja z Owocami Morza,0.0142,seafood restaurant interior nautical decor,25,5,0.2,0.7,0.1,Srodziemnomorska,🦞
+12,Korean BBQ,0.0094,restaurant interior grill table dining,26,6,0.2,0.7,0.1,Koreańska,🥩
+13,Bar Tapas,0.0094,tapas bar interior wine glasses,18,4,0.2,0.7,0.1,Hiszpańska,🍲
+14,Amerykański Diner,0.0189,american diner interior retro neon,20,5,0.2,0.7,0.1,Amerykańska,🌭
+15,Restauracja z Owocami Morza,0.0142,seafood restaurant interior nautical decor,25,5,0.2,0.7,0.1,Śródziemnomorska,🦞
 16,Piekarnia z Kawiarnią,0.0378,bakery cafe interior pastry display,15,4,0.2,0.7,0.1,Piekarnia,🍞
 17,Kawiarnia,0.0425,coffee shop interior cozy cafe,15,4,0.2,0.7,0.1,Kawiarnia,☕
 18,Wędzarnia BBQ,0.0094,bbq smokehouse restaurant interior rustic,25,5,0.2,0.7,0.1,BBQ,🔥

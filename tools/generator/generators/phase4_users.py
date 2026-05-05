@@ -193,10 +193,10 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
     claimed_restaurants = [r for r in restaurants if random.random() < 0.70]
 
     for r_id, r_name, r_city_id in tqdm(claimed_restaurants, desc="Generating restaurant accounts", unit=" user"):
-        sanitized_name = "".join(c for c in r_name if c.isalnum()).lower()[:15]
-        username = f"rest_{sanitized_name}_{r_id}"[:30]
+        base = fake.user_name().lower()[:20]
+        username = f"{base}{r_id}"[:30]
         if len(username) < 3:
-            username = f"rest{r_id}"
+            username = f"user{r_id}"
         email = f"contact_{r_id}@{sanitized_name}.com"
 
         phone = generate_phone()

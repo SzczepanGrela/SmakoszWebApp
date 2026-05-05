@@ -17,13 +17,20 @@ from utils.faker_instance import fake
 
 logger = logging.getLogger(__name__)
 
-ADMIN_NOTE_TEMPLATES = [
+ADMIN_APPROVE_NOTES = [
     "Zatwierdzono po manualnej weryfikacji.",
-    "Odrzucono - wulgaryzmy.",
-    "Wymaga dodatkowej kontroli.",
-    "Treść niezgodna z regulaminem.",
     "Zatwierdzono - falszywy alarm AI.",
+    "Treść weryfikowana, brak naruszen.",
+    "Ocena autentyczna, brak podstaw do odrzucenia.",
+    "Zdjęcie spelnia wymagania jakosciowe.",
+]
+
+ADMIN_REJECT_NOTES = [
+    "Odrzucono - wulgaryzmy.",
+    "Treść niezgodna z regulaminem.",
     "Odrzucono - spam reklamowy.",
+    "Wykryto podejrzane wzorce - mozliwa falszywa recenzja.",
+    "Zdjęcie nie spelnia wymagan jakosciowych.",
 ]
 
 VERDICT_LOG_MAP = {
@@ -35,11 +42,17 @@ VERDICT_LOG_MAP = {
 EMAIL_TYPE_VERIFICATION = "Verification"
 EMAIL_TYPE_TWO_FACTOR = "TwoFactorAuth"
 EMAIL_TYPE_PASSWORD_RESET = "PasswordReset"
+EMAIL_TYPE_CONTACT_CONFIRMATION = "ContactConfirmation"
+EMAIL_TYPE_ACCOUNT_DELETION_CODE = "AccountDeletionCode"
+EMAIL_TYPE_ACCOUNT_DELETION_CONFIRMATION = "AccountDeletionConfirmation"
 
 EMAIL_SUBJECTS = {
     EMAIL_TYPE_VERIFICATION: "Weryfikacja email",
     EMAIL_TYPE_TWO_FACTOR: "Kod 2FA",
     EMAIL_TYPE_PASSWORD_RESET: "Reset hasła",
+    EMAIL_TYPE_CONTACT_CONFIRMATION: "Potwierdzenie wiadomości kontaktowej",
+    EMAIL_TYPE_ACCOUNT_DELETION_CODE: "Kod usunięcia konta",
+    EMAIL_TYPE_ACCOUNT_DELETION_CONFIRMATION: "Konto usunięte",
 }
 
 RETENTION_DAYS = {
@@ -143,9 +156,10 @@ def _generate_moderation_logs(db: DatabaseConnection) -> int:
             "created_at": created_at,
         })
 
-        if verdict == "needs_review" and random.random() < 0.25 and admin_ids:
+        if verdict == "needs_review" and admin_ids:
             admin_verdict = "approve" if random.random() < 0.6 else "reject"
-            admin_note = random.choice(ADMIN_NOTE_TEMPLATES) if random.random() < 0.4 else None
+            note_pool = ADMIN_APPROVE_NOTES if admin_verdict == "approve" else ADMIN_REJECT_NOTES
+            admin_note = random.choice(note_pool) if random.random() < 0.4 else None
             admin_buffer.append({
                 "entity_type": entity_type,
                 "entity_id": entity_id,
@@ -254,6 +268,72 @@ def _generate_email_logs(db: DatabaseConnection) -> int:
         if len(buffer) >= 5000:
             db.insert_bulk("system.email_logs", buffer)
             buffer.clear()
+
+    contact_sample = random.sample(users, max(1, int(len(users) * 0.05)))
+    for user_row in contact_sample:
+        recipient = user_row[1].lower()
+        ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
+        buffer.append({
+            "type": EMAIL_TYPE_CONTACT_CONFIRMATION,
+            "recipient": recipient,
+            "subject": EMAIL_SUBJECTS[EMAIL_TYPE_CONTACT_CONFIRMATION],
+            "status": "sent",
+            "provider": None,
+            "provider_message_id": None,
+            "error_message": None,
+            "created_at": ts,
+            "sent_at": ts + timedelta(seconds=10),
+        })
+
+    deletion_code_sample = random.sample(users, max(1, int(len(users) * 0.02)))
+    for user_row in deletion_code_sample:
+        recipient = user_row[1].lower()
+        ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
+        buffer.append({
+            "type": EMAIL_TYPE_ACCOUNT_DELETION_CODE,
+            "recipient": recipient,
+            "subject": EMAIL_SUBJECTS[EMAIL_TYPE_ACCOUNT_DELETION_CODE],
+            "status": "sent",
+            "provider": None,
+            "provider_message_id": None,
+            "error_message": None,
+            "created_at": ts,
+            "sent_at": ts + timedelta(seconds=10),
+        })
+
+    deletion_confirm_sample = random.sample(deletion_code_sample, max(1, int(len(deletion_code_sample) * 0.6)))
+    for user_row in deletion_confirm_sample:
+        recipient = user_row[1].lower()
+        ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
+        buffer.append({
+            "type": EMAIL_TYPE_ACCOUNT_DELETION_CONFIRMATION,
+            "recipient": recipient,
+            "subject": EMAIL_SUBJECTS[EMAIL_TYPE_ACCOUNT_DELETION_CONFIRMATION],
+            "status": "sent",
+            "provider": None,
+            "provider_message_id": None,
+            "error_message": None,
+            "created_at": ts,
+            "sent_at": ts + timedelta(seconds=10),
+        })
+
+    failed_types = [EMAIL_TYPE_VERIFICATION, EMAIL_TYPE_PASSWORD_RESET, EMAIL_TYPE_CONTACT_CONFIRMATION]
+    for _ in range(max(5, int(len(users) * 0.03))):
+        user_row = random.choice(users)
+        recipient = user_row[1].lower()
+        email_type = random.choice(failed_types)
+        ts = now_naive - timedelta(days=random.randint(0, window_days), minutes=random.randint(0, 1440))
+        buffer.append({
+            "type": email_type,
+            "recipient": recipient,
+            "subject": EMAIL_SUBJECTS[email_type],
+            "status": "failed",
+            "provider": None,
+            "provider_message_id": None,
+            "error_message": "SMTP connection timeout",
+            "created_at": ts,
+            "sent_at": None,
+        })
 
     if buffer:
         db.insert_bulk("system.email_logs", buffer)
