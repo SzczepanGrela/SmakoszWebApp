@@ -107,8 +107,8 @@ else
                         }
                         else
                         {
-                            <div class="d-flex align-items-center gap-2">
-                                <span>@_user.Email</span>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="text-truncate" style="max-width:220px" title="@_user.Email">@_user.Email</span>
                                 <span class="badge @(_user.EmailVerified ? "bg-success" : "bg-secondary")">@(_user.EmailVerified ? "✓" : "?")</span>
                                 <button class="btn btn-link btn-sm p-0" title="Zmień email" @onclick="StartEditEmail">
                                     <i class="fa-solid fa-pen-to-square"></i>
