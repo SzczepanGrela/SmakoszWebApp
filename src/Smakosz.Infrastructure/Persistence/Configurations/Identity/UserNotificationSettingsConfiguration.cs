@@ -9,5 +9,7 @@ public class UserNotificationSettingsConfiguration : IEntityTypeConfiguration<Us
     public void Configure(EntityTypeBuilder<UserNotificationSettings> builder)
     {
         builder.HasKey(x => x.UserId);
+
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
     }
 }

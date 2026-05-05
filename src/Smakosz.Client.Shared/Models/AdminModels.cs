@@ -549,3 +549,5 @@ public class GpuWakeResultDto
     public string Status { get; set; } = default!;
     public string? Message { get; set; }
 }
+
+public record TicketSummaryDto(string TicketType, int OpenCount, DateTime? OldestOpenAt);

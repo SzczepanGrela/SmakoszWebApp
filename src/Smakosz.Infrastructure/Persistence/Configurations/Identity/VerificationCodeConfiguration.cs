@@ -12,6 +12,8 @@ public class VerificationCodeConfiguration : IEntityTypeConfiguration<Verificati
     {
         builder.HasKey(x => x.VerificationCodeId);
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.Property(x => x.CodeHash)
             .HasMaxLength(255)
             .IsRequired();

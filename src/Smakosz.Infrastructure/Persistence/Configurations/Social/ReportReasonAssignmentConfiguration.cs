@@ -10,6 +10,8 @@ public class ReportReasonAssignmentConfiguration : IEntityTypeConfiguration<Repo
     {
         builder.HasKey(x => new { x.ReportId, x.ReasonCode });
 
+        builder.HasQueryFilter(x => !x.Report.Reporter.IsDeleted);
+
         builder.Property(x => x.ReasonCode)
             .HasMaxLength(50);
 

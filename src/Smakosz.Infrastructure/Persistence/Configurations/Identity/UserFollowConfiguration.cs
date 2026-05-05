@@ -10,6 +10,8 @@ public class UserFollowConfiguration : IEntityTypeConfiguration<UserFollow>
     {
         builder.HasKey(x => new { x.FollowerId, x.FollowedId });
 
+        builder.HasQueryFilter(x => !x.Follower.IsDeleted && !x.Followed.IsDeleted);
+
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("now()");
 

@@ -12,6 +12,8 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
     {
         builder.HasKey(x => x.ReportId);
 
+        builder.HasQueryFilter(x => !x.Reporter.IsDeleted);
+
         builder.Property(x => x.EntityType)
             .HasConversion(new SnakeCaseEnumConverter<ReportEntityType>())
             .HasMaxLength(20)

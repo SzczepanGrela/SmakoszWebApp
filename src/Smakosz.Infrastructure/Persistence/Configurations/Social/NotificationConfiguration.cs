@@ -12,6 +12,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     {
         builder.HasKey(x => x.NotificationId);
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.Property(x => x.PublicId)
             .IsRequired();
 
