@@ -50,6 +50,17 @@ using Smakosz.Application.Features.Admin.Queries.GetIngredientSuggestions;
 using Smakosz.Application.Features.Admin.Queries.GetTags;
 using Smakosz.Application.Features.Admin.Queries.GetUserDetail;
 using Smakosz.Application.Features.Admin.Queries.GetUsers;
+using Smakosz.Application.Features.Admin.Queries.GetUserReviews;
+using Smakosz.Application.Features.Admin.Queries.GetUserSecurityLogs;
+using Smakosz.Application.Features.Admin.Queries.GetUserPhotos;
+using Smakosz.Application.Features.Admin.Queries.GetUserTickets;
+using Smakosz.Application.Features.Admin.Queries.GetUserActionLogs;
+using Smakosz.Application.Features.Admin.Queries.GetUserAdminFollowers;
+using Smakosz.Application.Features.Admin.Queries.GetUserRestaurantClaims;
+using Smakosz.Application.Features.Admin.Commands.AdminChangeUserEmail;
+using Smakosz.Application.Features.Admin.Commands.AdminChangeUserUsername;
+using Smakosz.Application.Features.Admin.Commands.DeactivateUser;
+using Smakosz.Application.Features.Admin.Commands.ActivateUser;
 
 namespace Smakosz.API.Controllers;
 
@@ -122,6 +133,83 @@ public class AdminController : ApiController
     public async Task<IActionResult> ChangeUserRole(Guid publicId, [FromBody] ChangeUserRoleRequest body)
     {
         var result = await _mediator.Send(new ChangeUserRoleCommand(publicId, body.Role, body.Reason));
+        return ToNoContentResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/reviews")]
+    public async Task<IActionResult> GetUserReviews(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserReviewsQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/security-logs")]
+    public async Task<IActionResult> GetUserSecurityLogs(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserSecurityLogsQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/photos")]
+    public async Task<IActionResult> GetUserPhotos(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserPhotosQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/tickets")]
+    public async Task<IActionResult> GetUserTickets(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserTicketsQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/action-logs")]
+    public async Task<IActionResult> GetUserActionLogs(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserActionLogsQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/followers")]
+    public async Task<IActionResult> GetUserFollowers(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserAdminFollowersQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("users/{publicId:guid}/restaurant-claims")]
+    public async Task<IActionResult> GetUserRestaurantClaims(Guid publicId, [FromQuery] int page = 1)
+    {
+        var result = await _mediator.Send(new GetUserRestaurantClaimsQuery(publicId, page));
+        return ToActionResult(result);
+    }
+
+    [HttpPut("users/{publicId:guid}/email")]
+    public async Task<IActionResult> ChangeUserEmail(Guid publicId, [FromBody] ChangeUserEmailRequest body)
+    {
+        var result = await _mediator.Send(new AdminChangeUserEmailCommand(publicId, body.Email));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPut("users/{publicId:guid}/username")]
+    public async Task<IActionResult> ChangeUserUsername(Guid publicId, [FromBody] ChangeUserUsernameRequest body)
+    {
+        var result = await _mediator.Send(new AdminChangeUserUsernameCommand(publicId, body.Username));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("users/{publicId:guid}/deactivate")]
+    public async Task<IActionResult> DeactivateUser(Guid publicId)
+    {
+        var result = await _mediator.Send(new DeactivateUserCommand(publicId));
+        return ToNoContentResult(result);
+    }
+
+    [HttpPost("users/{publicId:guid}/activate")]
+    public async Task<IActionResult> ActivateUser(Guid publicId)
+    {
+        var result = await _mediator.Send(new ActivateUserCommand(publicId));
         return ToNoContentResult(result);
     }
 
@@ -489,6 +577,8 @@ public class AdminController : ApiController
 
 public record CreatePrivilegedAccountRequest(string Email, string Username, UserRole Role);
 public record ChangeUserRoleRequest(UserRole Role, string? Reason);
+public record ChangeUserEmailRequest(string Email);
+public record ChangeUserUsernameRequest(string Username);
 
 public record CreateIngredientRequest(
     string Name,

@@ -92,8 +92,53 @@ public class AdminService : IAdminService
         return _api.GetAsync<PagedResult<AdminUserDto>>(query);
     }
 
-    public Task<AdminUserDto?> GetUserAsync(Guid publicId)
-        => _api.GetAsync<AdminUserDto>($"/api/admin/users/{publicId}");
+    public Task<AdminUserDetailDto?> GetUserAsync(Guid publicId)
+        => _api.GetAsync<AdminUserDetailDto>($"/api/admin/users/{publicId}");
+
+    public Task<PagedResult<AdminUserReviewDto>?> GetUserReviewsAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminUserReviewDto>>($"/api/admin/users/{publicId}/reviews?page={page}");
+
+    public Task<PagedResult<AdminSecurityLogDto>?> GetUserSecurityLogsAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminSecurityLogDto>>($"/api/admin/users/{publicId}/security-logs?page={page}");
+
+    public Task<PagedResult<AdminPhotoDto>?> GetUserPhotosAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminPhotoDto>>($"/api/admin/users/{publicId}/photos?page={page}");
+
+    public Task<PagedResult<AdminTicketDto>?> GetUserTicketsAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminTicketDto>>($"/api/admin/users/{publicId}/tickets?page={page}");
+
+    public Task<PagedResult<AdminUserActionLogDto>?> GetUserActionLogsAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminUserActionLogDto>>($"/api/admin/users/{publicId}/action-logs?page={page}");
+
+    public Task<PagedResult<AdminUserFollowerDto>?> GetUserFollowersAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminUserFollowerDto>>($"/api/admin/users/{publicId}/followers?page={page}");
+
+    public Task<PagedResult<AdminUserRestaurantClaimDto>?> GetUserRestaurantClaimsAsync(Guid publicId, int page = 1)
+        => _api.GetAsync<PagedResult<AdminUserRestaurantClaimDto>>($"/api/admin/users/{publicId}/restaurant-claims?page={page}");
+
+    public async Task<(bool Success, string? ErrorMessage)> ChangeUserEmailAsync(Guid publicId, string newEmail)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/users/{publicId}/email", new { Email = newEmail });
+        return (response.Success, response.Error?.Message);
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> ChangeUserUsernameAsync(Guid publicId, string newUsername)
+    {
+        var response = await _api.PutApiResponseAsync<object>($"/api/admin/users/{publicId}/username", new { Username = newUsername });
+        return (response.Success, response.Error?.Message);
+    }
+
+    public async Task<bool> DeactivateUserAsync(Guid publicId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/deactivate", null);
+        return response.Success;
+    }
+
+    public async Task<bool> ActivateUserAsync(Guid publicId)
+    {
+        var response = await _api.PostApiResponseAsync<object>($"/api/admin/users/{publicId}/activate", null);
+        return response.Success;
+    }
 
     public async Task<bool> UpdateUserAsync(Guid publicId, string action)
     {
