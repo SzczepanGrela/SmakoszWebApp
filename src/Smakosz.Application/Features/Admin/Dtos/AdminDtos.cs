@@ -188,18 +188,26 @@ public class AdminLogDto
 public class AdminUserDetailDto
 {
     public int UserId { get; set; }
+    public Guid PublicId { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public bool EmailVerified { get; set; }
     public bool IsBanned { get; set; }
+    public bool IsActive { get; set; }
     public bool Is2faEnabled { get; set; }
     public string? AvatarUrl { get; set; }
+    public string? AvatarBlurhash { get; set; }
     public string? Slug { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     public int ReviewCount { get; set; }
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }
+    public int PhotoCount { get; set; }
+    public int FailedLoginCount { get; set; }
+    public DateTime? LockedUntilUtc { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
 }
@@ -473,3 +481,31 @@ public class SystemNodeDto
 }
 
 public record TicketSummaryDto(string TicketType, int OpenCount, DateTime? OldestOpenAt);
+
+public class AdminUserActionLogDto
+{
+    public long LogId { get; init; }
+    public string ActionType { get; init; } = default!;
+    public string? OldValue { get; init; }
+    public string? NewValue { get; init; }
+    public string? Reason { get; init; }
+    public string? ActorUsername { get; init; }
+    public DateTime? CreatedAt { get; init; }
+}
+
+public class AdminUserFollowerDto
+{
+    public Guid PublicId { get; init; }
+    public string Username { get; init; } = default!;
+    public string? AvatarUrl { get; init; }
+    public DateTime FollowedAt { get; init; }
+}
+
+public class AdminUserRestaurantClaimDto
+{
+    public int TicketId { get; init; }
+    public int RestaurantId { get; init; }
+    public string RestaurantName { get; init; } = default!;
+    public string Status { get; init; } = default!;
+    public DateTime CreatedAt { get; init; }
+}

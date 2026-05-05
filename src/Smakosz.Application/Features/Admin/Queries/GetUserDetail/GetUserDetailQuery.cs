@@ -31,18 +31,26 @@ public class GetUserDetailHandler : IRequestHandler<GetUserDetailQuery, ErrorOr<
             .Select(u => new AdminUserDetailDto
             {
                 UserId = u.UserId,
+                PublicId = u.PublicId,
                 Username = u.Username,
                 Email = u.Email,
                 Role = u.Role.ToString(),
                 Status = u.IsBanned ? "Banned" : u.IsActive ? "Active" : "Inactive",
                 EmailVerified = u.EmailVerified,
                 IsBanned = u.IsBanned,
+                IsActive = u.IsActive,
                 Is2faEnabled = u.Is2faEnabled,
                 AvatarUrl = u.AvatarUrl,
+                AvatarBlurhash = u.AvatarBlurhash,
                 Slug = u.Slug,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
                 ReviewCount = u.ReviewCount,
                 FollowersCount = u.FollowersCount,
                 FollowingCount = u.FollowingCount,
+                PhotoCount = u.PhotoCount,
+                FailedLoginCount = u.FailedLoginCount,
+                LockedUntilUtc = u.LockedUntilUtc,
                 CreatedAt = u.CreatedAt,
                 LastLoginAt = u.LastLoginAt
             })
