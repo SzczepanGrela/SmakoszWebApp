@@ -135,7 +135,7 @@ public static class SeedHelpers
     public static Restaurant CreateRestaurant(
         int restaurantId = 1,
         string name = "Pizzeria Roma",
-        int? cityId = 1,
+        int? cityId = null,
         int? ownerId = null)
     {
         return new Restaurant

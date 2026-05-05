@@ -30,7 +30,6 @@ public class UserDetailExtensionTests : IntegrationTestBase
             db.Users.Add(SeedHelpers.CreateAdminUser(99, hash));
             db.Users.Add(user);
             db.Users.Add(otherUser);
-            db.SiteStats.Add(SeedHelpers.CreateSiteStats());
             await db.SaveChangesAsync();
         });
     }
