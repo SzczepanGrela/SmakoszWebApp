@@ -24,10 +24,6 @@ public class T125_DeleteStaleNodeTest : SmakoszE2ETestBase
 
         await Page.WaitForTimeoutAsync(800);
         var confirmButton = Page.Locator("button.btn-danger", new() { HasText = "Potwierdź" }).First;
-        if (await confirmButton.CountAsync() == 0)
-            confirmButton = Page.Locator("button.btn-primary", new() { HasText = "Potwierdź" }).First;
-        if (await confirmButton.CountAsync() == 0)
-            confirmButton = Page.GetByRole(AriaRole.Button, new() { Name = "Potwierdź" }).First;
 
         await Expect(confirmButton).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
         await confirmButton.ClickAsync();

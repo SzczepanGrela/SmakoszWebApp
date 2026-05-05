@@ -120,7 +120,7 @@ public class T03_BusinessDishManagementTest : SmakoszE2ETestBase
         await deleteButton.ClickAsync();
 
         await AssertPageContainsTextAsync("Czy na pewno chcesz usunąć danie");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Potwierdz" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Potwierdź" }).ClickAsync();
 
         await Page.WaitForTimeoutAsync(2000);
         await AssertToastAsync("Danie zostało usunięte.");
