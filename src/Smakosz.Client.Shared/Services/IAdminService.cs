@@ -6,6 +6,7 @@ public interface IAdminService
 {
     Task<AdminDashboardDto?> GetDashboardAsync();
     Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null, string? ticketType = null);
+    Task<List<TicketSummaryDto>?> GetTicketsSummaryAsync();
     Task<AdminTicketDetailDto?> GetTicketDetailAsync(int id);
     Task<bool> UpdateTicketStatusAsync(int id, string status);
     Task<bool> RespondToContactAsync(int id, string response);

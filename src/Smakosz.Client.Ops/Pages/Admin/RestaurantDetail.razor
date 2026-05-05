@@ -199,7 +199,7 @@ else
                     {
                         <dl class="row mb-0">
                             <dt class="col-sm-4">Adres</dt>
-                            <dd class="col-sm-8">@(_detail.Address ?? "-")</dd>
+                            <dd class="col-sm-8">@(_detail!.Address ?? "-")</dd>
 
                             <dt class="col-sm-4">Kod pocztowy</dt>
                             <dd class="col-sm-8">@(_detail.PostalCode ?? "-")</dd>
@@ -232,7 +232,7 @@ else
             <div class="card shadow-sm mb-4">
                 <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Godziny otwarcia</h5></div>
                 <div class="card-body">
-                    @if (_detail.OpeningHours.Count == 0)
+                    @if (_detail!.OpeningHours.Count == 0)
                     {
                         <p class="text-muted mb-0">Brak godzin otwarcia.</p>
                     }

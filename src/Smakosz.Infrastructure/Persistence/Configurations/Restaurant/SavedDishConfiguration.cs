@@ -10,6 +10,8 @@ public class SavedDishConfiguration : IEntityTypeConfiguration<SavedDish>
     {
         builder.HasKey(x => new { x.UserId, x.DishId });
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)

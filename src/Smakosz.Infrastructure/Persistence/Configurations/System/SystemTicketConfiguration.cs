@@ -71,6 +71,11 @@ public class SystemTicketConfiguration : IEntityTypeConfiguration<SystemTicket>
 
         builder.HasIndex(x => x.RequesterId);
 
-        builder.HasIndex(x => new { x.TicketType, x.Status });
+        builder.HasIndex(x => new { x.TicketType, x.Status, x.CreatedAt })
+            .IsDescending(false, false, true);
+
+        builder.HasIndex(x => new { x.TicketType, x.CreatedAt })
+            .IsDescending(false, true)
+            .HasFilter("status = 'open'");
     }
 }

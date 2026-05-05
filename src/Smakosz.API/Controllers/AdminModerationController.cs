@@ -16,6 +16,7 @@ using Smakosz.Application.Features.Admin.Queries.GetRejectionReasons;
 using Smakosz.Application.Features.Admin.Queries.GetReports;
 using Smakosz.Application.Features.Admin.Queries.GetTicketDetail;
 using Smakosz.Application.Features.Admin.Queries.GetTickets;
+using Smakosz.Application.Features.Admin.Queries.GetTicketsSummary;
 
 namespace Smakosz.API.Controllers;
 
@@ -46,6 +47,13 @@ public class AdminModerationController : ApiController
         [FromQuery] string? ticketType = null)
     {
         var result = await _mediator.Send(new GetTicketsQuery(new PaginationParams(page, pageSize), status, ticketType));
+        return ToActionResult(result);
+    }
+
+    [HttpGet("tickets/summary")]
+    public async Task<IActionResult> GetTicketsSummary()
+    {
+        var result = await _mediator.Send(new GetTicketsSummaryQuery());
         return ToActionResult(result);
     }
 

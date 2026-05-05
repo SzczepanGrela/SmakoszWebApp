@@ -471,3 +471,5 @@ public class SystemNodeDto
     public int? CurrentJobId { get; set; }
     public DateTime? LastHeartbeat { get; set; }
 }
+
+public record TicketSummaryDto(string TicketType, int OpenCount, DateTime? OldestOpenAt);

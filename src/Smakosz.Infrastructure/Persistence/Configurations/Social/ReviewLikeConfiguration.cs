@@ -10,6 +10,8 @@ public class ReviewLikeConfiguration : IEntityTypeConfiguration<ReviewLike>
     {
         builder.HasKey(x => new { x.UserId, x.ReviewId });
 
+        builder.HasQueryFilter(x => !x.Review.IsDeleted);
+
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)

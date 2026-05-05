@@ -12,6 +12,8 @@ public class RestaurantEditRequestConfiguration : IEntityTypeConfiguration<Resta
     {
         builder.HasKey(x => x.RequestId);
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.Property(x => x.Status)
             .HasConversion(new SnakeCaseEnumConverter<EditRequestStatus>())
             .HasMaxLength(20)

@@ -41,7 +41,7 @@ public class SearchSuggestTrigramTests : IntegrationTestBase
         var items = await DeserializeResponse<List<SuggestItemDto>>(response);
         items.Should().NotBeNull();
         items!.Should().NotBeEmpty();
-        items[0].Name.Should().StartWith("Pizza");
+        items![0].Name.Should().StartWith("Pizza");
     }
 
     [Fact]

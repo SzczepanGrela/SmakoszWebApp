@@ -514,6 +514,15 @@ public static class SeedData
                 Status = TicketStatus.Open,
                 Priority = 2,
                 CreatedAt = DateTime.UtcNow,
+            },
+            new SystemTicket
+            {
+                TicketType = TicketType.RestaurantClaim,
+                ReferenceId = 1,
+                Status = TicketStatus.Open,
+                Priority = 3,
+                RequesterId = 1,
+                CreatedAt = DateTime.UtcNow.AddDays(-2),
             });
         await db.SaveChangesAsync();
 

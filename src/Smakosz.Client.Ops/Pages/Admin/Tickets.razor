@@ -2,147 +2,87 @@
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
 @inject IAdminService AdminService
-@inject ToastService Toast
 
-<PageTitle>Zgłoszenia - Admin Smakosz</PageTitle>
+<PageTitle>Pulpit zgłoszeń - Admin Smakosz</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold mb-0"><i class="fa-solid fa-ticket me-2"></i>Zgłoszenia</h2>
-    <div class="btn-group btn-group-sm">
-        <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
-        <button class="btn @(_statusFilter == "Open" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("Open")'>Otwarte</button>
-        <button class="btn @(_statusFilter == "InProgress" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("InProgress")'>W toku</button>
-        <button class="btn @(_statusFilter == "Resolved" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("Resolved")'>Rozwiązane</button>
-    </div>
-</div>
-<div class="d-flex gap-2 flex-wrap mb-4">
-    <small class="text-muted me-1 align-self-center">Typ:</small>
-    <button class="btn btn-sm @(_ticketTypeFilter == null ? "btn-secondary" : "btn-outline-secondary")" @onclick="() => FilterByTicketType(null)">Wszystkie</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "Contact" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("Contact")'>Kontakt</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "Photo" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("Photo")'>Zdjęcie</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "ReviewContent" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("ReviewContent")'>Recenzja</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "Report" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("Report")'>Zgłoszenie</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "EditRequest" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("EditRequest")'>Edycja</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "IngredientSuggestion" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("IngredientSuggestion")'>Składnik</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "DataCorrection" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("DataCorrection")'>Korekta</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "RestaurantClaim" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("RestaurantClaim")'>Claim</button>
-    <button class="btn btn-sm @(_ticketTypeFilter == "RestaurantRequest" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByTicketType("RestaurantRequest")'>Nowa restauracja</button>
-</div>
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-ticket me-2"></i>Pulpit zgłoszeń</h2>
 
 @if (_loading)
 {
     <LoadingSpinner />
 }
-else if (_tickets == null || !_tickets.Data.Any())
-{
-    <EmptyState Icon="fa-solid fa-ticket" Title="Brak zgłoszeń" />
-}
 else
 {
-    @foreach (var ticket in _tickets.Data)
-    {
-        <a href="/admin/tickets/@ticket.TicketId" class="card shadow-sm mb-3 text-decoration-none" style="color:inherit; display:block;">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1 me-3">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <h6 class="fw-bold mb-0">#@ticket.TicketId</h6>
-                            <span class="badge bg-info">@TicketTypeLabel(ticket.TicketType)</span>
-                        </div>
-                        @if (!string.IsNullOrWhiteSpace(ticket.Description))
-                        {
-                            <p class="text-muted small mb-2 text-break" style="white-space:pre-line;">@Truncate(ticket.Description, 300)</p>
-                        }
-                        <div class="d-flex gap-3 small text-muted">
-                            <span><i class="fa-solid fa-calendar me-1"></i>@(ticket.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</span>
-                            @if (ticket.AssignedAdminUsername != null)
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+        @foreach (var entry in TicketTypes)
+        {
+            var summary = _summaryMap.GetValueOrDefault(entry.TypeKey);
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="@entry.Icon fa-fw me-2 text-secondary"></i>
+                            <h6 class="fw-bold mb-0">@entry.Label</h6>
+                            @if (entry.Tooltip != null)
                             {
-                                <span><i class="fa-solid fa-user-check me-1"></i>@ticket.AssignedAdminUsername</span>
+                                <i class="fa-solid fa-circle-info ms-2 text-muted small" title="@entry.Tooltip"></i>
                             }
                         </div>
+                        @if (summary is { OpenCount: > 0 })
+                        {
+                            <div class="mb-1">
+                                <span class="badge bg-danger me-2">@summary.OpenCount otwarte</span>
+                            </div>
+                            @if (summary.OldestOpenAt.HasValue)
+                            {
+                                <p class="text-muted small mb-2">Najstarszy: @FormatAge(summary.OldestOpenAt.Value)</p>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-2">Brak otwartych</p>
+                        }
+                        <div class="mt-auto">
+                            <a href="@entry.Link" class="btn btn-outline-primary btn-sm w-100">Przejdź</a>
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge @PriorityBadge(ticket.Priority)">@PriorityLabel(ticket.Priority)</span>
-                        <StatusBadge Status="@ticket.Status" />
-                    </div>
-                </div>
-                <div class="mt-3 d-flex justify-content-between align-items-center">
-                    @if (ticket.Status == "Open")
-                    {
-                        <button class="btn btn-outline-primary btn-sm" @onclick="@(() => UpdateStatus(ticket.TicketId, "InProgress"))" @onclick:preventDefault @onclick:stopPropagation>
-                            <i class="fa-solid fa-play me-1"></i>Rozpocznij
-                        </button>
-                    }
-                    else
-                    {
-                        <span></span>
-                    }
-                    <span class="small text-primary">Szczegóły <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </div>
             </div>
-        </a>
-    }
-
-    @if (_tickets.Pagination.TotalPages > 1)
-    {
-        <Pagination Info="@_tickets.Pagination" OnPageChange="LoadPage" />
-    }
+        }
+    </div>
 }
 
 @code {
-    private PagedResult<AdminTicketDto>? _tickets;
-    private string? _statusFilter;
-    private string? _ticketTypeFilter;
     private bool _loading = true;
+    private Dictionary<string, TicketSummaryDto> _summaryMap = new();
 
-    protected override async Task OnInitializedAsync() => await LoadPage(1);
+    private record TicketTypeEntry(string TypeKey, string Label, string Icon, string Link, string? Tooltip = null);
 
-    private async Task LoadPage(int page)
+    private static readonly TicketTypeEntry[] TicketTypes =
+    [
+        new("Contact", "Kontakt", "fa-solid fa-envelope", "/admin/contact-messages"),
+        new("Photo", "Zdjęcia", "fa-solid fa-images", "/admin/photos"),
+        new("ReviewContent", "Recenzje", "fa-solid fa-comments", "/admin/reviews"),
+        new("Report", "Raporty", "fa-solid fa-flag", "/admin/reports"),
+        new("EditRequest", "Prośby o edycję", "fa-solid fa-pen-to-square", "/admin/edit-requests",
+            "Strukturalna prosba o zmiane danych restauracji z payload JSON."),
+        new("DataCorrection", "Korekty danych", "fa-solid fa-pen", "/admin/data-corrections",
+            "Wolny tekst od uzytkownika zglaszajacego blad w danych. Bez strukturalnego payload."),
+        new("IngredientSuggestion", "Sugestie składników", "fa-solid fa-lightbulb", "/admin/ingredient-suggestions"),
+        new("RestaurantClaim", "Wnioski o przejęcie", "fa-solid fa-store", "/admin/restaurant-claims"),
+        new("RestaurantRequest", "Nowe restauracje", "fa-solid fa-utensils", "/admin/restaurant-requests"),
+    ];
+
+    protected override async Task OnInitializedAsync()
     {
-        _loading = true;
-        _tickets = await AdminService.GetTicketsAsync(page, _statusFilter, _ticketTypeFilter);
+        var summaries = await AdminService.GetTicketsSummaryAsync();
+        _summaryMap = summaries?.ToDictionary(s => s.TicketType) ?? new();
         _loading = false;
     }
 
-    private async Task FilterByStatus(string? status) { _statusFilter = status; await LoadPage(1); }
-
-    private async Task FilterByTicketType(string? type) { _ticketTypeFilter = type; await LoadPage(1); }
-
-    private async Task UpdateStatus(int ticketId, string status)
+    private static string FormatAge(DateTime oldest)
     {
-        var success = await AdminService.UpdateTicketStatusAsync(ticketId, status);
-        if (success) { Toast.ShowSuccess("Status zaktualizowany."); await LoadPage(1); }
-        else Toast.ShowError("Nie udało się zaktualizować.");
+        var days = (int)(DateTime.UtcNow - oldest).TotalDays;
+        return days == 0 ? "dzisiaj" : days == 1 ? "1 dzień temu" : $"{days} dni temu";
     }
-
-    private static string PriorityBadge(int priority) => priority switch
-    {
-        1 => "bg-danger",
-        2 => "bg-warning text-dark",
-        _ => "bg-secondary"
-    };
-
-    private static string PriorityLabel(int priority) => priority switch
-    {
-        1 => "Wysoki",
-        2 => "Normalny",
-        _ => "Niski"
-    };
-
-    private static string TicketTypeLabel(string type) => type switch
-    {
-        "Contact" => "Kontakt",
-        "ReviewContent" => "Recenzja",
-        "Photo" => "Zdjęcie",
-        "Report" => "Zgłoszenie",
-        "EditRequest" => "Edycja",
-        "IngredientSuggestion" => "Składnik",
-        "DataCorrection" => "Korekta",
-        "RestaurantClaim" => "Claim restauracji",
-        "RestaurantRequest" => "Nowa restauracja",
-        _ => type
-    };
-
-    private static string Truncate(string text, int max)
-        => text.Length <= max ? text : text[..max] + "...";
 }

@@ -10,6 +10,8 @@ public class PushSubscriptionConfiguration : IEntityTypeConfiguration<PushSubscr
     {
         builder.HasKey(x => x.PushSubscriptionId);
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.Property(x => x.Endpoint)
             .HasMaxLength(2048)
             .IsRequired();

@@ -13,13 +13,13 @@
 }
 else if (_detail == null)
 {
-    <EmptyState Icon="fa-solid fa-ticket" Title="Nie znaleziono zgłoszenia" ActionText="Powrót do listy" ActionUrl="/admin/tickets" />
+    <EmptyState Icon="fa-solid fa-ticket" Title="Nie znaleziono zgłoszenia" ActionText="Powrót do listy" ActionUrl="@BackUrl" />
 }
 else
 {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-2">
-            <a href="/admin/tickets" class="btn btn-outline-secondary btn-sm">
+            <a href="@BackUrl" class="btn btn-outline-secondary btn-sm">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <h2 class="fw-bold mb-0">#@_detail.TicketId</h2>
@@ -70,6 +70,14 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private string BackUrl => IsValidReturnUrl(ReturnUrl) ? ReturnUrl! : "/admin/tickets";
+
+    private static bool IsValidReturnUrl(string? url) =>
+        !string.IsNullOrEmpty(url) && url.StartsWith("/admin/", StringComparison.OrdinalIgnoreCase);
 
     private AdminTicketDetailDto? _detail;
     private bool _loading = true;
@@ -131,7 +139,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.RespondToContactAsync(Id, _responseText);
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Odpowiedź wysłana, zgłoszenie rozwiązane."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Odpowiedź wysłana, zgłoszenie rozwiązane."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Nie udało się wysłać odpowiedzi.");
     }
 
@@ -184,7 +192,7 @@ else
         var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, approve: true);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zdjęcie zatwierdzone."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Zdjęcie zatwierdzone."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -199,7 +207,7 @@ else
         var ok = await AdminService.ModeratePhotoAsync(_detail!.Photo!.PublicId, approve: false, reasonCodes: null, moderatorNote: _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zdjęcie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Zdjęcie odrzucone."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -252,7 +260,7 @@ else
         var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, approve: true);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Recenzja zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Recenzja zatwierdzona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -267,7 +275,7 @@ else
         var ok = await AdminService.ModerateReviewAsync(_detail!.Review!.PublicId, approve: false, reasonCodes: null, moderatorNote: _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Recenzja odrzucona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Recenzja odrzucona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -318,7 +326,7 @@ else
         var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Resolved");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zgłoszenie rozwiązane."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Zgłoszenie rozwiązane."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -328,7 +336,7 @@ else
         var ok = await AdminService.ResolveReportAsync(_detail!.Report!.ReportId, "Rejected");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Rejected");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zgłoszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Zgłoszenie odrzucone."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -379,7 +387,7 @@ else
         var ok = await AdminService.ProcessEditRequestAsync(_detail!.EditRequest!.RequestId, "approve");
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Edycja zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Edycja zatwierdzona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -389,7 +397,7 @@ else
         var ok = await AdminService.ProcessEditRequestAsync(_detail!.EditRequest!.RequestId, "reject", _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Edycja odrzucona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Edycja odrzucona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -491,7 +499,7 @@ else
             _suggestionIsGlutenFree, _suggestionIsLactoseFree, _suggestionIconUrl);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Sugestia zatwierdzona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Sugestia zatwierdzona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -501,7 +509,7 @@ else
         var ok = await AdminService.ReviewIngredientSuggestionAsync(_detail!.Suggestion!.SuggestionId, false, _rejectionReason);
         if (ok) ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Sugestia odrzucona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Sugestia odrzucona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd moderacji.");
     }
 
@@ -532,7 +540,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.UpdateTicketStatusAsync(Id, "Resolved");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Korekta rozwiązana."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Korekta rozwiązana."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd.");
     }
 
@@ -541,7 +549,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.UpdateTicketStatusAsync(Id, "Rejected");
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Korekta odrzucona."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Korekta odrzucona."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Błąd.");
     }
 
@@ -641,7 +649,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.ApproveRestaurantClaimAsync(Id);
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Claim zaakceptowany."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Claim zaakceptowany."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Nie udalo sie zaakceptowac claim.");
     }
 
@@ -655,7 +663,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.RejectRestaurantClaimAsync(Id, _rejectionReason);
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Claim odrzucony."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Claim odrzucony."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Nie udalo sie odrzucic claim.");
     }
 
@@ -738,7 +746,7 @@ else
         _actionInProgress = true;
         var ok = await AdminService.RejectNewRestaurantRequestAsync(Id, _rejectionReason);
         _actionInProgress = false;
-        if (ok) { Toast.ShowSuccess("Zgloszenie odrzucone."); Nav.NavigateTo("/admin/tickets"); }
+        if (ok) { Toast.ShowSuccess("Zgloszenie odrzucone."); Nav.NavigateTo(BackUrl); }
         else Toast.ShowError("Nie udalo sie odrzucic zgloszenia.");
     }
 

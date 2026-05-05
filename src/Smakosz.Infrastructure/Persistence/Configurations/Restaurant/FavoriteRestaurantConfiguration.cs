@@ -10,6 +10,8 @@ public class FavoriteRestaurantConfiguration : IEntityTypeConfiguration<Favorite
     {
         builder.HasKey(x => new { x.UserId, x.RestaurantId });
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)

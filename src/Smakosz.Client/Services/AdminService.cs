@@ -14,6 +14,9 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminTicketDto>?> GetTicketsAsync(int page = 1, string? status = null, string? ticketType = null)
         => _api.GetAsync<PagedResult<AdminTicketDto>>($"/api/admin/tickets?page={page}&status={status}&ticketType={ticketType}");
 
+    public Task<List<TicketSummaryDto>?> GetTicketsSummaryAsync()
+        => _api.GetAsync<List<TicketSummaryDto>>("/api/admin/tickets/summary");
+
     public Task<AdminTicketDetailDto?> GetTicketDetailAsync(int id)
         => _api.GetAsync<AdminTicketDetailDto>($"/api/admin/tickets/{id}");
 

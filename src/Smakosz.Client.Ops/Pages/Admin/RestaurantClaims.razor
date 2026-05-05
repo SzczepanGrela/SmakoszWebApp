@@ -1,0 +1,74 @@
+@page "/admin/restaurant-claims"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Moderator")]
+@inject IAdminService AdminService
+
+<PageTitle>Wnioski o przejęcie - Admin Smakosz</PageTitle>
+
+<h2 class="fw-bold mb-4"><i class="fa-solid fa-store me-2"></i>Wnioski o przejęcie restauracji</h2>
+
+<div class="btn-group btn-group-sm mb-4">
+    <button class="btn @(_statusFilter == "Open" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("Open")'>Otwarte</button>
+    <button class="btn @(_statusFilter == "InProgress" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("InProgress")'>W toku</button>
+    <button class="btn @(_statusFilter == "Resolved" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("Resolved")'>Rozwiązane</button>
+    <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_tickets == null || !_tickets.Data.Any())
+{
+    <EmptyState Icon="fa-solid fa-store" Title="Brak wniosków" Description="Brak wniosków o przejecie restauracji." />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr><th>#</th><th>Opis</th><th>Data</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _tickets.Data)
+                {
+                    <tr>
+                        <td class="text-muted small">@t.TicketId</td>
+                        <td>@Truncate(t.Description, 80)</td>
+                        <td class="text-muted small">@(t.CreatedAt?.ToString("dd.MM.yyyy") ?? "-")</td>
+                        <td><StatusBadge Status="@t.Status" /></td>
+                        <td><a href="/admin/tickets/@t.TicketId?returnUrl=/admin/restaurant-claims" class="btn btn-outline-primary btn-sm">Otwórz</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (_tickets.Pagination.TotalPages > 1)
+    {
+        <Pagination Info="@_tickets.Pagination" OnPageChange="LoadPage" />
+    }
+}
+
+@code {
+    private PagedResult<AdminTicketDto>? _tickets;
+    private string? _statusFilter = "Open";
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadPage(1);
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _tickets = await AdminService.GetTicketsAsync(page, _statusFilter, "RestaurantClaim");
+        _loading = false;
+    }
+
+    private async Task FilterByStatus(string? status)
+    {
+        _statusFilter = status;
+        await LoadPage(1);
+    }
+
+    private static string Truncate(string? text, int max) =>
+        string.IsNullOrEmpty(text) ? "-" : text.Length <= max ? text : text[..max] + "...";
+}

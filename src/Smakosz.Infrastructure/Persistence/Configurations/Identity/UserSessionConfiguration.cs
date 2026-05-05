@@ -10,6 +10,8 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
     {
         builder.HasKey(x => x.UserSessionId);
 
+        builder.HasQueryFilter(x => !x.User.IsDeleted);
+
         builder.Property(x => x.UserSessionId)
             .ValueGeneratedOnAdd();
 
