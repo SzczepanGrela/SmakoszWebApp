@@ -21,14 +21,14 @@ else if (_user == null)
 }
 else
 {
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="/admin/users" class="btn btn-outline-secondary btn-sm me-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <a href="/admin/users" class="btn btn-outline-secondary btn-sm">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
-            <h2 class="fw-bold d-inline">@_user.Username</h2>
+            <h2 class="fw-bold mb-0">@_user.Username</h2>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             @if (_user.Is2faEnabled)
             {
                 <button class="btn btn-warning btn-sm" @onclick="ConfirmDisable2fa">
@@ -41,6 +41,18 @@ else
             <button class="btn btn-info btn-sm" @onclick="ConfirmResetPassword" disabled="@_resetInProgress">
                 <i class="fa-solid fa-key me-1"></i>Resetuj hasło
             </button>
+            @if (_user.IsActive)
+            {
+                <button class="btn btn-outline-warning btn-sm" @onclick="ConfirmDeactivate">
+                    <i class="fa-solid fa-user-slash me-1"></i>Dezaktywuj
+                </button>
+            }
+            else if (!_user.IsBanned)
+            {
+                <button class="btn btn-outline-success btn-sm" @onclick="ConfirmActivate">
+                    <i class="fa-solid fa-user-check me-1"></i>Aktywuj
+                </button>
+            }
             @if (IsSelfProfile)
             {
                 <button class="btn btn-outline-danger btn-sm" disabled title="Nie możesz zbanować własnego konta">
@@ -49,50 +61,468 @@ else
             }
             else if (_user.Status == "Banned")
             {
-                <button class="btn btn-success btn-sm" @onclick='ConfirmUnban'>
+                <button class="btn btn-success btn-sm" @onclick="ConfirmUnban">
                     <i class="fa-solid fa-unlock me-1"></i>Odbanuj
                 </button>
             }
             else
             {
-                <button class="btn btn-danger btn-sm" @onclick='ConfirmBan'>
+                <button class="btn btn-danger btn-sm" @onclick="ConfirmBan">
                     <i class="fa-solid fa-ban me-1"></i>Zbanuj
                 </button>
             }
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header"><h5 class="mb-0">Informacje</h5></div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Email</dt>
-                        <dd class="col-sm-8">@_user.Email @(_user.EmailVerified ? "(zweryfikowany)" : "(niezweryfikowany)")</dd>
+    <div class="row g-2 mb-3">
+        <div class="col"><div class="card text-center p-2"><div class="fw-bold text-warning">@_user.ReviewCount</div><div class="small text-muted">Recenzje</div></div></div>
+        <div class="col"><div class="card text-center p-2"><div class="fw-bold text-warning">@_user.FollowersCount</div><div class="small text-muted">Obserwujący</div></div></div>
+        <div class="col"><div class="card text-center p-2"><div class="fw-bold text-warning">@_user.FollowingCount</div><div class="small text-muted">Obserwuje</div></div></div>
+        <div class="col"><div class="card text-center p-2"><div class="fw-bold text-warning">@_user.PhotoCount</div><div class="small text-muted">Zdjęcia</div></div></div>
+        <div class="col"><div class="card text-center p-2"><div class="fw-bold text-warning small">@FormatRelative(_user.LastLoginAt)</div><div class="small text-muted">Ostatnie log.</div></div></div>
+    </div>
 
-                        <dt class="col-sm-4">Rola</dt>
-                        <dd class="col-sm-8"><span class="badge bg-info">@_user.Role</span></dd>
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold text-warning" style="width:34px;height:34px;font-size:13px">@GetInitials(_user.Username)</div>
+            <span class="fw-semibold flex-grow-1">Informacje</span>
+            @if (!string.IsNullOrEmpty(_user.Slug))
+            {
+                <a href="/u/@_user.Slug" target="_blank" class="small text-warning">&#8599; Profil publiczny</a>
+            }
+        </div>
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-md-4 p-3 border-end">
+                    <div class="text-uppercase small text-muted fw-bold mb-2">Tożsamość</div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Email</div>
+                        @if (_editingEmail)
+                        {
+                            <div class="d-flex gap-1">
+                                <input type="email" class="form-control form-control-sm" @bind="_emailDraft" @bind:event="oninput" disabled="@_emailSaving" @onkeydown="@(async e => { if (e.Key == "Enter") await SaveEmail(); })" />
+                                <button class="btn btn-warning btn-sm" @onclick="SaveEmail" disabled="@_emailSaving">Zapisz</button>
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _editingEmail = false" disabled="@_emailSaving">Anuluj</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <span>@_user.Email</span>
+                                <span class="badge @(_user.EmailVerified ? "bg-success" : "bg-secondary")">@(_user.EmailVerified ? "✓" : "?")</span>
+                                <button class="btn btn-link btn-sm p-0" title="Zmień email" @onclick="StartEditEmail">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Nazwa użytkownika</div>
+                        @if (_editingUsername)
+                        {
+                            <div class="d-flex gap-1">
+                                <input type="text" class="form-control form-control-sm" @bind="_usernameDraft" @bind:event="oninput" disabled="@_usernameSaving" @onkeydown="@(async e => { if (e.Key == "Enter") await SaveUsername(); })" />
+                                <button class="btn btn-warning btn-sm" @onclick="SaveUsername" disabled="@_usernameSaving">Zapisz</button>
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => _editingUsername = false" disabled="@_usernameSaving">Anuluj</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <span>@_user.Username</span>
+                                <button class="btn btn-link btn-sm p-0" title="Zmień nazwę użytkownika" @onclick="StartEditUsername">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(_user.FirstName) || !string.IsNullOrEmpty(_user.LastName))
+                    {
+                        <div class="mb-2">
+                            <div class="small text-muted">Pełne imię</div>
+                            <div class="text-muted">@_user.FirstName @_user.LastName</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(_user.Slug))
+                    {
+                        <div class="mb-2">
+                            <div class="small text-muted">Slug</div>
+                            <div class="small text-muted">@_user.Slug</div>
+                        </div>
+                    }
+                </div>
 
-                        <dt class="col-sm-4">2FA</dt>
-                        <dd class="col-sm-8">
-                            @if (_user.Is2faEnabled) { <span class="badge bg-success">Włączone</span> }
-                            else { <span class="badge bg-secondary">Wyłączone</span> }
-                        </dd>
+                <div class="col-md-4 p-3 border-end">
+                    <div class="text-uppercase small text-muted fw-bold mb-2">Konto</div>
+                    <div class="mb-2"><div class="small text-muted">Rola</div><span class="badge bg-info">@_user.Role</span></div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Status</div>
+                        @if (_user.Status == "Banned") { <span class="badge bg-danger">Zbanowany</span> }
+                        else if (_user.Status == "Active") { <span class="badge bg-success">Aktywny</span> }
+                        else { <span class="badge bg-secondary">Nieaktywny</span> }
+                    </div>
+                    <div class="mb-2"><div class="small text-muted">Weryfikacja email</div><span class="badge @(_user.EmailVerified ? "bg-success" : "bg-secondary")">@(_user.EmailVerified ? "Zweryfikowany" : "Niezweryfikowany")</span></div>
+                    <div class="mb-2"><div class="small text-muted">2FA</div><span class="badge @(_user.Is2faEnabled ? "bg-success" : "bg-secondary")">@(_user.Is2faEnabled ? "Włączone" : "Wyłączone")</span></div>
+                    <div class="mb-2"><div class="small text-muted">Rejestracja</div><div>@(_user.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</div></div>
+                </div>
 
-                        <dt class="col-sm-4">Status</dt>
-                        <dd class="col-sm-8">
-                            @if (_user.Status == "Banned") { <span class="badge bg-danger">Zbanowany</span> }
-                            else if (_user.Status == "Active") { <span class="badge bg-success">Aktywny</span> }
-                            else { <span class="badge bg-secondary">@_user.Status</span> }
-                        </dd>
-
-                        <dt class="col-sm-4">Rejestracja</dt>
-                        <dd class="col-sm-8">@(_user.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</dd>
-                    </dl>
+                <div class="col-md-4 p-3">
+                    <div class="text-uppercase small text-muted fw-bold mb-2">Aktywność i bezpieczeństwo</div>
+                    <div class="mb-2"><div class="small text-muted">Ostatnie logowanie</div><div>@(_user.LastLoginAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</div></div>
+                    <div class="mb-2">
+                        <div class="small text-muted">Błędne logowania</div>
+                        <div>@_user.FailedLoginCount</div>
+                    </div>
+                    @if (_user.LockedUntilUtc.HasValue && _user.LockedUntilUtc.Value > DateTime.UtcNow)
+                    {
+                        <div class="mb-2">
+                            <span class="badge bg-danger">Zablokowane</span>
+                            <div class="small text-danger">do @_user.LockedUntilUtc.Value.ToLocalTime().ToString("dd.MM HH:mm") · @_user.FailedLoginCount prób</div>
+                        </div>
+                    }
+                    <div class="mb-2"><div class="small text-muted">Zdjęcia w systemie</div><div>@_user.PhotoCount</div></div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleReviews" style="cursor:pointer">
+            <div><i class="fa-solid fa-comment-dots me-2"></i>Recenzje <span class="badge bg-warning ms-1">@_user.ReviewCount</span></div>
+            <i class="fa-solid @(_openReviews ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openReviews)
+        {
+            <div class="card-body">
+                @if (_loadErrorReviews)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadReviews(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedReviews)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_reviewItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak recenzji.</div>
+                }
+                else
+                {
+                    @foreach (var r in _reviewItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                            <a href="/admin/dishes/@r.DishPublicId" class="text-decoration-none flex-grow-1 text-truncate">
+                                @r.DishName <span class="text-muted">— @r.RestaurantName</span>
+                            </a>
+                            <span class="badge bg-warning mx-2">@r.DishRating★</span>
+                            <span class="badge @(r.ModerationStatus == "Approved" ? "bg-success" : "bg-secondary")">@r.ModerationStatus</span>
+                            <span class="text-muted ms-2">@FormatRelative(r.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pageReviews < _totalPagesReviews)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreReviews">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleSecurityLogs" style="cursor:pointer">
+            <div><i class="fa-solid fa-shield-halved me-2"></i>Historia logowań</div>
+            <i class="fa-solid @(_openSecurityLogs ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openSecurityLogs)
+        {
+            <div class="card-body">
+                @if (_loadErrorSecurityLogs)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadSecurityLogs(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedSecurityLogs)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_securityLogItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak historii logowań.</div>
+                }
+                else
+                {
+                    @foreach (var s in _securityLogItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                            <span class="flex-grow-1">@TranslateEventType(s.EventType)</span>
+                            <span class="text-muted mx-2">@s.IpAddress @s.City @s.CountryCode</span>
+                            <span class="text-muted">@FormatRelative(s.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pageSecurityLogs < _totalPagesSecurityLogs)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreSecurityLogs">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="TogglePhotos" style="cursor:pointer">
+            <div><i class="fa-solid fa-image me-2"></i>Zdjęcia <span class="badge bg-warning ms-1">@_user.PhotoCount</span></div>
+            <i class="fa-solid @(_openPhotos ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openPhotos)
+        {
+            <div class="card-body">
+                @if (_loadErrorPhotos)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadPhotos(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedPhotos)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_photoItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak zdjęć.</div>
+                }
+                else
+                {
+                    @foreach (var p in _photoItems)
+                    {
+                        <div class="d-flex align-items-center gap-2 border-bottom py-1 small">
+                            <img src="@p.Url" style="width:40px;height:40px;object-fit:cover;border-radius:4px" alt="" />
+                            <span class="badge bg-secondary">@p.EntityType</span>
+                            @if (!string.IsNullOrEmpty(p.Status))
+                            {
+                                <span class="badge @(p.Status == "Approved" ? "bg-success" : "bg-secondary")">@p.Status</span>
+                            }
+                            <span class="text-muted ms-auto">@FormatRelative(p.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pagePhotos < _totalPagesPhotos)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMorePhotos">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleTickets" style="cursor:pointer">
+            <div><i class="fa-solid fa-ticket me-2"></i>Tickety</div>
+            <i class="fa-solid @(_openTickets ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openTickets)
+        {
+            <div class="card-body">
+                @if (_loadErrorTickets)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadTickets(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedTickets)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_ticketItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak ticketów.</div>
+                }
+                else
+                {
+                    @foreach (var t in _ticketItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                            <a href="/admin/tickets/@t.TicketId" class="text-decoration-none flex-grow-1 text-truncate">@t.TicketType</a>
+                            <span class="badge bg-secondary mx-2">@t.Status</span>
+                            <span class="text-muted text-truncate" style="max-width:120px">@Truncate(t.Description, 50)</span>
+                            <span class="text-muted ms-2">@FormatRelative(t.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pageTickets < _totalPagesTickets)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreTickets">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleActionLogs" style="cursor:pointer">
+            <div><i class="fa-solid fa-clock-rotate-left me-2"></i>Historia akcji admina</div>
+            <i class="fa-solid @(_openActionLogs ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openActionLogs)
+        {
+            <div class="card-body">
+                @if (_loadErrorActionLogs)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadActionLogs(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedActionLogs)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_actionLogItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak historii akcji.</div>
+                }
+                else
+                {
+                    @foreach (var l in _actionLogItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                            <span class="flex-grow-1">@TranslateActionType(l.ActionType)</span>
+                            @if (!string.IsNullOrEmpty(l.OldValue) && !string.IsNullOrEmpty(l.NewValue))
+                            {
+                                <span class="text-muted mx-2">@l.OldValue &#8594; @l.NewValue</span>
+                            }
+                            else if (!string.IsNullOrEmpty(l.OldValue))
+                            {
+                                <span class="text-muted mx-2">@l.OldValue</span>
+                            }
+                            else if (!string.IsNullOrEmpty(l.NewValue))
+                            {
+                                <span class="text-muted mx-2">@l.NewValue</span>
+                            }
+                            <span class="text-muted mx-2">@(l.ActorUsername ?? "system")</span>
+                            @if (!string.IsNullOrEmpty(l.Reason))
+                            {
+                                <span class="text-muted fst-italic mx-1">@l.Reason</span>
+                            }
+                            <span class="text-muted">@FormatRelative(l.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pageActionLogs < _totalPagesActionLogs)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreActionLogs">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleFollowers" style="cursor:pointer">
+            <div><i class="fa-solid fa-users me-2"></i>Obserwujący <span class="badge bg-warning ms-1">@_user.FollowersCount</span></div>
+            <i class="fa-solid @(_openFollowers ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openFollowers)
+        {
+            <div class="card-body">
+                @if (_loadErrorFollowers)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadFollowers(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedFollowers)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_followerItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak obserwujących.</div>
+                }
+                else
+                {
+                    @foreach (var f in _followerItems)
+                    {
+                        <div class="d-flex align-items-center gap-2 border-bottom py-1 small">
+                            @if (!string.IsNullOrEmpty(f.AvatarUrl))
+                            {
+                                <img src="@f.AvatarUrl" style="width:24px;height:24px;object-fit:cover;border-radius:50%" alt="" />
+                            }
+                            else
+                            {
+                                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold text-warning" style="width:24px;height:24px;font-size:10px">@GetInitials(f.Username)</div>
+                            }
+                            <a href="/admin/users/@f.PublicId" class="text-decoration-none flex-grow-1">@f.Username</a>
+                            <span class="text-muted">@FormatRelative(f.FollowedAt)</span>
+                        </div>
+                    }
+                    @if (_pageFollowers < _totalPagesFollowers)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreFollowers">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center" role="button" @onclick="ToggleClaims" style="cursor:pointer">
+            <div><i class="fa-solid fa-utensils me-2"></i>Claims restauracji</div>
+            <i class="fa-solid @(_openClaims ? "fa-chevron-up" : "fa-chevron-down")"></i>
+        </div>
+        @if (_openClaims)
+        {
+            <div class="card-body">
+                @if (_loadErrorClaims)
+                {
+                    <div class="text-center text-danger small py-2">
+                        Nie udało się załadować danych.
+                        <a href="javascript:void(0)" @onclick="() => LoadClaims(true)" class="text-warning">Spróbuj ponownie</a>
+                    </div>
+                }
+                else if (!_loadedClaims)
+                {
+                    <div class="text-center py-2"><div class="spinner-border spinner-border-sm text-warning" role="status"></div></div>
+                }
+                else if (_claimItems.Count == 0)
+                {
+                    <div class="text-center text-muted small py-2">Brak claimów restauracji.</div>
+                }
+                else
+                {
+                    @foreach (var c in _claimItems)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                            <a href="/admin/restaurants/by-id/@c.RestaurantId" class="text-decoration-none flex-grow-1 text-truncate">@c.RestaurantName</a>
+                            <span class="badge bg-secondary mx-2">@c.Status</span>
+                            <span class="text-muted">@FormatRelative(c.CreatedAt)</span>
+                        </div>
+                    }
+                    @if (_pageClaims < _totalPagesClaims)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link btn-sm text-warning" @onclick="LoadMoreClaims">Załaduj więcej</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
     </div>
 
     <Smakosz.Client.Components.Modal IsOpen="_roleModalOpen" Title="Zmień rolę użytkownika" OnClose="CloseRoleModal">
@@ -116,7 +546,6 @@ else
             </button>
         </div>
     </Smakosz.Client.Components.Modal>
-
 }
 
 @code {
@@ -128,6 +557,67 @@ else
     private int? _currentUserId;
 
     private bool IsSelfProfile => _currentUserId.HasValue && _user?.UserId == _currentUserId.Value;
+
+    private bool _editingEmail;
+    private string _emailDraft = "";
+    private bool _emailSaving;
+    private bool _editingUsername;
+    private string _usernameDraft = "";
+    private bool _usernameSaving;
+
+    private bool _openReviews;
+    private bool _loadedReviews;
+    private bool _loadErrorReviews;
+    private List<AdminUserReviewDto> _reviewItems = new();
+    private int _pageReviews = 1;
+    private int _totalPagesReviews;
+
+    private bool _openSecurityLogs;
+    private bool _loadedSecurityLogs;
+    private bool _loadErrorSecurityLogs;
+    private List<AdminSecurityLogDto> _securityLogItems = new();
+    private int _pageSecurityLogs = 1;
+    private int _totalPagesSecurityLogs;
+
+    private bool _openPhotos;
+    private bool _loadedPhotos;
+    private bool _loadErrorPhotos;
+    private List<AdminPhotoDto> _photoItems = new();
+    private int _pagePhotos = 1;
+    private int _totalPagesPhotos;
+
+    private bool _openTickets;
+    private bool _loadedTickets;
+    private bool _loadErrorTickets;
+    private List<AdminTicketDto> _ticketItems = new();
+    private int _pageTickets = 1;
+    private int _totalPagesTickets;
+
+    private bool _openActionLogs;
+    private bool _loadedActionLogs;
+    private bool _loadErrorActionLogs;
+    private List<AdminUserActionLogDto> _actionLogItems = new();
+    private int _pageActionLogs = 1;
+    private int _totalPagesActionLogs;
+
+    private bool _openFollowers;
+    private bool _loadedFollowers;
+    private bool _loadErrorFollowers;
+    private List<AdminUserFollowerDto> _followerItems = new();
+    private int _pageFollowers = 1;
+    private int _totalPagesFollowers;
+
+    private bool _openClaims;
+    private bool _loadedClaims;
+    private bool _loadErrorClaims;
+    private List<AdminUserRestaurantClaimDto> _claimItems = new();
+    private int _pageClaims = 1;
+    private int _totalPagesClaims;
+
+    private bool _roleModalOpen;
+    private string _newRole = "User";
+    private string _roleReason = "";
+    private bool _roleSaving;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,6 +640,34 @@ else
     {
         if (await Confirm.AskAsync($"Czy na pewno chcesz odbanować użytkownika {_user!.Username}?"))
             await UserAction("unban");
+    }
+
+    private async Task ConfirmDeactivate()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz dezaktywować użytkownika {_user!.Username}?"))
+        {
+            var success = await AdminService.DeactivateUserAsync(_user.PublicId);
+            if (success)
+            {
+                Toast.ShowSuccess("Użytkownik dezaktywowany.");
+                _user = await AdminService.GetUserAsync(PublicId);
+            }
+            else Toast.ShowError("Operacja nieudana.");
+        }
+    }
+
+    private async Task ConfirmActivate()
+    {
+        if (await Confirm.AskAsync($"Czy na pewno chcesz aktywować użytkownika {_user!.Username}?"))
+        {
+            var success = await AdminService.ActivateUserAsync(_user.PublicId);
+            if (success)
+            {
+                Toast.ShowSuccess("Użytkownik aktywowany.");
+                _user = await AdminService.GetUserAsync(PublicId);
+            }
+            else Toast.ShowError("Operacja nieudana.");
+        }
     }
 
     private async Task ConfirmDisable2fa()
@@ -195,11 +713,6 @@ else
         else Toast.ShowError("Nie udało się wysłać linku resetującego.");
     }
 
-    private bool _roleModalOpen;
-    private string _newRole = "User";
-    private string _roleReason = "";
-    private bool _roleSaving;
-
     private void OpenRoleModal()
     {
         _newRole = _user?.Role ?? "User";
@@ -227,4 +740,294 @@ else
         }
     }
 
+    private void StartEditEmail()
+    {
+        _emailDraft = _user?.Email ?? "";
+        _editingEmail = true;
+    }
+
+    private async Task SaveEmail()
+    {
+        if (_emailSaving || _user is null) return;
+        var trimmed = _emailDraft.Trim();
+        if (string.IsNullOrEmpty(trimmed) || string.Equals(trimmed, _user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            _editingEmail = false;
+            return;
+        }
+        _emailSaving = true;
+        var (success, error) = await AdminService.ChangeUserEmailAsync(_user.PublicId, trimmed);
+        _emailSaving = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Email zmieniony.");
+            _editingEmail = false;
+            _user = await AdminService.GetUserAsync(PublicId);
+        }
+        else Toast.ShowError(error ?? "Nie udało się zmienić emaila.");
+    }
+
+    private void StartEditUsername()
+    {
+        _usernameDraft = _user?.Username ?? "";
+        _editingUsername = true;
+    }
+
+    private async Task SaveUsername()
+    {
+        if (_usernameSaving || _user is null) return;
+        var trimmed = _usernameDraft.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed == _user.Username)
+        {
+            _editingUsername = false;
+            return;
+        }
+        _usernameSaving = true;
+        var (success, error) = await AdminService.ChangeUserUsernameAsync(_user.PublicId, trimmed);
+        _usernameSaving = false;
+        if (success)
+        {
+            Toast.ShowSuccess("Nazwa użytkownika zmieniona.");
+            _editingUsername = false;
+            _user = await AdminService.GetUserAsync(PublicId);
+        }
+        else Toast.ShowError(error ?? "Nie udało się zmienić nazwy użytkownika.");
+    }
+
+    private async Task ToggleReviews()
+    {
+        _openReviews = !_openReviews;
+        if (_openReviews && !_loadedReviews) await LoadReviews(reset: true);
+    }
+
+    private async Task LoadReviews(bool reset)
+    {
+        if (reset) { _reviewItems.Clear(); _pageReviews = 1; }
+        _loadErrorReviews = false;
+        var page = await AdminService.GetUserReviewsAsync(PublicId, _pageReviews);
+        if (page is null) { _loadErrorReviews = true; return; }
+        _reviewItems.AddRange(page.Data);
+        _totalPagesReviews = page.Pagination.TotalPages;
+        _loadedReviews = true;
+    }
+
+    private async Task LoadMoreReviews()
+    {
+        _pageReviews++;
+        var page = await AdminService.GetUserReviewsAsync(PublicId, _pageReviews);
+        if (page is null) { _pageReviews--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _reviewItems.AddRange(page.Data);
+        _totalPagesReviews = page.Pagination.TotalPages;
+    }
+
+    private async Task ToggleSecurityLogs()
+    {
+        _openSecurityLogs = !_openSecurityLogs;
+        if (_openSecurityLogs && !_loadedSecurityLogs) await LoadSecurityLogs(reset: true);
+    }
+
+    private async Task LoadSecurityLogs(bool reset)
+    {
+        if (reset) { _securityLogItems.Clear(); _pageSecurityLogs = 1; }
+        _loadErrorSecurityLogs = false;
+        var page = await AdminService.GetUserSecurityLogsAsync(PublicId, _pageSecurityLogs);
+        if (page is null) { _loadErrorSecurityLogs = true; return; }
+        _securityLogItems.AddRange(page.Data);
+        _totalPagesSecurityLogs = page.Pagination.TotalPages;
+        _loadedSecurityLogs = true;
+    }
+
+    private async Task LoadMoreSecurityLogs()
+    {
+        _pageSecurityLogs++;
+        var page = await AdminService.GetUserSecurityLogsAsync(PublicId, _pageSecurityLogs);
+        if (page is null) { _pageSecurityLogs--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _securityLogItems.AddRange(page.Data);
+        _totalPagesSecurityLogs = page.Pagination.TotalPages;
+    }
+
+    private async Task TogglePhotos()
+    {
+        _openPhotos = !_openPhotos;
+        if (_openPhotos && !_loadedPhotos) await LoadPhotos(reset: true);
+    }
+
+    private async Task LoadPhotos(bool reset)
+    {
+        if (reset) { _photoItems.Clear(); _pagePhotos = 1; }
+        _loadErrorPhotos = false;
+        var page = await AdminService.GetUserPhotosAsync(PublicId, _pagePhotos);
+        if (page is null) { _loadErrorPhotos = true; return; }
+        _photoItems.AddRange(page.Data);
+        _totalPagesPhotos = page.Pagination.TotalPages;
+        _loadedPhotos = true;
+    }
+
+    private async Task LoadMorePhotos()
+    {
+        _pagePhotos++;
+        var page = await AdminService.GetUserPhotosAsync(PublicId, _pagePhotos);
+        if (page is null) { _pagePhotos--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _photoItems.AddRange(page.Data);
+        _totalPagesPhotos = page.Pagination.TotalPages;
+    }
+
+    private async Task ToggleTickets()
+    {
+        _openTickets = !_openTickets;
+        if (_openTickets && !_loadedTickets) await LoadTickets(reset: true);
+    }
+
+    private async Task LoadTickets(bool reset)
+    {
+        if (reset) { _ticketItems.Clear(); _pageTickets = 1; }
+        _loadErrorTickets = false;
+        var page = await AdminService.GetUserTicketsAsync(PublicId, _pageTickets);
+        if (page is null) { _loadErrorTickets = true; return; }
+        _ticketItems.AddRange(page.Data);
+        _totalPagesTickets = page.Pagination.TotalPages;
+        _loadedTickets = true;
+    }
+
+    private async Task LoadMoreTickets()
+    {
+        _pageTickets++;
+        var page = await AdminService.GetUserTicketsAsync(PublicId, _pageTickets);
+        if (page is null) { _pageTickets--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _ticketItems.AddRange(page.Data);
+        _totalPagesTickets = page.Pagination.TotalPages;
+    }
+
+    private async Task ToggleActionLogs()
+    {
+        _openActionLogs = !_openActionLogs;
+        if (_openActionLogs && !_loadedActionLogs) await LoadActionLogs(reset: true);
+    }
+
+    private async Task LoadActionLogs(bool reset)
+    {
+        if (reset) { _actionLogItems.Clear(); _pageActionLogs = 1; }
+        _loadErrorActionLogs = false;
+        var page = await AdminService.GetUserActionLogsAsync(PublicId, _pageActionLogs);
+        if (page is null) { _loadErrorActionLogs = true; return; }
+        _actionLogItems.AddRange(page.Data);
+        _totalPagesActionLogs = page.Pagination.TotalPages;
+        _loadedActionLogs = true;
+    }
+
+    private async Task LoadMoreActionLogs()
+    {
+        _pageActionLogs++;
+        var page = await AdminService.GetUserActionLogsAsync(PublicId, _pageActionLogs);
+        if (page is null) { _pageActionLogs--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _actionLogItems.AddRange(page.Data);
+        _totalPagesActionLogs = page.Pagination.TotalPages;
+    }
+
+    private async Task ToggleFollowers()
+    {
+        _openFollowers = !_openFollowers;
+        if (_openFollowers && !_loadedFollowers) await LoadFollowers(reset: true);
+    }
+
+    private async Task LoadFollowers(bool reset)
+    {
+        if (reset) { _followerItems.Clear(); _pageFollowers = 1; }
+        _loadErrorFollowers = false;
+        var page = await AdminService.GetUserFollowersAsync(PublicId, _pageFollowers);
+        if (page is null) { _loadErrorFollowers = true; return; }
+        _followerItems.AddRange(page.Data);
+        _totalPagesFollowers = page.Pagination.TotalPages;
+        _loadedFollowers = true;
+    }
+
+    private async Task LoadMoreFollowers()
+    {
+        _pageFollowers++;
+        var page = await AdminService.GetUserFollowersAsync(PublicId, _pageFollowers);
+        if (page is null) { _pageFollowers--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _followerItems.AddRange(page.Data);
+        _totalPagesFollowers = page.Pagination.TotalPages;
+    }
+
+    private async Task ToggleClaims()
+    {
+        _openClaims = !_openClaims;
+        if (_openClaims && !_loadedClaims) await LoadClaims(reset: true);
+    }
+
+    private async Task LoadClaims(bool reset)
+    {
+        if (reset) { _claimItems.Clear(); _pageClaims = 1; }
+        _loadErrorClaims = false;
+        var page = await AdminService.GetUserRestaurantClaimsAsync(PublicId, _pageClaims);
+        if (page is null) { _loadErrorClaims = true; return; }
+        _claimItems.AddRange(page.Data);
+        _totalPagesClaims = page.Pagination.TotalPages;
+        _loadedClaims = true;
+    }
+
+    private async Task LoadMoreClaims()
+    {
+        _pageClaims++;
+        var page = await AdminService.GetUserRestaurantClaimsAsync(PublicId, _pageClaims);
+        if (page is null) { _pageClaims--; Toast.ShowError("Nie udało się załadować kolejnej strony."); return; }
+        _claimItems.AddRange(page.Data);
+        _totalPagesClaims = page.Pagination.TotalPages;
+    }
+
+    private static string GetInitials(string username)
+    {
+        if (string.IsNullOrEmpty(username)) return "?";
+        return username.Length >= 2
+            ? username[..2].ToUpperInvariant()
+            : username[..1].ToUpperInvariant();
+    }
+
+    private static string FormatRelative(DateTime? when)
+    {
+        if (when is null) return "-";
+        var diff = DateTime.UtcNow - when.Value.ToUniversalTime();
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min temu";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h temu";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d temu";
+        return when.Value.ToLocalTime().ToString("dd.MM.yyyy");
+    }
+
+    private static string TranslateActionType(string code) => code switch
+    {
+        "ban" => "Zbanowany",
+        "unban" => "Odbanowany",
+        "role_change" => "Zmiana roli",
+        "deactivate" => "Dezaktywowany",
+        "activate" => "Aktywowany",
+        "email_change" => "Zmiana emaila",
+        "username_change" => "Zmiana nazwy użytkownika",
+        _ => code
+    };
+
+    private static string TranslateEventType(string? code) => code switch
+    {
+        "FailedLogin" => "Nieudane logowanie",
+        "PasswordReset" => "Reset hasła",
+        "PasswordChanged" => "Zmiana hasła",
+        "TwoFactorEnabled" => "Włączenie 2FA",
+        "TwoFactorDisabled" => "Wyłączenie 2FA",
+        "TwoFactorDisabledByAdmin" => "Wyłączenie 2FA przez admina",
+        "PasswordResetByAdmin" => "Reset hasła przez admina",
+        "RoleChanged" => "Zmiana roli",
+        "AccountInvited" => "Zaproszenie do konta",
+        "AccountDeleted" => "Usunięcie konta",
+        "BlockedIp" => "Zablokowany IP",
+        "SuspiciousActivity" => "Podejrzana aktywność",
+        "BannedRegistration" => "Zbanowana rejestracja",
+        null => "(brak)",
+        _ => code
+    };
+
+    private static string Truncate(string? s, int max)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        return s.Length <= max ? s : s[..max] + "...";
+    }
 }
