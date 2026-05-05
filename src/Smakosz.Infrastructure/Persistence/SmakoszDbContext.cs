@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Domain.Common;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.Generator;
 using Smakosz.Domain.Entities.System;
@@ -53,6 +54,14 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
                 && entry.State == EntityState.Added
                 && pub.PublicId == Guid.Empty)
                 pub.PublicId = Guid.CreateVersion7();
+
+            if (entry.Entity is IHasPhone hasPhone && hasPhone.Phone is not null)
+            {
+                var shouldNormalize = entry.State == EntityState.Added
+                    || (entry.State == EntityState.Modified && entry.Property(nameof(IHasPhone.Phone)).IsModified);
+                if (shouldNormalize)
+                    hasPhone.Phone = PhoneNumberNormalizer.Normalize(hasPhone.Phone);
+            }
 
             if (entry.State == EntityState.Added)
             {

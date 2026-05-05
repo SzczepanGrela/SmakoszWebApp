@@ -21,6 +21,7 @@ from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
 from utils.restaurant_helpers import RestaurantNameGenerator
 from utils.text_generator import slugify
+from utils.user_helpers import generate_phone
 
 logger = logging.getLogger(__name__)
 
@@ -186,13 +187,13 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             else:
                 status = "closed_permanently"
 
-            phone = fake.phone_number()
+            phone = generate_phone()
             phone_attempts = 0
             while phone in generated_phones:
                 if phone_attempts > 10:
-                    phone = f"{phone}-{random.randint(1000, 9999)}"
+                    phone = f"{phone[:-3]}{random.randint(100, 999)}"
                     break
-                phone = fake.phone_number()
+                phone = generate_phone()
                 phone_attempts += 1
             generated_phones.add(phone)
 

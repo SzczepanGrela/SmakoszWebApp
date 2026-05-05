@@ -3,7 +3,7 @@ using Smakosz.Domain.Interfaces;
 
 namespace Smakosz.Domain.Entities;
 
-public class User : IAuditableEntity, ISoftDeletable, IHasPublicId
+public class User : IAuditableEntity, ISoftDeletable, IHasPublicId, IHasPhone
 {
     public int UserId { get; set; }
     public Guid PublicId { get; set; }
