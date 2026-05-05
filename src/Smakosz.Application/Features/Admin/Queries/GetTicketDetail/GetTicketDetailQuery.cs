@@ -115,7 +115,7 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
                         Reason = report.Description ?? string.Empty,
                         Status = report.Status.ToString(),
                         ReporterUsername = report.Reporter?.Username,
-                        CreatedAt = report.CreatedAt ?? DateTime.MinValue
+                        CreatedAt = report.CreatedAt
                     };
                 }
                 break;

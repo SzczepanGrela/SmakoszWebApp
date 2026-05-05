@@ -22,6 +22,10 @@ public class FavoriteRestaurantConfiguration : IEntityTypeConfiguration<Favorite
             .HasForeignKey(x => x.RestaurantId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.RestaurantId);
     }
 }

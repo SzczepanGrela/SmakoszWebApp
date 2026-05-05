@@ -11,5 +11,5 @@ public class Ingredient
     public bool IsVegan { get; set; } = true;
     public bool IsGlutenFree { get; set; } = true;
     public bool IsLactoseFree { get; set; } = true;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

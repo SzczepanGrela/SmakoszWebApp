@@ -29,7 +29,7 @@ public class UserActionLogConfiguration : IEntityTypeConfiguration<UserActionLog
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.Actor)
             .WithMany()

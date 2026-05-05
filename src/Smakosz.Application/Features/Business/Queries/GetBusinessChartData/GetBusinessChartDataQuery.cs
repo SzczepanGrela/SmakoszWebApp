@@ -40,7 +40,7 @@ public class GetBusinessChartDataHandler : IRequestHandler<GetBusinessChartDataQ
 
         var recentReviews = await reviews
             .Where(r => r.CreatedAt >= cutoff)
-            .GroupBy(r => r.CreatedAt!.Value.Date)
+            .GroupBy(r => r.CreatedAt.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 

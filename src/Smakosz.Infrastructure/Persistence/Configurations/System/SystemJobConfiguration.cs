@@ -44,7 +44,8 @@ public class SystemJobConfiguration : IEntityTypeConfiguration<SystemJob>
             .HasDefaultValue(3);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.Worker)
             .WithMany()

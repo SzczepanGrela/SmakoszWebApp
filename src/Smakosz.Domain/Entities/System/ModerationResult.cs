@@ -16,7 +16,7 @@ public class ModerationResult
     public bool AutoApproved { get; set; }
     public string? AutoApproveReason { get; set; }
     public DateTime? ProcessedAt { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
 

@@ -9,5 +9,5 @@ public class RejectionReason
     public string AdminLabel { get; set; } = string.Empty;
     public string UserMessageTemplate { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

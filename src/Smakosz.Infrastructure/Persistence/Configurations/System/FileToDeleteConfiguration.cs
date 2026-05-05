@@ -30,6 +30,7 @@ public class FileToDeleteConfiguration : IEntityTypeConfiguration<FileToDelete>
             .HasMaxLength(50);
 
         builder.Property(x => x.QueuedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
     }
 }

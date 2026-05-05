@@ -10,6 +10,6 @@ public class EmailLog
     public string? Provider { get; set; }
     public string? ProviderMessageId { get; set; }
     public string? ErrorMessage { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? SentAt { get; set; }
 }

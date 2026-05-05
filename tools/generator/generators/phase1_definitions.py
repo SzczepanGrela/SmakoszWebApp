@@ -139,11 +139,11 @@ class CitiesPhase(BasePhase):
             if not city_config:
                 raise ValueError("cities.json must contain CITY_CONFIG key")
 
-            city_data = []
+            city_data = [{"city_id": 1, "city_name": "Inne", "region": None}]
             for city_name in city_config:
                 city_data.append({"city_name": city_name})
 
-            if not city_data:
+            if len(city_data) <= 1:
                 raise ValueError("No cities found in CITY_CONFIG")
 
             context.db.insert_bulk("cities", city_data)
@@ -194,7 +194,14 @@ class CuisineTypesPhase(BasePhase):
             themes = bdb.get_themes()
             bdb.close()
 
-            cuisine_data = []
+            cuisine_data = [
+                {
+                    "cuisine_type_id": 1,
+                    "name": "inna",
+                    "display_name": "Inna kuchnia",
+                    "icon": None,
+                }
+            ]
             for theme in themes:
                 cuisine_data.append(
                     {

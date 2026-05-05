@@ -38,7 +38,7 @@ namespace Smakosz.Infrastructure.Migrations
                     verdict = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     processing_time_ms = table.Column<int>(type: "integer", nullable: true),
                     fallback = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -72,7 +72,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     city_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     region = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -141,7 +141,7 @@ namespace Smakosz.Infrastructure.Migrations
                     provider = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     provider_message_id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     error_message = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     sent_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -161,7 +161,7 @@ namespace Smakosz.Infrastructure.Migrations
                     reason = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     source_entity = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     source_id = table.Column<int>(type: "integer", nullable: true),
-                    queued_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    queued_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     error = table.Column<string>(type: "text", nullable: true)
                 },
@@ -204,7 +204,7 @@ namespace Smakosz.Infrastructure.Migrations
                     is_vegan = table.Column<bool>(type: "boolean", nullable: false),
                     is_gluten_free = table.Column<bool>(type: "boolean", nullable: false),
                     is_lactose_free = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -222,7 +222,7 @@ namespace Smakosz.Infrastructure.Migrations
                     level = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     message = table.Column<string>(type: "text", nullable: false),
                     context = table.Column<string>(type: "jsonb", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -247,7 +247,7 @@ namespace Smakosz.Infrastructure.Migrations
                     auto_approved = table.Column<bool>(type: "boolean", nullable: false),
                     auto_approve_reason = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     processed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -296,7 +296,7 @@ namespace Smakosz.Infrastructure.Migrations
                     admin_label = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     user_message_template = table.Column<string>(type: "text", nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -312,7 +312,7 @@ namespace Smakosz.Infrastructure.Migrations
                     description = table.Column<string>(type: "text", nullable: true),
                     severity_score = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -330,7 +330,7 @@ namespace Smakosz.Infrastructure.Migrations
                     token_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     permissions = table.Column<string>(type: "jsonb", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -372,7 +372,7 @@ namespace Smakosz.Infrastructure.Migrations
                     category = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     target_entity = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     display_color = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -390,14 +390,14 @@ namespace Smakosz.Infrastructure.Migrations
                     email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     email_verified = table.Column<bool>(type: "boolean", nullable: false),
                     password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    security_stamp = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    security_stamp = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     first_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     full_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     avatar_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     avatar_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
@@ -407,7 +407,7 @@ namespace Smakosz.Infrastructure.Migrations
                     role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     followers_count = table.Column<int>(type: "integer", nullable: false),
                     following_count = table.Column<int>(type: "integer", nullable: false),
-                    slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     is2fa_enabled = table.Column<bool>(type: "boolean", nullable: false),
                     review_count = table.Column<int>(type: "integer", nullable: false),
                     photo_count = table.Column<int>(type: "integer", nullable: false),
@@ -479,7 +479,7 @@ namespace Smakosz.Infrastructure.Migrations
                     error_message = table.Column<string>(type: "text", nullable: true),
                     attempts = table.Column<int>(type: "integer", nullable: false),
                     max_attempts = table.Column<int>(type: "integer", nullable: false, defaultValue: 3),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     started_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     finished_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
@@ -507,7 +507,7 @@ namespace Smakosz.Infrastructure.Migrations
                     value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     reason = table.Column<string>(type: "text", nullable: true),
                     banned_by = table.Column<int>(type: "integer", nullable: true),
-                    banned_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    banned_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -532,7 +532,7 @@ namespace Smakosz.Infrastructure.Migrations
                     category = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_regex = table.Column<bool>(type: "boolean", nullable: false),
                     added_by = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -561,7 +561,7 @@ namespace Smakosz.Infrastructure.Migrations
                     is_primary = table.Column<bool>(type: "boolean", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     uploaded_by = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     credit_text = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -592,7 +592,7 @@ namespace Smakosz.Infrastructure.Migrations
                     admin_note = table.Column<string>(type: "text", nullable: true),
                     processed_by = table.Column<int>(type: "integer", nullable: true),
                     ai_scores = table.Column<string>(type: "jsonb", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -623,7 +623,7 @@ namespace Smakosz.Infrastructure.Migrations
                     counter = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     is_read = table.Column<bool>(type: "boolean", nullable: false),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     send_email = table.Column<bool>(type: "boolean", nullable: false),
                     email_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
@@ -639,7 +639,7 @@ namespace Smakosz.Infrastructure.Migrations
                         column: x => x.actor_id,
                         principalTable: "users",
                         principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "fk_notifications_users_user_id",
                         column: x => x.user_id,
@@ -683,7 +683,7 @@ namespace Smakosz.Infrastructure.Migrations
                     entity_id = table.Column<int>(type: "integer", nullable: false),
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     resolved_by_admin_id = table.Column<int>(type: "integer", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -711,23 +711,23 @@ namespace Smakosz.Infrastructure.Migrations
                     restaurant_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     public_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    city_id = table.Column<int>(type: "integer", nullable: true),
+                    city_id = table.Column<int>(type: "integer", nullable: false),
                     restaurant_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    cuisine_type_id = table.Column<int>(type: "integer", nullable: true),
+                    cuisine_type_id = table.Column<int>(type: "integer", nullable: false),
                     price_level = table.Column<int>(type: "integer", nullable: true),
-                    address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    address = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     postal_code = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
                     phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     website = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_verified = table.Column<bool>(type: "boolean", nullable: false),
                     owner_id = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_service = table.Column<double>(type: "double precision", nullable: true),
                     avg_cleanliness = table.Column<double>(type: "double precision", nullable: true),
@@ -754,13 +754,14 @@ namespace Smakosz.Infrastructure.Migrations
                         name: "fk_restaurants_cities_city_id",
                         column: x => x.city_id,
                         principalTable: "cities",
-                        principalColumn: "city_id");
+                        principalColumn: "city_id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "fk_restaurants_cuisine_types_cuisine_type_id",
                         column: x => x.cuisine_type_id,
                         principalTable: "cuisine_types",
                         principalColumn: "cuisine_type_id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "fk_restaurants_users_owner_id",
                         column: x => x.owner_id,
@@ -777,7 +778,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<int>(type: "integer", nullable: true),
                     search_query = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -797,7 +798,7 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     log_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    event_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    event_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     ip_address = table.Column<IPAddress>(type: "inet", nullable: true),
                     user_agent = table.Column<string>(type: "text", nullable: true),
                     email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -805,7 +806,7 @@ namespace Smakosz.Infrastructure.Migrations
                     details = table.Column<string>(type: "jsonb", nullable: true),
                     country_code = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true),
                     city = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -858,6 +859,38 @@ namespace Smakosz.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "fk_tickets_users_resolved_by_admin_id",
                         column: x => x.resolved_by_admin_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "user_action_logs",
+                schema: "system",
+                columns: table => new
+                {
+                    action_log_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<int>(type: "integer", nullable: true),
+                    actor_user_id = table.Column<int>(type: "integer", nullable: true),
+                    action_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    old_value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    new_value = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_user_action_logs", x => x.action_log_id);
+                    table.ForeignKey(
+                        name: "fk_user_action_logs_users_actor_user_id",
+                        column: x => x.actor_user_id,
+                        principalTable: "users",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "fk_user_action_logs_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.SetNull);
@@ -923,7 +956,7 @@ namespace Smakosz.Infrastructure.Migrations
                     last_active_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     is_revoked = table.Column<bool>(type: "boolean", nullable: false),
                     is_remember_me = table.Column<bool>(type: "boolean", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -948,7 +981,7 @@ namespace Smakosz.Infrastructure.Migrations
                     payload = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     attempts_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -977,7 +1010,7 @@ namespace Smakosz.Infrastructure.Migrations
                     total_steps = table.Column<int>(type: "integer", nullable: true),
                     percentage = table.Column<double>(type: "double precision", nullable: true, computedColumnSql: "CASE WHEN total_steps > 0 THEN (current_step::double precision / total_steps) * 100 ELSE 0 END", stored: true),
                     metadata = table.Column<string>(type: "jsonb", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -1027,7 +1060,7 @@ namespace Smakosz.Infrastructure.Migrations
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     proposed_value = table.Column<string>(type: "jsonb", nullable: true),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "pending"),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     response_deadline = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
                 },
@@ -1055,11 +1088,11 @@ namespace Smakosz.Infrastructure.Migrations
                     dish_id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     public_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    restaurant_id = table.Column<int>(type: "integer", nullable: true),
+                    restaurant_id = table.Column<int>(type: "integer", nullable: false),
                     dish_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    price = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
+                    price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
                     description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    slug = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     trending_score = table.Column<decimal>(type: "numeric(10,4)", nullable: true),
                     is_vegetarian = table.Column<bool>(type: "boolean", nullable: false),
                     is_vegan = table.Column<bool>(type: "boolean", nullable: false),
@@ -1070,7 +1103,7 @@ namespace Smakosz.Infrastructure.Migrations
                     calories = table.Column<int>(type: "integer", nullable: true),
                     image_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     image_blurhash = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     avg_rating = table.Column<double>(type: "double precision", nullable: true),
                     review_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
@@ -1089,12 +1122,14 @@ namespace Smakosz.Infrastructure.Migrations
                         name: "fk_dishes_dish_variants_secret_variant_id",
                         column: x => x.secret_variant_id,
                         principalTable: "dish_variants",
-                        principalColumn: "variant_id");
+                        principalColumn: "variant_id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "fk_dishes_restaurants_restaurant_id",
                         column: x => x.restaurant_id,
                         principalTable: "restaurants",
-                        principalColumn: "restaurant_id");
+                        principalColumn: "restaurant_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1103,7 +1138,7 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     restaurant_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -1141,7 +1176,7 @@ namespace Smakosz.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     admin_note = table.Column<string>(type: "text", nullable: true),
                     reviewed_by_admin_id = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     merged_ingredient_id = table.Column<int>(type: "integer", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -1184,7 +1219,7 @@ namespace Smakosz.Infrastructure.Migrations
                     restaurant_id = table.Column<int>(type: "integer", nullable: false),
                     section_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     display_order = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     moderation_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
@@ -1224,7 +1259,7 @@ namespace Smakosz.Infrastructure.Migrations
                     reviewed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     rejection_reason = table.Column<string>(type: "text", nullable: true),
                     admin_note = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     resolved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     resolved_by_admin_id = table.Column<int>(type: "integer", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -1248,7 +1283,8 @@ namespace Smakosz.Infrastructure.Migrations
                         name: "fk_restaurant_edit_requests_users_reviewed_by",
                         column: x => x.reviewed_by,
                         principalTable: "users",
-                        principalColumn: "user_id");
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "fk_restaurant_edit_requests_users_user_id",
                         column: x => x.user_id,
@@ -1325,7 +1361,7 @@ namespace Smakosz.Infrastructure.Migrations
                         column: x => x.ingredient_id,
                         principalTable: "ingredients",
                         principalColumn: "ingredient_id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1363,7 +1399,7 @@ namespace Smakosz.Infrastructure.Migrations
                     restaurant_id = table.Column<int>(type: "integer", nullable: false),
                     dish_id = table.Column<int>(type: "integer", nullable: false),
                     visit_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     dish_rating = table.Column<int>(type: "integer", nullable: false),
                     service_rating = table.Column<int>(type: "integer", nullable: false),
@@ -1374,7 +1410,6 @@ namespace Smakosz.Infrastructure.Migrations
                     content_status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     content_rejection_reason = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     helpful_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    is_approved = table.Column<bool>(type: "boolean", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
                     deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
@@ -1408,7 +1443,7 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     dish_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -1459,7 +1494,7 @@ namespace Smakosz.Infrastructure.Migrations
                 {
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     review_id = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -1952,6 +1987,11 @@ namespace Smakosz.Infrastructure.Migrations
                 column: "restaurant_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_restaurant_opening_hours_restaurant_id_day_of_week",
+                table: "restaurant_opening_hours",
+                columns: new[] { "restaurant_id", "day_of_week" });
+
+            migrationBuilder.CreateIndex(
                 name: "ix_restaurant_tags_tag_id",
                 table: "restaurant_tags",
                 column: "tag_id");
@@ -2118,16 +2158,38 @@ namespace Smakosz.Infrastructure.Migrations
                 descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
+                name: "ix_tickets_ticket_type_created_at",
+                schema: "system",
+                table: "tickets",
+                columns: new[] { "ticket_type", "created_at" },
+                descending: new[] { false, true },
+                filter: "status = 'open'");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tickets_ticket_type_reference_id",
                 schema: "system",
                 table: "tickets",
                 columns: new[] { "ticket_type", "reference_id" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_tickets_ticket_type_status",
+                name: "ix_tickets_ticket_type_status_created_at",
                 schema: "system",
                 table: "tickets",
-                columns: new[] { "ticket_type", "status" });
+                columns: new[] { "ticket_type", "status", "created_at" },
+                descending: new[] { false, false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_action_logs_actor_user_id",
+                schema: "system",
+                table: "user_action_logs",
+                column: "actor_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_action_logs_user_id_created_at",
+                schema: "system",
+                table: "user_action_logs",
+                columns: new[] { "user_id", "created_at" },
+                descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_follows_followed_id_created_at",
@@ -2319,6 +2381,10 @@ namespace Smakosz.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "tickets",
+                schema: "system");
+
+            migrationBuilder.DropTable(
+                name: "user_action_logs",
                 schema: "system");
 
             migrationBuilder.DropTable(

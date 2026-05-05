@@ -57,7 +57,7 @@ public class CreateDishHandlerTests
     public async Task Handle_NoRestaurant_ReturnsNotFoundError()
     {
         var result = await _handler.Handle(
-            new CreateDishCommand("Pasta", null, null, null, true, "Pizza"),
+            new CreateDishCommand("Pasta", 0m, null, null, true, "Pizza"),
             CancellationToken.None);
 
         result.IsError.Should().BeTrue();

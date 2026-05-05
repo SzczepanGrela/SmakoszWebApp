@@ -8,11 +8,11 @@ public class Dish : IAuditableEntity, IHasPublicId, IModerable
 {
     public int DishId { get; set; }
     public Guid PublicId { get; set; }
-    public int? RestaurantId { get; set; }
+    public int RestaurantId { get; set; }
     public string DishName { get; set; } = string.Empty;
-    public decimal? Price { get; set; }
+    public decimal Price { get; set; }
     public string? Description { get; set; }
-    public string? Slug { get; set; }
+    public string Slug { get; set; } = string.Empty;
     public decimal? TrendingScore { get; set; }
     public bool IsVegetarian { get; set; } = true;
     public bool IsVegan { get; set; }
@@ -23,7 +23,7 @@ public class Dish : IAuditableEntity, IHasPublicId, IModerable
     public int? Calories { get; set; }
     public string? ImageUrl { get; set; }
     public string? ImageBlurhash { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public double? AvgRating { get; set; }
     public int ReviewCount { get; set; }
@@ -41,7 +41,7 @@ public class Dish : IAuditableEntity, IHasPublicId, IModerable
     public double? SecretPopularityFactor { get; set; }
     #endregion
 
-    public Restaurant? Restaurant { get; set; }
+    public Restaurant Restaurant { get; set; } = null!;
     public DishVariant? SecretVariant { get; set; }
     public ICollection<DishIngredient> DishIngredients { get; set; } = new List<DishIngredient>();
     public ICollection<DishTag> DishTags { get; set; } = new List<DishTag>();

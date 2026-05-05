@@ -24,7 +24,8 @@ public class BannedIdentifierConfiguration : IEntityTypeConfiguration<BannedIden
             .IsRequired();
 
         builder.Property(x => x.BannedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.BannedByUser)
             .WithMany()

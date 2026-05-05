@@ -19,7 +19,7 @@ public class IngredientSuggestion : IVersioned
     public IngredientSuggestionStatus Status { get; set; } = IngredientSuggestionStatus.Pending;
     public string? AdminNote { get; set; }
     public int? ReviewedByAdminId { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public int? MergedIngredientId { get; set; }
     public int Version { get; set; } = 1;

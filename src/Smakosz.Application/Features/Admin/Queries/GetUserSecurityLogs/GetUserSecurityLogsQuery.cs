@@ -50,7 +50,7 @@ public class GetUserSecurityLogsHandler : IRequestHandler<GetUserSecurityLogsQue
             .Select(s => new SecurityLogDto
             {
                 LogId = s.LogId,
-                EventType = s.EventType != null ? s.EventType.ToString() : null,
+                EventType = s.EventType.ToString(),
                 IpAddress = s.IpAddress,
                 UserAgent = s.UserAgent,
                 Email = s.Email,

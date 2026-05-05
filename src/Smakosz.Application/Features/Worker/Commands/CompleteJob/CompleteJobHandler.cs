@@ -106,15 +106,12 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
                 {
                     case "approved":
                         review.ModerationStatus = ContentModerationStatus.Approved;
-                        review.IsApproved = true;
                         break;
                     case "rejected":
                         review.ModerationStatus = ContentModerationStatus.Rejected;
-                        review.IsApproved = false;
                         break;
                     default:
                         review.ModerationStatus = ContentModerationStatus.NeedsReview;
-                        review.IsApproved = null;
                         break;
                 }
             }
@@ -422,15 +419,12 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
         {
             case "approved":
                 review.ModerationStatus = ContentModerationStatus.Approved;
-                review.IsApproved = true;
                 break;
             case "rejected":
                 review.ModerationStatus = ContentModerationStatus.Rejected;
-                review.IsApproved = false;
                 break;
             default:
                 review.ModerationStatus = ContentModerationStatus.NeedsReview;
-                review.IsApproved = null;
                 break;
         }
     }

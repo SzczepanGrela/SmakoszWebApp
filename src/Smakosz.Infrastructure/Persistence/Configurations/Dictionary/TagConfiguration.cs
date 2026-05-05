@@ -26,6 +26,10 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.Property(x => x.DisplayColor)
             .HasMaxLength(20);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.TagName)
             .IsUnique();
 

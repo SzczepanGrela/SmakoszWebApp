@@ -48,6 +48,10 @@ public class MediaAssetConfiguration : IEntityTypeConfiguration<MediaAsset>
             .HasDefaultValue(1)
             .IsConcurrencyToken();
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasOne(x => x.Uploader)
             .WithMany()
             .HasForeignKey(x => x.UploadedBy)

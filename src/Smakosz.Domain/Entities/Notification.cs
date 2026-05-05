@@ -18,7 +18,7 @@ public class Notification : IAuditableEntity, IHasPublicId
     public int Counter { get; set; } = 1;
     public bool IsRead { get; set; }
     public bool IsDeleted { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public bool SendEmail { get; set; }
     public EmailStatus EmailStatus { get; set; } = EmailStatus.None;

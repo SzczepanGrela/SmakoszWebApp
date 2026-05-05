@@ -57,7 +57,6 @@ public class CompleteJobBatchTests
 
         result.IsError.Should().BeFalse();
         review.ModerationStatus.Should().Be(ContentModerationStatus.Approved);
-        review.IsApproved.Should().BeTrue();
         _sets.ModerationLogs.Should().HaveCount(1);
         _sets.AiLogs.Should().HaveCount(1);
 
@@ -93,7 +92,6 @@ public class CompleteJobBatchTests
 
         result.IsError.Should().BeFalse();
         review.ModerationStatus.Should().Be(ContentModerationStatus.Rejected);
-        review.IsApproved.Should().BeFalse();
     }
 
     [Fact]
@@ -322,7 +320,6 @@ public class CompleteJobBatchTests
 
         result.IsError.Should().BeFalse();
         review.ModerationStatus.Should().Be(ContentModerationStatus.NeedsReview);
-        review.IsApproved.Should().BeNull();
     }
 
     [Fact]

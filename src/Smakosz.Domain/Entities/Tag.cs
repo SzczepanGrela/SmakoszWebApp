@@ -9,5 +9,5 @@ public class Tag
     public string Category { get; set; } = string.Empty;
     public TagTargetEntity TargetEntity { get; set; } = TagTargetEntity.Both;
     public string? DisplayColor { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

@@ -9,5 +9,5 @@ public class SystemLog
     public LogLevel Level { get; set; }
     public string Message { get; set; } = string.Empty;
     public string? Context { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

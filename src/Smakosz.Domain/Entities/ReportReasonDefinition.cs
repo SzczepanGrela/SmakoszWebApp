@@ -7,5 +7,5 @@ public class ReportReasonDefinition
     public string? Description { get; set; }
     public int SeverityScore { get; set; } = 1;
     public bool IsActive { get; set; } = true;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

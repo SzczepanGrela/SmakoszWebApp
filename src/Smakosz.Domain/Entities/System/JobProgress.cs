@@ -12,7 +12,7 @@ public class JobProgress
     public int? TotalSteps { get; set; }
     public double? Percentage { get; set; }
     public string? Metadata { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public SystemJob Job { get; set; } = null!;
 }

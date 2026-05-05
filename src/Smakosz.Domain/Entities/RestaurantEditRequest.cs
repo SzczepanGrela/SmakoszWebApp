@@ -26,7 +26,7 @@ public class RestaurantEditRequest : IVersioned, IModerable
     public DateTime? ReviewedAt { get; set; }
     public string? RejectionReason { get; set; }
     public string? AdminNote { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public int? ResolvedByAdminId { get; set; }
     public int Version { get; set; } = 1;

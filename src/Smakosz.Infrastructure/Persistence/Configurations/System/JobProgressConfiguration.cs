@@ -24,7 +24,8 @@ public class JobProgressConfiguration : IEntityTypeConfiguration<JobProgress>
             .HasColumnType("jsonb");
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.Job)
             .WithMany()

@@ -22,6 +22,10 @@ public class SavedDishConfiguration : IEntityTypeConfiguration<SavedDish>
             .HasForeignKey(x => x.DishId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.DishId);
     }
 }

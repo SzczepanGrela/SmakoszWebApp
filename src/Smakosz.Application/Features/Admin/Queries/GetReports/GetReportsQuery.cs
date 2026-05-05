@@ -48,7 +48,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, ErrorOr<PagedR
                 Reason = r.Description ?? string.Empty,
                 Status = r.Status.ToString().ToLowerInvariant(),
                 ReporterUsername = r.Reporter.Username,
-                CreatedAt = r.CreatedAt ?? DateTime.MinValue
+                CreatedAt = r.CreatedAt
             })
             .ToListAsync(cancellationToken);
 

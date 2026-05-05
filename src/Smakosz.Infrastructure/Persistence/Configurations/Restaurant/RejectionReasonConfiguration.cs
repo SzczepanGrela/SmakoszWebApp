@@ -30,6 +30,10 @@ public class RejectionReasonConfiguration : IEntityTypeConfiguration<RejectionRe
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.AdminLabel)
             .IsUnique();
 

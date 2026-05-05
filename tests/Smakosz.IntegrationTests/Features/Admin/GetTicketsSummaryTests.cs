@@ -17,7 +17,6 @@ public class GetTicketsSummaryTests : IntegrationTestBase
         {
             db.Users.Add(SeedHelpers.CreateAdminUser(99, hash));
             db.Users.Add(SeedHelpers.CreateUser(1, "jan", "jan@test.test", hash));
-            db.SiteStats.Add(SeedHelpers.CreateSiteStats());
             await db.SaveChangesAsync();
 
             db.SystemTickets.AddRange(

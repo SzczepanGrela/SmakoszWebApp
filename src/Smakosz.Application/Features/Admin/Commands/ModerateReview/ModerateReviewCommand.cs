@@ -80,7 +80,6 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         }
 
         review.ModerationStatus = request.Approve ? ContentModerationStatus.Approved : ContentModerationStatus.Rejected;
-        review.IsApproved = request.Approve;
 
         if (!request.Approve)
             review.ContentRejectionReason = resolvedText;

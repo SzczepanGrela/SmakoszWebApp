@@ -12,6 +12,8 @@ public class DataCorrectionRequestConfiguration : IEntityTypeConfiguration<DataC
     {
         builder.HasKey(x => x.RequestId);
 
+        builder.HasQueryFilter(x => x.UserId == null || !x.User!.IsDeleted);
+
         builder.Property(x => x.IssueType)
             .HasConversion(new SnakeCaseEnumConverter<DataCorrectionIssueType>())
             .HasMaxLength(50)
@@ -30,6 +32,10 @@ public class DataCorrectionRequestConfiguration : IEntityTypeConfiguration<DataC
         builder.Property(x => x.Version)
             .HasDefaultValue(1)
             .IsConcurrencyToken();
+
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.User)
             .WithMany()

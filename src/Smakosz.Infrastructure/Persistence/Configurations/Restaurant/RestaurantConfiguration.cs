@@ -20,7 +20,8 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .IsRequired();
 
         builder.Property(x => x.Address)
-            .HasMaxLength(200);
+            .HasMaxLength(200)
+            .IsRequired();
 
         builder.Property(x => x.PostalCode)
             .HasMaxLength(10);
@@ -38,7 +39,8 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasMaxLength(1000);
 
         builder.Property(x => x.Slug)
-            .HasMaxLength(255);
+            .HasMaxLength(255)
+            .IsRequired();
 
         builder.Property(x => x.ImageUrl)
             .HasMaxLength(500);
@@ -58,6 +60,7 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasColumnType("numeric(10,4)");
 
         builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
             .IsRequired();
 
         builder.Property(x => x.Version)
@@ -75,12 +78,13 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
 
         builder.HasOne(x => x.City)
             .WithMany()
-            .HasForeignKey(x => x.CityId);
+            .HasForeignKey(x => x.CityId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Cuisine)
             .WithMany()
             .HasForeignKey(x => x.CuisineTypeId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Owner)
             .WithMany()

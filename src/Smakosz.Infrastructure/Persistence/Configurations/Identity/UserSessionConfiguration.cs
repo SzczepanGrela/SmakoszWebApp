@@ -28,6 +28,10 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
         builder.Property(x => x.ExpiresAt)
             .IsRequired();
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasOne(x => x.User)
             .WithMany(u => u.Sessions)
             .HasForeignKey(x => x.UserId)

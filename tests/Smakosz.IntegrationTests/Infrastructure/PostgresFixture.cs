@@ -63,7 +63,12 @@ public static class PostgresFixture
                 {
                     DbAdapter = DbAdapter.Postgres,
                     SchemasToInclude = new[] { "public", "system" },
-                    TablesToIgnore = new Respawn.Graph.Table[] { "__EFMigrationsHistory" }
+                    TablesToIgnore = new Respawn.Graph.Table[]
+                    {
+                        "__EFMigrationsHistory",
+                        new Respawn.Graph.Table("system", "site_stats"),
+                        new Respawn.Graph.Table("system", "home_page_cache"),
+                    }
                 });
             }
 

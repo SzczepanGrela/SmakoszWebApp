@@ -10,8 +10,14 @@ public class SearchHistoryConfiguration : IEntityTypeConfiguration<SearchHistory
     {
         builder.HasKey(x => x.SearchId);
 
+        builder.HasQueryFilter(x => x.UserId == null || !x.User!.IsDeleted);
+
         builder.Property(x => x.SearchQuery)
             .HasMaxLength(255)
+            .IsRequired();
+
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
             .IsRequired();
 
         builder.HasOne(x => x.User)

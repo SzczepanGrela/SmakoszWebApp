@@ -12,6 +12,8 @@ public class IngredientSuggestionConfiguration : IEntityTypeConfiguration<Ingred
     {
         builder.HasKey(x => x.SuggestionId);
 
+        builder.HasQueryFilter(x => x.UserId == null || !x.User!.IsDeleted);
+
         builder.Property(x => x.SuggestedName)
             .HasMaxLength(100)
             .IsRequired();
@@ -30,6 +32,10 @@ public class IngredientSuggestionConfiguration : IEntityTypeConfiguration<Ingred
         builder.Property(x => x.Version)
             .HasDefaultValue(1)
             .IsConcurrencyToken();
+
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.User)
             .WithMany()

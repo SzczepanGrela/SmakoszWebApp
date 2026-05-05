@@ -20,7 +20,6 @@ public class ReviewBuilder
         ModerationStatus = ContentModerationStatus.Approved,
         VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
         IsVisible = true,
-        IsApproved = true,
         IsDeleted = false,
         HelpfulCount = 3,
         CreatedAt = DateTime.UtcNow,
@@ -44,7 +43,6 @@ public class ReviewBuilder
     public ReviewBuilder WithCreatedAt(DateTime createdAt) { _review.CreatedAt = createdAt; return this; }
     public ReviewBuilder AsDeleted() { _review.IsDeleted = true; _review.DeletedAt = DateTime.UtcNow; return this; }
     public ReviewBuilder AsVisible() { _review.IsVisible = true; return this; }
-    public ReviewBuilder WithIsApproved(bool? val) { _review.IsApproved = val; return this; }
     public ReviewBuilder AsHidden() { _review.IsVisible = false; return this; }
 
     public Review Build() => _review;

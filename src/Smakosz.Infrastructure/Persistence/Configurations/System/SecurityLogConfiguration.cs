@@ -19,7 +19,8 @@ public class SecurityLogConfiguration : IEntityTypeConfiguration<SecurityLog>
 
         builder.Property(x => x.EventType)
             .HasConversion(new SnakeCaseEnumConverter<SecurityEventType>())
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.Property(x => x.IpAddress)
             .HasConversion(new InetStringConverter())
@@ -38,7 +39,8 @@ public class SecurityLogConfiguration : IEntityTypeConfiguration<SecurityLog>
             .HasMaxLength(100);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.User)
             .WithMany()

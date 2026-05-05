@@ -27,7 +27,8 @@ public class ServiceAccountConfiguration : IEntityTypeConfiguration<ServiceAccou
             .HasDefaultValue(true);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasIndex(x => x.ServiceName)
             .IsUnique();

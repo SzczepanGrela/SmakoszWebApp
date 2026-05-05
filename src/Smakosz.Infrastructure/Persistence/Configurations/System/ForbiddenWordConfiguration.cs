@@ -24,7 +24,8 @@ public class ForbiddenWordConfiguration : IEntityTypeConfiguration<ForbiddenWord
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.AddedByUser)
             .WithMany()

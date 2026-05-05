@@ -22,6 +22,10 @@ public class ReviewLikeConfiguration : IEntityTypeConfiguration<ReviewLike>
             .HasForeignKey(x => x.ReviewId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.ReviewId);
 
         builder.HasIndex(x => new { x.UserId, x.CreatedAt })

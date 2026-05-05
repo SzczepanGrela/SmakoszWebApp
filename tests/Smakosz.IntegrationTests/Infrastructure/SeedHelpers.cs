@@ -9,7 +9,7 @@ public static class SeedHelpers
 {
     public const string DefaultPassword = "Password123!";
 
-    public static City CreateCity(int cityId = 1, string name = "Warszawa", string region = "Mazowieckie")
+    public static City CreateCity(int cityId = 1, string name = "Warszawa", string? region = "Mazowieckie")
     {
         return new City
         {
@@ -30,13 +30,20 @@ public static class SeedHelpers
         };
     }
 
-    // Postgres enforces foreign keys that the previous in-memory provider silently ignored, so every test that creates a Restaurant referencing CuisineTypeId 1 or 2 needs these two rows present first.
+    // Postgres enforces foreign keys that the previous in-memory provider silently ignored, so every test that creates a Restaurant needs CuisineTypes 1 and 2 plus a fallback City and CuisineType lookup row before its own seed runs. The lookup IDs sit at 999 so concrete tests that already seed City 1 (Warszawa) and similar do not collide with the fallback row.
+    public const int FallbackCityId = 999;
+    public const int FallbackCuisineTypeId = 999;
+
     public static async Task SeedFkDefaultsAsync(SmakoszDbContext db)
     {
+        if (!await db.Cities.AnyAsync(c => c.CityId == FallbackCityId))
+            db.Cities.Add(CreateCity(FallbackCityId, "Inne", null));
         if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == 1))
-            db.CuisineTypes.Add(CreateCuisineType(1, "Włoska"));
+            db.CuisineTypes.Add(CreateCuisineType(1, "Wloska"));
         if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == 2))
             db.CuisineTypes.Add(CreateCuisineType(2, "Turecka"));
+        if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == FallbackCuisineTypeId))
+            db.CuisineTypes.Add(CreateCuisineType(FallbackCuisineTypeId, "Inna"));
         await db.SaveChangesAsync();
     }
 
@@ -135,7 +142,7 @@ public static class SeedHelpers
     public static Restaurant CreateRestaurant(
         int restaurantId = 1,
         string name = "Pizzeria Roma",
-        int? cityId = null,
+        int cityId = FallbackCityId,
         int? ownerId = null)
     {
         return new Restaurant
@@ -197,7 +204,6 @@ public static class SeedHelpers
             Content = "Swietna pizza, ciasto idealne!",
             ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
-            IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),
             CreatedAt = DateTime.UtcNow,
         };

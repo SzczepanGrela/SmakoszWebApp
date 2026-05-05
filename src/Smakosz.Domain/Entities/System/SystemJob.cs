@@ -19,7 +19,7 @@ public class SystemJob
     public string? ErrorMessage { get; set; }
     public int Attempts { get; set; }
     public int MaxAttempts { get; set; } = 3;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? FinishedAt { get; set; }
 

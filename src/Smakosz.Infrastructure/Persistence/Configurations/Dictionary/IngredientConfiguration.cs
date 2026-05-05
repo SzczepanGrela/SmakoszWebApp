@@ -20,6 +20,10 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         builder.Property(x => x.IconBlurhash)
             .HasMaxLength(50);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.IngredientName)
             .IsUnique();
     }

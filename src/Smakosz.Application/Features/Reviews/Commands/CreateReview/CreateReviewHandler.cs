@@ -60,7 +60,7 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
         {
             UserId = _currentUser.UserId.Value,
             DishId = dish.DishId,
-            RestaurantId = dish.RestaurantId ?? 0,
+            RestaurantId = dish.RestaurantId,
             DishRating = request.DishRating,
             ServiceRating = request.ServiceRating,
             CleanlinessRating = request.CleanlinessRating,
@@ -68,8 +68,7 @@ public class CreateReviewHandler : IRequestHandler<CreateReviewCommand, ErrorOr<
             Content = request.Content,
             VisitDate = request.VisitDate,
             ModerationStatus = string.IsNullOrEmpty(request.Content) ? ContentModerationStatus.None : ContentModerationStatus.Pending,
-            IsVisible = true,
-            IsApproved = null
+            IsVisible = true
         };
 
         _db.Reviews.Add(review);

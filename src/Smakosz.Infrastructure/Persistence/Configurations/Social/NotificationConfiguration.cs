@@ -34,6 +34,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasColumnType("jsonb");
 
         builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
             .IsRequired();
 
         builder.Property(x => x.Priority)
@@ -65,7 +66,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasOne(x => x.Actor)
             .WithMany()
             .HasForeignKey(x => x.ActorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(x => x.PublicId)
             .IsUnique();

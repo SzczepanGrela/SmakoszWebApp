@@ -137,7 +137,7 @@ public class BusinessController : ApiController
     {
         var result = await _mediator.Send(new CreateDishCommand(
             request.DishName ?? "",
-            request.Price,
+            request.Price ?? 0m,
             request.Description,
             request.Calories,
             request.IsAvailable,

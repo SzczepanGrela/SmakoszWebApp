@@ -12,7 +12,7 @@ public class DataCorrectionRequest : IVersioned
     public string? Description { get; set; }
     public string? ProposedValue { get; set; }
     public string Status { get; set; } = "pending";
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? ResponseDeadline { get; set; }
     public int Version { get; set; } = 1;
 

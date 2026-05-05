@@ -11,7 +11,7 @@ public class Review : IAuditableEntity, ISoftDeletable, IHasPublicId, IVersioned
     public int RestaurantId { get; set; }
     public int DishId { get; set; }
     public DateOnly VisitDate { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int DishRating { get; set; }
     public int ServiceRating { get; set; }
@@ -22,7 +22,6 @@ public class Review : IAuditableEntity, ISoftDeletable, IHasPublicId, IVersioned
     public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.None;
     public string? ContentRejectionReason { get; set; }
     public int HelpfulCount { get; set; }
-    public bool? IsApproved { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public int Version { get; set; } = 1;

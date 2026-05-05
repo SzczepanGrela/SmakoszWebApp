@@ -43,10 +43,10 @@ public class RestaurantBuilder
         return this;
     }
 
-    public RestaurantBuilder WithCuisineTypeId(int? id) { _restaurant.CuisineTypeId = id; return this; }
+    public RestaurantBuilder WithCuisineTypeId(int id) { _restaurant.CuisineTypeId = id; return this; }
     public RestaurantBuilder WithPriceLevel(int? level) { _restaurant.PriceLevel = level; return this; }
     public RestaurantBuilder WithCity(City city) { _restaurant.City = city; _restaurant.CityId = city.CityId; return this; }
-    public RestaurantBuilder WithCityId(int? cityId) { _restaurant.CityId = cityId; return this; }
+    public RestaurantBuilder WithCityId(int cityId) { _restaurant.CityId = cityId; return this; }
     public RestaurantBuilder WithTrendingScore(decimal? score) { _restaurant.TrendingScore = score; return this; }
     public RestaurantBuilder WithAvgFoodScore(double? score) { _restaurant.AvgFoodScore = score; return this; }
     public RestaurantBuilder WithStatus(RestaurantStatus status) { _restaurant.Status = status; return this; }

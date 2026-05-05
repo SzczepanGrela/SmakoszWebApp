@@ -14,7 +14,6 @@ public class AdminAccessTests : IntegrationTestBase
         {
             db.Users.Add(SeedHelpers.CreateAdminUser(99, hash));
             db.Users.Add(SeedHelpers.CreateUser(1, "jan-kowalski", "jan@smakosz.test", hash));
-            db.SiteStats.Add(SeedHelpers.CreateSiteStats());
             await db.SaveChangesAsync();
         });
     }

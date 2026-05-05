@@ -13,7 +13,7 @@ public class ModerationLog
     public string? AdminNote { get; set; }
     public int? ProcessedBy { get; set; }
     public string? AiScores { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public User? ProcessedByUser { get; set; }
 }

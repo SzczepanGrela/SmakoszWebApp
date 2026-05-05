@@ -19,6 +19,10 @@ public class MenuSectionConfiguration : IEntityTypeConfiguration<MenuSection>
         builder.Property(x => x.DisplayOrder)
             .HasDefaultValue(0);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.Property(x => x.ModerationStatus)
             .HasConversion(new SnakeCaseEnumConverter<ContentModerationStatus>())
             .HasMaxLength(20);

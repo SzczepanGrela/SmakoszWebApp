@@ -11,7 +11,7 @@ public class Report : IVersioned
     public int EntityId { get; set; }
     public string? Description { get; set; }
     public ReportStatus Status { get; set; } = ReportStatus.Pending;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public int? ResolvedByAdminId { get; set; }
     public int Version { get; set; } = 1;

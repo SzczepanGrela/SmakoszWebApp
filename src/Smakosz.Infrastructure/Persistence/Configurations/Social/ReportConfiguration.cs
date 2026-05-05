@@ -33,6 +33,10 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
             .HasDefaultValue(1)
             .IsConcurrencyToken();
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasOne(x => x.Reporter)
             .WithMany()
             .HasForeignKey(x => x.ReporterId);

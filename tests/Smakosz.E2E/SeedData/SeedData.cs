@@ -374,7 +374,6 @@ public static class SeedData
             Content = "Swietna pizza, ciasto idealne! Obsluga szybka i mila.",
             ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
-            IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),
             CreatedAt = DateTime.UtcNow,
         };
@@ -392,7 +391,6 @@ public static class SeedData
             Content = "Bardzo dobra margherita, chociaz moglaby byc bardziej chrupiaca.",
             ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
-            IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-14)),
             CreatedAt = DateTime.UtcNow,
         };
@@ -410,7 +408,6 @@ public static class SeedData
             Content = "Kebab byl bardzo smaczny i duzy. Mieso aromatyczne.",
             ModerationStatus = ContentModerationStatus.Approved,
             IsVisible = true,
-            IsApproved = true,
             VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-10)),
             CreatedAt = DateTime.UtcNow,
         };
@@ -464,7 +461,6 @@ public static class SeedData
                 Content = $"Bonus review {i + 1} for pagination testing.",
                 ModerationStatus = ContentModerationStatus.Approved,
                 IsVisible = true,
-                IsApproved = true,
                 VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-(i + 20))),
                 CreatedAt = DateTime.UtcNow.AddDays(-i),
             });

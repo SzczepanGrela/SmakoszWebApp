@@ -13,7 +13,7 @@ namespace Smakosz.Application.Features.Business.Commands.CreateDish;
 
 public record CreateDishCommand(
     string Name,
-    decimal? Price,
+    decimal Price,
     string? Description,
     int? Calories,
     bool IsAvailable,
@@ -187,11 +187,8 @@ public class CreateDishValidator : AbstractValidator<CreateDishCommand>
             .NotEmpty().WithMessage("Nazwa dania jest wymagana")
             .MaximumLength(200).WithMessage("Nazwa dania może mieć maksymalnie 200 znaków");
 
-        When(x => x.Price.HasValue, () =>
-        {
-            RuleFor(x => x.Price!.Value)
-                .GreaterThanOrEqualTo(0).WithMessage("Cena nie może być ujemna");
-        });
+        RuleFor(x => x.Price)
+            .GreaterThanOrEqualTo(0).WithMessage("Cena nie może być ujemna");
 
         RuleFor(x => x.DishCategoryTagName)
             .NotEmpty().WithMessage("Wybór kategorii dania jest wymagany");

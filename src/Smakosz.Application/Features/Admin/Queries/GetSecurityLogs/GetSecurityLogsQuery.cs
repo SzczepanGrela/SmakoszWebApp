@@ -45,7 +45,7 @@ public class GetSecurityLogsHandler : IRequestHandler<GetSecurityLogsQuery, Erro
             .Select(l => new SecurityLogDto
             {
                 LogId = l.LogId,
-                EventType = l.EventType != null ? l.EventType.ToString() : null,
+                EventType = l.EventType.ToString(),
                 IpAddress = l.IpAddress,
                 UserAgent = l.UserAgent,
                 Email = l.Email,

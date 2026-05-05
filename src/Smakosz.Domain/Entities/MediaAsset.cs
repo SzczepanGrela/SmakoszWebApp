@@ -16,7 +16,7 @@ public class MediaAsset : IHasPublicId, IVersioned, IModerable
     public bool IsPrimary { get; set; }
     public ContentModerationStatus ModerationStatus { get; set; } = ContentModerationStatus.Approved;
     public int? UploadedBy { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public string? RejectionReason { get; set; }
     public string? CreditText { get; set; }
     public int Version { get; set; } = 1;

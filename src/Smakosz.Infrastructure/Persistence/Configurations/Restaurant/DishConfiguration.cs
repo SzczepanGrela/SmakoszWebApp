@@ -20,13 +20,15 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .IsRequired();
 
         builder.Property(x => x.Price)
-            .HasColumnType("numeric(10,2)");
+            .HasColumnType("numeric(10,2)")
+            .IsRequired();
 
         builder.Property(x => x.Description)
             .HasMaxLength(500);
 
         builder.Property(x => x.Slug)
-            .HasMaxLength(255);
+            .HasMaxLength(255)
+            .IsRequired();
 
         builder.Property(x => x.TrendingScore)
             .HasColumnType("numeric(10,4)");
@@ -41,6 +43,7 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .HasMaxLength(50);
 
         builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
             .IsRequired();
 
         builder.Property(x => x.ReviewCount)
@@ -62,11 +65,13 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
 
         builder.HasOne(x => x.Restaurant)
             .WithMany()
-            .HasForeignKey(x => x.RestaurantId);
+            .HasForeignKey(x => x.RestaurantId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.SecretVariant)
             .WithMany()
-            .HasForeignKey(x => x.SecretVariantId);
+            .HasForeignKey(x => x.SecretVariantId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(x => x.PublicId)
             .IsUnique();

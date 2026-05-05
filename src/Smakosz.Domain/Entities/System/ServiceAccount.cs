@@ -7,5 +7,5 @@ public class ServiceAccount
     public string TokenHash { get; set; } = string.Empty;
     public string? Permissions { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

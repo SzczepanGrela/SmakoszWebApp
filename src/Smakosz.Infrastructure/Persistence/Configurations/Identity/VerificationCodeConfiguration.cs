@@ -32,6 +32,10 @@ public class VerificationCodeConfiguration : IEntityTypeConfiguration<Verificati
         builder.Property(x => x.AttemptsCount)
             .HasDefaultValue(0);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasOne(x => x.User)
             .WithMany(u => u.VerificationCodes)
             .HasForeignKey(x => x.UserId)

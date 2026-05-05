@@ -17,6 +17,10 @@ public class CityConfiguration : IEntityTypeConfiguration<City>
         builder.Property(x => x.Region)
             .HasMaxLength(100);
 
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
+
         builder.HasIndex(x => x.CityName)
             .IsUnique();
     }

@@ -14,8 +14,8 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    [Migration("20260506073745_AddTicketIndexes")]
-    partial class AddTicketIndexes
+    [Migration("20260507112407_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,9 +111,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("city_name");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Region")
                         .HasMaxLength(100)
@@ -181,9 +183,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RequestId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -258,8 +262,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("calories");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -312,7 +318,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("moderation_status");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("price");
 
@@ -320,7 +326,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("public_id");
 
-                    b.Property<int?>("RestaurantId")
+                    b.Property<int>("RestaurantId")
                         .HasColumnType("integer")
                         .HasColumnName("restaurant_id");
 
@@ -358,6 +364,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("secret_variant_id");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("slug");
@@ -478,9 +485,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("restaurant_id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.HasKey("UserId", "RestaurantId")
                         .HasName("pk_favorite_restaurants");
@@ -561,9 +570,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IngredientId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("IconBlurhash")
                         .HasMaxLength(50)
@@ -624,9 +635,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("admin_note");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("IconBlurhash")
                         .HasMaxLength(50)
@@ -733,9 +746,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("blurhash");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("CreditText")
                         .HasMaxLength(100)
@@ -834,9 +849,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SectionId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int>("DisplayOrder")
                         .ValueGeneratedOnAdd()
@@ -893,8 +910,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("counter");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("EmailStatus")
                         .IsRequired()
@@ -1073,9 +1092,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("category");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -1111,9 +1132,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReportId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -1201,9 +1224,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("reason_code");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .HasColumnType("text")
@@ -1243,6 +1268,7 @@ namespace Smakosz.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RestaurantId"));
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("address");
@@ -1263,15 +1289,17 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("avg_service");
 
-                    b.Property<int?>("CityId")
+                    b.Property<int>("CityId")
                         .HasColumnType("integer")
                         .HasColumnName("city_id");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<int?>("CuisineTypeId")
+                    b.Property<int>("CuisineTypeId")
                         .HasColumnType("integer")
                         .HasColumnName("cuisine_type_id");
 
@@ -1368,6 +1396,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("secret_service_quality");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("slug");
@@ -1467,9 +1496,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("change_type");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("ModerationStatus")
                         .IsRequired()
@@ -1628,6 +1659,9 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasIndex("RestaurantId")
                         .HasDatabaseName("ix_restaurant_opening_hours_restaurant_id");
 
+                    b.HasIndex("RestaurantId", "DayOfWeek")
+                        .HasDatabaseName("ix_restaurant_opening_hours_restaurant_id_day_of_week");
+
                     b.ToTable("restaurant_opening_hours", (string)null);
                 });
 
@@ -1677,8 +1711,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("content_rejection_reason");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1697,10 +1733,6 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0)
                         .HasColumnName("helpful_count");
-
-                    b.Property<bool?>("IsApproved")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_approved");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -1783,9 +1815,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("review_id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.HasKey("UserId", "ReviewId")
                         .HasName("pk_review_likes");
@@ -1810,9 +1844,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("dish_id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.HasKey("UserId", "DishId")
                         .HasName("pk_saved_dishes");
@@ -1878,9 +1914,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SearchId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("SearchQuery")
                         .IsRequired()
@@ -1911,7 +1949,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LogId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -1984,7 +2022,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("BanId"));
 
-                    b.Property<DateTime?>("BannedAt")
+                    b.Property<DateTime>("BannedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("banned_at")
@@ -2036,7 +2074,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LogId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2120,7 +2158,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("processed_at");
 
-                    b.Property<DateTime?>("QueuedAt")
+                    b.Property<DateTime>("QueuedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("queued_at")
@@ -2171,7 +2209,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("category");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2265,7 +2303,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("accuracy");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2338,9 +2376,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("ai_scores");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<int>("EntityId")
                         .HasColumnType("integer")
@@ -2415,7 +2455,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("auto_approved");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2486,7 +2526,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(2)")
                         .HasColumnName("country_code");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2502,6 +2542,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("email");
 
                     b.Property<string>("EventType")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("event_type");
@@ -2544,7 +2585,7 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AccountId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2722,7 +2763,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("attempts");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -2837,7 +2878,7 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("context");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
@@ -3072,6 +3113,63 @@ namespace Smakosz.Infrastructure.Migrations
                     b.ToTable("tickets", "system");
                 });
 
+            modelBuilder.Entity("Smakosz.Domain.Entities.System.UserActionLog", b =>
+                {
+                    b.Property<long>("ActionLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("action_log_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ActionLogId"));
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("action_type");
+
+                    b.Property<int?>("ActorUserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("actor_user_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("new_value");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("old_value");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("ActionLogId")
+                        .HasName("pk_user_action_logs");
+
+                    b.HasIndex("ActorUserId")
+                        .HasDatabaseName("ix_user_action_logs_actor_user_id");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_user_action_logs_user_id_created_at");
+
+                    b.ToTable("user_action_logs", "system");
+                });
+
             modelBuilder.Entity("Smakosz.Domain.Entities.Tag", b =>
                 {
                     b.Property<int>("TagId")
@@ -3087,9 +3185,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("category");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("DisplayColor")
                         .HasMaxLength(20)
@@ -3141,8 +3241,10 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("avatar_url");
 
                     b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -3301,11 +3403,13 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnName("secret_travel_propensity");
 
                     b.Property<string>("SecurityStamp")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("security_stamp");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("slug");
@@ -3420,9 +3524,11 @@ namespace Smakosz.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserSessionId"));
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("DeviceName")
                         .HasMaxLength(200)
@@ -3494,9 +3600,11 @@ namespace Smakosz.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("code_hash");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
@@ -3554,11 +3662,14 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasOne("Smakosz.Domain.Entities.Restaurant", "Restaurant")
                         .WithMany()
                         .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_dishes_restaurants_restaurant_id");
 
                     b.HasOne("Smakosz.Domain.Entities.Generator.DishVariant", "SecretVariant")
                         .WithMany()
                         .HasForeignKey("SecretVariantId")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_dishes_dish_variants_secret_variant_id");
 
                     b.Navigation("Restaurant");
@@ -3578,7 +3689,7 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasOne("Smakosz.Domain.Entities.Ingredient", "Ingredient")
                         .WithMany()
                         .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_dish_ingredients_ingredients_ingredient_id");
 
@@ -3726,7 +3837,7 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasOne("Smakosz.Domain.Entities.User", "Actor")
                         .WithMany()
                         .HasForeignKey("ActorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_notifications_users_actor_id");
 
                     b.HasOne("Smakosz.Domain.Entities.User", "User")
@@ -3798,12 +3909,15 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasOne("Smakosz.Domain.Entities.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_restaurants_cities_city_id");
 
                     b.HasOne("Smakosz.Domain.Entities.CuisineType", "Cuisine")
                         .WithMany()
                         .HasForeignKey("CuisineTypeId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_restaurants_cuisine_types_cuisine_type_id");
 
                     b.HasOne("Smakosz.Domain.Entities.User", "Owner")
@@ -3837,6 +3951,7 @@ namespace Smakosz.Infrastructure.Migrations
                     b.HasOne("Smakosz.Domain.Entities.User", "Reviewer")
                         .WithMany()
                         .HasForeignKey("ReviewedBy")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_restaurant_edit_requests_users_reviewed_by");
 
                     b.HasOne("Smakosz.Domain.Entities.User", "User")
@@ -4074,6 +4189,25 @@ namespace Smakosz.Infrastructure.Migrations
                     b.Navigation("Requester");
 
                     b.Navigation("ResolvedByAdmin");
+                });
+
+            modelBuilder.Entity("Smakosz.Domain.Entities.System.UserActionLog", b =>
+                {
+                    b.HasOne("Smakosz.Domain.Entities.User", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_user_action_logs_users_actor_user_id");
+
+                    b.HasOne("Smakosz.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_user_action_logs_users_user_id");
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Smakosz.Domain.Entities.User", b =>

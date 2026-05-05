@@ -30,11 +30,11 @@ public class DishBuilder
     public DishBuilder WithPublicId(Guid id) { _dish.PublicId = id; return this; }
     public DishBuilder WithName(string name) { _dish.DishName = name; return this; }
     public DishBuilder WithSlug(string slug) { _dish.Slug = slug; return this; }
-    public DishBuilder WithPrice(decimal? price) { _dish.Price = price; return this; }
+    public DishBuilder WithPrice(decimal price) { _dish.Price = price; return this; }
     public DishBuilder WithAvgRating(double? rating) { _dish.AvgRating = rating; return this; }
     public DishBuilder WithReviewCount(int count) { _dish.ReviewCount = count; return this; }
     public DishBuilder WithRestaurant(Restaurant restaurant) { _dish.Restaurant = restaurant; _dish.RestaurantId = restaurant.RestaurantId; return this; }
-    public DishBuilder WithRestaurantId(int? id) { _dish.RestaurantId = id; return this; }
+    public DishBuilder WithRestaurantId(int id) { _dish.RestaurantId = id; return this; }
     public DishBuilder WithTrendingScore(decimal? score) { _dish.TrendingScore = score; return this; }
     public DishBuilder AsAvailable() { _dish.IsAvailable = true; return this; }
     public DishBuilder AsUnavailable() { _dish.IsAvailable = false; return this; }

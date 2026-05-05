@@ -13,5 +13,5 @@ public class AiLog
     public string? Verdict { get; set; }
     public int? ProcessingTimeMs { get; set; }
     public bool Fallback { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

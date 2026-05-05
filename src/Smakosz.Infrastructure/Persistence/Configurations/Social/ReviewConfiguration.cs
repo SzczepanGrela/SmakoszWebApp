@@ -45,6 +45,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasDefaultValue(0);
 
         builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
             .IsRequired();
 
         builder.Property(x => x.Version)

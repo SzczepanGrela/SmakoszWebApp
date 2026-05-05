@@ -37,7 +37,8 @@ public class EmailLogConfiguration : IEntityTypeConfiguration<EmailLog>
             .HasMaxLength(100);
 
         builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("now()");
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasIndex(x => new { x.Recipient, x.CreatedAt })
             .IsDescending(false, true);

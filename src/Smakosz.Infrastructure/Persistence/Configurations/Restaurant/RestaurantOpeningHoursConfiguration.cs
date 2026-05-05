@@ -27,5 +27,7 @@ public class RestaurantOpeningHoursConfiguration : IEntityTypeConfiguration<Rest
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => x.RestaurantId);
+
+        builder.HasIndex(x => new { x.RestaurantId, x.DayOfWeek });
     }
 }

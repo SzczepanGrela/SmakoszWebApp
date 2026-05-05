@@ -13,7 +13,7 @@ public class SystemTicket : IAuditableEntity, IVersioned
     public string? Description { get; set; }
     public int? AssignedAdminId { get; set; }
     public DateTime? LockedAt { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int Version { get; set; } = 1;
     public int? RequesterId { get; set; }

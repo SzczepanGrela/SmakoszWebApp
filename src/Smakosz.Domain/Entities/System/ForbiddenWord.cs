@@ -9,7 +9,7 @@ public class ForbiddenWord
     public ForbiddenWordCategory Category { get; set; } = ForbiddenWordCategory.Profanity;
     public bool IsRegex { get; set; }
     public int? AddedBy { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public User? AddedByUser { get; set; }
 }

@@ -22,5 +22,9 @@ public class ReportReasonDefinitionConfiguration : IEntityTypeConfiguration<Repo
 
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
+
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
     }
 }

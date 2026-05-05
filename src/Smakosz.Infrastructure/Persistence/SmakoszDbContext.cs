@@ -33,8 +33,8 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
         {
             if (entry.Entity is IAuditableEntity auditable)
             {
-                if (entry.State == EntityState.Added)
-                    auditable.CreatedAt ??= now;
+                if (entry.State == EntityState.Added && auditable.CreatedAt == default)
+                    auditable.CreatedAt = now;
                 if (entry.State == EntityState.Modified)
                     auditable.UpdatedAt = now;
             }

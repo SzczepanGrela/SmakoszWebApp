@@ -80,7 +80,12 @@ public class RestaurantEditRequestConfiguration : IEntityTypeConfiguration<Resta
 
         builder.HasOne(x => x.Reviewer)
             .WithMany()
-            .HasForeignKey(x => x.ReviewedBy);
+            .HasForeignKey(x => x.ReviewedBy)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Property(x => x.CreatedAt)
+            .HasDefaultValueSql("now()")
+            .IsRequired();
 
         builder.HasOne(x => x.ResolvedByAdmin)
             .WithMany()

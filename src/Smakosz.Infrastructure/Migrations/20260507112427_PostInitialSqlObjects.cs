@@ -5,30 +5,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Smakosz.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrateSqlObjectsToMigrations : Migration
+    public partial class PostInitialSqlObjects : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Drop triggers and functions whose logic now lives in C# helper services or DbContext conventions.
-            migrationBuilder.Sql(@"
-                DROP TRIGGER IF EXISTS trg_slug_restaurant ON restaurants;
-                DROP TRIGGER IF EXISTS trg_slug_dish ON dishes;
-                DROP FUNCTION IF EXISTS trg_generate_restaurant_slug;
-                DROP FUNCTION IF EXISTS trg_generate_dish_slug;
-                DROP FUNCTION IF EXISTS generate_slug;
-
-                DROP TRIGGER IF EXISTS trg_review_visibility ON reviews;
-                DROP TRIGGER IF EXISTS trg_photo_visibility ON media_assets;
-                DROP FUNCTION IF EXISTS trg_on_review_status_change;
-                DROP FUNCTION IF EXISTS trg_on_photo_change;
-                DROP FUNCTION IF EXISTS evaluate_review_visibility;
-
-                DROP TRIGGER IF EXISTS trg_sync_primary_photo ON media_assets;
-                DROP FUNCTION IF EXISTS sync_primary_photo_to_entity;
-            ");
-
-            // f_unaccent function used by trigram indexes and search_autocomplete view; handover to sub-project P.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION f_unaccent(text)
                   RETURNS text AS
@@ -37,7 +18,6 @@ namespace Smakosz.Infrastructure.Migrations
                 $func$  LANGUAGE sql IMMUTABLE;
             ");
 
-            // business_triggers: opening hours validation + phone E.164 normalization.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION validate_opening_hours()
                 RETURNS TRIGGER AS $$
@@ -111,7 +91,6 @@ namespace Smakosz.Infrastructure.Migrations
                 EXECUTE FUNCTION normalize_phone_number();
             ");
 
-            // cleanup_triggers: queue r2 deletion atomic with media_assets DELETE.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION queue_file_deletion()
                 RETURNS TRIGGER AS $$
@@ -131,7 +110,6 @@ namespace Smakosz.Infrastructure.Migrations
                 EXECUTE FUNCTION queue_file_deletion();
             ");
 
-            // photo_triggers: enforce_primary_photo only; sync_primary_photo_to_entity moved to IPrimaryPhotoSyncer.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION enforce_primary_photo()
                 RETURNS TRIGGER AS $$
@@ -173,7 +151,6 @@ namespace Smakosz.Infrastructure.Migrations
                 EXECUTE FUNCTION enforce_primary_photo();
             ");
 
-            // review_triggers: only check_review_photo_limit remains; visibility recalc moved to IReviewVisibilityRecalculator.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION check_review_photo_limit()
                 RETURNS TRIGGER AS $$
@@ -203,7 +180,6 @@ namespace Smakosz.Infrastructure.Migrations
                 EXECUTE FUNCTION check_review_photo_limit();
             ");
 
-            // security_triggers: defense-in-depth blocking non-user roles from social actions, even on raw SQL bypass.
             migrationBuilder.Sql(@"
                 CREATE OR REPLACE FUNCTION prevent_non_user_social_actions()
                 RETURNS TRIGGER AS $$
@@ -246,7 +222,6 @@ namespace Smakosz.Infrastructure.Migrations
                 CREATE INDEX IF NOT EXISTS idx_users_id_role ON users(user_id, role);
             ");
 
-            // search_indexes: trigram GIN indexes plus btree functional lower indexes; sub-project P will decide whether to use them.
             migrationBuilder.Sql(@"
                 CREATE INDEX IF NOT EXISTS trgm_idx_restaurants_name
                     ON restaurants
@@ -264,27 +239,10 @@ namespace Smakosz.Infrastructure.Migrations
                 CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users (lower(username));
             ");
 
-            // search_autocomplete view: sub-project P will replace SearchSuggestHandler to read from this view.
             migrationBuilder.Sql(@"
                 DROP VIEW IF EXISTS search_autocomplete;
 
                 CREATE VIEW search_autocomplete AS
-                    SELECT DISTINCT
-                        'cuisine'::text AS type,
-                        ct.cuisine_type_id AS id,
-                        ct.display_name AS name,
-                        NULL::text AS slug,
-                        'Kategoria'::text AS subtitle,
-                        ct.icon,
-                        NULL::text AS image_blurhash,
-                        f_unaccent(lower(ct.display_name)) AS name_normalized,
-                        1 AS priority
-                    FROM restaurants r
-                    JOIN cuisine_types ct ON ct.cuisine_type_id = r.cuisine_type_id
-                    WHERE r.status = 'active'
-
-                    UNION ALL
-
                     SELECT
                         'restaurant'::text AS type,
                         r.restaurant_id AS id,

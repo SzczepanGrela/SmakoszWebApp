@@ -11,14 +11,14 @@ public class User : IAuditableEntity, ISoftDeletable, IHasPublicId
     public string Email { get; set; } = string.Empty;
     public bool EmailVerified { get; set; }
     public string PasswordHash { get; set; } = string.Empty;
-    public string? SecurityStamp { get; set; }
+    public string SecurityStamp { get; set; } = string.Empty;
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? FullName { get; set; }
     public string? Phone { get; set; }
     public string? AvatarUrl { get; set; }
     public string? AvatarBlurhash { get; set; }
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public bool IsActive { get; set; } = true;
@@ -28,7 +28,7 @@ public class User : IAuditableEntity, ISoftDeletable, IHasPublicId
     public UserRole Role { get; set; } = UserRole.User;
     public int FollowersCount { get; set; }
     public int FollowingCount { get; set; }
-    public string? Slug { get; set; }
+    public string Slug { get; set; } = string.Empty;
     public bool Is2faEnabled { get; set; }
     public int ReviewCount { get; set; }
     public int PhotoCount { get; set; }
