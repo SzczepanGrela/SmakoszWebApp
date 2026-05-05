@@ -431,7 +431,47 @@ public static class SeedData
             IsVisible = false,
             CreatedAt = DateTime.UtcNow,
         };
+        var bonusDishes = new List<Dish>();
+        var bonusReviews = new List<Review>();
+        for (int i = 0; i < 11; i++)
+        {
+            var dishId = 100 + i;
+            bonusDishes.Add(new Dish
+            {
+                DishId = dishId,
+                PublicId = Guid.NewGuid(),
+                DishName = $"Bonus Dish {i + 1}",
+                Slug = $"bonus-dish-{i + 1}",
+                RestaurantId = 1,
+                Price = 19.99m + i,
+                Calories = 500,
+                AvgRating = 7.0,
+                ReviewCount = 1,
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow,
+            });
+            bonusReviews.Add(new Review
+            {
+                ReviewId = 100 + i,
+                PublicId = Guid.NewGuid(),
+                UserId = 2,
+                DishId = dishId,
+                RestaurantId = 1,
+                DishRating = 7,
+                ServiceRating = 7,
+                CleanlinessRating = 7,
+                AmbianceRating = 7,
+                Content = $"Bonus review {i + 1} for pagination testing.",
+                ModerationStatus = ContentModerationStatus.Approved,
+                IsVisible = true,
+                IsApproved = true,
+                VisitDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-(i + 20))),
+                CreatedAt = DateTime.UtcNow.AddDays(-i),
+            });
+        }
+        db.Dishes.AddRange(bonusDishes);
         db.Reviews.AddRange(review1, review2, review3, pendingReview);
+        db.Reviews.AddRange(bonusReviews);
 
         // DayOfWeek: 1=Mon, 2=Tue, ..., 6=Sat, 0=Sun
         var weekdays = new[] { 1, 2, 3, 4, 5 }; // Mon-Fri
