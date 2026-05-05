@@ -229,6 +229,9 @@ public static class DomainErrors
         public static readonly Error CannotBanSelf =
             Error.Validation("ADMIN_CANNOT_BAN_SELF", "Administrator nie może zbanować własnego konta");
 
+        public static readonly Error CannotDeactivateSelf =
+            Error.Validation("ADMIN_CANNOT_DEACTIVATE_SELF", "Administrator nie może dezaktywować własnego konta");
+
         public static readonly Error CannotDemoteLastAdmin =
             Error.Validation("ADMIN_CANNOT_DEMOTE_LAST_ADMIN", "Nie można zdegradować ostatniego administratora");
 

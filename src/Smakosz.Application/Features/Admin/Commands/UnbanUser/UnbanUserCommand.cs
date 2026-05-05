@@ -62,6 +62,14 @@ public class UnbanUserHandler : IRequestHandler<UnbanUserCommand, ErrorOr<Succes
             CreatedAt = DateTime.UtcNow
         });
 
+        _db.UserActionLogs.Add(new UserActionLog
+        {
+            UserId = user.UserId,
+            ActorUserId = _currentUser.UserId,
+            ActionType = "unban",
+            CreatedAt = DateTime.UtcNow
+        });
+
         var pushSettings = await _db.UserNotificationSettings
             .FirstOrDefaultAsync(s => s.UserId == user.UserId, cancellationToken);
         var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);

@@ -81,6 +81,17 @@ public class ChangeUserRoleHandler : IRequestHandler<ChangeUserRoleCommand, Erro
             NewValues = JsonSerializer.Serialize(new { Role = request.NewRole.ToString(), Reason = request.Reason })
         });
 
+        _db.UserActionLogs.Add(new UserActionLog
+        {
+            UserId = user.UserId,
+            ActorUserId = _currentUser.UserId,
+            ActionType = "role_change",
+            OldValue = oldRole.ToString(),
+            NewValue = request.NewRole.ToString(),
+            Reason = request.Reason,
+            CreatedAt = now
+        });
+
         var pushSettings = await _db.UserNotificationSettings
             .FirstOrDefaultAsync(s => s.UserId == user.UserId, cancellationToken);
         var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
