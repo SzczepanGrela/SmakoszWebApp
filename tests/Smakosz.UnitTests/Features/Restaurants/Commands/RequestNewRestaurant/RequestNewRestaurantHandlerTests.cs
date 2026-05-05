@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
@@ -46,8 +47,9 @@ public class RequestNewRestaurantHandlerTests
         ticket.RequesterId.Should().Be(5);
         ticket.Status.Should().Be(TicketStatus.Open);
         ticket.Description.Should().NotBeNull();
-        ticket.Description!.Should().Contain("Pizzeria Bella");
-        ticket.Description.Should().Contain("ul. Słowackiego 5");
+        var payload = JsonDocument.Parse(ticket.Description!).RootElement;
+        payload.GetProperty("Name").GetString().Should().Be("Pizzeria Bella");
+        payload.GetProperty("Address").GetString().Should().Contain("ul. Słowackiego 5");
     }
 
     [Fact]
