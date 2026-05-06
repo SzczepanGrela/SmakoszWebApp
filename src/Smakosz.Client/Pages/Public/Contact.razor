@@ -72,9 +72,21 @@
 
     private async Task Send()
     {
-        await ContentService.SendContactMessageAsync(_name, _email, _subject, _message, _turnstileToken);
-        Toast.ShowSuccess("Wiadomość wysłana!");
-        _name = _email = _subject = _message = "";
+        if (string.IsNullOrEmpty(_turnstileToken))
+        {
+            Toast.ShowError("Potwierdź, że nie jesteś robotem");
+            return;
+        }
+        var ok = await ContentService.SendContactMessageAsync(_name, _email, _subject, _message, _turnstileToken);
+        if (ok)
+        {
+            Toast.ShowSuccess("Wiadomość wysłana!");
+            _name = _email = _subject = _message = "";
+        }
+        else
+        {
+            Toast.ShowError("Nie udało się wysłać wiadomości — spróbuj ponownie");
+        }
         _turnstileToken = null;
         if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
     }
