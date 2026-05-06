@@ -5,6 +5,7 @@ window.smakoszTurnstile = {
             if (typeof turnstile !== 'undefined') {
                 turnstile.render('#' + elementId, {
                     sitekey: siteKey,
+                    theme: 'light',
                     callback: function (token) { dotNetRef.invokeMethodAsync('OnTokenChanged', token); },
                     'error-callback': function () { dotNetRef.invokeMethodAsync('OnTokenChanged', ''); },
                     'expired-callback': function () { dotNetRef.invokeMethodAsync('OnTokenChanged', ''); }
