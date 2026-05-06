@@ -5,6 +5,14 @@ namespace Smakosz.ClientTests.Pages;
 
 public class HomeTests : BunitTestBase
 {
+    public HomeTests()
+    {
+        JSInterop.SetupVoid("smakoszCarousel.installScrollListener", _ => true);
+        JSInterop.SetupVoid("smakoszCarousel.uninstallScrollListener", _ => true);
+        JSInterop.SetupVoid("smakoszCarousel.scrollLeft", _ => true);
+        JSInterop.SetupVoid("smakoszCarousel.scrollRight", _ => true);
+    }
+
     private static HomeDataDto CreateHomeData() => new()
     {
         Stats = new StatsDto

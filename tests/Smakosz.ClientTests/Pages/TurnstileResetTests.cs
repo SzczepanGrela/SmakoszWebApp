@@ -71,10 +71,12 @@ public class TurnstileResetTests : BunitTestBase
     }
 
     [Fact]
-    public void Contact_OnSend_ResetsTurnstile()
+    public async Task Contact_OnSend_ResetsTurnstile()
     {
         var content = Services.GetRequiredService<IContentService>();
         content.GetContactPageAsync().Returns(new ContactPageDto { Email = "support@smakosz.xyz" });
+        content.SendContactMessageAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>())
+            .Returns(true);
 
         var cut = RenderComponent<Contact>();
         cut.WaitForState(() => cut.Markup.Contains("Wyślij"));
@@ -82,6 +84,10 @@ public class TurnstileResetTests : BunitTestBase
         cut.FindAll("input")[1].Change("test@test.com");
         cut.FindAll("input")[2].Change("Tytul");
         cut.Find("textarea").Change("Wiadomosc");
+
+        var widget = cut.FindComponent<Smakosz.Client.Components.TurnstileWidget>().Instance;
+        await cut.InvokeAsync(() => widget.OnTokenChanged("test-token"));
+
         cut.Find("button.btn-primary").Click();
 
         cut.WaitForAssertion(() => JSInterop.VerifyInvoke("smakoszTurnstile.reset"));
