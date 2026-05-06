@@ -218,19 +218,13 @@ jobs:
     needs: deploy-vps
     runs-on: ubuntu-latest
     steps:
-      - name: Purge service worker and entry point from Cloudflare
+      - name: Purge entire Cloudflare cache
         run: |
           curl -fsS -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"files":[
-              "https://smakosz.xyz/service-worker.js",
-              "https://smakosz.xyz/service-worker-assets.js",
-              "https://smakosz.xyz/index.html",
-              "https://smakosz.xyz/appsettings.json",
-              "https://smakosz.xyz/"
-            ]}'
+            --data '{"purge_everything":true}'
 
   deploy-rbpi:
     name: Deploy RBPI Gateway
