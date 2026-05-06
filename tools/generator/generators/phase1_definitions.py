@@ -16,6 +16,7 @@ from utils.blueprint_db import BlueprintDB
 from utils.blueprint_loader import BlueprintLoader
 from utils.logging_config import LoggingConfig
 from utils.photo_pools import PhotoPools
+from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
@@ -206,14 +207,16 @@ class CuisineTypesPhase(BasePhase):
                     "icon": None,
                 }
             ]
-            other_cuisines = [
-                {
-                    "name": theme["name"].lower().replace(" ", "_"),
-                    "display_name": theme["display_name"] or theme["name"],
-                    "icon": theme["icon"],
-                }
-                for theme in themes
-            ]
+            cuisine_dedup: dict[str, dict] = {}
+            for theme in themes:
+                cuisine_display = theme.get("cuisine") or theme["name"]
+                if cuisine_display not in cuisine_dedup:
+                    cuisine_dedup[cuisine_display] = {
+                        "name": slugify(cuisine_display),
+                        "display_name": cuisine_display,
+                        "icon": theme.get("icon"),
+                    }
+            other_cuisines = list(cuisine_dedup.values())
 
             context.db.insert_bulk("cuisine_types", fallback_cuisine)
             context.db.execute_query("SELECT setval(pg_get_serial_sequence('cuisine_types', 'cuisine_type_id'), (SELECT MAX(cuisine_type_id) FROM cuisine_types));")
@@ -339,6 +342,91 @@ class IngredientsPhase(BasePhase):
         except Exception as e:
             duration = time.time() - start_time
             logger.error(f"[FAIL] Ingredients generation failed: {e}", exc_info=True)
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.FAILED,
+                duration_seconds=duration,
+                entities_generated={},
+                error=e,
+            )
+
+class RestaurantThemesPhase(BasePhase):
+
+    def __init__(self, blueprints_dir: str = "blueprints"):
+        self.blueprints_dir = blueprints_dir
+
+    @property
+    def metadata(self) -> PhaseMetadata:
+        return PhaseMetadata(
+            phase_id="phase1_themes",
+            display_name="Restaurant Themes Generation",
+            dependencies=["phase1_cuisines"],
+            required_tables=["restaurant_themes"],
+            cleanup_tables=["restaurant_themes"],
+            estimated_duration=2,
+        )
+
+    def execute(self, context: ExecutionContext) -> PhaseResult:
+        start_time = time.time()
+        logger.info("Generating restaurant themes...")
+
+        try:
+            bdb = BlueprintDB()
+            themes = bdb.get_themes()
+            bdb.close()
+
+            cuisine_rows = context.db.fetch_all("SELECT cuisine_type_id, display_name FROM cuisine_types")
+            cuisine_display_to_id = {row[1]: row[0] for row in cuisine_rows}
+
+            fallback_theme = [
+                {
+                    "theme_id": 1,
+                    "public_id": str(uuid7()),
+                    "name": "inne",
+                    "display_name": "Inne",
+                    "icon": None,
+                    "cuisine_type_id": 1,
+                    "weight": 0.0,
+                    "prompt": None,
+                }
+            ]
+
+            theme_data = []
+            for theme in themes:
+                cuisine_display = theme.get("cuisine") or theme["name"]
+                cuisine_id = cuisine_display_to_id.get(cuisine_display, 1)
+                theme_data.append(
+                    {
+                        "public_id": str(uuid7()),
+                        "name": slugify(theme["name"]),
+                        "display_name": theme["name"],
+                        "icon": theme.get("icon"),
+                        "cuisine_type_id": cuisine_id,
+                        "weight": float(theme.get("distribution_chance") or theme.get("weight") or 0.0),
+                        "prompt": theme.get("prompt"),
+                    }
+                )
+
+            context.db.insert_bulk("restaurant_themes", fallback_theme)
+            context.db.execute_query("SELECT setval(pg_get_serial_sequence('restaurant_themes', 'theme_id'), (SELECT MAX(theme_id) FROM restaurant_themes));")
+            context.db.commit()
+            if theme_data:
+                context.db.insert_bulk("restaurant_themes", theme_data)
+            all_themes = fallback_theme + theme_data
+
+            duration = time.time() - start_time
+            logger.info(f"[OK] Generated {len(all_themes)} restaurant themes in {duration:.2f}s")
+
+            return PhaseResult(
+                phase_id=self.metadata.phase_id,
+                status=PhaseStatus.COMPLETED,
+                duration_seconds=duration,
+                entities_generated={"restaurant_themes": len(all_themes)},
+            )
+
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"[FAIL] Restaurant themes generation failed: {e}", exc_info=True)
             return PhaseResult(
                 phase_id=self.metadata.phase_id,
                 status=PhaseStatus.FAILED,

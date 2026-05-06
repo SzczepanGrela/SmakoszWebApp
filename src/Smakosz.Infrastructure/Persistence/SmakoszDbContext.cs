@@ -77,6 +77,7 @@ public class SmakoszDbContext : DbContext, ISmakoszDbContext
 
     public DbSet<City> Cities => Set<City>();
     public DbSet<CuisineType> CuisineTypes => Set<CuisineType>();
+    public DbSet<RestaurantTheme> RestaurantThemes => Set<RestaurantTheme>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
     public DbSet<DishArchetype> DishArchetypes => Set<DishArchetype>();
     public DbSet<DishVariant> DishVariants => Set<DishVariant>();

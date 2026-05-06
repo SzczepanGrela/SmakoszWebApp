@@ -30,9 +30,24 @@ public static class SeedHelpers
         };
     }
 
+    public static RestaurantTheme CreateRestaurantTheme(int themeId, string name, int cuisineTypeId)
+    {
+        return new RestaurantTheme
+        {
+            ThemeId = themeId,
+            PublicId = Guid.CreateVersion7(),
+            Name = name,
+            DisplayName = name,
+            CuisineTypeId = cuisineTypeId,
+            Weight = 0.0,
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
+
     // Postgres enforces foreign keys that the previous in-memory provider silently ignored, so every test that creates a Restaurant needs CuisineTypes 1 and 2 plus a fallback City and CuisineType lookup row before its own seed runs. The lookup IDs sit at 999 so concrete tests that already seed City 1 (Warszawa) and similar do not collide with the fallback row.
     public const int FallbackCityId = 999;
     public const int FallbackCuisineTypeId = 999;
+    public const int FallbackThemeId = 1;
 
     public static async Task SeedFkDefaultsAsync(SmakoszDbContext db)
     {
@@ -44,6 +59,10 @@ public static class SeedHelpers
             db.CuisineTypes.Add(CreateCuisineType(2, "Turecka"));
         if (!await db.CuisineTypes.AnyAsync(c => c.CuisineTypeId == FallbackCuisineTypeId))
             db.CuisineTypes.Add(CreateCuisineType(FallbackCuisineTypeId, "Inna"));
+        await db.SaveChangesAsync();
+
+        if (!await db.RestaurantThemes.AnyAsync(t => t.ThemeId == FallbackThemeId))
+            db.RestaurantThemes.Add(CreateRestaurantTheme(FallbackThemeId, "inne", 1));
         await db.SaveChangesAsync();
     }
 
@@ -152,6 +171,7 @@ public static class SeedHelpers
             RestaurantName = name,
             Slug = name.ToLower().Replace(" ", "-"),
             CuisineTypeId = 1,
+            ThemeId = FallbackThemeId,
             PriceLevel = 2,
             Address = "ul. Marszalkowska 10",
             CityId = cityId,

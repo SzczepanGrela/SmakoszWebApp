@@ -9,6 +9,7 @@ public interface ISmakoszDbContext
 {
     DbSet<City> Cities { get; }
     DbSet<CuisineType> CuisineTypes { get; }
+    DbSet<RestaurantTheme> RestaurantThemes { get; }
     DbSet<Ingredient> Ingredients { get; }
     DbSet<DishArchetype> DishArchetypes { get; }
     DbSet<DishVariant> DishVariants { get; }

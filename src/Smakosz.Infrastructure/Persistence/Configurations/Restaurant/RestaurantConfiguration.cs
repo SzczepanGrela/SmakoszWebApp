@@ -86,6 +86,11 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
             .HasForeignKey(x => x.CuisineTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(x => x.Theme)
+            .WithMany()
+            .HasForeignKey(x => x.ThemeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasOne(x => x.Owner)
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
@@ -102,6 +107,7 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Domain.Entities.
 
         builder.HasIndex(x => x.CityId);
         builder.HasIndex(x => x.CuisineTypeId);
+        builder.HasIndex(x => x.ThemeId);
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.OwnerId)
             .IsUnique()

@@ -10,6 +10,7 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned, IModerable
     public int CityId { get; set; }
     public string RestaurantName { get; set; } = string.Empty;
     public int CuisineTypeId { get; set; }
+    public int ThemeId { get; set; }
     public int? PriceLevel { get; set; }
     public string Address { get; set; } = string.Empty;
     public string? PostalCode { get; set; }
@@ -48,6 +49,7 @@ public class Restaurant : IAuditableEntity, IHasPublicId, IVersioned, IModerable
 
     public City City { get; set; } = null!;
     public CuisineType Cuisine { get; set; } = null!;
+    public RestaurantTheme Theme { get; set; } = null!;
     public User? Owner { get; set; }
 
     public ICollection<RestaurantOpeningHours> OpeningHours { get; set; } = new List<RestaurantOpeningHours>();

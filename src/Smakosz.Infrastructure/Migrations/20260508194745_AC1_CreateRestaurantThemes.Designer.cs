@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Smakosz.Infrastructure.Persistence;
@@ -13,9 +14,11 @@ using Smakosz.Infrastructure.Persistence;
 namespace Smakosz.Infrastructure.Migrations
 {
     [DbContext(typeof(SmakoszDbContext))]
-    partial class SmakoszDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508194745_AC1_CreateRestaurantThemes")]
+    partial class AC1_CreateRestaurantThemes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,10 +166,6 @@ namespace Smakosz.Infrastructure.Migrations
 
                     b.HasKey("CuisineTypeId")
                         .HasName("pk_cuisine_types");
-
-                    b.HasIndex("DisplayName")
-                        .IsUnique()
-                        .HasDatabaseName("ix_cuisine_types_display_name");
 
                     b.HasIndex("Name")
                         .IsUnique()

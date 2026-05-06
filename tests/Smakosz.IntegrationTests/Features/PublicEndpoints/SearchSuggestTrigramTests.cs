@@ -104,6 +104,7 @@ public class SearchSuggestTrigramTests : IntegrationTestBase
             RestaurantName = name,
             Slug = name.ToLowerInvariant().Replace(' ', '-'),
             CuisineTypeId = cuisineId,
+            ThemeId = SeedHelpers.FallbackThemeId,
             PriceLevel = 2,
             Address = "ul. Marszalkowska 10",
             CityId = 1,

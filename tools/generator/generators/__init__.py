@@ -6,6 +6,7 @@ from .phase1_definitions import (
     CuisineTypesPhase,
     HeroImagesPhase,
     IngredientsPhase,
+    RestaurantThemesPhase,
     TagsPhase,
 )
 from .phase2_restaurants import RestaurantsPhase
@@ -24,6 +25,7 @@ __all__ = [
     "CuisineTypesPhase",
     "HeroImagesPhase",
     "IngredientsPhase",
+    "RestaurantThemesPhase",
     "TagsPhase",
     "RestaurantsPhase",
     "DishesPhase",

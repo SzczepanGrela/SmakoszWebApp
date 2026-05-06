@@ -13,6 +13,7 @@ from generators import (
     HeroImagesPhase,
     IngredientsPhase,
     RejectionReasonsPhase,
+    RestaurantThemesPhase,
     RestaurantsPhase,
     ReviewsPhase,
     SocialGraphPhase,
@@ -41,6 +42,7 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
 
     registry.register(CitiesPhase(blueprints_dir=blueprints_dir))
     registry.register(CuisineTypesPhase(blueprints_dir=blueprints_dir))
+    registry.register(RestaurantThemesPhase(blueprints_dir=blueprints_dir))
     registry.register(HeroImagesPhase(blueprints_dir=blueprints_dir))
     registry.register(IngredientsPhase(blueprints_dir=blueprints_dir))
     registry.register(TagsPhase())

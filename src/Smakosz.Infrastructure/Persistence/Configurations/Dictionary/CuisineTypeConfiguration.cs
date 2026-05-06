@@ -26,5 +26,8 @@ public class CuisineTypeConfiguration : IEntityTypeConfiguration<CuisineType>
 
         builder.HasIndex(x => x.Name)
             .IsUnique();
+
+        builder.HasIndex(x => x.DisplayName)
+            .IsUnique();
     }
 }
