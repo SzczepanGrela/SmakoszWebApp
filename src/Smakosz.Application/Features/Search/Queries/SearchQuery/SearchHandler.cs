@@ -150,11 +150,12 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
             query = query.Where(r => r.PriceLevel <= request.MaxPrice.Value);
 
         // When the user gave a query and did not override sort, rank by trigram similarity so the most relevant matches surface first; popularity becomes the tiebreak. Explicit sort modes (name/price/trending) bypass relevance.
+        // Polish text fields use ICU collation pl-PL-x-icu so polish letters land alphabetically (Lososs Nalesniki Salatka Sushi Slimak Zaba) instead of after Z by raw byte order.
         var (sortBy, sortDir) = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant());
         query = sortBy switch
         {
-            "name" when sortDir == "asc" => query.OrderBy(r => r.RestaurantName),
-            "name" => query.OrderByDescending(r => r.RestaurantName),
+            "name" when sortDir == "asc" => query.OrderBy(r => EF.Functions.Collate(r.RestaurantName, "pl-PL-x-icu")),
+            "name" => query.OrderByDescending(r => EF.Functions.Collate(r.RestaurantName, "pl-PL-x-icu")),
             "price" when sortDir == "asc" => query.OrderBy(r => r.PriceLevel),
             "price" => query.OrderByDescending(r => r.PriceLevel),
             "trending" => query.OrderByDescending(r => r.TrendingScore),
@@ -293,8 +294,8 @@ public class SearchHandler : IRequestHandler<SearchQuery, ErrorOr<SearchResultDt
         var (sortBy, sortDir) = (request.SortBy.ToLowerInvariant(), request.SortDir.ToLowerInvariant());
         query = sortBy switch
         {
-            "name" when sortDir == "asc" => query.OrderBy(d => d.DishName),
-            "name" => query.OrderByDescending(d => d.DishName),
+            "name" when sortDir == "asc" => query.OrderBy(d => EF.Functions.Collate(d.DishName, "pl-PL-x-icu")),
+            "name" => query.OrderByDescending(d => EF.Functions.Collate(d.DishName, "pl-PL-x-icu")),
             "price" when sortDir == "asc" => query.OrderBy(d => d.Price),
             "price" => query.OrderByDescending(d => d.Price),
             "trending" => query.OrderByDescending(d => d.TrendingScore),

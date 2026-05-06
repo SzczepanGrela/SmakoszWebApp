@@ -249,9 +249,21 @@
     private static readonly List<SortOption> _sortOptions = new()
     {
         new() { Label = "Ocena", Value = "rating" },
-        new() { Label = "Nazwa", Value = "name" },
-        new() { Label = "Cena", Value = "price" },
+        new() { Label = "Nazwa A-Z", Value = "name_asc" },
+        new() { Label = "Nazwa Z-A", Value = "name_desc" },
+        new() { Label = "Cena rosnąco", Value = "price_asc" },
+        new() { Label = "Cena malejąco", Value = "price_desc" },
         new() { Label = "Popularność", Value = "trending" }
+    };
+
+    private (string SortBy, string SortDir) ParseSort(string sort) => sort switch
+    {
+        "name_asc" => ("name", "asc"),
+        "name_desc" => ("name", "desc"),
+        "price_asc" => ("price", "asc"),
+        "price_desc" => ("price", "desc"),
+        "trending" => ("trending", "desc"),
+        _ => ("rating", "desc")
     };
 
     protected override async Task OnInitializedAsync()
@@ -325,7 +337,8 @@
         var moods = _selectedMoods.Any() ? string.Join(",", _selectedMoods) : null;
         var occasions = _selectedOccasions.Any() ? string.Join(",", _selectedOccasions) : null;
         var spiceLevels = _selectedSpiceLevels.Any() ? string.Join(",", _selectedSpiceLevels) : null;
-        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, _sortBy, "desc", _page, pageSize,
+        var (sortBy, sortDir) = ParseSort(_sortBy);
+        _result = await SearchService.SearchAsync(_type, _query, location, cuisines, null, null, dietary, sortBy, sortDir, _page, pageSize,
             tags: tags, dishCategories: dishCategories,
             features: features, moods: moods, occasions: occasions, spiceLevels: spiceLevels);
         _loading = false;
