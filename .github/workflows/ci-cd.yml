@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       rbpi-gateway: ${{ steps.filter.outputs.rbpi-gateway }}
+      gpu-worker: ${{ steps.filter.outputs.gpu-worker }}
+      api: ${{ steps.filter.outputs.api }}
+      client: ${{ steps.filter.outputs.client }}
+      orchestrator: ${{ steps.filter.outputs.orchestrator }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -31,6 +35,32 @@ jobs:
               - 'tools/rbpi-gateway/**'
               - 'infra/rbpi/**'
               - 'infra/scripts/deploy-rbpi.sh'
+              - '.github/workflows/ci-cd.yml'
+            gpu-worker:
+              - 'gpu-worker/**'
+              - '.github/workflows/ci-cd.yml'
+            api:
+              - 'src/Smakosz.API/**'
+              - 'src/Smakosz.Application/**'
+              - 'src/Smakosz.Domain/**'
+              - 'src/Smakosz.Infrastructure/**'
+              - 'Smakosz.slnx'
+              - 'docker-compose.yml'
+              - '.github/workflows/ci-cd.yml'
+            client:
+              - 'src/Smakosz.Client/**'
+              - 'src/Smakosz.Client.Shared/**'
+              - 'src/Smakosz.Client.Ops/**'
+              - 'Smakosz.slnx'
+              - 'docker-compose.yml'
+              - '.github/workflows/ci-cd.yml'
+            orchestrator:
+              - 'src/Smakosz.Orchestrator/**'
+              - 'src/Smakosz.Application/**'
+              - 'src/Smakosz.Domain/**'
+              - 'src/Smakosz.Infrastructure/**'
+              - 'Smakosz.slnx'
+              - 'docker-compose.yml'
               - '.github/workflows/ci-cd.yml'
 
   test:
@@ -62,10 +92,12 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Testing
 
-  build-images:
-    name: Build & Push Images
-    needs: test
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+  build-api:
+    name: Build & Push API
+    needs: [test, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.api == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -99,6 +131,33 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
+  build-client:
+    name: Build & Push Client
+    needs: [test, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.client == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build & push Client
         uses: docker/build-push-action@v6
         with:
@@ -111,6 +170,33 @@ jobs:
           cache-from: type=gha,scope=client
           cache-to: type=gha,mode=max,scope=client
 
+  build-orchestrator:
+    name: Build & Push Orchestrator
+    needs: [test, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.orchestrator == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build & push Orchestrator
         uses: docker/build-push-action@v6
         with:
@@ -122,6 +208,33 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/orchestrator:${{ env.SHORT_SHA }}
           cache-from: type=gha,scope=orchestrator
           cache-to: type=gha,mode=max,scope=orchestrator
+
+  build-gpu-worker:
+    name: Build GPU Worker image
+    needs: [test, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.gpu-worker == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build & push GPU Worker
         uses: docker/build-push-action@v6
@@ -182,7 +295,13 @@ jobs:
 
   deploy-vps:
     name: Deploy to VPS
-    needs: build-images
+    needs: [build-api, build-client, build-orchestrator]
+    if: |
+      always() &&
+      (needs.build-api.result == 'success' || needs.build-client.result == 'success' || needs.build-orchestrator.result == 'success') &&
+      needs.build-api.result != 'failure' && needs.build-api.result != 'cancelled' &&
+      needs.build-client.result != 'failure' && needs.build-client.result != 'cancelled' &&
+      needs.build-orchestrator.result != 'failure' && needs.build-orchestrator.result != 'cancelled'
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-vps
