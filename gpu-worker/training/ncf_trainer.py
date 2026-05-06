@@ -109,10 +109,10 @@ class NcfTrainer:
     def train(self, job: dict, api: WorkerApiClient) -> dict:
         payload = json.loads(job["payload"])
         csv_url = payload["csv_url"]
-        epochs = int(payload.get("epochs", 20))
-        batch_size = int(payload.get("batch_size", 256))
-        learning_rate = float(payload.get("learning_rate", 0.001))
-        embedding_dim = int(payload.get("embedding_dim", 64))
+        epochs = int(payload["epochs"])
+        batch_size = int(payload["batch_size"])
+        learning_rate = float(payload["learning_rate"])
+        embedding_dim = int(payload["embedding_dim"])
 
         start_time = time.monotonic()
         job_id = job["jobId"]

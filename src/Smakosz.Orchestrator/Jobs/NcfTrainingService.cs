@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using ErrorOr;
 using Hangfire;
@@ -6,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Smakosz.Application.Common.Interfaces;
+using Smakosz.Application.Features.Worker.DTOs;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
 using Smakosz.Orchestrator.Configuration;
@@ -15,6 +15,7 @@ namespace Smakosz.Orchestrator.Jobs;
 public class NcfTrainingService : INcfTrainingService
 {
     private readonly ISmakoszDbContext _db;
+    private readonly INcfTrainingDatasetBuilder _datasetBuilder;
     private readonly INcfModelStorageService _modelStorage;
     private readonly IBackgroundJobClient _jobs;
     private readonly IHttpClientFactory _httpFactory;
@@ -26,6 +27,7 @@ public class NcfTrainingService : INcfTrainingService
 
     public NcfTrainingService(
         ISmakoszDbContext db,
+        INcfTrainingDatasetBuilder datasetBuilder,
         INcfModelStorageService modelStorage,
         IBackgroundJobClient jobs,
         IHttpClientFactory httpFactory,
@@ -36,6 +38,7 @@ public class NcfTrainingService : INcfTrainingService
         ILogger<NcfTrainingService> logger)
     {
         _db = db;
+        _datasetBuilder = datasetBuilder;
         _modelStorage = modelStorage;
         _jobs = jobs;
         _httpFactory = httpFactory;
@@ -48,50 +51,28 @@ public class NcfTrainingService : INcfTrainingService
 
     public async Task<ErrorOr<Success>> ScheduleAsync(CancellationToken ct)
     {
-        var query = _db.Reviews.AsQueryable();
+        var samples = await _datasetBuilder.FetchSamplesAsync(_options.ReviewWindowDays, ct);
 
-        if (_options.ReviewWindowDays > 0)
+        if (samples.Count < 100)
         {
-            var since = _clock.UtcNow.AddDays(-_options.ReviewWindowDays);
-            query = query.Where(r => r.CreatedAt >= since);
-        }
-
-        var reviews = await query
-            .Where(r => r.IsVisible
-                && !r.IsDeleted
-                && r.ModerationStatus != ContentModerationStatus.Rejected)
-            .Join(_db.Users.Where(u => !u.IsDeleted),
-                r => r.UserId, u => u.UserId,
-                (r, u) => new { r.UserId, r.DishId, r.DishRating })
-            .ToListAsync(ct);
-
-        if (reviews.Count < 100)
-        {
-            _logger.LogInformation("ncf-training: only {Count} reviews, skipping (min 100)", reviews.Count);
+            _logger.LogInformation("ncf-training: only {Count} reviews, skipping (min 100)", samples.Count);
             return Error.Validation("NCF_INSUFFICIENT_REVIEWS",
-                $"Za mało recenzji do treningu NCF: {reviews.Count} (wymagane min. 100)");
+                $"Za mało recenzji do treningu NCF: {samples.Count} (wymagane min. 100)");
         }
-
-        var csv = new StringBuilder();
-        csv.AppendLine("user_id,dish_id,rating");
-        foreach (var r in reviews)
-            csv.AppendLine($"{r.UserId},{r.DishId},{r.DishRating}");
 
         var now = _clock.UtcNow;
         var key = $"ncf-training/reviews_{now:yyyyMMdd_HHmmss}.csv";
 
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv.ToString()));
+        using var stream = NcfTrainingCsvFormatter.FormatAsCsv(samples);
         var csvUrl = await _modelStorage.UploadTrainingDataAsync(stream, key, ct);
 
-        var payload = JsonSerializer.Serialize(new
-        {
-            csv_url = csvUrl,
-            epochs = _options.Epochs,
-            batch_size = _options.BatchSize,
-            learning_rate = _options.LearningRate,
-            embedding_dim = _options.EmbeddingDim,
-            review_count = reviews.Count
-        });
+        var payload = JsonSerializer.Serialize(new NcfTrainingPayload(
+            CsvUrl: csvUrl,
+            Epochs: _options.Epochs,
+            BatchSize: _options.BatchSize,
+            LearningRate: _options.LearningRate,
+            EmbeddingDim: _options.EmbeddingDim,
+            ReviewCount: samples.Count));
 
         var job = await _db.SystemJobs
             .Where(j => j.Type == "ncf_training" && j.Status == JobStatus.Pending)
@@ -142,9 +123,8 @@ public class NcfTrainingService : INcfTrainingService
 
         _logger.LogInformation(
             "ncf-training: scheduled job with {Reviews} reviews, CSV at {Key}",
-            reviews.Count, key);
+            samples.Count, key);
 
         return Result.Success;
     }
-
 }

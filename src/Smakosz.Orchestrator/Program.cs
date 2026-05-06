@@ -78,6 +78,7 @@ builder.Services.AddScoped<RatingService>();
 builder.Services.AddScoped<TrendingService>();
 builder.Services.AddScoped<R2CleanupService>();
 builder.Services.AddScoped<HeartbeatMonitorService>();
+builder.Services.AddScoped<INcfTrainingDatasetBuilder, NcfTrainingDatasetBuilder>();
 builder.Services.AddScoped<NcfTrainingService>();
 builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
