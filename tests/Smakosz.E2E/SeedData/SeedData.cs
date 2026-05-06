@@ -46,6 +46,11 @@ public static class SeedData
             new CuisineType { CuisineTypeId = 1002, Name = "Turecka", DisplayName = "Turecka" },
             new CuisineType { CuisineTypeId = 1003, Name = "Polska", DisplayName = "Polska" });
 
+        db.RestaurantThemes.AddRange(
+            new RestaurantTheme { ThemeId = 1001, PublicId = Guid.CreateVersion7(), Name = "wloska", DisplayName = "Włoska", CuisineTypeId = 1001, Weight = 0.0, CreatedAt = DateTime.UtcNow },
+            new RestaurantTheme { ThemeId = 1002, PublicId = Guid.CreateVersion7(), Name = "turecka", DisplayName = "Turecka", CuisineTypeId = 1002, Weight = 0.0, CreatedAt = DateTime.UtcNow },
+            new RestaurantTheme { ThemeId = 1003, PublicId = Guid.CreateVersion7(), Name = "polska", DisplayName = "Polska", CuisineTypeId = 1003, Weight = 0.0, CreatedAt = DateTime.UtcNow });
+
         var jan = new User
         {
             UserId = 1,
@@ -146,6 +151,7 @@ public static class SeedData
             RestaurantName = "Pizzeria Roma",
             Slug = "pizzeria-roma",
             CuisineTypeId = 1001,
+            ThemeId = 1001,
             PriceLevel = 2,
             Address = "ul. Marszalkowska 10",
             CityId = 1,
@@ -164,6 +170,7 @@ public static class SeedData
             RestaurantName = "Sultan Kebab",
             Slug = "sultan-kebab",
             CuisineTypeId = 1002,
+            ThemeId = 1002,
             PriceLevel = 1,
             Address = "ul. Grodzka 5",
             CityId = 2,
@@ -181,6 +188,7 @@ public static class SeedData
             RestaurantName = "Nowa Restauracja",
             Slug = "nowa-restauracja",
             CuisineTypeId = 1003,
+            ThemeId = 1003,
             PriceLevel = 2,
             Address = "ul. Swidnicka 22",
             CityId = 3,

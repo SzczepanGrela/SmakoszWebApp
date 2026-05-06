@@ -21,6 +21,7 @@ public class MockDbSets
     public List<VerificationCode> VerificationCodes { get; } = new();
     public List<City> Cities { get; } = new();
     public List<CuisineType> CuisineTypes { get; } = new();
+    public List<RestaurantTheme> RestaurantThemes { get; } = new();
     public List<MenuSection> MenuSections { get; } = new();
     public List<RestaurantOpeningHours> OpeningHours { get; } = new();
     public List<UserFollow> UserFollows { get; } = new();
@@ -114,6 +115,7 @@ public static class DbContextMockFactory
         WireDbSet(() => sets.VerificationCodes, v => context.VerificationCodes.Returns(v), sets.VerificationCodes);
         WireDbSet(() => sets.Cities, v => context.Cities.Returns(v), sets.Cities);
         WireDbSet(() => sets.CuisineTypes, v => context.CuisineTypes.Returns(v), sets.CuisineTypes);
+        WireDbSet(() => sets.RestaurantThemes, v => context.RestaurantThemes.Returns(v), sets.RestaurantThemes);
         WireDbSet(() => sets.MenuSections, v => context.MenuSections.Returns(v), sets.MenuSections);
         WireDbSet(() => sets.OpeningHours, v => context.RestaurantOpeningHours.Returns(v), sets.OpeningHours);
         WireDbSet(() => sets.UserFollows, v => context.UserFollows.Returns(v), sets.UserFollows);

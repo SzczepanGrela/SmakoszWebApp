@@ -32,6 +32,12 @@ public static class E2EDatabaseSeeder
         "user_sessions", "users", "verification_codes"
     };
 
+    // Restaurant_themes is excluded from TruncateTables CASCADE because the
+    // theme_id 1 'inne' fallback row seeded by AC1 migration must survive
+    // resets. SeedData adds theme_id 1001 to 1003 with FK Restrict to
+    // cuisine_types, so we explicitly wipe high-id rows before deleting
+    // matching cuisine_types high-id rows.
+
     public static async Task SeedAsync()
     {
         await using var context = CreateContext();
@@ -48,8 +54,10 @@ public static class E2EDatabaseSeeder
 
         // Also wipe dictionary rows that SeedData itself adds (high IDs or
         // E2E-prefixed codes) so the re-seed below stays idempotent without
-        // touching migration rows.
+        // touching migration rows. Themes wiped before cuisines because the
+        // FK fk_restaurant_themes_cuisine_types_cuisine_type_id is Restrict.
         var deleteOwnDictionaryRows = @"
+            DELETE FROM restaurant_themes WHERE theme_id >= 1001;
             DELETE FROM cuisine_types WHERE cuisine_type_id >= 1001;
             DELETE FROM tags WHERE tag_id >= 1001;
             DELETE FROM rejection_reasons WHERE reason_code IN ('text_spam', 'text_offtopic', 'photo_inappropriate');

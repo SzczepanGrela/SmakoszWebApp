@@ -75,6 +75,17 @@ public class AdminCreateRestaurantHandler : IRequestHandler<AdminCreateRestauran
         }
 
         var now = DateTime.UtcNow;
+
+        // Theme is a backend only lookup the user does not pick. Resolve to first theme matching
+        // the chosen cuisine, falling back to the inne theme (theme_id 1 seeded by AC1 migration)
+        // when none exists. The denormalization invariant restaurant.cuisine_type_id ==
+        // restaurant.Theme.CuisineTypeId is preserved because we pick a theme whose cuisine matches.
+        var matchingTheme = await _db.RestaurantThemes
+            .Where(t => t.CuisineTypeId == request.CuisineTypeId)
+            .OrderBy(t => t.ThemeId)
+            .FirstOrDefaultAsync(cancellationToken);
+        var themeId = matchingTheme?.ThemeId ?? 1;
+
         var restaurant = new Restaurant
         {
             OwnerId = request.OwnerId,
@@ -82,6 +93,7 @@ public class AdminCreateRestaurantHandler : IRequestHandler<AdminCreateRestauran
             Address = request.Address,
             CityId = request.CityId,
             CuisineTypeId = request.CuisineTypeId,
+            ThemeId = themeId,
             Phone = request.Phone,
             Email = request.Email,
             Description = request.Description,
