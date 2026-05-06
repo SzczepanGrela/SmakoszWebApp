@@ -733,8 +733,6 @@ main {
 
 /* Dish details panel */
 .dish-details-panel {
-    position: sticky;
-    top: 76px;
     background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
@@ -888,11 +886,6 @@ button.nav-link {
     .admin-sidebar {
         position: static;
         height: auto;
-    }
-
-    .dish-details-panel {
-        position: static;
-        margin-top: 2rem;
     }
 
     .dish-of-day-card .card-body {
