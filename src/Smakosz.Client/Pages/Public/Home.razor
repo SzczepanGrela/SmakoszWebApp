@@ -58,7 +58,7 @@ else if (_data != null)
                     @foreach (var category in _data.PopularCategories)
                     {
                         <div class="col-6 col-md-3">
-                            <CategoryCard Name="@category" Icon="@GetCategoryIcon(category)" />
+                            <CategoryCard Name="@category.Name" Icon="@category.Icon" />
                         </div>
                     }
                 </div>
@@ -124,46 +124,4 @@ else if (_data != null)
             Navigation.NavigateTo($"/search?query={Uri.EscapeDataString(_searchQuery)}&type=dishes");
     }
 
-    private static string GetCategoryIcon(string category) => category.ToLowerInvariant() switch
-    {
-        "pizzeria" => "\U0001F355",
-        "burgerownia" => "\U0001F354",
-        "sushi bar" => "\U0001F363",
-        "ramen bar" => "\U0001F35C",
-        "kuchnia polska" => "\U0001F95F",
-        "kuchnia w\u0142oska" => "\U0001F35D",
-        "kuchnia indyjska" => "\U0001F35B",
-        "kuchnia chi\u0144ska" => "\U0001F961",
-        "kuchnia meksyka\u0144ska" => "\U0001F32E",
-        "kuchnia tajska" => "\U0001F35C",
-        "kuchnia francuska" => "\U0001F950",
-        "kuchnia azjatycka" => "\U0001F961",
-        "kuchnia turecka" => "\U0001F959",
-        "kuchnia wietnamska" => "\U0001F35C",
-        "kuchnia bliskowschodnia" => "\U0001F9C6",
-        "kebab" => "\U0001F959",
-        "kawiarnia" => "\u2615",
-        "wega\u0144ska kawiarnia" => "\U0001F957",
-        "steakhouse" => "\U0001F969",
-        "korean bbq" => "\U0001F969",
-        "bbq & grill" => "\U0001F525",
-        "w\u0119dzarnia bbq" => "\U0001F525",
-        "food truck" => "\U0001F69A",
-        "sma\u017calnia ryb" => "\U0001F99E",
-        "lodziarnia" => "\U0001F366",
-        "piekarnia" => "\U0001F35E",
-        "piekarnia z kawiarni\u0105" => "\U0001F35E",
-        "taqueria" => "\U0001F32E",
-        "creperie" => "\U0001F95E",
-        "wykwintna restauracja" => "\U0001F377",
-        "restauracja z owocami morza" => "\U0001F99E",
-        "bar tapas" => "\U0001F372",
-        "kanapkownia" => "\U0001F96A",
-        "ameryka\u0144ski diner" => "\U0001F32D",
-        "bar meksyka\u0144ski" => "\U0001F32E",
-        "francuskie bistro" => "\U0001F950",
-        "grecka taverna" => "\U0001F957",
-        "niemiecki pub" => "\U0001F37A",
-        _ => "\U0001F374"
-    };
 }

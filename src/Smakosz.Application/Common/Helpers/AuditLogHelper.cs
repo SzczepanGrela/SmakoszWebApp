@@ -8,7 +8,7 @@ public static class AuditLogHelper
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented = false,
+        WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 

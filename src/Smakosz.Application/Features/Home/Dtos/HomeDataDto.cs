@@ -11,8 +11,14 @@ public class HomeDataDto
     public required List<DishCardDto> TrendingDishes { get; init; }
     public required List<DishCardDto> TopRatedDishes { get; init; }
     public required List<ReviewCardDto> RecentReviews { get; init; }
-    public required List<string> PopularCategories { get; init; }
+    public required List<PopularCategoryDto> PopularCategories { get; init; }
     public HeroImageDto? HeroImage { get; init; }
+}
+
+public class PopularCategoryDto
+{
+    public string Name { get; init; } = string.Empty;
+    public string? Icon { get; init; }
 }
 
 public class HeroImageDto

@@ -38,6 +38,7 @@ else
             <thead>
                 <tr>
                     <th>Nazwa</th>
+                    <th>Kuchnia</th>
                     <th>Status</th>
                     <th>Weryfikacja</th>
                     <th>Właściciel</th>
@@ -58,6 +59,13 @@ else
                                     <i class="fa-solid fa-up-right-from-square"></i>
                                 </a>
                             }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(r.CuisineTypeIcon))
+                            {
+                                <span class="me-1">@r.CuisineTypeIcon</span>
+                            }
+                            @(r.CuisineTypeName ?? "—")
                         </td>
                         <td><span class="badge bg-@GetStatusColor(r.Status)">@r.Status</span></td>
                         <td>

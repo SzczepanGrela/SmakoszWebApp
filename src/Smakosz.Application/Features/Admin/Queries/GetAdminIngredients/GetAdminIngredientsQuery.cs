@@ -45,6 +45,8 @@ public class GetAdminIngredientsHandler : IRequestHandler<GetAdminIngredientsQue
             {
                 IngredientId = i.IngredientId,
                 IngredientName = i.IngredientName,
+                IconUrl = i.IconUrl,
+                IconBlurhash = i.IconBlurhash,
                 IsAllergen = i.IsAllergen,
                 IsVegetarian = i.IsVegetarian,
                 IsVegan = i.IsVegan,

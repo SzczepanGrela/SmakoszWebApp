@@ -148,10 +148,10 @@ public class HomePageCacheService
         var popularCategories = await _db.Restaurants
             .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
-            .GroupBy(r => r.Cuisine!.DisplayName)
+            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
             .OrderByDescending(g => g.Count())
             .Take(8)
-            .Select(g => g.Key)
+            .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Icon = g.Key.Icon })
             .ToListAsync(ct);
 
         var heroImage = await _db.MediaAssets

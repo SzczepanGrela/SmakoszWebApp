@@ -41,7 +41,7 @@ public class HomeTests : BunitTestBase
                 RestaurantName = "Roma", RestaurantSlug = "roma"
             }
         ],
-        PopularCategories = ["Pizza", "Sushi"],
+        PopularCategories = [new PopularCategoryDto { Name = "Pizza", Icon = "🍕" }, new PopularCategoryDto { Name = "Sushi", Icon = "🍣" }],
         HeroImage = new HeroImageDto { Url = "/hero.jpg", CreditText = "Photo credit" }
     };
 

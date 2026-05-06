@@ -45,7 +45,7 @@ else
                         <td><span class="badge @OperationBadge(log.Operation)">@log.Operation</span></td>
                         <td>@log.TableName</td>
                         <td>@log.RecordId</td>
-                        <td>@log.ChangedBy</td>
+                        <td>@log.ChangedByUsername</td>
                         <td>
                             @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
                             {
@@ -54,13 +54,13 @@ else
                                     @if (!string.IsNullOrEmpty(log.OldValues))
                                     {
                                         <div class="small"><strong>Stare:</strong>
-                                            <pre class="mb-1" style="max-height:150px;overflow:auto;">@log.OldValues</pre>
+                                            <pre class="mb-1" style="max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:0.75rem;">@log.OldValues</pre>
                                         </div>
                                     }
                                     @if (!string.IsNullOrEmpty(log.NewValues))
                                     {
                                         <div class="small"><strong>Nowe:</strong>
-                                            <pre class="mb-0" style="max-height:150px;overflow:auto;">@log.NewValues</pre>
+                                            <pre class="mb-0" style="max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:0.75rem;">@log.NewValues</pre>
                                         </div>
                                     }
                                 </details>

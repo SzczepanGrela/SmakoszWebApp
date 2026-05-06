@@ -34,6 +34,8 @@ public class AdminRestaurantDto
     public string Status { get; init; } = default!;
     public bool IsVerified { get; init; }
     public string? OwnerUsername { get; init; }
+    public string? CuisineTypeName { get; init; }
+    public string? CuisineTypeIcon { get; init; }
     public decimal AverageRating { get; init; }
     public int ReviewCount { get; init; }
 }
@@ -216,6 +218,8 @@ public class AdminIngredientDto
 {
     public int IngredientId { get; set; }
     public string IngredientName { get; set; } = string.Empty;
+    public string? IconUrl { get; set; }
+    public string? IconBlurhash { get; set; }
     public bool IsAllergen { get; set; }
     public bool IsVegetarian { get; set; }
     public bool IsVegan { get; set; }
@@ -416,6 +420,7 @@ public class AuditLogDto
     public int RecordId { get; set; }
     public string Operation { get; set; } = string.Empty;
     public string ChangedBy { get; set; } = string.Empty;
+    public string ChangedByUsername { get; set; } = string.Empty;
     public DateTime ChangedAt { get; set; }
     public string? OldValues { get; set; }
     public string? NewValues { get; set; }

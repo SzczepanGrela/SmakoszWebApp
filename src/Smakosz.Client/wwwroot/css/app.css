@@ -415,6 +415,8 @@ main {
     text-overflow: ellipsis;
     text-decoration: none;
     display: block;
+    width: fit-content;
+    max-width: 100%;
 }
 
 .review-card-username:hover {
@@ -430,6 +432,8 @@ main {
     text-overflow: ellipsis;
     text-decoration: none;
     display: block;
+    width: fit-content;
+    max-width: 100%;
 }
 
 .review-card-dish:hover {

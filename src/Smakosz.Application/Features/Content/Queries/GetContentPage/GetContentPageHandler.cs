@@ -11,8 +11,20 @@ public class GetContentPageHandler : IRequestHandler<GetContentPageQuery, ErrorO
         ["about"] = new ContentPageDto
         {
             Title = "O nas",
-            Content = "Smakosz to platforma recenzji kulinarnych dla Podkarpacia. " +
-                      "Pomagamy mieszkańcom odkrywać najlepsze dania w regionie.",
+            Content = """
+                <h2>Smakosz</h2>
+                <p>Smakosz to platforma recenzji kulinarnych poświęcona Podkarpaciu. Powstaliśmy z myślą o mieszkańcach regionu, którzy szukają najlepszych dań w okolicy, oraz o restauratorach chcących pokazać swoją kuchnię szerszej publiczności. Naszym celem jest stworzenie społeczności, w której uczciwa opinia ma znaczenie, a lokalne smaki dostają zasłużone uznanie.</p>
+                <h2>Misja</h2>
+                <p>Wierzymy, że dobre jedzenie buduje wspólnoty. Poprzez transparentny system ocen i recenzji pomagamy mieszkańcom Podkarpacia odkrywać miejsca, które warto odwiedzić, a właścicielom restauracji zrozumieć, co cenią ich goście. Wszystkie opinie pochodzą od prawdziwych użytkowników, a system moderacji dba o to, żeby treści były rzetelne i wolne od manipulacji.</p>
+                <h2>Jak to działa</h2>
+                <p>Zarejestrowani użytkownicy wystawiają recenzje konkretnym daniom, oceniając smak, obsługę, czystość lokalu oraz atmosferę. Każda recenzja przechodzi przez moderację automatyczną oraz ręczną, dzięki czemu w serwisie znajdziesz tylko autentyczne opinie. Restauratorzy mogą zarządzać swoim profilem, dodawać dania, odpowiadać na komentarze i śledzić, co goście mówią o ich kuchni.</p>
+                <h2>Dla kogo</h2>
+                <p>Smakosz powstał dla każdego, kto szuka dobrego jedzenia w regionie. Dla mieszkańców, turystów, studentów i pracowników szukających udanego lunchu. Dla rodzin planujących weekend i par szukających wyjątkowej kolacji. Restauratorom oferujemy darmowe narzędzie do budowania relacji z gośćmi i zwiększania widoczności swojej kuchni.</p>
+                <h2>Region</h2>
+                <p>Skupiamy się na Podkarpaciu — Rzeszowie, Krośnie, Przemyślu, Sanoku, Jaśle i całym województwie. Region ma niezwykle bogatą tradycję kulinarną, która łączy wpływy polskie, ukraińskie, słowackie i żydowskie. Chcemy dokumentować i promować tę różnorodność, zarówno tradycyjne pierogi, jak i nowoczesne restauracje fine dining w Rzeszowie.</p>
+                <h2>Kontakt</h2>
+                <p>Masz pytania, sugestie lub propozycję współpracy? Napisz do nas na kontakt@smakosz.xyz. Chętnie odpowiemy na każdą wiadomość, a opinie naszych użytkowników są dla nas najważniejsze przy planowaniu rozwoju serwisu.</p>
+                """,
             LastUpdated = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         },
         ["terms"] = new ContentPageDto

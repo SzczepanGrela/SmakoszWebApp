@@ -55,6 +55,8 @@ public class GetAdminRestaurantsHandler : IRequestHandler<GetAdminRestaurantsQue
                 Status = r.Status.ToString(),
                 IsVerified = r.IsVerified,
                 OwnerUsername = r.Owner != null ? r.Owner.Username : null,
+                CuisineTypeName = r.Cuisine != null ? r.Cuisine.DisplayName : null,
+                CuisineTypeIcon = r.Cuisine != null ? r.Cuisine.Icon : null,
                 AverageRating = (decimal)(r.AvgFoodScore ?? 0),
                 ReviewCount = _db.Reviews.Count(rv => rv.RestaurantId == r.RestaurantId && !rv.IsDeleted)
             })

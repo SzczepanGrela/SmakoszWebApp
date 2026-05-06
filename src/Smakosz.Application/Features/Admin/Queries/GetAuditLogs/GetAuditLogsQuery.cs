@@ -41,22 +41,49 @@ public class GetAuditLogsHandler : IRequestHandler<GetAuditLogsQuery, ErrorOr<Pa
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var items = await query
+        var rawItems = await query
             .OrderByDescending(l => l.ChangedAt)
             .Skip((request.Pagination.Page - 1) * request.Pagination.PageSize)
             .Take(request.Pagination.PageSize)
-            .Select(l => new AuditLogDto
+            .Select(l => new
             {
-                AuditLogId = l.AuditLogId,
-                TableName = l.TableName,
-                RecordId = l.RecordId,
-                Operation = l.Operation.ToString(),
-                ChangedBy = l.ChangedBy,
-                ChangedAt = l.ChangedAt,
-                OldValues = l.OldValues,
-                NewValues = l.NewValues
+                l.AuditLogId,
+                l.TableName,
+                l.RecordId,
+                l.Operation,
+                l.ChangedBy,
+                l.ChangedAt,
+                l.OldValues,
+                l.NewValues
             })
             .ToListAsync(cancellationToken);
+
+        var userIds = rawItems
+            .Select(i => i.ChangedBy)
+            .Where(s => int.TryParse(s, out _))
+            .Select(int.Parse)
+            .Distinct()
+            .ToList();
+
+        var userMap = userIds.Count > 0
+            ? await _db.Users
+                .Where(u => userIds.Contains(u.UserId))
+                .Select(u => new { u.UserId, u.Username })
+                .ToDictionaryAsync(u => u.UserId, u => u.Username, cancellationToken)
+            : new Dictionary<int, string>();
+
+        var items = rawItems.Select(l => new AuditLogDto
+        {
+            AuditLogId = l.AuditLogId,
+            TableName = l.TableName,
+            RecordId = l.RecordId,
+            Operation = l.Operation.ToString(),
+            ChangedBy = l.ChangedBy,
+            ChangedByUsername = ResolveUsername(l.ChangedBy, userMap),
+            ChangedAt = l.ChangedAt,
+            OldValues = l.OldValues,
+            NewValues = l.NewValues
+        }).ToList();
 
         return new PagedResult<AuditLogDto>
         {
@@ -69,5 +96,11 @@ public class GetAuditLogsHandler : IRequestHandler<GetAuditLogsQuery, ErrorOr<Pa
                 TotalPages = (int)Math.Ceiling(totalCount / (double)request.Pagination.PageSize)
             }
         };
+    }
+
+    private static string ResolveUsername(string changedBy, Dictionary<int, string> users)
+    {
+        if (changedBy == "system") return "System";
+        return int.TryParse(changedBy, out var id) && users.TryGetValue(id, out var name) ? name : changedBy;
     }
 }

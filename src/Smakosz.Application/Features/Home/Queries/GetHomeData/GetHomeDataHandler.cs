@@ -48,16 +48,16 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         List<DishCardDto> trendingDishes;
         List<DishCardDto> topRatedDishes;
         List<ReviewCardDto> recentReviews;
-        List<string> popularCategories;
+        List<PopularCategoryDto> popularCategories;
         HeroImageDto? heroImage;
 
-        if (hasCachedData)
+        if (hasCachedData && TryDeserializePopularCategories(cache!.PopularCategoriesJson!, out var cachedCategories))
         {
-            trendingRestaurants = JsonSerializer.Deserialize<List<RestaurantCardDto>>(cache!.TrendingRestaurantsJson!, JsonOpts) ?? [];
+            trendingRestaurants = JsonSerializer.Deserialize<List<RestaurantCardDto>>(cache.TrendingRestaurantsJson!, JsonOpts) ?? [];
             trendingDishes = JsonSerializer.Deserialize<List<DishCardDto>>(cache.TrendingDishesJson!, JsonOpts) ?? [];
             topRatedDishes = JsonSerializer.Deserialize<List<DishCardDto>>(cache.TopRatedDishesJson!, JsonOpts) ?? [];
             recentReviews = JsonSerializer.Deserialize<List<ReviewCardDto>>(cache.RecentReviewsJson!, JsonOpts) ?? [];
-            popularCategories = JsonSerializer.Deserialize<List<string>>(cache.PopularCategoriesJson!, JsonOpts) ?? [];
+            popularCategories = cachedCategories;
             heroImage = cache.HeroImageJson is not null
                 ? JsonSerializer.Deserialize<HeroImageDto>(cache.HeroImageJson, JsonOpts)
                 : null;
@@ -203,15 +203,29 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             })
             .ToListAsync(ct);
 
-    private Task<List<string>> QueryPopularCategories(CancellationToken ct)
+    private Task<List<PopularCategoryDto>> QueryPopularCategories(CancellationToken ct)
         => _db.Restaurants
             .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
-            .GroupBy(r => r.Cuisine!.DisplayName)
+            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
             .OrderByDescending(g => g.Count())
             .Take(8)
-            .Select(g => g.Key)
+            .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Icon = g.Key.Icon })
             .ToListAsync(ct);
+
+    private static bool TryDeserializePopularCategories(string json, out List<PopularCategoryDto> result)
+    {
+        try
+        {
+            result = JsonSerializer.Deserialize<List<PopularCategoryDto>>(json, JsonOpts) ?? [];
+            return result.Count == 0 || !string.IsNullOrEmpty(result[0].Name);
+        }
+        catch (JsonException)
+        {
+            result = [];
+            return false;
+        }
+    }
 
     private Task<HeroImageDto?> QueryHeroImage(CancellationToken ct)
         => _db.MediaAssets
