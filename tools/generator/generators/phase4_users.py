@@ -198,7 +198,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         username = f"{base}{r_id}"[:30]
         if len(username) < 3:
             username = f"user{r_id}"
-        email = f"contact_{r_id}@{sanitized_name}.com"
+        email = f"contact_{r_id}@{slugify(r_name)}.com"
 
         phone = generate_phone()
         join_date = generate_user_join_date()

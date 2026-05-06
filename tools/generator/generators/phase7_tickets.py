@@ -75,7 +75,7 @@ def _generate_system_tickets(db: DatabaseConnection):
     tickets = []
 
     pending_reviews = db.fetch_all("""
-        SELECT r.review_id, r.created_at, r.text
+        SELECT r.review_id, r.created_at, r.content
         FROM reviews r
         WHERE r.content_status = 'pending'
     """)

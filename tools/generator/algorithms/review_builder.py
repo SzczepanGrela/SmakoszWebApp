@@ -86,7 +86,6 @@ def generate_single_review(
         "is_visible": is_visible,
         "created_at": to_sql_datetime(review_date),
         "version": 1,
-        "is_approved": True,
         "is_deleted": False,
     }
 

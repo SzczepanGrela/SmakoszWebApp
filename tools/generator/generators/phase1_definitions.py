@@ -140,14 +140,17 @@ class CitiesPhase(BasePhase):
             if not city_config:
                 raise ValueError("cities.json must contain CITY_CONFIG key")
 
-            city_data = [{"city_id": 1, "city_name": "Inne", "region": None}]
-            for city_name in city_config:
-                city_data.append({"city_name": city_name})
+            fallback_city = [{"city_id": 1, "city_name": "Inne", "region": None}]
+            other_cities = [{"city_name": city_name, "region": None} for city_name in city_config]
 
-            if len(city_data) <= 1:
+            if not other_cities:
                 raise ValueError("No cities found in CITY_CONFIG")
 
-            context.db.insert_bulk("cities", city_data)
+            context.db.insert_bulk("cities", fallback_city)
+            context.db.execute_query("SELECT setval(pg_get_serial_sequence('cities', 'city_id'), (SELECT MAX(city_id) FROM cities));")
+            context.db.commit()
+            context.db.insert_bulk("cities", other_cities)
+            city_data = fallback_city + other_cities
 
             duration = time.time() - start_time
             logger.info(f"[OK] Generated {len(city_data)} cities in {duration:.2f}s")
@@ -195,7 +198,7 @@ class CuisineTypesPhase(BasePhase):
             themes = bdb.get_themes()
             bdb.close()
 
-            cuisine_data = [
+            fallback_cuisine = [
                 {
                     "cuisine_type_id": 1,
                     "name": "inna",
@@ -203,17 +206,21 @@ class CuisineTypesPhase(BasePhase):
                     "icon": None,
                 }
             ]
-            for theme in themes:
-                cuisine_data.append(
-                    {
-                        "name": theme["name"].lower().replace(" ", "_"),
-                        "display_name": theme["display_name"] or theme["name"],
-                        "icon": theme["icon"],
-                    }
-                )
+            other_cuisines = [
+                {
+                    "name": theme["name"].lower().replace(" ", "_"),
+                    "display_name": theme["display_name"] or theme["name"],
+                    "icon": theme["icon"],
+                }
+                for theme in themes
+            ]
 
-            if cuisine_data:
-                context.db.insert_bulk("cuisine_types", cuisine_data)
+            context.db.insert_bulk("cuisine_types", fallback_cuisine)
+            context.db.execute_query("SELECT setval(pg_get_serial_sequence('cuisine_types', 'cuisine_type_id'), (SELECT MAX(cuisine_type_id) FROM cuisine_types));")
+            context.db.commit()
+            if other_cuisines:
+                context.db.insert_bulk("cuisine_types", other_cuisines)
+            cuisine_data = fallback_cuisine + other_cuisines
 
             duration = time.time() - start_time
             logger.info(f"[OK] Generated {len(cuisine_data)} cuisine types in {duration:.2f}s")
