@@ -129,17 +129,17 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
     theme_archetypes_cache = {t["name"]: bdb.get_theme_archetypes(t["name"]) for t in all_themes}
     theme_sections_cache = {t["name"]: bdb.get_theme_sections(t["name"]) for t in all_themes}
 
-    cuisine_rows = db.fetch_all("SELECT cuisine_type_id, name FROM cuisine_types")
-    cuisine_name_to_id = {row[1].lower(): row[0] for row in cuisine_rows}
-    def _resolve_cuisine_id(theme_name: str):
-        key = theme_name.lower().replace(" ", "_")
-        if key in cuisine_name_to_id:
-            return cuisine_name_to_id[key]
-        fallback_key = theme_name.lower()
-        if fallback_key in cuisine_name_to_id:
-            return cuisine_name_to_id[fallback_key]
+    theme_rows = db.fetch_all("SELECT theme_id, name, cuisine_type_id FROM restaurant_themes")
+    theme_name_to_data = {row[1]: (row[0], row[2]) for row in theme_rows}
+
+    def _resolve_theme(theme_name: str) -> tuple[int, int]:
+        key = slugify(theme_name)
+        if key in theme_name_to_data:
+            return theme_name_to_data[key]
+        if "inne" in theme_name_to_data:
+            return theme_name_to_data["inne"]
         raise RuntimeError(
-            f"cuisine '{theme_name}' not found in cuisine_types. Run phase1_cuisines before phase2_restaurants"
+            f"theme '{theme_name}' not found in restaurant_themes and no fallback inne theme present. Run phase1_themes before phase2_restaurants"
         )
 
     for city_id, city_name in tqdm(
@@ -202,12 +202,14 @@ def generate_restaurants(db: DatabaseConnection, blueprints_dir: str = "blueprin
             primary_photo_metadata = photo_pools.get_restaurant_photo(theme, restaurant_id_counter)
             primary_photo_cache[restaurant_id_counter] = primary_photo_metadata
 
+            theme_id, cuisine_type_id = _resolve_theme(theme)
             restaurant_data.append(
                 {
                     "public_id": str(uuid7()),
                     "city_id": city_id,
                     "restaurant_name": name,
-                    "cuisine_type_id": _resolve_cuisine_id(theme),
+                    "cuisine_type_id": cuisine_type_id,
+                    "theme_id": theme_id,
                     "price_level": price_level,
                     "postal_code": f"{city_info.get('postal_prefix', '00')}-{random.randint(0, 9)}{random.randint(0, 9)}{random.randint(0, 9)}",
                     "email": f"kontakt@{slugify(name)}.pl",

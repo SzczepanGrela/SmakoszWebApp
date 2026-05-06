@@ -209,7 +209,7 @@ class CuisineTypesPhase(BasePhase):
             ]
             cuisine_dedup: dict[str, dict] = {}
             for theme in themes:
-                cuisine_display = theme.get("cuisine") or theme["name"]
+                cuisine_display = theme.get("display_name") or theme["name"]
                 if cuisine_display not in cuisine_dedup:
                     cuisine_dedup[cuisine_display] = {
                         "name": slugify(cuisine_display),
@@ -393,7 +393,7 @@ class RestaurantThemesPhase(BasePhase):
 
             theme_data = []
             for theme in themes:
-                cuisine_display = theme.get("cuisine") or theme["name"]
+                cuisine_display = theme.get("display_name") or theme["name"]
                 cuisine_id = cuisine_display_to_id.get(cuisine_display, 1)
                 theme_data.append(
                     {
@@ -402,8 +402,8 @@ class RestaurantThemesPhase(BasePhase):
                         "display_name": theme["name"],
                         "icon": theme.get("icon"),
                         "cuisine_type_id": cuisine_id,
-                        "weight": float(theme.get("distribution_chance") or theme.get("weight") or 0.0),
-                        "prompt": theme.get("prompt"),
+                        "weight": float(theme.get("distribution_chance") or 0.0),
+                        "prompt": theme.get("pixabay_term"),
                     }
                 )
 
