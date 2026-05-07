@@ -14,15 +14,17 @@ namespace Smakosz.Application.Features.Home.Queries.GetHomeData;
 public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<HomeDataDto>>
 {
     private readonly ISmakoszDbContext _db;
+    private readonly ISmakoszDbContextFactory _dbFactory;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public GetHomeDataHandler(ISmakoszDbContext db)
+    public GetHomeDataHandler(ISmakoszDbContext db, ISmakoszDbContextFactory dbFactory)
     {
         _db = db;
+        _dbFactory = dbFactory;
     }
 
     public async Task<ErrorOr<HomeDataDto>> Handle(GetHomeDataQuery request, CancellationToken cancellationToken)
@@ -64,12 +66,23 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         }
         else
         {
-            trendingRestaurants = await QueryTrendingRestaurants(cancellationToken);
-            trendingDishes = await QueryTrendingDishes(cancellationToken);
-            topRatedDishes = await QueryTopRatedDishes(cancellationToken);
-            recentReviews = await QueryRecentReviews(cancellationToken);
-            popularCategories = await QueryPopularCategories(cancellationToken);
-            heroImage = await QueryHeroImage(cancellationToken);
+            var trendingRestaurantsTask = QueryTrendingRestaurantsParallel(cancellationToken);
+            var trendingDishesTask = QueryTrendingDishesParallel(cancellationToken);
+            var topRatedDishesTask = QueryTopRatedDishesParallel(cancellationToken);
+            var recentReviewsTask = QueryRecentReviewsParallel(cancellationToken);
+            var popularCategoriesTask = QueryPopularCategoriesParallel(cancellationToken);
+            var heroImageTask = QueryHeroImageParallel(cancellationToken);
+
+            await Task.WhenAll(
+                trendingRestaurantsTask, trendingDishesTask, topRatedDishesTask,
+                recentReviewsTask, popularCategoriesTask, heroImageTask);
+
+            trendingRestaurants = await trendingRestaurantsTask;
+            trendingDishes = await trendingDishesTask;
+            topRatedDishes = await topRatedDishesTask;
+            recentReviews = await recentReviewsTask;
+            popularCategories = await popularCategoriesTask;
+            heroImage = await heroImageTask;
         }
 
         return new HomeDataDto
@@ -84,8 +97,10 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         };
     }
 
-    private Task<List<RestaurantCardDto>> QueryTrendingRestaurants(CancellationToken ct)
-        => _db.Restaurants
+    private async Task<List<RestaurantCardDto>> QueryTrendingRestaurantsParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Restaurants
             .AsNoTracking()
             .Include(r => r.City)
             .Include(r => r.Cuisine)
@@ -108,9 +123,12 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 IsFavorite = false
             })
             .ToListAsync(ct);
+    }
 
-    private Task<List<DishCardDto>> QueryTrendingDishes(CancellationToken ct)
-        => _db.Dishes
+    private async Task<List<DishCardDto>> QueryTrendingDishesParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
@@ -135,9 +153,12 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 IsSaved = false
             })
             .ToListAsync(ct);
+    }
 
-    private Task<List<DishCardDto>> QueryTopRatedDishes(CancellationToken ct)
-        => _db.Dishes
+    private async Task<List<DishCardDto>> QueryTopRatedDishesParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Dishes
             .AsNoTracking()
             .Include(d => d.Restaurant)
             .Where(d => d.IsAvailable && d.ReviewCount >= 3 && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
@@ -162,9 +183,12 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 IsSaved = false
             })
             .ToListAsync(ct);
+    }
 
-    private Task<List<ReviewCardDto>> QueryRecentReviews(CancellationToken ct)
-        => _db.Reviews
+    private async Task<List<ReviewCardDto>> QueryRecentReviewsParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Reviews
             .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.Dish)
@@ -202,9 +226,12 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 RestaurantSlug = r.Restaurant.Slug ?? string.Empty
             })
             .ToListAsync(ct);
+    }
 
-    private Task<List<PopularCategoryDto>> QueryPopularCategories(CancellationToken ct)
-        => _db.Restaurants
+    private async Task<List<PopularCategoryDto>> QueryPopularCategoriesParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Restaurants
             .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
             .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
@@ -212,6 +239,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Take(7)
             .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Icon = g.Key.Icon })
             .ToListAsync(ct);
+    }
 
     private static bool TryDeserializePopularCategories(string json, out List<PopularCategoryDto> result)
     {
@@ -227,11 +255,14 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         }
     }
 
-    private Task<HeroImageDto?> QueryHeroImage(CancellationToken ct)
-        => _db.MediaAssets
+    private async Task<HeroImageDto?> QueryHeroImageParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.MediaAssets
             .AsNoTracking()
             .Where(m => m.EntityType == MediaEntityType.Hero && m.ModerationStatus == ContentModerationStatus.Approved)
             .OrderBy(_ => EF.Functions.Random())
             .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(ct);
+    }
 }

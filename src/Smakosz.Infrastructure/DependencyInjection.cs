@@ -63,11 +63,15 @@ public static class DependencyInjection
         string connectionString,
         bool isE2E = false)
     {
-        services.AddDbContext<SmakoszDbContext>(options =>
+        Action<DbContextOptionsBuilder> configureDb = options =>
             options.UseNpgsql(connectionString)
-                   .UseSnakeCaseNamingConvention());
+                   .UseSnakeCaseNamingConvention();
+
+        services.AddDbContext<SmakoszDbContext>(configureDb);
+        services.AddDbContextFactory<SmakoszDbContext>(configureDb, lifetime: ServiceLifetime.Scoped);
 
         services.AddScoped<ISmakoszDbContext>(sp => sp.GetRequiredService<SmakoszDbContext>());
+        services.AddScoped<ISmakoszDbContextFactory, SmakoszDbContextFactoryAdapter>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<IBusinessMetrics>(_ => new BusinessMetrics(Prometheus.Metrics.DefaultFactory));
         services.AddScoped<ICounterUpdater, CounterUpdater>();

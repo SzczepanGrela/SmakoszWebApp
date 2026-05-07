@@ -5,7 +5,7 @@ using Smakosz.Domain.Entities.System;
 
 namespace Smakosz.Application.Common.Interfaces;
 
-public interface ISmakoszDbContext
+public interface ISmakoszDbContext : IAsyncDisposable
 {
     DbSet<City> Cities { get; }
     DbSet<CuisineType> CuisineTypes { get; }
