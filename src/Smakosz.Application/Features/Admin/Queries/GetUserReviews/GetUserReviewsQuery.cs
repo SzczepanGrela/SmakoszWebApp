@@ -12,21 +12,23 @@ public record GetUserReviewsQuery(Guid PublicId, int Page = 1) : IRequest<ErrorO
 
 public class GetUserReviewsHandler : IRequestHandler<GetUserReviewsQuery, ErrorOr<PagedResult<AdminUserReviewDto>>>
 {
-    private const int PageSize = 10;
-
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
 
-    public GetUserReviewsHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetUserReviewsHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IValidationConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<PagedResult<AdminUserReviewDto>>> Handle(GetUserReviewsQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
+
+        var pageSize = _config.GetInt("admin.list_page_size", 10);
 
         var user = await _db.Users
             .AsNoTracking()
@@ -45,8 +47,8 @@ public class GetUserReviewsHandler : IRequestHandler<GetUserReviewsQuery, ErrorO
 
         var items = await query
             .OrderByDescending(r => r.CreatedAt)
-            .Skip((request.Page - 1) * PageSize)
-            .Take(PageSize)
+            .Skip((request.Page - 1) * pageSize)
+            .Take(pageSize)
             .Select(r => new AdminUserReviewDto
             {
                 PublicId = r.PublicId,
@@ -65,9 +67,9 @@ public class GetUserReviewsHandler : IRequestHandler<GetUserReviewsQuery, ErrorO
             Pagination = new PaginationInfo
             {
                 Page = request.Page,
-                PageSize = PageSize,
+                PageSize = pageSize,
                 TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize)
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             }
         };
     }

@@ -49,8 +49,8 @@ public class GetBusinessDishesHandler : IRequestHandler<GetBusinessDishesQuery, 
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var defaultPageSize = _config.GetInt("search.default_page_size", 20);
-        var maxPageSize = _config.GetInt("search.max_page_size", 100);
+        var defaultPageSize = _config.GetInt("business.default_page_size", 20);
+        var maxPageSize = _config.GetInt("business.max_page_size", 100);
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize > 0 ? request.PageSize : defaultPageSize, 1, maxPageSize);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);

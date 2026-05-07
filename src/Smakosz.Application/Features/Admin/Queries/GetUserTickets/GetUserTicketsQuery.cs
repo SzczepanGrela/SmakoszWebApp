@@ -12,21 +12,23 @@ public record GetUserTicketsQuery(Guid PublicId, int Page = 1) : IRequest<ErrorO
 
 public class GetUserTicketsHandler : IRequestHandler<GetUserTicketsQuery, ErrorOr<PagedResult<AdminTicketDto>>>
 {
-    private const int PageSize = 10;
-
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
 
-    public GetUserTicketsHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetUserTicketsHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IValidationConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<PagedResult<AdminTicketDto>>> Handle(GetUserTicketsQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
+
+        var pageSize = _config.GetInt("admin.list_page_size", 10);
 
         var user = await _db.Users
             .AsNoTracking()
@@ -45,8 +47,8 @@ public class GetUserTicketsHandler : IRequestHandler<GetUserTicketsQuery, ErrorO
 
         var items = await query
             .OrderByDescending(t => t.CreatedAt)
-            .Skip((request.Page - 1) * PageSize)
-            .Take(PageSize)
+            .Skip((request.Page - 1) * pageSize)
+            .Take(pageSize)
             .Select(t => new AdminTicketDto
             {
                 TicketId = t.TicketId,
@@ -66,9 +68,9 @@ public class GetUserTicketsHandler : IRequestHandler<GetUserTicketsQuery, ErrorO
             Pagination = new PaginationInfo
             {
                 Page = request.Page,
-                PageSize = PageSize,
+                PageSize = pageSize,
                 TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize)
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             }
         };
     }

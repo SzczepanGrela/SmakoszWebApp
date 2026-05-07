@@ -1,6 +1,7 @@
 @page "/search"
 @inject ISearchService SearchService
 @inject NavigationManager Navigation
+@inject Smakosz.Client.Services.IPublicConfigService Config
 
 <PageTitle>@(_type == "restaurants" ? "Restauracje" : "Szukaj") - Smakosz</PageTitle>
 
@@ -330,7 +331,9 @@
         var cuisines = _selectedCuisines.Any() ? string.Join(",", _selectedCuisines) : null;
         var dietary = _selectedDietary.Any() ? string.Join(",", _selectedDietary) : null;
         var location = !string.IsNullOrEmpty(_selectedCity) ? _selectedCity : null;
-        var pageSize = _type == "dishes" ? 6 : 12;
+        var dishesSize = await Config.GetIntAsync("search.dishes_page_size", 6);
+        var restSize = await Config.GetIntAsync("search.restaurants_page_size", 12);
+        var pageSize = _type == "dishes" ? dishesSize : restSize;
         var tags = !string.IsNullOrWhiteSpace(_selectedTags) ? _selectedTags : null;
         var dishCategories = _selectedDishCategories.Any() ? string.Join(",", _selectedDishCategories) : null;
         var features = _selectedFeatures.Any() ? string.Join(",", _selectedFeatures) : null;

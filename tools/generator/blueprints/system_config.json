@@ -205,15 +205,30 @@
       "description": "Dni do fizycznego usunięcia użytkownika po soft delete.",
       "is_public": false
     },
-    "search.default_page_size": {
+    "business.default_page_size": {
       "value": "20",
-      "description": "Domyślny rozmiar strony API.",
+      "description": "Domyślny rozmiar strony dla business panel queries (GetBusinessReviews, GetBusinessDishes).",
+      "is_public": false
+    },
+    "business.max_page_size": {
+      "value": "100",
+      "description": "Max clamp rozmiaru strony dla business panel queries.",
+      "is_public": false
+    },
+    "search.dishes_page_size": {
+      "value": "6",
+      "description": "Liczba dań per strona w /search?type=dishes (frontend Search.razor).",
       "is_public": true
     },
-    "search.max_page_size": {
-      "value": "100",
-      "description": "Maksymalny rozmiar strony API.",
+    "search.restaurants_page_size": {
+      "value": "12",
+      "description": "Liczba restauracji per strona w /search?type=restaurants (frontend Search.razor).",
       "is_public": true
+    },
+    "admin.list_page_size": {
+      "value": "10",
+      "description": "Liczba rekordów per accordion w /admin/users/{id} (Tickets, SecurityLogs, Reviews).",
+      "is_public": false
     },
     "search.suggest.similarity_threshold": {
       "value": "0.2",

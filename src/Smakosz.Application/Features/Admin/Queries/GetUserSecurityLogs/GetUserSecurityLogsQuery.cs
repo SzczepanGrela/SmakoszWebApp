@@ -12,21 +12,23 @@ public record GetUserSecurityLogsQuery(Guid PublicId, int Page = 1) : IRequest<E
 
 public class GetUserSecurityLogsHandler : IRequestHandler<GetUserSecurityLogsQuery, ErrorOr<PagedResult<SecurityLogDto>>>
 {
-    private const int PageSize = 10;
-
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IValidationConfigProvider _config;
 
-    public GetUserSecurityLogsHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetUserSecurityLogsHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IValidationConfigProvider config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
     public async Task<ErrorOr<PagedResult<SecurityLogDto>>> Handle(GetUserSecurityLogsQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
+
+        var pageSize = _config.GetInt("admin.list_page_size", 10);
 
         var user = await _db.Users
             .AsNoTracking()
@@ -45,8 +47,8 @@ public class GetUserSecurityLogsHandler : IRequestHandler<GetUserSecurityLogsQue
 
         var items = await query
             .OrderByDescending(s => s.CreatedAt)
-            .Skip((request.Page - 1) * PageSize)
-            .Take(PageSize)
+            .Skip((request.Page - 1) * pageSize)
+            .Take(pageSize)
             .Select(s => new SecurityLogDto
             {
                 LogId = s.LogId,
@@ -68,9 +70,9 @@ public class GetUserSecurityLogsHandler : IRequestHandler<GetUserSecurityLogsQue
             Pagination = new PaginationInfo
             {
                 Page = request.Page,
-                PageSize = PageSize,
+                PageSize = pageSize,
                 TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize)
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             }
         };
     }
