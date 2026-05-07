@@ -2046,3 +2046,93 @@ a[href^="tel:"]:hover {
         background-attachment: scroll;
     }
 }
+
+/* === Admin Dashboard === */
+.dashboard-title {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+}
+
+.dashboard-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #6B5435;
+    margin: 0 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ead9bf;
+}
+.dashboard-section-label:not(:first-of-type) {
+    margin-top: 28px;
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: 1px;
+    background: #e8dbc3;
+    border: 1px solid #e8dbc3;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.dashboard-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+.dashboard-grid.cols-5-flex {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.dashboard-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: contents;
+}
+
+.admin-stat-card {
+    background: #fefcf6;
+    padding: 18px 20px;
+    transition: background 0.15s;
+}
+.admin-stat-card.is-clickable {
+    cursor: pointer;
+}
+.admin-stat-card.is-clickable:hover {
+    background: #fbf3e1;
+}
+
+.admin-stat-card .stat-label {
+    font-size: 11px;
+    color: #8B6F47;
+    margin-bottom: 8px;
+}
+.admin-stat-card .stat-num {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text-color);
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+.admin-stat-card .stat-num.is-attention {
+    color: #B8543C;
+}
+
+.admin-stat-card .stat-context {
+    font-size: 10px;
+    color: #aa8e60;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid.cols-3,
+    .dashboard-grid.cols-5-flex {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 480px) {
+    .dashboard-grid.cols-3,
+    .dashboard-grid.cols-5-flex {
+        grid-template-columns: 1fr;
+    }
+}

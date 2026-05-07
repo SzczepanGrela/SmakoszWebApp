@@ -5,7 +5,7 @@
 
 <PageTitle>Dashboard - Admin Smakosz</PageTitle>
 
-<h2 class="fw-bold mb-4"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard</h2>
+<h2 class="dashboard-title">Dashboard</h2>
 
 @if (_loading)
 {
@@ -19,54 +19,42 @@ else
 {
     <AuthorizeView Roles="Admin">
         <Authorized Context="adminCtx">
-            <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <AdminStatCard Icon="fa-solid fa-users" Label="Użytkownicy" Value="@_dashboard.TotalUsers.ToString()" Color="#4A90D9" />
-                </div>
-                <div class="col-md-3 mb-3">
-                    <AdminStatCard Icon="fa-solid fa-store" Label="Restauracje" Value="@_dashboard.TotalRestaurants.ToString()" Color="#D4A574" />
-                </div>
-                <div class="col-md-3 mb-3">
-                    <AdminStatCard Icon="fa-solid fa-comments" Label="Recenzje" Value="@_dashboard.TotalReviews.ToString()" Color="#B8860B" />
-                </div>
+            <div class="dashboard-section-label">Statystyki ogólne</div>
+            <div class="dashboard-grid cols-3">
+                <AdminStatCard Label="Użytkownicy" Value="@_dashboard.TotalUsers.ToString("N0")" Context="konta zarejestrowane" />
+                <AdminStatCard Label="Restauracje" Value="@_dashboard.TotalRestaurants.ToString("N0")" Context="w katalogu" />
+                <AdminStatCard Label="Recenzje" Value="@_dashboard.TotalReviews.ToString("N0")" Context="wszystkie zatwierdzone" />
             </div>
         </Authorized>
     </AuthorizeView>
 
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <a href="/admin/photos" class="text-decoration-none">
-                <AdminStatCard Icon="fa-solid fa-images" Label="Oczekujące zdjęcia" Value="@_dashboard.PendingPhotos.ToString()" Color="#3498DB" />
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="/admin/reviews" class="text-decoration-none">
-                <AdminStatCard Icon="fa-solid fa-comment-dots" Label="Oczekujące recenzje" Value="@_dashboard.PendingReviews.ToString()" Color="#9B59B6" />
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="/admin/reports" class="text-decoration-none">
-                <AdminStatCard Icon="fa-solid fa-flag" Label="Oczekujące raporty" Value="@_dashboard.PendingReports.ToString()" Color="#E74C3C" />
-            </a>
-        </div>
-        <div class="col-md-3 mb-3">
-            <a href="/admin/tickets" class="text-decoration-none">
-                <AdminStatCard Icon="fa-solid fa-ticket" Label="Otwarte zgłoszenia" Value="@_dashboard.OpenTickets.ToString()" Color="#F39C12" />
-            </a>
-        </div>
+    <div class="dashboard-section-label">Wymaga uwagi</div>
+    <div class="dashboard-grid cols-5-flex">
+        <a href="/admin/photos" class="dashboard-card-link">
+            <AdminStatCard Label="Zdjęcia" Value="@_dashboard.PendingPhotos.ToString()" Context="do moderacji"
+                           Attention="@(_dashboard.PendingPhotos > 0)" IsClickable="true" />
+        </a>
+        <a href="/admin/reviews" class="dashboard-card-link">
+            <AdminStatCard Label="Recenzje" Value="@_dashboard.PendingReviews.ToString()" Context="do moderacji"
+                           Attention="@(_dashboard.PendingReviews > 0)" IsClickable="true" />
+        </a>
+        <a href="/admin/reports" class="dashboard-card-link">
+            <AdminStatCard Label="Raporty" Value="@_dashboard.PendingReports.ToString()" Context="do rozpatrzenia"
+                           Attention="@(_dashboard.PendingReports > 0)" IsClickable="true" />
+        </a>
+        <a href="/admin/tickets" class="dashboard-card-link">
+            <AdminStatCard Label="Zgłoszenia" Value="@_dashboard.OpenTickets.ToString()" Context="do odpowiedzi"
+                           Attention="@(_dashboard.OpenTickets > 0)" IsClickable="true" />
+        </a>
+        <AuthorizeView Roles="Admin">
+            <Authorized Context="adminCtx2">
+                <a href="/admin/edit-requests" class="dashboard-card-link">
+                    <AdminStatCard Label="Korekty" Value="@_dashboard.PendingCorrections.ToString()" Context="do akceptacji"
+                                   Attention="@(_dashboard.PendingCorrections > 0)" IsClickable="true" />
+                </a>
+            </Authorized>
+        </AuthorizeView>
     </div>
-
-    <AuthorizeView Roles="Admin">
-        <Authorized Context="adminCtx2">
-            <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <a href="/admin/edit-requests" class="text-decoration-none">
-                        <AdminStatCard Icon="fa-solid fa-pen-to-square" Label="Oczekujące korekty" Value="@_dashboard.PendingCorrections.ToString()" Color="#2ECC71" />
-                    </a>
-                </div>
-            </div>
-        </Authorized>
-    </AuthorizeView>
 }
 
 @code {
