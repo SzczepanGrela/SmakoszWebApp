@@ -24,4 +24,7 @@ public static class SecurityLogDetails
     public static string PasswordChanged() => """{"action":"password_changed"}""";
 
     public static string LoginSuccess() => "{}";
+
+    public static string AutoBanPrivilegedBruteForce(int threshold, int banHours) =>
+        JsonSerializer.Serialize(new { kind = "auto_ban_priv", threshold, ban_hours = banHours });
 }

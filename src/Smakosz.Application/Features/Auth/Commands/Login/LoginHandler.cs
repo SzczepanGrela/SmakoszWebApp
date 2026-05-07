@@ -77,7 +77,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant() && !u.IsDeleted, cancellationToken);
 
-        if (user is not null && user.LockedUntilUtc > now)
+        if (user is not null && user.LockedUntilUtc > now && !IsPrivileged(user.Role))
         {
             _db.SecurityLogs.Add(new SecurityLog
             {
@@ -99,17 +99,64 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
             var lockoutTriggered = false;
             DateTime lockUntil = default;
             int failedCountAtLockout = 0;
+
             if (user is not null)
             {
-                user.FailedLoginCount++;
-                var maxAttempts = _config.GetInt("auth.max_login_attempts", 5);
-                if (user.FailedLoginCount >= maxAttempts)
+                if (IsPrivileged(user.Role))
                 {
-                    var lockoutMin = _config.GetInt("auth.lockout_duration_min", 15);
-                    lockUntil = now.AddMinutes(lockoutMin);
-                    user.LockedUntilUtc = lockUntil;
-                    lockoutTriggered = true;
-                    failedCountAtLockout = user.FailedLoginCount;
+                    var threshold = _config.GetInt("auth.priv_ip_ban_threshold", 10);
+                    var windowMin = _config.GetInt("auth.priv_ip_ban_window_min", 15);
+                    var windowStart = now.AddMinutes(-windowMin);
+
+                    var recentFailed = 1 + await _db.SecurityLogs.CountAsync(s =>
+                        s.EventType == SecurityEventType.FailedLogin
+                        && s.IpAddress == ipAddress
+                        && s.Email == request.Email.ToLowerInvariant()
+                        && s.CreatedAt > windowStart, cancellationToken);
+
+                    if (recentFailed >= threshold && ipAddress is not null)
+                    {
+                        var existingBan = await _db.BannedIdentifiers.AnyAsync(b =>
+                            b.Type == BannedIdentifierType.Ip
+                            && b.Value == ipAddress
+                            && (b.ExpiresAt == null || b.ExpiresAt > now), cancellationToken);
+
+                        if (!existingBan)
+                        {
+                            var banHours = _config.GetInt("auth.priv_ip_ban_hours", 1);
+                            _db.BannedIdentifiers.Add(new BannedIdentifier
+                            {
+                                Type = BannedIdentifierType.Ip,
+                                Value = ipAddress,
+                                Reason = $"Auto: {threshold}+ failed attempts on privileged account in {windowMin}min",
+                                BannedAt = now,
+                                ExpiresAt = now.AddHours(banHours)
+                            });
+                            _db.SecurityLogs.Add(new SecurityLog
+                            {
+                                EventType = SecurityEventType.BlockedIp,
+                                IpAddress = ipAddress,
+                                UserAgent = _currentUser.UserAgent,
+                                CountryCode = _currentUser.CountryCode,
+                                Email = request.Email.ToLowerInvariant(),
+                                Details = SecurityLogDetails.AutoBanPrivilegedBruteForce(threshold, banHours),
+                                CreatedAt = now
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    user.FailedLoginCount++;
+                    var maxAttempts = _config.GetInt("auth.max_login_attempts", 5);
+                    if (user.FailedLoginCount >= maxAttempts)
+                    {
+                        var lockoutMin = _config.GetInt("auth.lockout_duration_min", 15);
+                        lockUntil = now.AddMinutes(lockoutMin);
+                        user.LockedUntilUtc = lockUntil;
+                        lockoutTriggered = true;
+                        failedCountAtLockout = user.FailedLoginCount;
+                    }
                 }
             }
 
@@ -205,4 +252,6 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
             }
         };
     }
+
+    private static bool IsPrivileged(UserRole role) => role is UserRole.Admin or UserRole.Moderator;
 }

@@ -2,6 +2,8 @@ using FluentAssertions;
 using NSubstitute;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Commands.Login;
+using Smakosz.Domain.Entities.System;
+using Smakosz.Domain.Enums;
 using Smakosz.UnitTests.Common.TestInfrastructure;
 using Smakosz.UnitTests.Common.TestInfrastructure.EntityBuilders;
 
@@ -42,6 +44,9 @@ public class LoginHandlerTests
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
         _config.GetInt("auth.max_login_attempts", 5).Returns(5);
         _config.GetInt("auth.lockout_duration_min", 15).Returns(15);
+        _config.GetInt("auth.priv_ip_ban_threshold", 10).Returns(10);
+        _config.GetInt("auth.priv_ip_ban_window_min", 15).Returns(15);
+        _config.GetInt("auth.priv_ip_ban_hours", 1).Returns(1);
 
         _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService, Substitute.For<IBusinessMetrics>(), Substitute.For<ISecurityNotificationService>());
     }
@@ -292,5 +297,136 @@ public class LoginHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.AccessToken.Should().Be("access_token");
         await _emailService.DidNotReceive().Send2faCodeAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_PrivilegedUser_DoesNotLockoutAfterMaxAttempts()
+    {
+        var user = new UserBuilder().WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        SeedFailedLoginLogs(9, "admin@example.com", "1.2.3.4");
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns("1.2.3.4");
+        var command = new LoginCommand("admin@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("AUTH_INVALID_CREDENTIALS");
+        user.LockedUntilUtc.Should().BeNull();
+        user.FailedLoginCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Handle_PrivilegedUser_BansIpAfterThresholdAttempts()
+    {
+        var user = new UserBuilder().WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        SeedFailedLoginLogs(9, "admin@example.com", "1.2.3.4");
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns("1.2.3.4");
+        var command = new LoginCommand("admin@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _sets.BannedIdentifiers.Should().ContainSingle(b =>
+            b.Type == BannedIdentifierType.Ip
+            && b.Value == "1.2.3.4"
+            && b.ExpiresAt.HasValue
+            && b.ExpiresAt.Value > DateTime.UtcNow);
+        _sets.SecurityLogs.Should().Contain(s => s.EventType == SecurityEventType.BlockedIp);
+    }
+
+    [Fact]
+    public async Task Handle_PrivilegedUser_DoesNotBanIpBelowThreshold()
+    {
+        var user = new UserBuilder().WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        SeedFailedLoginLogs(8, "admin@example.com", "1.2.3.4");
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns("1.2.3.4");
+        var command = new LoginCommand("admin@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _sets.BannedIdentifiers.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_PrivilegedUser_IdempotentBan()
+    {
+        var user = new UserBuilder().WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        SeedFailedLoginLogs(9, "admin@example.com", "1.2.3.4");
+        _sets.BannedIdentifiers.Add(new BannedIdentifier
+        {
+            Type = BannedIdentifierType.Ip,
+            Value = "1.2.3.4",
+            BannedAt = DateTime.UtcNow.AddMinutes(-5),
+            ExpiresAt = DateTime.UtcNow.AddHours(2),
+            Reason = "Pre-existing"
+        });
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns("1.2.3.4");
+        var command = new LoginCommand("admin@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _sets.BannedIdentifiers
+            .Count(b => b.Value == "1.2.3.4" && b.ExpiresAt.HasValue && b.ExpiresAt.Value > DateTime.UtcNow)
+            .Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Handle_NonPrivilegedUser_StillLocksOutNormally()
+    {
+        var user = new UserBuilder().WithEmail("user@example.com").WithRole(UserRole.User).WithFailedLoginCount(4).Build();
+        _sets.Users.Add(user);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns("1.2.3.4");
+        var command = new LoginCommand("user@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        user.FailedLoginCount.Should().Be(5);
+        user.LockedUntilUtc.Should().NotBeNull();
+        user.LockedUntilUtc.Should().BeCloseTo(DateTime.UtcNow.AddMinutes(15), TimeSpan.FromSeconds(5));
+        _sets.BannedIdentifiers.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Handle_PrivilegedUser_NullIp_DoesNotBan()
+    {
+        var user = new UserBuilder().WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        SeedFailedLoginLogs(9, "admin@example.com", ipAddress: null);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+        _currentUser.IpAddress.Returns((string?)null);
+        var command = new LoginCommand("admin@example.com", "wrongpassword", TurnstileToken: "valid-token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _sets.BannedIdentifiers.Should().BeEmpty();
+    }
+
+    private void SeedFailedLoginLogs(int count, string email, string? ipAddress)
+    {
+        var baseTime = DateTime.UtcNow.AddMinutes(-5);
+        for (int i = 0; i < count; i++)
+        {
+            _sets.SecurityLogs.Add(new SecurityLog
+            {
+                EventType = SecurityEventType.FailedLogin,
+                IpAddress = ipAddress,
+                Email = email.ToLowerInvariant(),
+                CreatedAt = baseTime.AddSeconds(i)
+            });
+        }
     }
 }
