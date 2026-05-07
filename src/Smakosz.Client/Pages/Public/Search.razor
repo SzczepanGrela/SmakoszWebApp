@@ -35,125 +35,40 @@
         </div>
     </div>
 
+    <div class="d-lg-none mb-3">
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#filterDrawer">
+            <i class="fa-solid fa-filter me-1"></i>Filtry
+            @if (TotalActiveFilterCount > 0)
+            {
+                <span class="badge bg-warning text-dark ms-1">@TotalActiveFilterCount</span>
+            }
+        </button>
+    </div>
+
     <div class="row">
-        <div class="col-lg-3 mb-4">
-            <FilterPanel>
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Kuchnia</label>
-                    @foreach (var cuisine in _cuisineOptions)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked="@_selectedCuisines.Contains(cuisine.Value)"
-                                   @onchange="e => ToggleCuisine(cuisine.Value, (bool)e.Value!)" />
-                            <label class="form-check-label small">@cuisine.Label</label>
-                        </div>
-                    }
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Dieta</label>
-                    @foreach (var diet in _dietaryOptions)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet.Value)"
-                                   @onchange="e => ToggleDietary(diet.Value, (bool)e.Value!)" />
-                            <label class="form-check-label small">@diet.Label</label>
-                        </div>
-                    }
-                </div>
-                @if (_type is "dishes" or "all" && _dishCategoryOptions.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Kategoria dania</label>
-                        @foreach (var cat in _dishCategoryOptions)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@_selectedDishCategories.Contains(cat.Value)"
-                                       @onchange="e => ToggleDishCategory(cat.Value, (bool)e.Value!)" />
-                                <label class="form-check-label small">@cat.Label</label>
-                            </div>
-                        }
-                    </div>
-                }
-                @if (_type is "dishes" or "all" && _spiceLevelOptions.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Ostrość</label>
-                        @foreach (var level in _spiceLevelOptions)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@_selectedSpiceLevels.Contains(level.Value)"
-                                       @onchange="e => ToggleSpiceLevel(level.Value, (bool)e.Value!)" />
-                                <label class="form-check-label small">@level.Label</label>
-                            </div>
-                        }
-                    </div>
-                }
-                @if (_type is "dishes" or "all" && _moodOptions.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Klimat</label>
-                        @foreach (var mood in _moodOptions)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@_selectedMoods.Contains(mood.Value)"
-                                       @onchange="e => ToggleMood(mood.Value, (bool)e.Value!)" />
-                                <label class="form-check-label small">@mood.Label</label>
-                            </div>
-                        }
-                    </div>
-                }
-                @if (_type is "dishes" or "all" && _occasionOptions.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Pora dnia</label>
-                        @foreach (var occ in _occasionOptions)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@_selectedOccasions.Contains(occ.Value)"
-                                       @onchange="e => ToggleOccasion(occ.Value, (bool)e.Value!)" />
-                                <label class="form-check-label small">@occ.Label</label>
-                            </div>
-                        }
-                    </div>
-                }
-                @if (_type is "dishes" or "all" && _featureOptions.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Cechy</label>
-                        @foreach (var feat in _featureOptions)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@_selectedFeatures.Contains(feat.Value)"
-                                       @onchange="e => ToggleFeature(feat.Value, (bool)e.Value!)" />
-                                <label class="form-check-label small">@feat.Label</label>
-                            </div>
-                        }
-                    </div>
-                }
-                @if (_cities.Any())
-                {
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Miasto</label>
-                        <select class="form-select form-select-sm" @bind="_selectedCity">
-                            <option value="">Wszystkie</option>
-                            @foreach (var city in _cities)
-                            {
-                                <option value="@city">@city</option>
-                            }
-                        </select>
-                    </div>
-                }
-                <button class="btn btn-primary btn-sm w-100" @onclick="DoSearch">Zastosuj filtry</button>
-                @if (_selectedCuisines.Any() || _selectedDietary.Any() || _selectedDishCategories.Any() || _selectedFeatures.Any() || _selectedMoods.Any() || _selectedOccasions.Any() || _selectedSpiceLevels.Any() || !string.IsNullOrEmpty(_selectedCity))
-                {
-                    <button class="btn btn-outline-secondary btn-sm w-100 mt-2" @onclick="ClearFilters">
-                        <i class="fa-solid fa-xmark me-1"></i>Wyczyść filtry
-                    </button>
-                }
+        <div class="col-lg-3 mb-4 d-none d-lg-block">
+            <FilterPanel TotalActiveCount="@TotalActiveFilterCount"
+                         ActiveFilters="@BuildActiveFilters()"
+                         OnRemoveFilter="RemoveFilter"
+                         OnApply="DoSearch"
+                         OnClearAll="ClearFilters"
+                         IsDirty="@_isDirty"
+                         IsMobile="false">
+                @SectionsContent
             </FilterPanel>
         </div>
 
-        <div class="col-lg-9">
+        <FilterPanel TotalActiveCount="@TotalActiveFilterCount"
+                     ActiveFilters="@BuildActiveFilters()"
+                     OnRemoveFilter="RemoveFilter"
+                     OnApply="DoSearch"
+                     OnClearAll="ClearFilters"
+                     IsDirty="@_isDirty"
+                     IsMobile="true">
+            @SectionsContent
+        </FilterPanel>
+
+        <div class="col-12 col-lg-9">
             @if (_loading)
             {
                 <LoadingSpinner />
@@ -196,6 +111,150 @@
 </div>
 
 @code {
+    private RenderFragment SectionsContent => __builder =>
+    {
+        <FilterSection Title="Kuchnia" ActiveCount="@_selectedCuisines.Count">
+            @foreach (var cuisine in _cuisineOptions)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" checked="@_selectedCuisines.Contains(cuisine.Value)"
+                           @onchange="e => ToggleCuisine(cuisine.Value, (bool)e.Value!)" />
+                    <label class="form-check-label small">@cuisine.Label</label>
+                </div>
+            }
+        </FilterSection>
+        <FilterSection Title="Dieta" ActiveCount="@_selectedDietary.Count">
+            @foreach (var diet in _dietaryOptions)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" checked="@_selectedDietary.Contains(diet.Value)"
+                           @onchange="e => ToggleDietary(diet.Value, (bool)e.Value!)" />
+                    <label class="form-check-label small">@diet.Label</label>
+                </div>
+            }
+        </FilterSection>
+        @if (_type is "dishes" or "all" && _dishCategoryOptions.Any())
+        {
+            <FilterSection Title="Kategoria dania" ActiveCount="@_selectedDishCategories.Count">
+                @foreach (var cat in _dishCategoryOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@_selectedDishCategories.Contains(cat.Value)"
+                               @onchange="e => ToggleDishCategory(cat.Value, (bool)e.Value!)" />
+                        <label class="form-check-label small">@cat.Label</label>
+                    </div>
+                }
+            </FilterSection>
+        }
+        @if (_type is "dishes" or "all" && _spiceLevelOptions.Any())
+        {
+            <FilterSection Title="Ostrość" ActiveCount="@_selectedSpiceLevels.Count">
+                @foreach (var level in _spiceLevelOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@_selectedSpiceLevels.Contains(level.Value)"
+                               @onchange="e => ToggleSpiceLevel(level.Value, (bool)e.Value!)" />
+                        <label class="form-check-label small">@level.Label</label>
+                    </div>
+                }
+            </FilterSection>
+        }
+        @if (_type is "dishes" or "all" && _moodOptions.Any())
+        {
+            <FilterSection Title="Klimat" ActiveCount="@_selectedMoods.Count">
+                @foreach (var mood in _moodOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@_selectedMoods.Contains(mood.Value)"
+                               @onchange="e => ToggleMood(mood.Value, (bool)e.Value!)" />
+                        <label class="form-check-label small">@mood.Label</label>
+                    </div>
+                }
+            </FilterSection>
+        }
+        @if (_type is "dishes" or "all" && _occasionOptions.Any())
+        {
+            <FilterSection Title="Pora dnia" ActiveCount="@_selectedOccasions.Count">
+                @foreach (var occ in _occasionOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@_selectedOccasions.Contains(occ.Value)"
+                                   @onchange="e => ToggleOccasion(occ.Value, (bool)e.Value!)" />
+                        <label class="form-check-label small">@occ.Label</label>
+                    </div>
+                }
+            </FilterSection>
+        }
+        @if (_type is "dishes" or "all" && _featureOptions.Any())
+        {
+            <FilterSection Title="Cechy" ActiveCount="@_selectedFeatures.Count">
+                @foreach (var feat in _featureOptions)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@_selectedFeatures.Contains(feat.Value)"
+                               @onchange="e => ToggleFeature(feat.Value, (bool)e.Value!)" />
+                        <label class="form-check-label small">@feat.Label</label>
+                    </div>
+                }
+            </FilterSection>
+        }
+        @if (_cities.Any())
+        {
+            <FilterSection Title="Miasto" ActiveCount="@(string.IsNullOrEmpty(_selectedCity) ? 0 : 1)">
+                <select class="form-select form-select-sm" @bind="_selectedCity" @bind:after="() => _isDirty = true">
+                    <option value="">Wszystkie</option>
+                    @foreach (var city in _cities)
+                    {
+                        <option value="@city">@city</option>
+                    }
+                </select>
+            </FilterSection>
+        }
+    };
+
+    private int TotalActiveFilterCount =>
+        _selectedCuisines.Count + _selectedDietary.Count + _selectedDishCategories.Count
+        + _selectedFeatures.Count + _selectedMoods.Count + _selectedOccasions.Count
+        + _selectedSpiceLevels.Count + (string.IsNullOrEmpty(_selectedCity) ? 0 : 1);
+
+    private List<ActiveFilterDto> BuildActiveFilters()
+    {
+        var list = new List<ActiveFilterDto>();
+        foreach (var v in _selectedCuisines)
+            list.Add(new("cuisines", v, _cuisineOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedDietary)
+            list.Add(new("dietary", v, _dietaryOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedDishCategories)
+            list.Add(new("dishCategories", v, _dishCategoryOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedFeatures)
+            list.Add(new("features", v, _featureOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedMoods)
+            list.Add(new("moods", v, _moodOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedOccasions)
+            list.Add(new("occasions", v, _occasionOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        foreach (var v in _selectedSpiceLevels)
+            list.Add(new("spiceLevels", v, _spiceLevelOptions.FirstOrDefault(o => o.Value == v)?.Label ?? v));
+        if (!string.IsNullOrEmpty(_selectedCity))
+            list.Add(new("city", _selectedCity, _selectedCity));
+        return list;
+    }
+
+    private void RemoveFilter(ActiveFilterDto filter)
+    {
+        switch (filter.Category)
+        {
+            case "cuisines": _selectedCuisines.Remove(filter.Value); break;
+            case "dietary": _selectedDietary.Remove(filter.Value); break;
+            case "dishCategories": _selectedDishCategories.Remove(filter.Value); break;
+            case "features": _selectedFeatures.Remove(filter.Value); break;
+            case "moods": _selectedMoods.Remove(filter.Value); break;
+            case "occasions": _selectedOccasions.Remove(filter.Value); break;
+            case "spiceLevels": _selectedSpiceLevels.Remove(filter.Value); break;
+            case "city": _selectedCity = ""; break;
+        }
+        _isDirty = true;
+    }
+
     [SupplyParameterFromQuery] public string? Query { get; set; }
     [SupplyParameterFromQuery] public string? Type { get; set; }
     [SupplyParameterFromQuery] public string? Cuisines { get; set; }
@@ -212,6 +271,7 @@
 
     private SearchResultDto? _result;
     private bool _loading = true;
+    private bool _isDirty;
     private string _query = "";
     private string _type = "dishes";
     private string _sortBy = "rating";
@@ -345,6 +405,7 @@
             tags: tags, dishCategories: dishCategories,
             features: features, moods: moods, occasions: occasions, spiceLevels: spiceLevels);
         _loading = false;
+        _isDirty = false;
     }
 
     private async Task DoSearch()
@@ -358,13 +419,13 @@
     private async Task ChangeSort(string sort) { _sortBy = sort; _page = 1; await LoadResults(); UpdateUrl(); }
     private async Task GoToPage(int page) { _page = page; await LoadResults(); UpdateUrl(); }
 
-    private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); }
-    private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); }
-    private void ToggleDishCategory(string c, bool v) { if (v) _selectedDishCategories.Add(c); else _selectedDishCategories.Remove(c); }
-    private void ToggleFeature(string c, bool v) { if (v) _selectedFeatures.Add(c); else _selectedFeatures.Remove(c); }
-    private void ToggleMood(string c, bool v) { if (v) _selectedMoods.Add(c); else _selectedMoods.Remove(c); }
-    private void ToggleOccasion(string c, bool v) { if (v) _selectedOccasions.Add(c); else _selectedOccasions.Remove(c); }
-    private void ToggleSpiceLevel(string c, bool v) { if (v) _selectedSpiceLevels.Add(c); else _selectedSpiceLevels.Remove(c); }
+    private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); _isDirty = true; }
+    private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); _isDirty = true; }
+    private void ToggleDishCategory(string c, bool v) { if (v) _selectedDishCategories.Add(c); else _selectedDishCategories.Remove(c); _isDirty = true; }
+    private void ToggleFeature(string c, bool v) { if (v) _selectedFeatures.Add(c); else _selectedFeatures.Remove(c); _isDirty = true; }
+    private void ToggleMood(string c, bool v) { if (v) _selectedMoods.Add(c); else _selectedMoods.Remove(c); _isDirty = true; }
+    private void ToggleOccasion(string c, bool v) { if (v) _selectedOccasions.Add(c); else _selectedOccasions.Remove(c); _isDirty = true; }
+    private void ToggleSpiceLevel(string c, bool v) { if (v) _selectedSpiceLevels.Add(c); else _selectedSpiceLevels.Remove(c); _isDirty = true; }
 
     private static void PopulateSet(string? csv, HashSet<string> target)
     {

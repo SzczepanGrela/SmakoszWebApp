@@ -1,0 +1,9 @@
+<span class="filter-chip">
+    @Label
+    <button type="button" class="filter-chip-remove" @onclick="OnRemove" aria-label="Usuń filtr">×</button>
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+    [Parameter] public EventCallback OnRemove { get; set; }
+}

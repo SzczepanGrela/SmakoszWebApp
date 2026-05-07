@@ -1,47 +1,45 @@
-﻿using Smakosz.ClientTests.Common;
+using Smakosz.Client.Components;
+using Smakosz.Client.Models;
+using Smakosz.ClientTests.Common;
 
 namespace Smakosz.ClientTests.Components;
 
 public class FilterPanelTests : BunitTestBase
 {
     [Fact]
-    public void RendersTitle()
+    public void RendersHeaderWithBadge_WhenActiveFilters()
     {
-        var cut = RenderComponent<FilterPanel>(p => p.Add(c => c.StartCollapsed, false));
-        cut.Find("h5").TextContent.Should().Contain("Filtry");
+        var cut = RenderComponent<FilterPanel>(p => p
+            .Add(c => c.TotalActiveCount, 3)
+            .Add(c => c.ActiveFilters, new List<ActiveFilterDto>
+            {
+                new("cuisines", "Polska", "Polska"),
+                new("cuisines", "Włoska", "Włoska"),
+                new("dietary", "vegan", "Wegańskie")
+            }));
+
+        cut.Find(".filter-panel-badge").TextContent.Trim().Should().Be("3");
+        cut.FindAll(".filter-chip").Count.Should().Be(3);
     }
 
     [Fact]
-    public void RendersChildContent_WhenExpanded()
+    public void ClickApply_InvokesCallback()
     {
+        var invoked = false;
         var cut = RenderComponent<FilterPanel>(p => p
-            .Add(c => c.StartCollapsed, false)
-            .AddChildContent("<div class='my-filter'>Test Filter</div>"));
+            .Add(c => c.OnApply, () => invoked = true));
 
-        cut.Markup.Should().Contain("Test Filter");
+        cut.Find(".filter-btn-apply").Click();
+
+        invoked.Should().BeTrue();
     }
 
     [Fact]
-    public void HidesChildContent_WhenCollapsed()
+    public void IsDirty_AppliesPulseClass()
     {
         var cut = RenderComponent<FilterPanel>(p => p
-            .Add(c => c.StartCollapsed, true)
-            .AddChildContent("<div class='my-filter'>Test Filter</div>"));
+            .Add(c => c.IsDirty, true));
 
-        cut.Markup.Should().NotContain("Test Filter");
-    }
-
-    [Fact]
-    public void ToggleExpandsCollapsedPanel()
-    {
-        var cut = RenderComponent<FilterPanel>(p => p
-            .Add(c => c.StartCollapsed, true)
-            .AddChildContent("<div class='my-filter'>Test Filter</div>"));
-
-        cut.Markup.Should().NotContain("Test Filter");
-
-        cut.Find(".cursor-pointer").Click();
-
-        cut.Markup.Should().Contain("Test Filter");
+        cut.Find(".filter-btn-apply").ClassList.Should().Contain("dirty");
     }
 }

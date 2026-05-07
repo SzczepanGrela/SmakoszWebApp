@@ -1,21 +1,55 @@
-<div class="filters-panel">
-    <div class="d-flex justify-content-between align-items-center mb-3 cursor-pointer" @onclick="Toggle">
-        <h5 class="mb-0"><i class="fa-solid fa-filter me-2"></i>Filtry</h5>
-        <i class="fa-solid @(_collapsed ? "fa-chevron-down" : "fa-chevron-up")"></i>
+@using Smakosz.Client.Models
+
+<div class="filter-panel-shell @(IsMobile ? "offcanvas offcanvas-end" : "")"
+     id="@(IsMobile ? "filterDrawer" : null)"
+     tabindex="@(IsMobile ? "-1" : null)">
+    <div class="filter-panel-header">
+        <h5 class="filter-panel-title">
+            <i class="fa-solid fa-filter me-2"></i>Filtry
+            @if (TotalActiveCount > 0)
+            {
+                <span class="filter-panel-badge">@TotalActiveCount</span>
+            }
+        </h5>
+        @if (IsMobile)
+        {
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Zamknij"></button>
+        }
     </div>
-    @if (!_collapsed)
-    {
-        @ChildContent
-    }
+    <div class="filter-panel-middle">
+        @if (ActiveFilters.Any())
+        {
+            <div class="filter-panel-chips">
+                @foreach (var filter in ActiveFilters)
+                {
+                    <FilterChip Label="@filter.Label" OnRemove="() => OnRemoveFilter.InvokeAsync(filter)" />
+                }
+            </div>
+        }
+        <div class="filter-panel-sections">
+            @ChildContent
+        </div>
+    </div>
+    <div class="filter-panel-footer">
+        <button type="button" class="filter-btn-apply @(IsDirty ? "dirty" : "")" @onclick="OnApply">
+            Zastosuj filtry
+        </button>
+        @if (TotalActiveCount > 0)
+        {
+            <button type="button" class="filter-btn-clear" @onclick="OnClearAll">
+                <i class="fa-solid fa-xmark me-1"></i>Wyczyść (@TotalActiveCount)
+            </button>
+        }
+    </div>
 </div>
 
 @code {
+    [Parameter] public int TotalActiveCount { get; set; }
+    [Parameter] public List<ActiveFilterDto> ActiveFilters { get; set; } = [];
+    [Parameter] public EventCallback<ActiveFilterDto> OnRemoveFilter { get; set; }
+    [Parameter] public EventCallback OnApply { get; set; }
+    [Parameter] public EventCallback OnClearAll { get; set; }
+    [Parameter] public bool IsDirty { get; set; }
+    [Parameter] public bool IsMobile { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public bool StartCollapsed { get; set; } = true;
-
-    private bool _collapsed;
-
-    protected override void OnInitialized() => _collapsed = StartCollapsed;
-
-    private void Toggle() => _collapsed = !_collapsed;
 }

@@ -767,19 +767,183 @@ main {
     }
 }
 
-/* Filters panel */
-.filters-panel {
-    background-color: var(--secondary-color);
-    padding: 20px;
+.filter-panel-shell {
+    background-color: var(--card-bg);
+    border: 1px solid var(--primary-color);
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(74, 52, 40, 0.08);
     position: sticky;
     top: 76px;
     max-height: calc(100vh - 92px);
+    overflow: hidden;
+}
+.filter-panel-shell.offcanvas {
+    position: fixed;
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+    width: 320px;
+}
+.filter-panel-header {
+    background: var(--secondary-color);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--primary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+.filter-panel-title {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.filter-panel-badge {
+    background: var(--accent-color);
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+.filter-panel-middle {
+    flex-grow: 1;
     overflow-y: auto;
-    box-shadow: 0 2px 8px var(--shadow-color);
+}
+.filter-panel-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(74, 52, 40, 0.08);
+    background: rgba(212, 165, 116, 0.06);
+}
+.filter-chip {
+    background: var(--accent-color);
+    color: #FFFFFF;
+    font-size: 0.75rem;
+    padding: 3px 4px 3px 10px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    max-width: 200px;
+}
+.filter-chip > .filter-chip-remove {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+}
+.filter-chip > .filter-chip-remove:hover {
+    color: #FFFFFF;
+}
+.filter-panel-sections {
+    padding: 4px 8px 8px;
+}
+.filter-section {
+    border-bottom: 1px solid rgba(74, 52, 40, 0.08);
+}
+.filter-section:last-child {
+    border-bottom: none;
+}
+.filter-section-header {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 10px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+}
+.filter-section-header .filter-section-title {
+    flex-grow: 1;
+}
+.filter-section-count {
+    background: var(--accent-color);
+    color: #FFFFFF;
+    font-size: 0.65rem;
+    padding: 1px 7px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+.filter-section-chevron {
+    color: #8b7355;
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+}
+.filter-section-header.expanded .filter-section-chevron {
+    transform: rotate(180deg);
+}
+.filter-section-content {
+    padding: 0 0 10px 4px;
+    font-size: 0.85rem;
+}
+.filter-panel-footer {
+    background: var(--secondary-color);
+    padding: 10px 12px;
+    border-top: 1px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.filter-btn-apply {
+    background: var(--card-bg);
+    color: var(--accent-color);
     border: 1px solid var(--primary-color);
-    box-sizing: border-box;
-    max-width: 100%;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.filter-btn-apply:hover {
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+}
+.filter-btn-apply.dirty {
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    color: #FFFFFF;
+    border-color: var(--accent-color);
+    animation: filter-apply-pulse 1.5s ease-in-out infinite;
+}
+@keyframes filter-apply-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 134, 11, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(184, 134, 11, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .filter-btn-apply.dirty { animation: none; }
+}
+.filter-btn-clear {
+    background: transparent;
+    color: #8b7355;
+    border: 1px solid var(--secondary-color);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.filter-btn-clear:hover {
+    background: var(--secondary-color);
 }
 
 /* Upload area */
