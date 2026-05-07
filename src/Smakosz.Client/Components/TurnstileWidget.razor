@@ -1,4 +1,5 @@
 @inject IJSRuntime JS
+@inject IConfiguration Configuration
 @implements IDisposable
 
 <div id="@_elementId"></div>
@@ -9,6 +10,12 @@
     private string _elementId = $"turnstile-{Guid.NewGuid():N}";
     private string _siteKey = "0x4AAAAAACrslpQAJFM5gHII";
     private DotNetObjectReference<TurnstileWidget>? _selfRef;
+
+    protected override void OnInitialized()
+    {
+        var configured = Configuration["Turnstile:SiteKey"];
+        if (!string.IsNullOrWhiteSpace(configured)) _siteKey = configured;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

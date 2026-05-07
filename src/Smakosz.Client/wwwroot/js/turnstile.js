@@ -1,5 +1,12 @@
 window.smakoszTurnstile = {
+    isTestKey: function (siteKey) {
+        return /^[123]x0{20}A[AB]$/.test(siteKey) || /^3x0{20}FF$/.test(siteKey);
+    },
     render: function (elementId, siteKey, dotNetRef) {
+        if (window.smakoszTurnstile.isTestKey(siteKey)) {
+            setTimeout(function () { dotNetRef.invokeMethodAsync('OnTokenChanged', 'XXXX.DUMMY.TOKEN.XXXX'); }, 0);
+            return;
+        }
         var attempts = 0;
         var tryRender = function () {
             if (typeof turnstile !== 'undefined') {
