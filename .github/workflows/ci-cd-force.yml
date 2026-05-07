@@ -1,0 +1,329 @@
+name: CI/CD (force all)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/szczepangrela/smakoszwebapp
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Unit Tests
+        run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
+
+      - name: Client Tests
+        run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
+
+      - name: Integration Tests
+        run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+
+  build-api:
+    name: Build & Push API
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.API/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/api:latest
+            ${{ env.IMAGE_PREFIX }}/api:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  build-client:
+    name: Build & Push Client
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push Client
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.Client/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/client:latest
+            ${{ env.IMAGE_PREFIX }}/client:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=client
+          cache-to: type=gha,mode=max,scope=client
+
+  build-orchestrator:
+    name: Build & Push Orchestrator
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push Orchestrator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Smakosz.Orchestrator/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/orchestrator:latest
+            ${{ env.IMAGE_PREFIX }}/orchestrator:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=orchestrator
+          cache-to: type=gha,mode=max,scope=orchestrator
+
+  build-gpu-worker:
+    name: Build GPU Worker image
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push GPU Worker
+        uses: docker/build-push-action@v6
+        with:
+          context: gpu-worker
+          file: gpu-worker/Dockerfile.gpu
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=gpu-worker
+          cache-to: type=gha,mode=max,scope=gpu-worker
+
+  build-rbpi-gateway:
+    name: Build RBPI Gateway image
+    needs: [test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push arm64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: tools/rbpi-gateway
+          file: tools/rbpi-gateway/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/rbpi-gateway:latest
+            ${{ env.IMAGE_PREFIX }}/rbpi-gateway:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=rbpi-gateway
+          cache-to: type=gha,mode=max,scope=rbpi-gateway
+
+  deploy-vps:
+    name: Deploy to VPS
+    needs: [build-api, build-client, build-orchestrator]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-vps
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID_VPS }}
+          audience: ${{ secrets.TS_AUDIENCE_VPS }}
+          tags: tag:ci-vps
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY_VPS }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS_SSH_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy & verify health
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_SSH_PORT }} \
+            smakosz@${{ secrets.VPS_HOST }} bash /home/smakosz/deploy-launcher.sh
+
+  cf-purge:
+    name: Purge Cloudflare cache
+    needs: deploy-vps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge entire Cloudflare cache
+        run: |
+          curl -fsS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
+  deploy-rbpi:
+    name: Deploy RBPI Gateway
+    needs: [build-rbpi-gateway]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-rbpi
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_CLIENT_ID_RBPI }}
+          audience: ${{ secrets.TS_AUDIENCE_RBPI }}
+          tags: tag:ci-rbpi
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY_RBPI }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          for i in 1 2 3 4 5; do
+            if ssh-keyscan -p ${{ secrets.RBPI_SSH_PORT }} ${{ secrets.RBPI_HOST }} >> ~/.ssh/known_hosts 2>&1; then
+              echo "ssh-keyscan succeeded on attempt $i"
+              exit 0
+            fi
+            echo "ssh-keyscan attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "ssh-keyscan failed after 5 attempts"
+          exit 1
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.RBPI_SSH_PORT }} \
+            smakosz@${{ secrets.RBPI_HOST }} bash /home/smakosz/deploy-launcher.sh
+
+      - name: Health check via Tailscale
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS --max-time 5 "http://${{ secrets.RBPI_HOST }}:5000/health"; then
+              echo "Health check OK"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "Health check failed after 3 attempts"
+          exit 1
