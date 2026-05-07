@@ -1,0 +1,5 @@
+[
+  { "name": "mobile-cold",  "lighthouseFlags": [],                   "userDataDirReuse": false, "warmHop": false },
+  { "name": "mobile-warm",  "lighthouseFlags": [],                   "userDataDirReuse": true,  "warmHop": true  },
+  { "name": "desktop-cold", "lighthouseFlags": ["--preset=desktop"], "userDataDirReuse": false, "warmHop": false }
+]

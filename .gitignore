@@ -410,3 +410,7 @@ tools/herbert/training_job.yaml
 
 # One-off maintenance scripts
 tools/r2_maintenance.py
+
+# Performance audit local artifacts
+tools/perf-audit/audit-output/
+tools/perf-audit/tmp/

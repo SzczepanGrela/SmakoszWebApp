@@ -1,0 +1,11 @@
+[
+  { "name": "home",              "url": "/",                   "requiresAuth": false },
+  { "name": "search",            "url": "/szukaj",             "requiresAuth": false },
+  { "name": "dish-detail",       "url": "/danie/{slug}",       "requiresAuth": false, "slugFrom": "trending" },
+  { "name": "restaurant-detail", "url": "/restauracja/{slug}", "requiresAuth": false, "slugFrom": "topRated" },
+  { "name": "restaurants",       "url": "/restauracje",        "requiresAuth": false },
+  { "name": "categories",        "url": "/kategorie",          "requiresAuth": false },
+  { "name": "login",             "url": "/login",              "requiresAuth": false },
+  { "name": "my-profile",        "url": "/me/profile",         "requiresAuth": true  },
+  { "name": "admin-root",        "url": "/admin",              "requiresAuth": true  }
+]
