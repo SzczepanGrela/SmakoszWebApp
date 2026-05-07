@@ -8,13 +8,13 @@
     [Parameter] public EventCallback<string> OnVerified { get; set; }
 
     private string _elementId = $"turnstile-{Guid.NewGuid():N}";
-    private string _siteKey = "0x4AAAAAACrslpQAJFM5gHII";
+    private string _siteKey = string.Empty;
     private DotNetObjectReference<TurnstileWidget>? _selfRef;
 
     protected override void OnInitialized()
     {
-        var configured = Configuration["Turnstile:SiteKey"];
-        if (!string.IsNullOrWhiteSpace(configured)) _siteKey = configured;
+        _siteKey = Configuration["Turnstile:SiteKey"]
+            ?? throw new InvalidOperationException("Turnstile:SiteKey is required");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

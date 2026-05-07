@@ -31,7 +31,12 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
         Services.AddSingleton(Substitute.For<IPublicConfigService>());
         Services.AddSingleton(Substitute.For<ICategoryService>());
-        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Turnstile:SiteKey"] = "1x00000000000000000000AA"
+            })
+            .Build());
     }
 
     protected void SetAuthenticatedUser(string username = "testuser", string role = "User")
