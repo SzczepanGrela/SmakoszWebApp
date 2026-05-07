@@ -1,57 +1,24 @@
 @namespace Smakosz.Client.Components
 @if (Info != null && Info.TotalPages > 1)
 {
-    <nav>
-        <ul class="pagination justify-content-center flex-wrap">
-            <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPage(1)" title="Pierwsza strona">
-                    <i class="fa-solid fa-angles-left"></i>
-                </button>
-            </li>
-            <li class="page-item @(Info.Page <= 1 ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPage(Info.Page - 1)">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-            </li>
-
-            @foreach (var item in GetPageNumbers())
-            {
-                @if (item == -1)
-                {
-                    <li class="page-item disabled">
-                        <span class="page-link">&hellip;</span>
-                    </li>
-                }
-                else
-                {
-                    <li class="page-item @(item == Info.Page ? "active" : "")">
-                        <button class="page-link" @onclick="() => GoToPage(item)">@item</button>
-                    </li>
-                }
-            }
-
-            <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPage(Info.Page + 1)">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </li>
-            <li class="page-item @(Info.Page >= Info.TotalPages ? "disabled" : "")">
-                <button class="page-link" @onclick="() => GoToPage(Info.TotalPages)" title="Ostatnia strona">
-                    <i class="fa-solid fa-angles-right"></i>
-                </button>
-            </li>
-        </ul>
-
-        @if (Info.TotalPages > 5)
-        {
-            <div class="d-flex justify-content-center align-items-center gap-2 mt-1">
-                <small class="text-muted">Strona</small>
-                <input type="number" class="form-control form-control-sm" style="width:70px;text-align:center;"
-                       min="1" max="@Info.TotalPages" value="@Info.Page"
-                       @onchange="HandlePageInput" />
-                <small class="text-muted">z @Info.TotalPages</small>
-            </div>
-        }
+    <nav class="pagination-nav">
+        <div class="pagination-panel">
+            <button class="pagination-arrow @(Info.Page <= 1 ? "disabled" : "")"
+                    @onclick="() => GoToPage(Info.Page - 1)"
+                    disabled="@(Info.Page <= 1)">
+                <i class="fa-solid fa-chevron-left"></i>
+                <span class="pagination-label">Poprzednia</span>
+            </button>
+            <span class="pagination-status">
+                Strona <strong>@Info.Page</strong> z @Info.TotalPages
+            </span>
+            <button class="pagination-arrow @(Info.Page >= Info.TotalPages ? "disabled" : "")"
+                    @onclick="() => GoToPage(Info.Page + 1)"
+                    disabled="@(Info.Page >= Info.TotalPages)">
+                <span class="pagination-label">Następna</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
     </nav>
 }
 
@@ -59,38 +26,9 @@
     [Parameter] public Smakosz.Client.Models.PaginationInfo? Info { get; set; }
     [Parameter] public EventCallback<int> OnPageChange { get; set; }
 
-    private List<int> GetPageNumbers()
-    {
-        var pages = new List<int>();
-        var total = Info!.TotalPages;
-        var current = Info.Page;
-
-        pages.Add(1);
-
-        if (current > 3)
-            pages.Add(-1); // ellipsis
-
-        for (int i = Math.Max(2, current - 1); i <= Math.Min(total - 1, current + 1); i++)
-            pages.Add(i);
-
-        if (current < total - 2)
-            pages.Add(-1); // ellipsis
-
-        if (total > 1)
-            pages.Add(total);
-
-        return pages;
-    }
-
     private async Task GoToPage(int page)
     {
         if (page >= 1 && page <= Info!.TotalPages && page != Info.Page)
             await OnPageChange.InvokeAsync(page);
-    }
-
-    private async Task HandlePageInput(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var page))
-            await GoToPage(page);
     }
 }
