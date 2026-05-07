@@ -22,4 +22,6 @@ public static class SecurityLogDetails
     public static string GdprAccountDeletion() => """{"action":"gdpr_account_deletion"}""";
 
     public static string PasswordChanged() => """{"action":"password_changed"}""";
+
+    public static string LoginSuccess() => "{}";
 }

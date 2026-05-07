@@ -368,6 +368,24 @@ def _generate_security_logs(db: DatabaseConnection) -> int:
         last_login_naive = ensure_naive(user_last_login_at) if user_last_login_at else None
         created_naive = ensure_naive(user_created_at) if user_created_at else None
 
+        ts_baseline = now_naive - timedelta(
+            days=random.randint(1, 30),
+            minutes=random.randint(0, 1440),
+        )
+        if ts_baseline < window_cutoff:
+            ts_baseline = now_naive - timedelta(minutes=random.randint(0, 1440))
+        buffer.append({
+            "event_type": "successful_login",
+            "ip_address": fake.ipv4_public(),
+            "user_agent": fake.user_agent(),
+            "email": recipient,
+            "user_id": user_id,
+            "details": "{}",
+            "country_code": "PL",
+            "city": fake.city(),
+            "created_at": ts_baseline,
+        })
+
         if last_login_naive and last_login_naive >= window_cutoff and random.random() < 0.10:
             for _ in range(random.randint(1, 2)):
                 ts = last_login_naive - timedelta(

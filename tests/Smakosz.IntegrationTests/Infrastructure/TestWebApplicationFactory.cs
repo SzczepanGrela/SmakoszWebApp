@@ -73,6 +73,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IBackgroundJobClient>();
             services.RemoveAll<IRecurringJobManager>();
 
+            // ISendSecurityEmailJob is registered as a Hangfire proxy in API/Program.cs but Hangfire is removed above,
+            // so substitute a no-op stub that lets SecurityNotificationService dispatch without enqueueing.
+            services.RemoveAll<ISendSecurityEmailJob>();
+            services.AddScoped<ISendSecurityEmailJob, StubSendSecurityEmailJob>();
+
             // DbLoggerProvider writes log events to the real Logs table; tests do not need that side effect.
             var dbLoggerDescriptor = services.FirstOrDefault(d =>
                 d.ImplementationType == typeof(DbLoggerProvider) ||

@@ -22,8 +22,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
     private readonly IVerificationCodeService _verificationCodeService;
     private readonly IEmailService _emailService;
     private readonly IBusinessMetrics _metrics;
+    private readonly ISecurityNotificationService _securityNotifications;
 
-    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config, IVerificationCodeService verificationCodeService, IEmailService emailService, IBusinessMetrics metrics)
+    public LoginHandler(ISmakoszDbContext db, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, ISessionService sessionService, ICurrentUserService currentUser, ITurnstileService turnstile, IValidationConfigProvider config, IVerificationCodeService verificationCodeService, IEmailService emailService, IBusinessMetrics metrics, ISecurityNotificationService securityNotifications)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -35,6 +36,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         _verificationCodeService = verificationCodeService;
         _emailService = emailService;
         _metrics = metrics;
+        _securityNotifications = securityNotifications;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -94,6 +96,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
 
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
         {
+            var lockoutTriggered = false;
+            DateTime lockUntil = default;
+            int failedCountAtLockout = 0;
             if (user is not null)
             {
                 user.FailedLoginCount++;
@@ -101,7 +106,10 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 if (user.FailedLoginCount >= maxAttempts)
                 {
                     var lockoutMin = _config.GetInt("auth.lockout_duration_min", 15);
-                    user.LockedUntilUtc = now.AddMinutes(lockoutMin);
+                    lockUntil = now.AddMinutes(lockoutMin);
+                    user.LockedUntilUtc = lockUntil;
+                    lockoutTriggered = true;
+                    failedCountAtLockout = user.FailedLoginCount;
                 }
             }
 
@@ -115,6 +123,10 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 CreatedAt = now
             });
             await _db.SaveChangesAsync(cancellationToken);
+            if (lockoutTriggered && user is not null)
+            {
+                await _securityNotifications.NotifyAccountLockedAsync(user.UserId, failedCountAtLockout, lockUntil, ipAddress, _currentUser.CountryCode, _currentUser.UserAgent, cancellationToken);
+            }
             _metrics.RecordLogin("wrong_password");
             return DomainErrors.Auth.InvalidCredentials;
         }
@@ -161,7 +173,19 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
         user.LastLoginAt = now;
+        _db.SecurityLogs.Add(new SecurityLog
+        {
+            EventType = SecurityEventType.SuccessfulLogin,
+            IpAddress = ipAddress,
+            UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
+            Email = request.Email.ToLowerInvariant(),
+            UserId = user.UserId,
+            Details = SecurityLogDetails.LoginSuccess(),
+            CreatedAt = now
+        });
         await _db.SaveChangesAsync(cancellationToken);
+        await _securityNotifications.NotifyNewCountryLoginIfApplicableAsync(user.UserId, _currentUser.CountryCode, ipAddress, _currentUser.UserAgent, cancellationToken);
         _metrics.RecordLogin("success");
 
         return new AuthResultDto

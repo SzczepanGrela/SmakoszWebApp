@@ -15,15 +15,18 @@ public class Disable2faHandler : IRequestHandler<Disable2faCommand, ErrorOr<Succ
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ISecurityNotificationService _securityNotifications;
 
     public Disable2faHandler(
         ISmakoszDbContext db,
         ICurrentUserService currentUser,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        ISecurityNotificationService securityNotifications)
     {
         _db = db;
         _currentUser = currentUser;
         _passwordHasher = passwordHasher;
+        _securityNotifications = securityNotifications;
     }
 
     public async Task<ErrorOr<Success>> Handle(Disable2faCommand request, CancellationToken cancellationToken)
@@ -64,6 +67,8 @@ public class Disable2faHandler : IRequestHandler<Disable2faCommand, ErrorOr<Succ
         });
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await _securityNotifications.NotifyTwoFactorDisabledAsync(userId, _currentUser.IpAddress, _currentUser.CountryCode, _currentUser.UserAgent, cancellationToken);
 
         return Result.Success;
     }

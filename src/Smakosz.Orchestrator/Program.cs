@@ -85,6 +85,8 @@ builder.Services.AddScoped<NotificationDigestService>();
 builder.Services.AddScoped<PushNotificationDispatchService>();
 builder.Services.AddScoped<SiteStatsService>();
 builder.Services.AddScoped<NcfModelActivationService>();
+builder.Services.AddScoped<SendSecurityEmailJob>();
+builder.Services.AddScoped<ISendSecurityEmailJob>(sp => sp.GetRequiredService<SendSecurityEmailJob>());
 builder.Services.AddScoped<ModerationBatchAggregatorService>();
 builder.Services.AddScoped<IModerationAggregationService>(sp => sp.GetRequiredService<ModerationBatchAggregatorService>());
 builder.Services.AddScoped<ModerationAggregationSchedulerService>();

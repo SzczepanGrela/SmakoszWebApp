@@ -53,4 +53,6 @@ public class NotificationSettingsDto
     public bool PushLike { get; set; }
     public bool PushFollow { get; set; }
     public bool PushSystem { get; set; }
+    public bool EmailSecurity { get; set; } = true;
+    public bool PushSecurity { get; set; }
 }

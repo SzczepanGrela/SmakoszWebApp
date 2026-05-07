@@ -91,6 +91,76 @@ public class BrevoEmailService : IEmailService
         return SendAsync(email, "Smakosz - zaproszenie do zespołu", html, ct);
     }
 
+    public Task SendSecurityPasswordChangedAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default)
+    {
+        var when = occurredAt.ToString("dd.MM.yyyy HH:mm");
+        var fromInfo = BuildLocationInfo(ipAddress, countryCode);
+        var inner = EmailTemplateBuilder.BuildContentSection(
+            "Has&#322;o zosta&#322;o zmienione",
+            "Hej,",
+            $"Twoje has&#322;o zosta&#322;o zmienione {when}{fromInfo}.",
+            "Je&#347;li to by&#322;e&#347; Ty &mdash; mo&#380;esz zignorowa&#263; t&#281; wiadomo&#347;&#263;. Je&#347;li nie &mdash; kliknij poni&#380;szy link &#380;eby przejrze&#263; aktywne sesje i ponownie zmieni&#263; has&#322;o.",
+            BuildSecurityCtaButton());
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, "Smakosz - hasło zostało zmienione", html, ct);
+    }
+
+    public Task SendSecurityTwoFactorDisabledAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default)
+    {
+        var when = occurredAt.ToString("dd.MM.yyyy HH:mm");
+        var fromInfo = BuildLocationInfo(ipAddress, countryCode);
+        var inner = EmailTemplateBuilder.BuildContentSection(
+            "Wy&#322;&#261;czono dwusk&#322;adnikowe uwierzytelnianie",
+            "Hej,",
+            $"Dwusk&#322;adnikowe uwierzytelnianie (2FA) zosta&#322;o wy&#322;&#261;czone na Twoim koncie {when}{fromInfo}.",
+            "Bez 2FA wystarczy has&#322;o &#380;eby si&#281; zalogowa&#263;. Je&#347;li to nie Ty &mdash; natychmiast zresetuj has&#322;o i w&#322;&#261;cz 2FA ponownie.",
+            BuildSecurityCtaButton());
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, "Smakosz - wyłączono dwuskładnikowe uwierzytelnianie", html, ct);
+    }
+
+    public Task SendSecurityAccountLockedAsync(string email, int failedAttempts, DateTime lockUntil, string? ipAddress, string? countryCode, CancellationToken ct = default)
+    {
+        var until = lockUntil.ToString("dd.MM.yyyy HH:mm");
+        var fromInfo = BuildLocationInfo(ipAddress, countryCode);
+        var inner = EmailTemplateBuilder.BuildContentSection(
+            "Wykryto pr&oacute;by w&#322;amania na Twoje konto",
+            "Hej,",
+            $"Kto&#347; pr&oacute;bowa&#322; si&#281; zalogowa&#263; na Twoje konto {failedAttempts} razy bez sukcesu. Konto jest zablokowane do {until}{fromInfo}.",
+            "Je&#347;li to nie Ty pr&oacute;bujesz si&#281; zalogowa&#263; &mdash; natychmiast zmie&#324; has&#322;o.",
+            BuildSecurityCtaButton());
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, "Smakosz - wykryto próby włamania na Twoje konto", html, ct);
+    }
+
+    public Task SendSecurityNewCountryLoginAsync(string email, string countryCode, string? ipAddress, string? userAgent, DateTime occurredAt, CancellationToken ct = default)
+    {
+        var when = occurredAt.ToString("dd.MM.yyyy HH:mm");
+        var ipInfo = string.IsNullOrEmpty(ipAddress) ? "" : $" ({ipAddress})";
+        var uaInfo = string.IsNullOrEmpty(userAgent) ? "" : $" u&#380;ywaj&#261;c {userAgent}";
+        var inner = EmailTemplateBuilder.BuildContentSection(
+            $"Logowanie z nowego kraju ({countryCode})",
+            "Hej,",
+            $"Kto&#347; zalogowa&#322; si&#281; na Twoje konto z {countryCode}{ipInfo} {when}{uaInfo}.",
+            "Je&#347;li to by&#322;e&#347; Ty (np. podr&oacute;&#380;ujesz, u&#380;ywasz VPN) &mdash; mo&#380;esz zignorowa&#263;. Je&#347;li nie &mdash; natychmiast wyloguj wszystkie sesje i zmie&#324; has&#322;o.",
+            BuildSecurityCtaButton());
+        var html = EmailTemplateBuilder.WrapInLayout(inner);
+        return SendAsync(email, $"Smakosz - logowanie z nowego kraju ({countryCode})", html, ct);
+    }
+
+    private static string BuildLocationInfo(string? ipAddress, string? countryCode)
+    {
+        if (string.IsNullOrEmpty(ipAddress)) return "";
+        var country = string.IsNullOrEmpty(countryCode) ? "" : $" ({countryCode})";
+        return $" z adresu IP {ipAddress}{country}";
+    }
+
+    private string BuildSecurityCtaButton()
+    {
+        var url = $"{_options.ClientBaseUrl.TrimEnd('/')}/me/security";
+        return $"<a href=\"{url}\" style=\"display:inline-block;padding:10px 20px;background:#B8860B;color:#fff;text-decoration:none;border-radius:6px;\">Zarz&#261;dzaj kontem</a>";
+    }
+
     private Task SendCodeEmailAsync(string email, string subject, string heading, string label, string code, string footer, CancellationToken ct)
     {
         var inner = EmailTemplateBuilder.BuildCodeSection(heading, label, code, footer);

@@ -37,7 +37,9 @@ public class GetNotificationSettingsHandler : IRequestHandler<GetNotificationSet
             {
                 PushLike = true,
                 PushFollow = true,
-                PushSystem = true
+                PushSystem = true,
+                EmailSecurity = true,
+                PushSecurity = false
             };
         }
 
@@ -45,7 +47,9 @@ public class GetNotificationSettingsHandler : IRequestHandler<GetNotificationSet
         {
             PushLike = settings.PushLike,
             PushFollow = settings.PushFollow,
-            PushSystem = settings.PushSystem
+            PushSystem = settings.PushSystem,
+            EmailSecurity = settings.EmailSecurity,
+            PushSecurity = settings.PushSecurity
         };
     }
 }

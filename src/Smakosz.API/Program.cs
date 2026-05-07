@@ -48,6 +48,7 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 builder.Services.AddScoped<INcfTrainingService, HangfireNcfTrainingProxy>();
 builder.Services.AddScoped<IModerationAggregationService, HangfireModerationProxy>();
+builder.Services.AddScoped<ISendSecurityEmailJob, HangfireSendSecurityEmailProxy>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();

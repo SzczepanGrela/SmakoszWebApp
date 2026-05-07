@@ -64,4 +64,28 @@ public class StubEmailService : IEmailService
         _logger.LogInformation("[Email Stub] Invitation code {Code} for role {Role} sent to {Email} (username={Username})", code, role, email, username);
         return Task.CompletedTask;
     }
+
+    public Task SendSecurityPasswordChangedAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Security password changed alert sent to {Email} (ip={Ip}, country={Country})", email, ipAddress, countryCode);
+        return Task.CompletedTask;
+    }
+
+    public Task SendSecurityTwoFactorDisabledAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Security 2FA disabled alert sent to {Email} (ip={Ip}, country={Country})", email, ipAddress, countryCode);
+        return Task.CompletedTask;
+    }
+
+    public Task SendSecurityAccountLockedAsync(string email, int failedAttempts, DateTime lockUntil, string? ipAddress, string? countryCode, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Security account locked alert sent to {Email} (attempts={Attempts}, until={Until}, ip={Ip}, country={Country})", email, failedAttempts, lockUntil, ipAddress, countryCode);
+        return Task.CompletedTask;
+    }
+
+    public Task SendSecurityNewCountryLoginAsync(string email, string countryCode, string? ipAddress, string? userAgent, DateTime occurredAt, CancellationToken ct = default)
+    {
+        _logger.LogInformation("[Email Stub] Security new country login alert sent to {Email} (country={Country}, ip={Ip})", email, countryCode, ipAddress);
+        return Task.CompletedTask;
+    }
 }

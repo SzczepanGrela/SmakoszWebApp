@@ -108,6 +108,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IForbiddenWordService, ForbiddenWordService>();
         services.AddScoped<IVerificationCodeService, VerificationCodeService>();
+        services.AddScoped<ISecurityNotificationService, SecurityNotificationService>();
         services.AddHttpClient<ITurnstileService, TurnstileService>();
 
         return services;

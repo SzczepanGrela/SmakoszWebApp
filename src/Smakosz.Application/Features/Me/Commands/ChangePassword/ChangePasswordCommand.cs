@@ -16,12 +16,14 @@ public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Erro
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ISecurityNotificationService _securityNotifications;
 
-    public ChangePasswordHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IPasswordHasher passwordHasher)
+    public ChangePasswordHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IPasswordHasher passwordHasher, ISecurityNotificationService securityNotifications)
     {
         _db = db;
         _currentUser = currentUser;
         _passwordHasher = passwordHasher;
+        _securityNotifications = securityNotifications;
     }
 
     public async Task<ErrorOr<Success>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -54,6 +56,8 @@ public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Erro
         });
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        await _securityNotifications.NotifyPasswordChangedAsync(user.UserId, _currentUser.IpAddress, _currentUser.CountryCode, _currentUser.UserAgent, cancellationToken);
 
         return Result.Success;
     }

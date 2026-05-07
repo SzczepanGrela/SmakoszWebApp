@@ -14,4 +14,8 @@ public interface IEmailService
     Task SendAccountDeletionCodeAsync(string email, string code, CancellationToken ct = default);
     Task SendAccountDeletionConfirmationAsync(string email, CancellationToken ct = default);
     Task SendInvitationAsync(string email, string code, string username, UserRole role, CancellationToken ct = default);
+    Task SendSecurityPasswordChangedAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default);
+    Task SendSecurityTwoFactorDisabledAsync(string email, string? ipAddress, string? countryCode, DateTime occurredAt, CancellationToken ct = default);
+    Task SendSecurityAccountLockedAsync(string email, int failedAttempts, DateTime lockUntil, string? ipAddress, string? countryCode, CancellationToken ct = default);
+    Task SendSecurityNewCountryLoginAsync(string email, string countryCode, string? ipAddress, string? userAgent, DateTime occurredAt, CancellationToken ct = default);
 }

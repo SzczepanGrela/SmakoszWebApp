@@ -492,6 +492,8 @@ def _generate_user_notification_settings(db: DatabaseConnection):
                 "push_like": random.random() < 0.80,
                 "push_follow": random.random() < 0.90,
                 "push_system": True,
+                "email_security": True,
+                "push_security": False,
             }
         )
 

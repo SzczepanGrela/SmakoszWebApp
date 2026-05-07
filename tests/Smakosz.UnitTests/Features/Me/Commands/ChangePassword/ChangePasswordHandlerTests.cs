@@ -22,7 +22,7 @@ public class ChangePasswordHandlerTests
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
         _passwordHasher = Substitute.For<IPasswordHasher>();
         _passwordHasher.Hash(Arg.Any<string>()).Returns("new_hash");
-        _handler = new ChangePasswordHandler(_db, _currentUser, _passwordHasher);
+        _handler = new ChangePasswordHandler(_db, _currentUser, _passwordHasher, Substitute.For<ISecurityNotificationService>());
     }
 
     [Fact]

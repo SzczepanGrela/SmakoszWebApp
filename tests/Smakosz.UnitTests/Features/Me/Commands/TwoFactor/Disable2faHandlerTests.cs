@@ -22,7 +22,7 @@ public class Disable2faHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAuthenticatedUser(userId: 1);
         _passwordHasher = Substitute.For<IPasswordHasher>();
-        _handler = new Disable2faHandler(_db, _currentUser, _passwordHasher);
+        _handler = new Disable2faHandler(_db, _currentUser, _passwordHasher, Substitute.For<ISecurityNotificationService>());
     }
 
     [Fact]

@@ -7,7 +7,7 @@ using Smakosz.Domain.Entities;
 
 namespace Smakosz.Application.Features.Me.Commands.UpdateNotificationSettings;
 
-public record UpdateNotificationSettingsCommand(bool PushLike, bool PushFollow, bool PushSystem) : IRequest<ErrorOr<Success>>;
+public record UpdateNotificationSettingsCommand(bool PushLike, bool PushFollow, bool PushSystem, bool EmailSecurity, bool PushSecurity) : IRequest<ErrorOr<Success>>;
 
 public class UpdateNotificationSettingsHandler : IRequestHandler<UpdateNotificationSettingsCommand, ErrorOr<Success>>
 {
@@ -38,6 +38,8 @@ public class UpdateNotificationSettingsHandler : IRequestHandler<UpdateNotificat
                 PushLike = request.PushLike,
                 PushFollow = request.PushFollow,
                 PushSystem = request.PushSystem,
+                EmailSecurity = request.EmailSecurity,
+                PushSecurity = request.PushSecurity,
                 UpdatedAt = DateTime.UtcNow
             };
             _db.UserNotificationSettings.Add(settings);
@@ -47,6 +49,8 @@ public class UpdateNotificationSettingsHandler : IRequestHandler<UpdateNotificat
             settings.PushLike = request.PushLike;
             settings.PushFollow = request.PushFollow;
             settings.PushSystem = request.PushSystem;
+            settings.EmailSecurity = request.EmailSecurity;
+            settings.PushSecurity = request.PushSecurity;
             settings.UpdatedAt = DateTime.UtcNow;
         }
 
