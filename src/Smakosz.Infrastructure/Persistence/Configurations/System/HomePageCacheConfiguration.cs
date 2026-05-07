@@ -18,6 +18,8 @@ public class HomePageCacheConfiguration : IEntityTypeConfiguration<HomePageCache
         builder.Property(x => x.RecentReviewsJson).HasColumnType("text");
         builder.Property(x => x.PopularCategoriesJson).HasColumnType("text");
         builder.Property(x => x.HeroImageJson).HasColumnType("text");
+        builder.Property(x => x.NewestRestaurantsJson).HasColumnType("text");
+        builder.Property(x => x.MostReviewedDishesJson).HasColumnType("text");
 
         builder.Property(x => x.UpdatedAt)
             .HasDefaultValueSql("now()");

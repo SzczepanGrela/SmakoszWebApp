@@ -9,6 +9,8 @@ public class HomeDataDto
     public List<ReviewCardDto> RecentReviews { get; set; } = [];
     public List<PopularCategoryDto> PopularCategories { get; set; } = [];
     public HeroImageDto? HeroImage { get; set; }
+    public List<RestaurantCardDto> NewestRestaurants { get; set; } = [];
+    public List<DishCardDto> MostReviewedDishes { get; set; } = [];
 }
 
 public class PopularCategoryDto

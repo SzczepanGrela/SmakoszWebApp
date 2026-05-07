@@ -176,4 +176,117 @@ public class GetHomeDataHandlerTests : IDisposable
         result.Value.TopRatedDishes.Should().HaveCount(1);
         result.Value.TopRatedDishes[0].DishName.Should().Be("Approved");
     }
+
+    [Fact]
+    public async Task Handle_NewestRestaurants_OrdersByCreatedAtDescAndTakes6()
+    {
+        SeedSiteStats();
+        var city = new City { CityId = 1, CityName = "Warsaw" };
+        var cuisine = new CuisineType { CuisineTypeId = 1, Name = "Italian", DisplayName = "Italian" };
+        var baseTime = DateTime.UtcNow;
+        for (int i = 1; i <= 8; i++)
+        {
+            var r = new RestaurantBuilder().WithId(i).WithName($"R{i}").WithCity(city).AsActive().Build();
+            r.Cuisine = cuisine;
+            r.CreatedAt = baseTime.AddDays(-i);
+            _db.Restaurants.Add(r);
+        }
+        _db.SaveChanges();
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.NewestRestaurants.Should().HaveCount(6);
+        result.Value.NewestRestaurants[0].RestaurantName.Should().Be("R1");
+        result.Value.NewestRestaurants[5].RestaurantName.Should().Be("R6");
+    }
+
+    [Fact]
+    public async Task Handle_NewestRestaurants_FiltersInactiveAndPendingModeration()
+    {
+        SeedSiteStats();
+        var city = new City { CityId = 1, CityName = "Warsaw" };
+        var cuisine = new CuisineType { CuisineTypeId = 1, Name = "Italian", DisplayName = "Italian" };
+        var approved = new RestaurantBuilder().WithId(1).WithName("OK").WithCity(city).AsActive().Build();
+        approved.Cuisine = cuisine;
+        approved.ModerationStatus = ContentModerationStatus.Approved;
+        approved.CreatedAt = DateTime.UtcNow;
+        var suspended = new RestaurantBuilder().WithId(2).WithName("Sus").WithCity(city).AsSuspended().Build();
+        suspended.Cuisine = cuisine;
+        suspended.CreatedAt = DateTime.UtcNow;
+        var pending = new RestaurantBuilder().WithId(3).WithName("Pen").WithCity(city).AsActive().Build();
+        pending.Cuisine = cuisine;
+        pending.ModerationStatus = ContentModerationStatus.Pending;
+        pending.CreatedAt = DateTime.UtcNow;
+        _db.Restaurants.AddRange(approved, suspended, pending);
+        _db.SaveChanges();
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.NewestRestaurants.Should().HaveCount(1);
+        result.Value.NewestRestaurants[0].RestaurantName.Should().Be("OK");
+    }
+
+    [Fact]
+    public async Task Handle_MostReviewedDishes_OrdersByReviewCountDescAndTakes12()
+    {
+        SeedSiteStats();
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        _db.Restaurants.Add(restaurant);
+        for (int i = 1; i <= 15; i++)
+        {
+            var d = new DishBuilder().WithId(i).WithName($"D{i}").WithRestaurant(restaurant).WithReviewCount(100 - i).WithAvgRating(8.0).Build();
+            d.ModerationStatus = ContentModerationStatus.Approved;
+            _db.Dishes.Add(d);
+        }
+        _db.SaveChanges();
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.MostReviewedDishes.Should().HaveCount(12);
+        result.Value.MostReviewedDishes[0].DishName.Should().Be("D1");
+        result.Value.MostReviewedDishes[0].ReviewCount.Should().Be(99);
+        result.Value.MostReviewedDishes[11].DishName.Should().Be("D12");
+    }
+
+    [Fact]
+    public async Task Handle_MostReviewedDishes_FiltersOutLessThan5Reviews()
+    {
+        SeedSiteStats();
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        var dishUnder = new DishBuilder().WithId(1).WithName("Under").WithRestaurant(restaurant).WithReviewCount(4).WithAvgRating(8.0).Build();
+        dishUnder.ModerationStatus = ContentModerationStatus.Approved;
+        var dishAt = new DishBuilder().WithId(2).WithName("At5").WithRestaurant(restaurant).WithReviewCount(5).WithAvgRating(8.0).Build();
+        dishAt.ModerationStatus = ContentModerationStatus.Approved;
+        _db.Restaurants.Add(restaurant);
+        _db.Dishes.AddRange(dishUnder, dishAt);
+        _db.SaveChanges();
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.MostReviewedDishes.Should().HaveCount(1);
+        result.Value.MostReviewedDishes[0].DishName.Should().Be("At5");
+    }
+
+    [Fact]
+    public async Task Handle_MostReviewedDishes_RequiresActiveRestaurant()
+    {
+        SeedSiteStats();
+        var cuisine = new CuisineType { CuisineTypeId = 1, Name = "Italian", DisplayName = "Italian" };
+        var active = new RestaurantBuilder().WithId(1).AsActive().Build();
+        active.Cuisine = cuisine;
+        var suspended = new RestaurantBuilder().WithId(2).AsSuspended().Build();
+        suspended.Cuisine = cuisine;
+        var dishOnActive = new DishBuilder().WithId(1).WithName("Active").WithRestaurant(active).WithReviewCount(10).Build();
+        dishOnActive.ModerationStatus = ContentModerationStatus.Approved;
+        var dishOnSuspended = new DishBuilder().WithId(2).WithName("Suspended").WithRestaurant(suspended).WithReviewCount(20).Build();
+        dishOnSuspended.ModerationStatus = ContentModerationStatus.Approved;
+        _db.Restaurants.AddRange(active, suspended);
+        _db.Dishes.AddRange(dishOnActive, dishOnSuspended);
+        _db.SaveChanges();
+
+        var result = await _handler.Handle(new GetHomeDataQuery(), CancellationToken.None);
+
+        result.Value.MostReviewedDishes.Should().HaveCount(1);
+        result.Value.MostReviewedDishes[0].DishName.Should().Be("Active");
+    }
 }

@@ -50,7 +50,19 @@ public class HomeTests : BunitTestBase
             }
         ],
         PopularCategories = [new PopularCategoryDto { Name = "Pizza", Icon = "🍕" }, new PopularCategoryDto { Name = "Sushi", Icon = "🍣" }],
-        HeroImage = new HeroImageDto { Url = "/hero.jpg", CreditText = "Photo credit" }
+        HeroImage = new HeroImageDto { Url = "/hero.jpg", CreditText = "Photo credit" },
+        TrendingRestaurants =
+        [
+            new RestaurantCardDto { Slug = "trattoria", RestaurantName = "Trattoria Roma" }
+        ],
+        NewestRestaurants =
+        [
+            new RestaurantCardDto { Slug = "nowy-lokal", RestaurantName = "Nowy Lokal" }
+        ],
+        MostReviewedDishes =
+        [
+            new DishCardDto { Slug = "kebab-1", DishName = "Kebab Klasyk", Price = 22m, AvgRating = 8.5, ReviewCount = 87 }
+        ]
     };
 
     [Fact]
@@ -141,6 +153,63 @@ public class HomeTests : BunitTestBase
         cut.Markup.Should().Contain("Popularne kategorie");
         cut.Markup.Should().Contain("Pizza");
         cut.Markup.Should().Contain("Sushi");
+    }
+
+    [Fact]
+    public void DataLoaded_ShowsTrendingRestaurants()
+    {
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().Contain("Popularne miejsca");
+        cut.Markup.Should().Contain("Trattoria Roma");
+    }
+
+    [Fact]
+    public void DataLoaded_ShowsNewestRestaurants()
+    {
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().Contain("Najnowsze miejsca");
+        cut.Markup.Should().Contain("Nowy Lokal");
+    }
+
+    [Fact]
+    public void DataLoaded_ShowsMostReviewedDishes()
+    {
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().Contain("Najczęściej oceniane");
+        cut.Markup.Should().Contain("Kebab Klasyk");
+    }
+
+    [Fact]
+    public void EmptyNewSections_HidesCarousels()
+    {
+        var data = CreateHomeData();
+        data.TrendingRestaurants = [];
+        data.NewestRestaurants = [];
+        data.MostReviewedDishes = [];
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(data);
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().NotContain("Popularne miejsca");
+        cut.Markup.Should().NotContain("Najnowsze miejsca");
+        cut.Markup.Should().NotContain("Najczęściej oceniane");
     }
 
     [Fact]

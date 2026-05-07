@@ -10,6 +10,8 @@ public class HomePageCache
     public string? RecentReviewsJson { get; set; }
     public string? PopularCategoriesJson { get; set; }
     public string? HeroImageJson { get; set; }
+    public string? NewestRestaurantsJson { get; set; }
+    public string? MostReviewedDishesJson { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 }

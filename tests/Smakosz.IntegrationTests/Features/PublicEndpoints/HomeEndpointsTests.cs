@@ -27,7 +27,9 @@ public class HomeEndpointsTests : IntegrationTestBase
                 .SetProperty(c => c.TopRatedDishesJson, (string?)null)
                 .SetProperty(c => c.RecentReviewsJson, (string?)null)
                 .SetProperty(c => c.PopularCategoriesJson, (string?)null)
-                .SetProperty(c => c.HeroImageJson, (string?)null));
+                .SetProperty(c => c.HeroImageJson, (string?)null)
+                .SetProperty(c => c.NewestRestaurantsJson, (string?)null)
+                .SetProperty(c => c.MostReviewedDishesJson, (string?)null));
         });
 
         var factory = Factory.GetService<ISmakoszDbContextFactory>();

@@ -44,7 +44,9 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             && cache.TrendingDishesJson is not null
             && cache.TopRatedDishesJson is not null
             && cache.RecentReviewsJson is not null
-            && cache.PopularCategoriesJson is not null;
+            && cache.PopularCategoriesJson is not null
+            && cache.NewestRestaurantsJson is not null
+            && cache.MostReviewedDishesJson is not null;
 
         List<RestaurantCardDto> trendingRestaurants;
         List<DishCardDto> trendingDishes;
@@ -52,6 +54,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         List<ReviewCardDto> recentReviews;
         List<PopularCategoryDto> popularCategories;
         HeroImageDto? heroImage;
+        List<RestaurantCardDto> newestRestaurants;
+        List<DishCardDto> mostReviewedDishes;
 
         if (hasCachedData && TryDeserializePopularCategories(cache!.PopularCategoriesJson!, out var cachedCategories))
         {
@@ -63,6 +67,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             heroImage = cache.HeroImageJson is not null
                 ? JsonSerializer.Deserialize<HeroImageDto>(cache.HeroImageJson, JsonOpts)
                 : null;
+            newestRestaurants = JsonSerializer.Deserialize<List<RestaurantCardDto>>(cache.NewestRestaurantsJson!, JsonOpts) ?? [];
+            mostReviewedDishes = JsonSerializer.Deserialize<List<DishCardDto>>(cache.MostReviewedDishesJson!, JsonOpts) ?? [];
         }
         else
         {
@@ -72,10 +78,13 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             var recentReviewsTask = QueryRecentReviewsParallel(cancellationToken);
             var popularCategoriesTask = QueryPopularCategoriesParallel(cancellationToken);
             var heroImageTask = QueryHeroImageParallel(cancellationToken);
+            var newestRestaurantsTask = QueryNewestRestaurantsParallel(cancellationToken);
+            var mostReviewedDishesTask = QueryMostReviewedDishesParallel(cancellationToken);
 
             await Task.WhenAll(
                 trendingRestaurantsTask, trendingDishesTask, topRatedDishesTask,
-                recentReviewsTask, popularCategoriesTask, heroImageTask);
+                recentReviewsTask, popularCategoriesTask, heroImageTask,
+                newestRestaurantsTask, mostReviewedDishesTask);
 
             trendingRestaurants = await trendingRestaurantsTask;
             trendingDishes = await trendingDishesTask;
@@ -83,6 +92,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             recentReviews = await recentReviewsTask;
             popularCategories = await popularCategoriesTask;
             heroImage = await heroImageTask;
+            newestRestaurants = await newestRestaurantsTask;
+            mostReviewedDishes = await mostReviewedDishesTask;
         }
 
         return new HomeDataDto
@@ -93,7 +104,9 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             TopRatedDishes = topRatedDishes,
             RecentReviews = recentReviews,
             PopularCategories = popularCategories,
-            HeroImage = heroImage
+            HeroImage = heroImage,
+            NewestRestaurants = newestRestaurants,
+            MostReviewedDishes = mostReviewedDishes
         };
     }
 
@@ -265,5 +278,64 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .OrderBy(_ => EF.Functions.Random())
             .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(ct);
+    }
+
+    private async Task<List<RestaurantCardDto>> QueryNewestRestaurantsParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Restaurants
+            .AsNoTracking()
+            .Include(r => r.City)
+            .Include(r => r.Cuisine)
+            .Where(r => r.Status == RestaurantStatus.Active
+                && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(6)
+            .Select(r => new RestaurantCardDto
+            {
+                PublicId = r.PublicId,
+                Slug = r.Slug ?? string.Empty,
+                RestaurantName = r.RestaurantName,
+                CuisineType = r.Cuisine != null ? r.Cuisine.DisplayName : null,
+                CityName = r.City != null ? r.City.CityName : null,
+                PriceLevel = r.PriceLevel,
+                AvgFoodScore = r.AvgFoodScore,
+                ReviewCount = 0,
+                ImageUrl = r.ImageUrl,
+                ImageBlurhash = r.ImageBlurhash,
+                IsFavorite = false
+            })
+            .ToListAsync(ct);
+    }
+
+    private async Task<List<DishCardDto>> QueryMostReviewedDishesParallel(CancellationToken ct)
+    {
+        await using var ctx = await _dbFactory.CreateDbContextAsync(ct);
+        return await ctx.Dishes
+            .AsNoTracking()
+            .Include(d => d.Restaurant)
+            .Where(d => d.IsAvailable && d.ReviewCount >= 5
+                && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved))
+            .OrderByDescending(d => d.ReviewCount)
+            .Take(12)
+            .Select(d => new DishCardDto
+            {
+                PublicId = d.PublicId,
+                Slug = d.Slug ?? string.Empty,
+                DishName = d.DishName,
+                Price = d.Price,
+                AvgRating = d.AvgRating,
+                ReviewCount = d.ReviewCount,
+                ImageUrl = d.ImageUrl,
+                ImageBlurhash = d.ImageBlurhash,
+                RestaurantName = d.Restaurant != null ? d.Restaurant.RestaurantName : null,
+                RestaurantSlug = d.Restaurant != null ? d.Restaurant.Slug : null,
+                IsVegetarian = d.IsVegetarian,
+                IsVegan = d.IsVegan,
+                IsGlutenFree = d.IsGlutenFree,
+                IsSaved = false
+            })
+            .ToListAsync(ct);
     }
 }

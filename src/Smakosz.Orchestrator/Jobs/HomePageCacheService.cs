@@ -161,19 +161,73 @@ public class HomePageCacheService
             .Select(m => new HeroImageDto { Url = m.Url, Blurhash = m.Blurhash, CreditText = m.CreditText })
             .FirstOrDefaultAsync(ct);
 
+        var newestRestaurants = await _db.Restaurants
+            .AsNoTracking()
+            .Include(r => r.City)
+            .Include(r => r.Cuisine)
+            .Where(r => r.Status == RestaurantStatus.Active
+                && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved))
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(6)
+            .Select(r => new RestaurantCardDto
+            {
+                PublicId = r.PublicId,
+                Slug = r.Slug ?? string.Empty,
+                RestaurantName = r.RestaurantName,
+                CuisineType = r.Cuisine != null ? r.Cuisine.DisplayName : null,
+                CityName = r.City != null ? r.City.CityName : null,
+                PriceLevel = r.PriceLevel,
+                AvgFoodScore = r.AvgFoodScore,
+                ReviewCount = 0,
+                ImageUrl = r.ImageUrl,
+                ImageBlurhash = r.ImageBlurhash,
+                IsFavorite = false
+            })
+            .ToListAsync(ct);
+
+        var mostReviewedDishes = await _db.Dishes
+            .AsNoTracking()
+            .Include(d => d.Restaurant)
+            .Where(d => d.IsAvailable && d.ReviewCount >= 5
+                && d.Restaurant != null && d.Restaurant.Status == RestaurantStatus.Active
+                && (d.ModerationStatus == ContentModerationStatus.None || d.ModerationStatus == ContentModerationStatus.Approved))
+            .OrderByDescending(d => d.ReviewCount)
+            .Take(12)
+            .Select(d => new DishCardDto
+            {
+                PublicId = d.PublicId,
+                Slug = d.Slug ?? string.Empty,
+                DishName = d.DishName,
+                Price = d.Price,
+                AvgRating = d.AvgRating,
+                ReviewCount = d.ReviewCount,
+                ImageUrl = d.ImageUrl,
+                ImageBlurhash = d.ImageBlurhash,
+                RestaurantName = d.Restaurant != null ? d.Restaurant.RestaurantName : null,
+                RestaurantSlug = d.Restaurant != null ? d.Restaurant.Slug : null,
+                IsVegetarian = d.IsVegetarian,
+                IsVegan = d.IsVegan,
+                IsGlutenFree = d.IsGlutenFree,
+                IsSaved = false
+            })
+            .ToListAsync(ct);
+
         cache.TrendingRestaurantsJson = JsonSerializer.Serialize(trendingRestaurants, JsonOpts);
         cache.TrendingDishesJson = JsonSerializer.Serialize(trendingDishes, JsonOpts);
         cache.TopRatedDishesJson = JsonSerializer.Serialize(topRatedDishes, JsonOpts);
         cache.RecentReviewsJson = JsonSerializer.Serialize(recentReviews, JsonOpts);
         cache.PopularCategoriesJson = JsonSerializer.Serialize(popularCategories, JsonOpts);
         cache.HeroImageJson = heroImage is not null ? JsonSerializer.Serialize(heroImage, JsonOpts) : null;
+        cache.NewestRestaurantsJson = JsonSerializer.Serialize(newestRestaurants, JsonOpts);
+        cache.MostReviewedDishesJson = JsonSerializer.Serialize(mostReviewedDishes, JsonOpts);
         cache.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation(
-            "home-cache: restaurants={Restaurants}, trendingDishes={TDishes}, topDishes={TopDishes}, reviews={Reviews}, categories={Categories}",
+            "home-cache: restaurants={Restaurants}, trendingDishes={TDishes}, topDishes={TopDishes}, reviews={Reviews}, categories={Categories}, newest={Newest}, mostReviewed={MostReviewed}",
             trendingRestaurants.Count, trendingDishes.Count, topRatedDishes.Count,
-            recentReviews.Count, popularCategories.Count);
+            recentReviews.Count, popularCategories.Count,
+            newestRestaurants.Count, mostReviewedDishes.Count);
     }
 }

@@ -13,6 +13,8 @@ public class HomeDataDto
     public required List<ReviewCardDto> RecentReviews { get; init; }
     public required List<PopularCategoryDto> PopularCategories { get; init; }
     public HeroImageDto? HeroImage { get; init; }
+    public required List<RestaurantCardDto> NewestRestaurants { get; init; }
+    public required List<DishCardDto> MostReviewedDishes { get; init; }
 }
 
 public class PopularCategoryDto
