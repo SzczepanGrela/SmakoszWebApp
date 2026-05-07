@@ -2,10 +2,12 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.Logging.Configuration;
 using Smakosz.Client;
 using Smakosz.Client.Auth;
 using Smakosz.Client.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
