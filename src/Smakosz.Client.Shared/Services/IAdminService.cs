@@ -66,7 +66,6 @@ public interface IAdminService
     Task<List<AdminSystemConfigDto>> GetSystemConfigAsync();
     Task<bool> UpdateSystemConfigAsync(string key, string value);
     Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null);
-    Task<List<AdminAiModelDto>> GetAiModelsAsync();
     Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1);
     Task<bool> TriggerJobAsync(int id);
     Task<bool> CreateJobAsync(CreateJobRequest request);

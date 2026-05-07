@@ -8,7 +8,6 @@ using Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
 using Smakosz.Application.Features.Admin.Commands.TriggerJob;
 using Smakosz.Application.Features.Admin.Commands.UpdateSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAiLogs;
-using Smakosz.Application.Features.Admin.Queries.GetAiModels;
 using Smakosz.Application.Features.Admin.Queries.GetEmailLogs;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
 using Smakosz.Application.Features.Admin.Queries.GetModerationLogs;
@@ -102,13 +101,6 @@ public class AdminSystemController : ApiController
     {
         var result = await _mediator.Send(new ScheduleModerationCommand());
         return ToNoContentResult(result);
-    }
-
-    [HttpGet("ai-models")]
-    public async Task<IActionResult> GetAiModels()
-    {
-        var result = await _mediator.Send(new GetAiModelsQuery());
-        return ToActionResult(result);
     }
 
     [HttpGet("audit-logs")]

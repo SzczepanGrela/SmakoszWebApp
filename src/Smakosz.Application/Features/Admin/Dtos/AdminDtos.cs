@@ -354,13 +354,6 @@ public class JobDto
     public DateTime? FinishedAt { get; set; }
 }
 
-public class AiModelDto
-{
-    public string? ModelType { get; set; }
-    public string? ModelVersion { get; set; }
-    public int UsageCount { get; set; }
-    public DateTime? LastUsed { get; set; }
-}
 
 public class IngredientSuggestionDto
 {

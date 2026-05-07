@@ -192,14 +192,6 @@ public class AdminDishDto
     public DateTime? CreatedAt { get; set; }
 }
 
-public class AdminAiModelDto
-{
-    public string ModelType { get; set; } = default!;
-    public string ModelVersion { get; set; } = default!;
-    public int UsageCount { get; set; }
-    public DateTime? LastUsed { get; set; }
-}
-
 public class AdminJobDto
 {
     public int JobId { get; set; }

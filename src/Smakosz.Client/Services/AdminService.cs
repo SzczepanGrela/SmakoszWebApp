@@ -323,9 +323,6 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null)
         => _api.GetAsync<PagedResult<AdminLogEntryDto>>($"/api/admin/logs?page={page}&level={level}");
 
-    public async Task<List<AdminAiModelDto>> GetAiModelsAsync()
-        => await _api.GetAsync<List<AdminAiModelDto>>("/api/admin/ai-models") ?? [];
-
     public Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminJobDto>>($"/api/admin/jobs?page={page}");
 
