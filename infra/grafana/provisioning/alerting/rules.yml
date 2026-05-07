@@ -273,7 +273,6 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          __dashboardUid__: smakosz-security
           summary: "Brute force suspected: more than 10 failed logins per minute"
           description: "Failed login rate exceeded 10/min for 5 minutes. Investigate top source IPs in /admin/security-logs."
         labels:
@@ -318,7 +317,6 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          __dashboardUid__: smakosz-security
           summary: "Lockout spike: more than 5 accounts locked in 15 minutes"
           description: "Coordinated attack suspected. Multiple accounts hit lockout threshold in a short window."
         labels:
@@ -363,7 +361,6 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          __dashboardUid__: smakosz-security
           summary: "CAPTCHA abuse: more than 20 captcha failures in 10 minutes"
           description: "Automated bot suspected. CAPTCHA failure rate combined across login and register exceeded threshold."
         labels:
