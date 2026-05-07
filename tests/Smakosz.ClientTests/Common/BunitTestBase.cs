@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Bunit.TestDoubles;
+using Microsoft.Extensions.Configuration;
 
 namespace Smakosz.ClientTests.Common;
 
@@ -29,6 +30,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<IRestaurantService>());
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
         Services.AddSingleton(Substitute.For<IPublicConfigService>());
+        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
     }
 
     protected void SetAuthenticatedUser(string username = "testuser", string role = "User")
