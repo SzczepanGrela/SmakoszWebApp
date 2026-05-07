@@ -57,6 +57,7 @@ public class Disable2faHandler : IRequestHandler<Disable2faCommand, ErrorOr<Succ
             EventType = SecurityEventType.TwoFactorDisabled,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = userId,
             CreatedAt = DateTime.UtcNow

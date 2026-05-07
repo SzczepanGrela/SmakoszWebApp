@@ -58,15 +58,14 @@ public class ChangeUserRoleHandler : IRequestHandler<ChangeUserRoleCommand, Erro
             EventType = SecurityEventType.RoleChanged,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = user.UserId,
-            Details = JsonSerializer.Serialize(new
-            {
-                from = oldRole.ToString(),
-                to = request.NewRole.ToString(),
-                reason = request.Reason,
-                admin_id = _currentUser.UserId
-            }),
+            Details = SecurityLogDetails.RoleChange(
+                oldRole.ToString(),
+                request.NewRole.ToString(),
+                request.Reason,
+                _currentUser.UserId),
             CreatedAt = now
         });
 

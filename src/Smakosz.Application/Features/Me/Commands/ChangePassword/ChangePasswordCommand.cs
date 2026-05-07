@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -45,9 +46,10 @@ public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Erro
             EventType = SecurityEventType.PasswordChanged,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = user.UserId,
-            Details = "{\"action\": \"password_changed\"}",
+            Details = SecurityLogDetails.PasswordChanged(),
             CreatedAt = DateTime.UtcNow
         });
 

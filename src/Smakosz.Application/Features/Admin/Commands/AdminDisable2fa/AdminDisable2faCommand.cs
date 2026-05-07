@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -47,9 +48,10 @@ public class AdminDisable2faHandler : IRequestHandler<AdminDisable2faCommand, Er
             EventType = SecurityEventType.TwoFactorDisabledByAdmin,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = user.UserId,
-            Details = $"{{\"admin_id\": {_currentUser.UserId}}}",
+            Details = SecurityLogDetails.AdminAction(_currentUser.UserId),
             CreatedAt = DateTime.UtcNow
         });
 

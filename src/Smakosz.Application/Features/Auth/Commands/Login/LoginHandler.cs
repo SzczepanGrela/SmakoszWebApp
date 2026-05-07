@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Auth.Dtos;
 using Smakosz.Domain.Entities.System;
@@ -61,8 +62,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 EventType = SecurityEventType.BlockedIp,
                 IpAddress = ipAddress,
                 UserAgent = _currentUser.UserAgent,
+                CountryCode = _currentUser.CountryCode,
                 Email = request.Email.ToLowerInvariant(),
-                Details = "{\"reason\": \"banned_identifier\"}",
+                Details = SecurityLogDetails.BannedIdentifier(),
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
@@ -80,8 +82,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 EventType = SecurityEventType.FailedLogin,
                 IpAddress = ipAddress,
                 UserAgent = _currentUser.UserAgent,
+                CountryCode = _currentUser.CountryCode,
                 Email = request.Email.ToLowerInvariant(),
-                Details = "{\"reason\": \"account_locked\"}",
+                Details = SecurityLogDetails.AccountLocked(),
                 CreatedAt = now
             });
             await _db.SaveChangesAsync(cancellationToken);
@@ -107,6 +110,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
                 EventType = SecurityEventType.FailedLogin,
                 IpAddress = ipAddress,
                 UserAgent = _currentUser.UserAgent,
+                CountryCode = _currentUser.CountryCode,
                 Email = request.Email.ToLowerInvariant(),
                 CreatedAt = now
             });

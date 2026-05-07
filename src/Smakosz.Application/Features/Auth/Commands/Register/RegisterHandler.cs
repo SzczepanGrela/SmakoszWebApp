@@ -2,6 +2,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -83,8 +84,9 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
                 EventType = SecurityEventType.BannedRegistration,
                 IpAddress = ipAddress,
                 UserAgent = _currentUser.UserAgent,
+                CountryCode = _currentUser.CountryCode,
                 Email = request.Email.ToLowerInvariant(),
-                Details = "{\"reason\": \"banned_identifier\"}",
+                Details = SecurityLogDetails.BannedIdentifier(),
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);

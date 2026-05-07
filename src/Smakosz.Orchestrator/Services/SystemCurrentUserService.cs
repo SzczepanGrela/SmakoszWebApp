@@ -12,4 +12,5 @@ public class SystemCurrentUserService : ICurrentUserService
     public bool IsAuthenticated => false;
     public string? IpAddress => "127.0.0.1";
     public string? UserAgent => "Orchestrator";
+    public string? CountryCode => null;
 }

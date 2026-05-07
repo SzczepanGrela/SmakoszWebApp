@@ -1,8 +1,8 @@
-using System.Text.Json;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities.System;
 using Smakosz.Domain.Enums;
@@ -58,9 +58,10 @@ public class AcceptInviteHandler : IRequestHandler<AcceptInviteCommand, ErrorOr<
             EventType = SecurityEventType.PasswordChanged,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = user.UserId,
-            Details = JsonSerializer.Serialize(new { flow = "accept_invite" }),
+            Details = SecurityLogDetails.AcceptInviteFlow(),
             CreatedAt = now
         });
 

@@ -3,6 +3,7 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -88,9 +89,10 @@ public class CreatePrivilegedAccountHandler : IRequestHandler<CreatePrivilegedAc
             EventType = SecurityEventType.AccountInvited,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = user.UserId,
-            Details = JsonSerializer.Serialize(new { admin_id = _currentUser.UserId, role = user.Role.ToString() }),
+            Details = SecurityLogDetails.PrivilegedAccountInvite(_currentUser.UserId, user.Role.ToString()),
             CreatedAt = now
         });
 

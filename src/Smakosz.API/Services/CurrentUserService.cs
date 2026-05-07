@@ -51,4 +51,15 @@ public class CurrentUserService : ICurrentUserService
     public string? IpAddress => _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
     public string? UserAgent => _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].FirstOrDefault();
+
+    public string? CountryCode
+    {
+        get
+        {
+            var raw = _httpContextAccessor.HttpContext?.Request.Headers["CF-IPCountry"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            // Cloudflare uses "XX" when country is unknown and "T1" for Tor exit nodes; treat as missing for analytics.
+            return raw is "XX" or "T1" ? null : raw;
+        }
+    }
 }

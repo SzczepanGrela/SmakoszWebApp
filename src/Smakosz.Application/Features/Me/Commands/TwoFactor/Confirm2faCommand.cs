@@ -72,6 +72,7 @@ public class Confirm2faHandler : IRequestHandler<Confirm2faCommand, ErrorOr<Succ
             EventType = SecurityEventType.TwoFactorEnabled,
             IpAddress = _currentUser.IpAddress,
             UserAgent = _currentUser.UserAgent,
+            CountryCode = _currentUser.CountryCode,
             Email = user.Email,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
