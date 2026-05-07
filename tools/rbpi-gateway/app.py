@@ -17,6 +17,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rbpi-gateway")
 
+class _SkipHealthAccessLog(logging.Filter):
+    def filter(self, record):
+        return "GET /health" not in record.getMessage()
+
+logging.getLogger("werkzeug").addFilter(_SkipHealthAccessLog())
+
 app = Flask(__name__)
 
 def require_token(f):
