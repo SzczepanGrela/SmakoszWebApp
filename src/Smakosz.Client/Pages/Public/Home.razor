@@ -58,7 +58,7 @@ else if (_data != null)
                     @foreach (var category in _data.PopularCategories)
                     {
                         <div class="col-6 col-md-3">
-                            <CategoryCard Name="@category.Name" Icon="@category.Icon" />
+                            <CategoryCard Name="@category.Name" Slug="@category.Slug" Icon="@category.Icon" />
                         </div>
                     }
                     <div class="col-6 col-md-3">

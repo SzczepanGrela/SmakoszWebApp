@@ -10,8 +10,10 @@
 
 @code {
     [Parameter, EditorRequired] public string Name { get; set; } = default!;
+    [Parameter] public string? Slug { get; set; }
     [Parameter] public string? Icon { get; set; }
     [Parameter] public string? Href { get; set; }
 
-    private string ResolvedHref => Href ?? $"/search?cuisines={Uri.EscapeDataString(Name)}&type=dishes";
+    private string ResolvedHref => Href
+        ?? $"/search?cuisines={Uri.EscapeDataString(string.IsNullOrEmpty(Slug) ? Name : Slug)}&type=dishes";
 }

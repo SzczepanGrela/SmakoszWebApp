@@ -234,10 +234,10 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         return await ctx.Restaurants
             .AsNoTracking()
             .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
-            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
+            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Name, r.Cuisine.Icon })
             .OrderByDescending(g => g.Count())
             .Take(7)
-            .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Icon = g.Key.Icon })
+            .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Slug = g.Key.Name, Icon = g.Key.Icon })
             .ToListAsync(ct);
     }
 
@@ -246,7 +246,8 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
         try
         {
             result = JsonSerializer.Deserialize<List<PopularCategoryDto>>(json, JsonOpts) ?? [];
-            return result.Count == 0 || !string.IsNullOrEmpty(result[0].Name);
+            return result.Count == 0
+                || (!string.IsNullOrEmpty(result[0].Name) && !string.IsNullOrEmpty(result[0].Slug));
         }
         catch (JsonException)
         {

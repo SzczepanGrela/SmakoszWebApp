@@ -14,6 +14,7 @@ public class HomeDataDto
 public class PopularCategoryDto
 {
     public string Name { get; set; } = string.Empty;
+    public string? Slug { get; set; }
     public string? Icon { get; set; }
 }
 

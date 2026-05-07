@@ -24,7 +24,7 @@
                 @foreach (var category in _popular)
                 {
                     <div class="col-6 col-sm-4 col-md-3">
-                        <CategoryCard Name="@category.Name" Icon="@category.Icon" />
+                        <CategoryCard Name="@category.Name" Slug="@category.Slug" Icon="@category.Icon" />
                     </div>
                 }
             </div>
@@ -40,7 +40,7 @@
                         @foreach (var category in letterGroup.Value)
                         {
                             <div class="col-6 col-sm-4 col-md-3">
-                                <CategoryCard Name="@category.Name" Icon="@category.Icon" />
+                                <CategoryCard Name="@category.Name" Slug="@category.Slug" Icon="@category.Icon" />
                             </div>
                         }
                     </div>

@@ -29,10 +29,11 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, ErrorOr<
             .Where(r => r.Status == RestaurantStatus.Active
                 && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved)
                 && r.Cuisine != null)
-            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
+            .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Name, r.Cuisine.Icon })
             .Select(g => new CategoryDto
             {
                 Name = g.Key.DisplayName,
+                Slug = g.Key.Name,
                 Icon = g.Key.Icon,
                 RestaurantCount = g.Count()
             })
