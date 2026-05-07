@@ -22,7 +22,7 @@ function showUpdateToast(worker) {
         + '<button onclick="this.closest(\'#pwa-update-toast\').remove()" style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;padding:0 0.25rem;">&times;</button></div>'
         + '<div style="padding:1rem;color:#4A3428;">'
         + '<p style="margin:0 0 0.75rem;">Nowa wersja aplikacji jest dostepna.</p>'
-        + '<button id="pwa-update-btn" style="background:linear-gradient(45deg,#D4A574,#B8860B);border:none;color:#E8DDD0;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:500;width:100%;min-height:44px;">Zaktualizuj</button></div>';
+        + '<button id="pwa-update-btn" class="pwa-update-btn">Zaktualizuj</button></div>';
     document.body.appendChild(t);
     document.getElementById('pwa-update-btn').addEventListener('click', function () {
         navigator.serviceWorker.addEventListener('controllerchange', function () {

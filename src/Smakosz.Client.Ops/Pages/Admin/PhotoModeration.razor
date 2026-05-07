@@ -36,12 +36,12 @@ else
                 <div class="card shadow-sm h-100 @(IsSelected(photo.Id) ? "border-primary" : "")">
                     <div class="position-relative">
                         <img src="@photo.ImageUrl" class="card-img-top" style="height:200px;object-fit:cover;" alt="Zdjęcie do moderacji" />
-                        <div class="form-check position-absolute top-0 start-0 m-2 p-1 bg-white rounded">
-                            <input class="form-check-input" type="checkbox"
-                                   id="sel-@photo.Id"
-                                   checked="@IsSelected(photo.Id)"
-                                   @onchange="e => ToggleSelected(photo.Id, (bool)(e.Value ?? false))" />
-                        </div>
+                        <input class="form-check-input position-absolute top-0 start-0 m-2"
+                               type="checkbox"
+                               id="sel-@photo.Id"
+                               checked="@IsSelected(photo.Id)"
+                               @onchange="e => ToggleSelected(photo.Id, (bool)(e.Value ?? false))"
+                               style="z-index:5;background-color:rgba(255,255,255,0.95);width:1.25rem;height:1.25rem;" />
                     </div>
                     <div class="card-body">
                         <div class="small mb-2">
