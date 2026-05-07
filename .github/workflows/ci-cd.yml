@@ -89,10 +89,9 @@ jobs:
               - 'docker-compose.yml'
               - '.github/workflows/ci-cd.yml'
 
-  test:
-    name: Build & Test
+  test-unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -100,6 +99,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore Smakosz.slnx
@@ -110,17 +116,104 @@ jobs:
       - name: Unit Tests
         run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
 
+  test-client:
+    name: Client Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
       - name: Client Tests
         run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
 
       - name: Integration Tests
         run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
         env:
           ASPNETCORE_ENVIRONMENT: Testing
 
+  build-gpu-worker:
+    name: Build & Push GPU Worker
+    needs: [test-unit, test-client, test-integration, changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.gpu-worker == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push GPU Worker
+        uses: docker/build-push-action@v6
+        with:
+          context: gpu-worker
+          file: gpu-worker/Dockerfile.gpu
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
+            ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
+          cache-from: type=gha,scope=gpu-worker
+          cache-to: type=gha,mode=max,scope=gpu-worker
+
   build-api:
     name: Build & Push API
-    needs: [test, changes]
+    needs: [test-unit, test-client, test-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.api == 'true')
@@ -159,7 +252,7 @@ jobs:
 
   build-client:
     name: Build & Push Client
-    needs: [test, changes]
+    needs: [test-unit, test-client, test-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.client == 'true')
@@ -198,7 +291,7 @@ jobs:
 
   build-orchestrator:
     name: Build & Push Orchestrator
-    needs: [test, changes]
+    needs: [test-unit, test-client, test-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.orchestrator == 'true')
@@ -235,48 +328,9 @@ jobs:
           cache-from: type=gha,scope=orchestrator
           cache-to: type=gha,mode=max,scope=orchestrator
 
-  build-gpu-worker:
-    name: Build GPU Worker image
-    needs: [test, changes]
-    if: |
-      (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.gpu-worker == 'true')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build & push GPU Worker
-        uses: docker/build-push-action@v6
-        with:
-          context: gpu-worker
-          file: gpu-worker/Dockerfile.gpu
-          push: true
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/gpu-worker:latest
-            ${{ env.IMAGE_PREFIX }}/gpu-worker:${{ env.SHORT_SHA }}
-          cache-from: type=gha,scope=gpu-worker
-          cache-to: type=gha,mode=max,scope=gpu-worker
-
   build-rbpi-gateway:
-    name: Build RBPI Gateway image
-    needs: [test, changes]
+    name: Build & Push RBPI Gateway
+    needs: [test-unit, test-client, test-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.rbpi-gateway == 'true')
@@ -360,7 +414,8 @@ jobs:
 
   cf-purge:
     name: Purge Cloudflare cache
-    needs: deploy-vps
+    needs: [deploy-vps]
+    if: needs.deploy-vps.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Purge entire Cloudflare cache
@@ -372,7 +427,7 @@ jobs:
             --data '{"purge_everything":true}'
 
   deploy-rbpi:
-    name: Deploy RBPI Gateway
+    name: Deploy to RBPI
     needs: [build-rbpi-gateway, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
