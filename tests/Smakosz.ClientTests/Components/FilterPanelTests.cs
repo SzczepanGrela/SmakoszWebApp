@@ -1,5 +1,4 @@
 using Smakosz.Client.Components;
-using Smakosz.Client.Models;
 using Smakosz.ClientTests.Common;
 
 namespace Smakosz.ClientTests.Components;
@@ -7,19 +6,12 @@ namespace Smakosz.ClientTests.Components;
 public class FilterPanelTests : BunitTestBase
 {
     [Fact]
-    public void RendersHeaderWithBadge_WhenActiveFilters()
+    public void RendersHeaderWithBadge_WhenActiveCount()
     {
         var cut = RenderComponent<FilterPanel>(p => p
-            .Add(c => c.TotalActiveCount, 3)
-            .Add(c => c.ActiveFilters, new List<ActiveFilterDto>
-            {
-                new("cuisines", "Polska", "Polska"),
-                new("cuisines", "Włoska", "Włoska"),
-                new("dietary", "vegan", "Wegańskie")
-            }));
+            .Add(c => c.TotalActiveCount, 3));
 
         cut.Find(".filter-panel-badge").TextContent.Trim().Should().Be("3");
-        cut.FindAll(".filter-chip").Count.Should().Be(3);
     }
 
     [Fact]

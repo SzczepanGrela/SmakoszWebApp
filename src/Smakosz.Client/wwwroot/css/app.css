@@ -816,13 +816,30 @@ main {
     flex-grow: 1;
     overflow-y: auto;
 }
-.filter-panel-chips {
+.results-chips-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
     padding: 8px 12px;
-    border-bottom: 1px solid rgba(74, 52, 40, 0.08);
+    border: 1px solid rgba(74, 52, 40, 0.08);
+    border-radius: 6px;
     background: rgba(212, 165, 116, 0.06);
+    align-items: center;
+}
+.results-chips-clear-btn {
+    background: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: auto;
+}
+.results-chips-clear-btn:hover {
+    background: var(--accent-color);
+    color: #FFFFFF;
 }
 .filter-chip {
     background: var(--accent-color);
@@ -894,6 +911,12 @@ main {
 .filter-section-content {
     padding: 0 0 10px 4px;
     font-size: 0.85rem;
+}
+.filter-section-content .form-check {
+    padding-left: 1.85em;
+}
+.filter-section-content .form-check-input {
+    margin-left: -1.85em;
 }
 .filter-panel-footer {
     background: var(--secondary-color);

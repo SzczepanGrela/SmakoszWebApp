@@ -48,8 +48,6 @@
     <div class="row">
         <div class="col-lg-3 mb-4 d-none d-lg-block">
             <FilterPanel TotalActiveCount="@TotalActiveFilterCount"
-                         ActiveFilters="@BuildActiveFilters()"
-                         OnRemoveFilter="RemoveFilter"
                          OnApply="DoSearch"
                          OnClearAll="ClearFilters"
                          IsDirty="@_isDirty"
@@ -59,8 +57,6 @@
         </div>
 
         <FilterPanel TotalActiveCount="@TotalActiveFilterCount"
-                     ActiveFilters="@BuildActiveFilters()"
-                     OnRemoveFilter="RemoveFilter"
                      OnApply="DoSearch"
                      OnClearAll="ClearFilters"
                      IsDirty="@_isDirty"
@@ -69,6 +65,21 @@
         </FilterPanel>
 
         <div class="col-12 col-lg-9">
+            @{
+                var activeChips = BuildActiveFilters();
+            }
+            @if (activeChips.Any())
+            {
+                <div class="results-chips-bar mb-3">
+                    @foreach (var filter in activeChips)
+                    {
+                        <FilterChip Label="@filter.Label" OnRemove="() => RemoveFilter(filter)" />
+                    }
+                    <button type="button" class="results-chips-clear-btn" @onclick="ClearFilters">
+                        <i class="fa-solid fa-xmark me-1"></i>Wyczyść (@TotalActiveFilterCount)
+                    </button>
+                </div>
+            }
             @if (_loading)
             {
                 <LoadingSpinner />

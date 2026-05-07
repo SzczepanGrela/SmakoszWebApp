@@ -203,7 +203,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
         phone = generate_phone()
         join_date = generate_user_join_date()
 
-        days_since_join = (datetime.now() - join_date).days
+        days_since_join = (datetime.utcnow() - join_date).days
         if days_since_join > 0:
             last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
         else:
@@ -305,7 +305,7 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             avatar_url = None
             avatar_blurhash = None
 
-        days_since_join = (datetime.now() - join_date).days
+        days_since_join = (datetime.utcnow() - join_date).days
         if days_since_join > 0:
             last_login = join_date + timedelta(days=random.randint(0, days_since_join), hours=random.randint(0, 23))
         else:
@@ -322,8 +322,8 @@ def generate_users(db: DatabaseConnection, num_users: int = 50000, cleanup: bool
             is_deleted = True
             days_active = random.randint(1, 300)
             deletion_date = join_date + timedelta(days=days_active)
-            if deletion_date > datetime.now():
-                deletion_date = datetime.now()
+            if deletion_date > datetime.utcnow():
+                deletion_date = datetime.utcnow()
             deleted_at = to_sql_datetime(deletion_date)
 
         personality_roll = random.random()

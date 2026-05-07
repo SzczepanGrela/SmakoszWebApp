@@ -420,7 +420,7 @@ def generate_reviews(db: DatabaseConnection, cleanup: bool = True):
 
     db_params = get_connection_params()
 
-    simulation_today = datetime.now().replace(tzinfo=None)
+    simulation_today = datetime.utcnow().replace(tzinfo=None)
     logger.info(f"Simulation today: {simulation_today.date()} (reviews from last 7 days will be pending)")
 
     total_stats = {"reviews": 0, "skipped_temporal": 0, "home": 0, "nearby": 0, "random": 0}

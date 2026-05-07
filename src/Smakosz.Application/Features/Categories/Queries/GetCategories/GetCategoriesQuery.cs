@@ -1,3 +1,4 @@
+using System.Globalization;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,9 @@ public record GetCategoriesQuery : IRequest<ErrorOr<List<CategoryDto>>>;
 
 public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, ErrorOr<List<CategoryDto>>>
 {
+    private static readonly StringComparer PolishComparer =
+        StringComparer.Create(new CultureInfo("pl-PL"), ignoreCase: true);
+
     private readonly ISmakoszDbContext _db;
 
     public GetCategoriesHandler(ISmakoszDbContext db)
@@ -26,7 +30,6 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, ErrorOr<
                 && (r.ModerationStatus == ContentModerationStatus.None || r.ModerationStatus == ContentModerationStatus.Approved)
                 && r.Cuisine != null)
             .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
-            .OrderByDescending(g => g.Count())
             .Select(g => new CategoryDto
             {
                 Name = g.Key.DisplayName,
@@ -35,6 +38,6 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, ErrorOr<
             })
             .ToListAsync(cancellationToken);
 
-        return categories;
+        return categories.OrderBy(c => c.Name, PolishComparer).ToList();
     }
 }

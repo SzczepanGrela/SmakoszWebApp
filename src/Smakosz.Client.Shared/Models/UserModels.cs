@@ -42,6 +42,7 @@ public class SessionDto
 public class NotificationDto
 {
     public int NotificationId { get; set; }
+    public Guid PublicId { get; set; }
     public string Type { get; set; } = default!;
     public string Message { get; set; } = default!;
     public bool IsRead { get; set; }

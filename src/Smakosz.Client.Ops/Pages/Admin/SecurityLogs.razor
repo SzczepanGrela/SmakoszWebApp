@@ -1,19 +1,19 @@
-@page "/admin/security"
+@page "/admin/security-logs"
 @layout AdminLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 
 <PageTitle>Logi bezpieczeństwa - Admin Smakosz</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h2 class="fw-bold mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Logi bezpieczeństwa</h2>
-    <div class="btn-group btn-group-sm">
-        <button class="btn @(_eventFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByEvent(null)">Wszystkie</button>
-        <button class="btn @(_eventFilter == "FailedLogin" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByEvent("FailedLogin")'>FailedLogin</button>
-        <button class="btn @(_eventFilter == "PasswordReset" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByEvent("PasswordReset")'>PasswordReset</button>
-        <button class="btn @(_eventFilter == "PasswordChanged" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByEvent("PasswordChanged")'>PasswordChanged</button>
-        <button class="btn @(_eventFilter == "BannedRegistration" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByEvent("BannedRegistration")'>BannedRegistration</button>
-    </div>
+    <select class="form-select form-select-sm" style="width:auto;min-width:220px;" @bind="_eventFilter" @bind:after="ReloadOnFilterChange">
+        <option value="">Wszystkie typy</option>
+        @foreach (var ev in _eventTypes)
+        {
+            <option value="@ev">@ev</option>
+        }
+    </select>
 </div>
 
 @if (_loading)
@@ -79,34 +79,50 @@ else
 
 @code {
     private PagedResult<AdminSecurityLogDto>? _logs;
-    private string? _eventFilter;
+    private string _eventFilter = "";
     private bool _loading = true;
+
+    private static readonly string[] _eventTypes =
+    [
+        "AccountDeleted",
+        "AccountInvited",
+        "BannedRegistration",
+        "BlockedIp",
+        "FailedLogin",
+        "PasswordChanged",
+        "PasswordReset",
+        "PasswordResetByAdmin",
+        "RoleChanged",
+        "SuccessfulLogin",
+        "SuspiciousActivity",
+        "TwoFactorDisabled",
+        "TwoFactorDisabledByAdmin",
+        "TwoFactorEnabled"
+    ];
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
     private async Task LoadPage(int page)
     {
         _loading = true;
-        _logs = await AdminService.GetSecurityLogsAsync(page, _eventFilter);
+        _logs = await AdminService.GetSecurityLogsAsync(page, string.IsNullOrEmpty(_eventFilter) ? null : _eventFilter);
         _loading = false;
     }
 
-    private async Task FilterByEvent(string? eventType) { _eventFilter = eventType; await LoadPage(1); }
+    private Task ReloadOnFilterChange() => LoadPage(1);
 
     private static string EventBadge(string? eventType) => eventType switch
     {
-        "FailedLogin" => "bg-danger",
-        "BlockedIp" => "bg-danger",
-        "SuspiciousActivity" => "bg-warning text-dark",
-        "PasswordReset" => "bg-info",
-        "PasswordChanged" => "bg-info",
-        "BannedRegistration" => "bg-warning text-dark",
+        "SuccessfulLogin" or "TwoFactorEnabled" => "bg-success",
+        "FailedLogin" or "BlockedIp" or "AccountDeleted" or "TwoFactorDisabledByAdmin" => "bg-danger",
+        "SuspiciousActivity" or "BannedRegistration" or "TwoFactorDisabled" or "PasswordResetByAdmin" or "RoleChanged" => "bg-warning text-dark",
+        "PasswordReset" or "PasswordChanged" or "AccountInvited" => "bg-info",
         _ => "bg-secondary"
     };
 
     private static string SecurityRowClass(string? eventType) => eventType switch
     {
-        "FailedLogin" or "BlockedIp" => "table-danger",
+        "FailedLogin" or "BlockedIp" or "AccountDeleted" or "TwoFactorDisabledByAdmin" => "table-danger",
         "SuspiciousActivity" => "table-warning",
         _ => ""
     };

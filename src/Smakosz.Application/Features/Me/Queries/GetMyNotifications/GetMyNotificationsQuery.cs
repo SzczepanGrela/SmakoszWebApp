@@ -39,6 +39,7 @@ public class GetMyNotificationsHandler : IRequestHandler<GetMyNotificationsQuery
             .Select(n => new NotificationDto
             {
                 NotificationId = n.NotificationId,
+                PublicId = n.PublicId,
                 Type = n.Type.ToString(),
                 Message = n.Message,
                 IsRead = n.IsRead,

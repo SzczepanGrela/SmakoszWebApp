@@ -100,15 +100,14 @@
 
     private async Task MarkAsRead(NotificationDto notification)
     {
-        await NotificationService.MarkAsReadAsync(notification.NotificationId);
-        notification.IsRead = true;
+        if (await NotificationService.MarkAsReadAsync(notification.PublicId))
+            notification.IsRead = true;
     }
 
     private async Task MarkAllAsRead()
     {
         _markingAll = true;
-        await NotificationService.MarkAllAsReadAsync();
-        if (_result != null)
+        if (await NotificationService.MarkAllAsReadAsync() && _result != null)
         {
             foreach (var n in _result.Data)
             {
@@ -120,9 +119,8 @@
 
     private async Task HandleNotificationClick(NotificationDto notification)
     {
-        if (!notification.IsRead)
+        if (!notification.IsRead && await NotificationService.MarkAsReadAsync(notification.PublicId))
         {
-            await NotificationService.MarkAsReadAsync(notification.NotificationId);
             notification.IsRead = true;
         }
     }

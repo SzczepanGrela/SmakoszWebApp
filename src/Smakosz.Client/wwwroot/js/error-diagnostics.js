@@ -12,8 +12,9 @@
         if (!msgEl) return;
 
         var apiUrl = window.__smakoszApiUrl || (window.location.origin + '/api');
+        var healthUrl = apiUrl.replace(/\/api$/, '') + '/health';
 
-        fetch(apiUrl + '/health', { method: 'GET', mode: 'cors' })
+        fetch(healthUrl, { method: 'GET', mode: 'cors' })
             .then(function (r) {
                 if (r.ok) {
                     msgEl.textContent = 'Wystąpił nieoczekiwany błąd w aplikacji.';

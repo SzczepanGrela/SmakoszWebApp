@@ -16,15 +16,17 @@ public class NotificationService : INotificationService
     public async Task<int> GetUnreadCountAsync()
         => await _api.GetAsync<int>("/api/me/notifications/unread-count");
 
-    public async Task MarkAsReadAsync(int id)
+    public async Task<bool> MarkAsReadAsync(Guid publicId)
     {
-        await _api.PutApiResponseAsync<object>($"/api/me/notifications/{id}/read", null);
-        UnreadCountChanged?.Invoke();
+        var response = await _api.PutApiResponseAsync<object>($"/api/me/notifications/{publicId}/read", null);
+        if (response.Success) UnreadCountChanged?.Invoke();
+        return response.Success;
     }
 
-    public async Task MarkAllAsReadAsync()
+    public async Task<bool> MarkAllAsReadAsync()
     {
-        await _api.PutApiResponseAsync<object>("/api/me/notifications/read-all", null);
-        UnreadCountChanged?.Invoke();
+        var response = await _api.PutApiResponseAsync<object>("/api/me/notifications/read-all", null);
+        if (response.Success) UnreadCountChanged?.Invoke();
+        return response.Success;
     }
 }

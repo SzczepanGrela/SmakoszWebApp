@@ -17,15 +17,6 @@
         }
     </div>
     <div class="filter-panel-middle">
-        @if (ActiveFilters.Any())
-        {
-            <div class="filter-panel-chips">
-                @foreach (var filter in ActiveFilters)
-                {
-                    <FilterChip Label="@filter.Label" OnRemove="() => OnRemoveFilter.InvokeAsync(filter)" />
-                }
-            </div>
-        }
         <div class="filter-panel-sections">
             @ChildContent
         </div>
@@ -45,8 +36,6 @@
 
 @code {
     [Parameter] public int TotalActiveCount { get; set; }
-    [Parameter] public List<ActiveFilterDto> ActiveFilters { get; set; } = [];
-    [Parameter] public EventCallback<ActiveFilterDto> OnRemoveFilter { get; set; }
     [Parameter] public EventCallback OnApply { get; set; }
     [Parameter] public EventCallback OnClearAll { get; set; }
     [Parameter] public bool IsDirty { get; set; }

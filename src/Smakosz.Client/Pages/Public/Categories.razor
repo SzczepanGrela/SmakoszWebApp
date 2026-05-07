@@ -61,9 +61,8 @@
         _categories = await CategoryService.GetCategoriesAsync();
         if (_categories != null && _categories.Count > 0)
         {
-            _popular = _categories.Take(8).ToList();
+            _popular = _categories.OrderByDescending(c => c.RestaurantCount).Take(8).ToList();
             _alphabetical = _categories
-                .OrderBy(c => c.Name, StringComparer.Create(new System.Globalization.CultureInfo("pl-PL"), ignoreCase: true))
                 .GroupBy(c => char.ToUpperInvariant(c.Name.FirstOrDefault()).ToString())
                 .ToDictionary(g => g.Key, g => g.ToList());
         }

@@ -74,7 +74,7 @@ def generate_dates_with_spacing(
     incubation_days = min(incubation_days, 180)
 
     current_date = start_date + timedelta(days=incubation_days)
-    now_naive = datetime.now().replace(tzinfo=None)
+    now_naive = datetime.utcnow().replace(tzinfo=None)
 
     if current_date > now_naive:
         current_date = now_naive - timedelta(days=count)

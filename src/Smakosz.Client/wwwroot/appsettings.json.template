@@ -2,5 +2,15 @@
   "ApiBaseUrl": "http://localhost:5000",
   "GoogleMaps": {
     "EmbedApiKey": "<your-google-maps-embed-api-key>"
+  },
+  "Turnstile": {
+    "SiteKey": "<your-turnstile-site-key>"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore.Authorization": "Warning",
+      "System.Net.Http.HttpClient": "Warning"
+    }
   }
 }

@@ -157,7 +157,7 @@ public class BrevoEmailService : IEmailService
 
     private string BuildSecurityCtaButton()
     {
-        var url = $"{_options.ClientBaseUrl.TrimEnd('/')}/me/security";
+        var url = $"{_options.ClientBaseUrl.TrimEnd('/')}/profile/security";
         return $"<a href=\"{url}\" style=\"display:inline-block;padding:10px 20px;background:#B8860B;color:#fff;text-decoration:none;border-radius:6px;\">Zarz&#261;dzaj kontem</a>";
     }
 

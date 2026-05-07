@@ -1,3 +1,9 @@
+var pendingReload = false;
+var pageLoadController = navigator.serviceWorker.controller;
+navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (pendingReload) location.reload();
+});
+
 navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
     .then(function (reg) {
         if (navigator.serviceWorker.controller) reg.update();
@@ -25,9 +31,15 @@ function showUpdateToast(worker) {
         + '<button id="pwa-update-btn" class="pwa-update-btn">Zaktualizuj</button></div>';
     document.body.appendChild(t);
     document.getElementById('pwa-update-btn').addEventListener('click', function () {
-        navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (navigator.serviceWorker.controller !== pageLoadController) {
             location.reload();
-        });
-        worker.postMessage({ type: 'SKIP_WAITING' });
+            return;
+        }
+        if (worker && worker.state !== 'activated') {
+            pendingReload = true;
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+            location.reload();
+        }
     });
 }
