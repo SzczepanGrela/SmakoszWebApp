@@ -402,8 +402,11 @@
         var cuisines = _selectedCuisines.Any() ? string.Join(",", _selectedCuisines) : null;
         var dietary = _selectedDietary.Any() ? string.Join(",", _selectedDietary) : null;
         var location = !string.IsNullOrEmpty(_selectedCity) ? _selectedCity : null;
-        var dishesSize = await Config.GetIntAsync("search.dishes_page_size", 6);
-        var restSize = await Config.GetIntAsync("search.restaurants_page_size", 12);
+        var dishesSizeTask = Config.GetIntAsync("search.dishes_page_size", 6);
+        var restSizeTask = Config.GetIntAsync("search.restaurants_page_size", 12);
+        await Task.WhenAll(dishesSizeTask, restSizeTask);
+        var dishesSize = await dishesSizeTask;
+        var restSize = await restSizeTask;
         var pageSize = _type == "dishes" ? dishesSize : restSize;
         var tags = !string.IsNullOrWhiteSpace(_selectedTags) ? _selectedTags : null;
         var dishCategories = _selectedDishCategories.Any() ? string.Join(",", _selectedDishCategories) : null;

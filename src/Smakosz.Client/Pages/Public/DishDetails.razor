@@ -213,9 +213,11 @@ else
         _lastSlug = Slug;
 
         _loading = true;
-        _dish = await DishService.GetBySlugAsync(Slug);
-        if (_dish != null)
-            _reviews = await ReviewService.GetByDishAsync(Slug, 1, 10, _sortBy);
+        var dishTask = DishService.GetBySlugAsync(Slug);
+        var reviewsTask = ReviewService.GetByDishAsync(Slug, 1, 10, _sortBy);
+        await Task.WhenAll(dishTask, reviewsTask);
+        _dish = await dishTask;
+        _reviews = _dish != null ? await reviewsTask : null;
         _loading = false;
     }
 

@@ -358,9 +358,11 @@ else
     protected override async Task OnInitializedAsync()
     {
         _mapsEmbedApiKey = Configuration["GoogleMaps:EmbedApiKey"];
-        _restaurant = await RestaurantService.GetBySlugAsync(Slug);
-        if (_restaurant != null)
-            _dishes = await RestaurantService.GetDishesAsync(Slug);
+        var restaurantTask = RestaurantService.GetBySlugAsync(Slug);
+        var dishesTask = RestaurantService.GetDishesAsync(Slug);
+        await Task.WhenAll(restaurantTask, dishesTask);
+        _restaurant = await restaurantTask;
+        _dishes = _restaurant != null ? await dishesTask : null;
         _loading = false;
     }
 

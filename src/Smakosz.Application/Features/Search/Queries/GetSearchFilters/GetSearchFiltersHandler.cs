@@ -26,11 +26,31 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
             .Select(c => c.CityName)
             .ToListAsync(cancellationToken);
 
-        var dishCategories = await LoadTagOptionsAsync(TagCategories.DishCategory, cancellationToken);
-        var features = await LoadTagOptionsAsync(TagCategories.Feature, cancellationToken);
-        var moods = await LoadTagOptionsAsync(TagCategories.Mood, cancellationToken);
-        var occasions = await LoadTagOptionsAsync(TagCategories.Occasion, cancellationToken);
-        var spiceLevels = await LoadTagOptionsAsync(TagCategories.Spice, cancellationToken);
+        var targetCategories = new[]
+        {
+            TagCategories.DishCategory,
+            TagCategories.Feature,
+            TagCategories.Mood,
+            TagCategories.Occasion,
+            TagCategories.Spice
+        };
+        var allTags = await _db.Tags
+            .AsNoTracking()
+            .Where(t => targetCategories.Contains(t.Category))
+            .OrderBy(t => t.TagName)
+            .Select(t => new { t.Category, t.TagName })
+            .ToListAsync(cancellationToken);
+
+        List<FilterOption> ToOptions(string cat) => allTags
+            .Where(t => t.Category == cat)
+            .Select(t => new FilterOption { Value = t.TagName, Label = t.TagName })
+            .ToList();
+
+        var dishCategories = ToOptions(TagCategories.DishCategory);
+        var features = ToOptions(TagCategories.Feature);
+        var moods = ToOptions(TagCategories.Mood);
+        var occasions = ToOptions(TagCategories.Occasion);
+        var spiceLevels = ToOptions(TagCategories.Spice);
 
         return new SearchFiltersDto
         {
@@ -53,11 +73,4 @@ public class GetSearchFiltersHandler : IRequestHandler<GetSearchFiltersQuery, Er
         };
     }
 
-    private Task<List<FilterOption>> LoadTagOptionsAsync(string category, CancellationToken ct)
-        => _db.Tags
-            .AsNoTracking()
-            .Where(t => t.Category == category)
-            .OrderBy(t => t.TagName)
-            .Select(t => new FilterOption { Value = t.TagName, Label = t.TagName })
-            .ToListAsync(ct);
 }

@@ -26,6 +26,9 @@ body {
 }
 main {
     flex: 1 0 auto;
+    /* Reserve viewport-minus-nav so the footer lands below the fold on initial paint,
+       preventing CLS when async content (hero, carousels) populates the page later. */
+    min-height: calc(100vh - 76px);
 }
 footer {
     flex-shrink: 0;
