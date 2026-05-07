@@ -209,7 +209,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
             .Where(r => r.Status == RestaurantStatus.Active && r.Cuisine != null)
             .GroupBy(r => new { r.Cuisine!.DisplayName, r.Cuisine.Icon })
             .OrderByDescending(g => g.Count())
-            .Take(8)
+            .Take(7)
             .Select(g => new PopularCategoryDto { Name = g.Key.DisplayName, Icon = g.Key.Icon })
             .ToListAsync(ct);
 

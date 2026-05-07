@@ -30,6 +30,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<IRestaurantService>());
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
         Services.AddSingleton(Substitute.For<IPublicConfigService>());
+        Services.AddSingleton(Substitute.For<ICategoryService>());
         Services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
     }
 

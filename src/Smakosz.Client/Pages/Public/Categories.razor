@@ -1,0 +1,72 @@
+@page "/kategorie"
+@inject ICategoryService CategoryService
+
+<PageTitle>Kategorie - Smakosz</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="fa-solid fa-layer-group me-2"></i>Kategorie
+    </h1>
+
+    @if (_loading)
+    {
+        <LoadingSpinner Text="Ładowanie kategorii..." />
+    }
+    else if (_categories == null || _categories.Count == 0)
+    {
+        <EmptyState Icon="fa-solid fa-layer-group" Title="Brak kategorii" />
+    }
+    else
+    {
+        <section class="mb-5">
+            <h2 class="mb-3"><i class="fa-solid fa-star text-warning me-2"></i>Najpopularniejsze</h2>
+            <div class="row g-3">
+                @foreach (var category in _popular)
+                {
+                    <div class="col-6 col-sm-4 col-md-3">
+                        <CategoryCard Name="@category.Name" Icon="@category.Icon" />
+                    </div>
+                }
+            </div>
+        </section>
+
+        <section class="mb-5">
+            <h2 class="mb-3"><i class="fa-solid fa-list me-2"></i>Wszystkie A-Z</h2>
+            @foreach (var letterGroup in _alphabetical)
+            {
+                <div class="mb-3">
+                    <h3 class="text-warning fw-bold border-bottom pb-1" style="font-size:1rem;">@letterGroup.Key</h3>
+                    <div class="row g-3">
+                        @foreach (var category in letterGroup.Value)
+                        {
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <CategoryCard Name="@category.Name" Icon="@category.Icon" />
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private List<CategoryDto>? _categories;
+    private List<CategoryDto> _popular = [];
+    private Dictionary<string, List<CategoryDto>> _alphabetical = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await CategoryService.GetCategoriesAsync();
+        if (_categories != null && _categories.Count > 0)
+        {
+            _popular = _categories.Take(8).ToList();
+            _alphabetical = _categories
+                .OrderBy(c => c.Name, StringComparer.Create(new System.Globalization.CultureInfo("pl-PL"), ignoreCase: true))
+                .GroupBy(c => char.ToUpperInvariant(c.Name.FirstOrDefault()).ToString())
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }
+        _loading = false;
+    }
+}
