@@ -415,7 +415,7 @@ jobs:
   cf-purge:
     name: Purge Cloudflare cache
     needs: [deploy-vps]
-    if: needs.deploy-vps.result == 'success'
+    if: always() && needs.deploy-vps.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Purge entire Cloudflare cache
