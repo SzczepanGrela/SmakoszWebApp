@@ -3,7 +3,7 @@ GENERATION_CONFIG = {
     "num_restaurants": 2000,
     "num_dishes": 20000,
     "worker_cpu_usage_percent": 0.75,
-    "max_db_connections_limit": 16,
+    "max_db_connections_limit": 6,
     "avg_reviews_per_user": 40,
     "power_user_percentage": 0.5,
     "power_user_review_count": 100,

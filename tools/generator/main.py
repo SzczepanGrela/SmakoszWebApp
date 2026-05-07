@@ -13,6 +13,7 @@ from generators import (
     HeroImagesPhase,
     IngredientsPhase,
     RejectionReasonsPhase,
+    ReportReasonsPhase,
     RestaurantThemesPhase,
     RestaurantsPhase,
     ReviewsPhase,
@@ -39,6 +40,7 @@ def setup_phase_registry(blueprints_dir: str = "blueprints") -> PhaseRegistry:
     registry.register(SystemConfigPhase(blueprints_dir=blueprints_dir))
     registry.register(ForbiddenWordsPhase(blueprints_dir=blueprints_dir))
     registry.register(RejectionReasonsPhase())
+    registry.register(ReportReasonsPhase())
 
     registry.register(CitiesPhase(blueprints_dir=blueprints_dir))
     registry.register(CuisineTypesPhase(blueprints_dir=blueprints_dir))
@@ -200,6 +202,7 @@ Examples:
                         phase_ids.append("phase0_config")
                         phase_ids.append("phase0_forbidden_words")
                         phase_ids.append("phase0_rejection_reasons")
+                        phase_ids.append("phase0_report_reasons")
                         start_num = 1
 
                     phase_map = {

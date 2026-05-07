@@ -1,6 +1,7 @@
 from .phase0_config import SystemConfigPhase
 from .phase0_forbidden_words import ForbiddenWordsPhase
 from .phase0_rejection_reasons import RejectionReasonsPhase
+from .phase0_report_reasons import ReportReasonsPhase
 from .phase1_definitions import (
     CitiesPhase,
     CuisineTypesPhase,
@@ -21,6 +22,7 @@ __all__ = [
     "SystemConfigPhase",
     "ForbiddenWordsPhase",
     "RejectionReasonsPhase",
+    "ReportReasonsPhase",
     "CitiesPhase",
     "CuisineTypesPhase",
     "HeroImagesPhase",
