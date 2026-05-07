@@ -25,8 +25,7 @@ window.smakoszTurnstile = {
         tryRender();
     },
     reset: function (elementId) {
-        if (typeof turnstile !== 'undefined') {
-            turnstile.reset('#' + elementId);
-        }
+        if (typeof turnstile === 'undefined') return;
+        try { turnstile.reset('#' + elementId); } catch (_) { /* widget not rendered (test-key bypass) */ }
     }
 };

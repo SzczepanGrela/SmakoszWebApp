@@ -60,16 +60,29 @@
     {
         _loading = true;
         _error = null;
-        _model.TurnstileToken = _turnstileToken;
-        var result = await AuthService.RegisterAsync(_model);
-        if (result.Success)
+        try
         {
-            Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
-            return;
+            _model.TurnstileToken = _turnstileToken;
+            var result = await AuthService.RegisterAsync(_model);
+            if (result.Success)
+            {
+                Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
+                return;
+            }
+            _error = result.Error?.GetDisplayMessage() ?? "Błąd rejestracji.";
         }
-        _error = result.Error?.GetDisplayMessage() ?? "Błąd rejestracji.";
-        _turnstileToken = null;
-        if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
-        _loading = false;
+        catch (Exception)
+        {
+            _error = "Wystąpił błąd połączenia. Spróbuj ponownie.";
+        }
+        finally
+        {
+            _turnstileToken = null;
+            if (_turnstileWidget is not null)
+            {
+                try { await _turnstileWidget.ResetAsync(); } catch { }
+            }
+            _loading = false;
+        }
     }
 }

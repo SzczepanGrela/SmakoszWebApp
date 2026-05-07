@@ -53,33 +53,46 @@
     {
         _loading = true;
         _error = null;
-        _model.TurnstileToken = _turnstileToken;
-        var result = await AuthService.LoginAsync(_model);
-        if (result.Success)
+        try
         {
-            Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
-            return;
+            _model.TurnstileToken = _turnstileToken;
+            var result = await AuthService.LoginAsync(_model);
+            if (result.Success)
+            {
+                Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+                return;
+            }
+            else if (result.Error?.Code == "AUTH_EMAIL_NOT_VERIFIED")
+            {
+                Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
+                return;
+            }
+            else if (result.Error?.Code == "AUTH_2FA_REQUIRED")
+            {
+                Navigation.NavigateTo($"/verify-2fa?email={Uri.EscapeDataString(_model.Email)}");
+                return;
+            }
+            else if (result.Error?.Code == "AUTH_ACCOUNT_LOCKED")
+            {
+                _error = "Konto tymczasowo zablokowane z powodu zbyt wielu prób logowania. Spróbuj ponownie za kilka minut.";
+            }
+            else
+            {
+                _error = result.Error?.GetDisplayMessage() ?? "Nieprawidłowy email lub hasło.";
+            }
         }
-        else if (result.Error?.Code == "AUTH_EMAIL_NOT_VERIFIED")
+        catch (Exception)
         {
-            Navigation.NavigateTo($"/verify-email?email={Uri.EscapeDataString(_model.Email)}");
-            return;
+            _error = "Wystąpił błąd połączenia. Spróbuj ponownie.";
         }
-        else if (result.Error?.Code == "AUTH_2FA_REQUIRED")
+        finally
         {
-            Navigation.NavigateTo($"/verify-2fa?email={Uri.EscapeDataString(_model.Email)}");
-            return;
+            _turnstileToken = null;
+            if (_turnstileWidget is not null)
+            {
+                try { await _turnstileWidget.ResetAsync(); } catch { }
+            }
+            _loading = false;
         }
-        else if (result.Error?.Code == "AUTH_ACCOUNT_LOCKED")
-        {
-            _error = "Konto tymczasowo zablokowane z powodu zbyt wielu prób logowania. Spróbuj ponownie za kilka minut.";
-        }
-        else
-        {
-            _error = result.Error?.GetDisplayMessage() ?? "Nieprawidłowy email lub hasło.";
-        }
-        _turnstileToken = null;
-        if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
-        _loading = false;
     }
 }
