@@ -89,9 +89,6 @@ def calculate_food_score_polarized(
     baseline = float(user_data.get("secret_rating_baseline", 6.0))
     base_score += (baseline - 6.0) * 0.5  # ~±1.0 for typical users
 
-    base_score += rng.gauss(0, 1.0)
-
-    if rng.random() < 0.05:
-        base_score -= rng.uniform(2.0, 4.0)
+    base_score += rng.gauss(0, 0.5)
 
     return max(1.0, min(10.0, base_score))
