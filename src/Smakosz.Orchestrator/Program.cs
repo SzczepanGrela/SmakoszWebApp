@@ -40,6 +40,8 @@ builder.Logging.AddDatabaseLogger(opts => opts.IgnoredPrefixes = ["Microsoft", "
 builder.Services.AddScoped<SmakoszDbContext>();
 
 builder.Services.Configure<NcfTrainingOptions>(builder.Configuration.GetSection(NcfTrainingOptions.SectionName));
+builder.Services.Configure<NodesOptions>(builder.Configuration.GetSection(NodesOptions.SectionName));
+builder.Services.AddHostedService<Smakosz.Orchestrator.Services.NodeRegistrarHostedService>();
 
 builder.Services.AddHangfire(cfg => cfg
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)

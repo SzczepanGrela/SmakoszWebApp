@@ -6,37 +6,28 @@ namespace Smakosz.E2E.Tests.Admin;
 public class T88_AdminNodeMonitoringTest : SmakoszE2ETestBase
 {
     [Test]
-    public async Task Admin_CanViewNodeMonitoring()
+    public async Task Admin_CanViewNodeStripOnJobsPage()
     {
         await LoginViaLocalStorageAsync(TestConstants.AdminEmail, TestConstants.AdminPassword);
 
-        await NavigateAndWaitAsync("/admin/nodes");
+        await NavigateAndWaitAsync("/admin/jobs");
 
         if (Page.Url.Contains("/login"))
         {
             await Page.WaitForTimeoutAsync(2000);
-            await NavigateAndWaitAsync("/admin/nodes");
+            await NavigateAndWaitAsync("/admin/jobs");
         }
 
         await WaitForBlazorLoadedAsync();
 
-        await AssertPageContainsTextAsync("Monitoring węzłów");
+        var pills = Page.Locator(".node-pill-wrap");
+        await pills.First.WaitForAsync(new LocatorWaitForOptions { Timeout = 15_000 });
+        var pillCount = await pills.CountAsync();
+        Assert.That(pillCount, Is.EqualTo(3),
+            "Strip should render exactly three pills (api + rbpi + gpu)");
 
-        var nodeCards = Page.Locator(".card");
-        await nodeCards.First.WaitForAsync(new LocatorWaitForOptions { Timeout = 15_000 });
-        var cardCount = await nodeCards.CountAsync();
-        Assert.That(cardCount, Is.GreaterThanOrEqualTo(2),
-            "Should show at least the gpu-worker and rbpi-gateway cards");
-
-        var gpuCard = Page.Locator(".card", new() { HasText = "gpu-worker-1" });
-        await Expect(gpuCard).ToBeVisibleAsync();
-        var offlineBadge = gpuCard.Locator(".badge", new() { HasText = "offline" });
-        await Expect(offlineBadge).ToBeVisibleAsync();
-
-        var rpiCard = Page.Locator(".card", new() { HasText = "rbpi-gateway" });
-        await Expect(rpiCard).ToBeVisibleAsync();
-
-        var refreshBtn = Page.Locator("button.btn-outline-primary", new() { HasText = "Odśwież" }).First;
-        await Expect(refreshBtn).ToBeVisibleAsync();
+        await Expect(Page.Locator(".node-pill-wrap", new() { HasText = "vps-hetzner-prod" })).ToBeVisibleAsync();
+        await Expect(Page.Locator(".node-pill-wrap", new() { HasText = "rbpi-gateway" })).ToBeVisibleAsync();
+        await Expect(Page.Locator(".node-pill-wrap", new() { HasText = "gpu-homelab" })).ToBeVisibleAsync();
     }
 }

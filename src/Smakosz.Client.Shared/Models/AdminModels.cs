@@ -580,14 +580,6 @@ public class GpuWakeResultDto
     public string? Message { get; set; }
 }
 
-public class AddSystemNodeRequest
-{
-    public string NodeId { get; set; } = string.Empty;
-    public string NodeType { get; set; } = "gpu";
-    public string? MacAddress { get; set; }
-    public string? WolGatewayId { get; set; }
-}
-
 public class AdminUserActionLogDto
 {
     public long LogId { get; set; }

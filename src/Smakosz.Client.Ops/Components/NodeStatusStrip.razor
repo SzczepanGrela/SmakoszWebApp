@@ -1,0 +1,194 @@
+@namespace Smakosz.Client.Ops.Components
+@implements IAsyncDisposable
+@inject Smakosz.Client.Services.IAdminService AdminService
+@inject Smakosz.Client.Services.ToastService Toast
+
+<div class="node-status-strip d-flex flex-wrap gap-2 mb-3">
+    @if (_nodes is null)
+    {
+        <div class="text-muted small">Ładowanie statusu węzłów...</div>
+    }
+    else
+    {
+        @foreach (var node in _nodes)
+        {
+            var isGpu = node.NodeType == "Gpu";
+            var isExpanded = _expandedNodeId == node.NodeId;
+            <div class="node-pill-wrap position-relative">
+                <div class="d-flex align-items-center gap-1">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-2"
+                            @onclick="() => TogglePopover(node.NodeId)">
+                        <span class="node-dot @StatusDotClass(node.Status)"></span>
+                        <span class="fw-medium">@node.NodeId</span>
+                        <span class="text-muted small">@HeartbeatAge(node.LastHeartbeat)</span>
+                    </button>
+                    @if (isGpu)
+                    {
+                        <button type="button"
+                                class="btn btn-sm btn-warning"
+                                @onclick="WakeGpu"
+                                disabled="@(_isWaking || node.Status == "online")"
+                                title="@(node.Status == "online" ? "GPU już online" : "Wyślij magic packet via rbpi-gateway")">
+                            <i class="fa-solid fa-power-off me-1"></i>@(_isWaking ? "Budzenie..." : "Obudź")
+                        </button>
+                    }
+                </div>
+                @if (isExpanded)
+                {
+                    <div class="node-pill-popover card shadow-sm">
+                        <div class="card-body p-2 small">
+                            <div><strong>Typ:</strong> @node.NodeType</div>
+                            @if (!string.IsNullOrEmpty(node.Hostname))
+                            {
+                                <div><strong>Hostname:</strong> @node.Hostname</div>
+                            }
+                            @if (!string.IsNullOrEmpty(node.IpAddress))
+                            {
+                                <div><strong>IP:</strong> @node.IpAddress</div>
+                            }
+                            @if (node.LastHeartbeat.HasValue)
+                            {
+                                <div><strong>Heartbeat:</strong> @node.LastHeartbeat.Value.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                            }
+                            @if (!string.IsNullOrEmpty(node.GpuName))
+                            {
+                                <div><strong>GPU:</strong> @node.GpuName</div>
+                                @if (node.GpuMemoryTotal is > 0)
+                                {
+                                    var used = node.GpuMemoryUsed ?? 0;
+                                    var total = node.GpuMemoryTotal.Value;
+                                    var pct = (int)(used * 100.0 / total);
+                                    <div class="mt-1">
+                                        <div class="d-flex justify-content-between">
+                                            <span>VRAM</span>
+                                            <span>@used / @total MB</span>
+                                        </div>
+                                        <div class="progress" style="height:6px;">
+                                            <div class="progress-bar @(pct > 80 ? "bg-danger" : pct > 50 ? "bg-warning" : "bg-success")" style="width:@pct%"></div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            @if (node.CurrentJobId.HasValue)
+                            {
+                                <div class="mt-1"><strong>Aktywne zadanie:</strong> #@node.CurrentJobId</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Smakosz.Client.Models.AdminSystemNodeDto>? _nodes;
+    private string? _expandedNodeId;
+    private bool _isWaking;
+    private int _staleThresholdDays = 7;
+    private System.Threading.Timer? _refreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNodes();
+        _refreshTimer = new System.Threading.Timer(
+            async _ => await InvokeAsync(LoadNodes),
+            null,
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromSeconds(30));
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_refreshTimer is not null)
+            await _refreshTimer.DisposeAsync();
+    }
+
+    private async Task LoadNodes()
+    {
+        var response = await AdminService.GetSystemNodesAsync();
+        _nodes = response?.Nodes;
+        _staleThresholdDays = response?.StaleThresholdDays ?? 7;
+        StateHasChanged();
+    }
+
+    private void TogglePopover(string nodeId)
+    {
+        _expandedNodeId = _expandedNodeId == nodeId ? null : nodeId;
+    }
+
+    private async Task WakeGpu()
+    {
+        _isWaking = true;
+        try
+        {
+            var gpu = _nodes?.FirstOrDefault(n => n.NodeType == "Gpu");
+            if (gpu is null) { Toast.ShowError("Brak węzła GPU."); return; }
+
+            var result = await AdminService.WakeGpuAsync();
+            switch (result?.Status)
+            {
+                case "Sent":
+                    Toast.ShowInfo("Magic packet wysłany. GPU powinien być online w ~60s.");
+                    await PollForOnlineAsync(gpu.NodeId, 90);
+                    break;
+                case "AlreadyOnline":
+                    Toast.ShowSuccess("GPU już online.");
+                    await LoadNodes();
+                    break;
+                case "RateLimited":
+                    Toast.ShowWarning("Zaczekaj sekundę przed kolejną próbą.");
+                    break;
+                case "GpuNodeNotFound":
+                    Toast.ShowError("Brak węzła GPU w bazie. NodeRegistrar nie wystartował?");
+                    break;
+                case "GatewayFailed":
+                    Toast.ShowError($"Gateway nie odpowiedział: {result?.Message ?? "(brak detali)"}");
+                    break;
+                default:
+                    Toast.ShowError($"Błąd bramy: {result?.Message ?? "nieznany"}");
+                    break;
+            }
+        }
+        finally
+        {
+            _isWaking = false;
+        }
+    }
+
+    private async Task PollForOnlineAsync(string nodeId, int timeoutSeconds)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(5000);
+            await LoadNodes();
+            var gpu = _nodes?.FirstOrDefault(n => n.NodeId == nodeId);
+            if (gpu?.Status == "online")
+            {
+                Toast.ShowSuccess("GPU online.");
+                return;
+            }
+        }
+        Toast.ShowWarning("GPU nie odpowiedział w 90s. Sprawdź fizycznie.");
+    }
+
+    private string StatusDotClass(string? status) => status switch
+    {
+        "online" => "bg-success",
+        "offline" => "bg-danger",
+        "degraded" => "bg-warning",
+        _ => "bg-secondary"
+    };
+
+    private string HeartbeatAge(DateTime? lastHeartbeat)
+    {
+        if (lastHeartbeat is null) return "brak";
+        var diff = DateTime.UtcNow - lastHeartbeat.Value;
+        if (diff.TotalSeconds < 60) return $"{(int)diff.TotalSeconds}s";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}min";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h";
+        return $"{(int)diff.TotalDays}d";
+    }
+}

@@ -1866,6 +1866,22 @@ a[href^="tel:"]:hover {
     transform: translateY(-3px);
 }
 
+/* Node status strip */
+.node-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.node-pill-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 220px;
+    z-index: 1050;
+}
+
 /* Notification bell */
 .notification-bell {
     position: relative;

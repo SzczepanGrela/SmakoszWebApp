@@ -27,6 +27,24 @@
   "NcfTraining": {
     "Enabled": false
   },
+  "Nodes": {
+    "Api": {
+      "NodeId": "vps-hetzner-prod",
+      "Hostname": "hetznerVPS",
+      "IpAddress": "<TAILSCALE_VPS_IP>"
+    },
+    "RbpiGateway": {
+      "NodeId": "rbpi-gateway",
+      "Hostname": "raspberry-pi",
+      "IpAddress": "<TAILSCALE_RBPI_IP>"
+    },
+    "GpuWorker": {
+      "NodeId": "gpu-homelab",
+      "Hostname": "homelab",
+      "IpAddress": "<TAILSCALE_GPU_IP>",
+      "WolGatewayId": "rbpi-gateway"
+    }
+  },
   "R2Models": {
     "AccountId": "<CLOUDFLARE_ACCOUNT_ID>",
     "AccessKey": "<R2_ACCESS_KEY_ID>",
