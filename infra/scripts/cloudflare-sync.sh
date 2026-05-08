@@ -2,6 +2,11 @@
 set -euo pipefail
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
+CONFIG_FILE="${CONFIG_FILE:-/etc/cloudflare-sync/cloudflare-sync.env}"
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
 CACHE_FILE="/var/lib/cloudflare-ips.cache"
 TEMP_FILE=$(mktemp)
 URL_V4="https://www.cloudflare.com/ips-v4"
@@ -103,3 +108,7 @@ chmod 644 "$CACHE_FILE"
 ufw reload > /dev/null
 
 echo "OK: UFW + NPM updated"
+
+if [ -n "${HEALTHCHECKS_CF_SYNC_URL:-}" ]; then
+    curl -fsS --retry 3 --max-time 10 -o /dev/null "$HEALTHCHECKS_CF_SYNC_URL"
+fi

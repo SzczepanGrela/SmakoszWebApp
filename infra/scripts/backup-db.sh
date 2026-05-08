@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-CONFIG_FILE="${CONFIG_FILE:-/etc/smakosz-backup.env}"
+CONFIG_FILE="${CONFIG_FILE:-/etc/smakosz-backup/smakosz-backup.env}"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Missing $CONFIG_FILE" >&2
     exit 2

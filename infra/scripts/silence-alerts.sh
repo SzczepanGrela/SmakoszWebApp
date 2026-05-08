@@ -1,7 +1,7 @@
 #!/bin/bash
 set -uo pipefail
 
-CONFIG_FILE="${MONITORING_CONFIG:-/etc/smakosz-monitoring.env}"
+CONFIG_FILE="${MONITORING_CONFIG:-/etc/smakosz-monitoring/smakosz-monitoring.env}"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "silence-alerts: missing $CONFIG_FILE, skipping silence" >&2
     exit 0
