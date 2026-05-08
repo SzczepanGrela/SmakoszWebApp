@@ -52,8 +52,7 @@ class WorkerApiClient:
             if resp.status_code == 204:
                 return None
             resp.raise_for_status()
-            data = resp.json()
-            return data.get("data")
+            return resp.json()
         except httpx.HTTPStatusError as e:
             logger.error("Failed to get next job: %s", e)
             return None
@@ -129,8 +128,7 @@ class WorkerApiClient:
         try:
             resp = self._client.get("/api/worker/config")
             resp.raise_for_status()
-            data = resp.json()
-            self._config_cache = data.get("data", {})
+            self._config_cache = resp.json() or {}
             self._config_cached_at = now
             return self._config_cache
         except (httpx.HTTPStatusError, httpx.ConnectError) as e:
