@@ -20,7 +20,7 @@ from utils.text_generator import slugify
 
 logger = logging.getLogger(__name__)
 
-HERO_INDEX_PATH = Path(PHOTO_CONFIG.get("local_photo_dir", "E:/smakosz/images")) / "hero" / "hero_index.json"  # type: ignore[arg-type]
+HERO_INDEX_PATH = Path(PHOTO_CONFIG["output_dir"]) / "hero" / "hero_index.json"
 
 def generate_ingredient_icon_url(ingredient_name: str) -> str:
     encoded_name = urllib.parse.quote_plus(ingredient_name)
