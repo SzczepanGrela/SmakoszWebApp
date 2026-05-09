@@ -25,10 +25,10 @@ body {
     flex: 1 0 auto;
 }
 main {
+    /* flex-grow lets main absorb all leftover height inside #app so the footer
+       sticks to the viewport bottom on short pages without assuming a fixed
+       footer height. Hero and carousels carry their own min-heights for CLS. */
     flex: 1 0 auto;
-    /* Reserve viewport-minus-nav so the footer lands below the fold on initial paint,
-       preventing CLS when async content (hero, carousels) populates the page later. */
-    min-height: calc(100vh - 76px);
 }
 footer {
     flex-shrink: 0;

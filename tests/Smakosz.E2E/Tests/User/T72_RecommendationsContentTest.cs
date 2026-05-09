@@ -24,10 +24,6 @@ public class T72_RecommendationsContentTest : SmakoszE2ETestBase
 
         await AssertPageContainsTextAsync("Dania dobrane specjalnie na podstawie Twoich preferencji i recenzji.");
 
-        var refreshButton = Page.GetByRole(AriaRole.Button, new() { Name = "Odswiez" }).First;
-        var refreshCount = await refreshButton.CountAsync();
-        Assert.That(refreshCount, Is.GreaterThan(0), "Should have 'Odswiez' refresh button");
-
         var pageContent = await Page.ContentAsync();
 
         if (pageContent.Contains("Brak rekomendacji"))

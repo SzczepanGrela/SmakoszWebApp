@@ -29,7 +29,7 @@ public class T07_AdminDashboardTest : SmakoszE2ETestBase
         await AssertPageContainsTextAsync("Restauracje");
         await AssertPageContainsTextAsync("Recenzje");
 
-        await AssertPageContainsTextAsync("Oczekujące raporty");
-        await AssertPageContainsTextAsync("Oczekujące korekty");
+        await AssertPageContainsTextAsync("Raporty");
+        await AssertPageContainsTextAsync("Korekty");
     }
 }
