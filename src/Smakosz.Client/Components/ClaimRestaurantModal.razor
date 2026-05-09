@@ -12,14 +12,14 @@
                     Restauracja: <strong>@Restaurant?.RestaurantName</strong>
                 </p>
                 <p class="text-muted small">
-                    Opisz, dlaczego jestes wlascicielem tej restauracji. Administrator zweryfikuje
-                    zgloszenie i moze skontaktowac sie z Toba w celu potwierdzenia.
+                    Opisz, dlaczego jesteś właścicielem tej restauracji. Administrator zweryfikuje
+                    zgłoszenie i może skontaktować się z Tobą w celu potwierdzenia.
                 </p>
                 <div class="mb-3">
                     <label class="form-label">Uzasadnienie *</label>
                     <textarea class="form-control" rows="5" @bind="_justification"
-                              placeholder="Np. Jestem wlascicielem od 2018, mam dokumenty NIP/REGON..."></textarea>
-                    <div class="form-text">@_justification.Length / 2000 znakow (min 10)</div>
+                              placeholder="Np. Jestem właścicielem od 2018, mam dokumenty NIP/REGON..."></textarea>
+                    <div class="form-text">@_justification.Length / 2000 znaków (min 10)</div>
                 </div>
                 @if (!string.IsNullOrEmpty(_error))
                 {
@@ -29,7 +29,7 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="OnClose">Anuluj</button>
                 <button class="btn btn-primary" @onclick="Submit" disabled="@_submitting">
-                    <i class="fa-solid fa-paper-plane me-2"></i>Wyslij zgloszenie
+                    <i class="fa-solid fa-paper-plane me-2"></i>Wyślij zgłoszenie
                 </button>
             </div>
         </div>
@@ -50,7 +50,7 @@
         _error = null;
         if (_justification.Length < 10)
         {
-            _error = "Uzasadnienie musi miec co najmniej 10 znakow.";
+            _error = "Uzasadnienie musi mieć co najmniej 10 znaków.";
             return;
         }
         if (Restaurant is null)
@@ -69,7 +69,7 @@
         }
         else
         {
-            _error = "Nie udalo sie wyslac zgloszenia. Mozliwe, ze restauracja ma juz wlasciciela lub masz inne oczekujace zgloszenie.";
+            _error = "Nie udało się wysłać zgłoszenia. Możliwe, że restauracja ma już właściciela lub masz inne oczekujące zgłoszenie.";
         }
     }
 }
