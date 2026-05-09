@@ -198,4 +198,9 @@ RecurringJob.AddOrUpdate<DataCorrectionEscalationService>(
 RecurringJob.AddOrUpdate<LogRetentionService>(
     "log-retention", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(3, 45), utc);
 
+RecurringJob.TriggerJob("home-page-cache");
+RecurringJob.TriggerJob("site-stats");
+RecurringJob.TriggerJob("moderation-aggregation");
+RecurringJob.TriggerJob("heartbeat-monitor");
+
 await app.RunAsync();

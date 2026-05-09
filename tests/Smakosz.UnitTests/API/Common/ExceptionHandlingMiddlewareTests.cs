@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using NSubstitute;
 using Smakosz.API.Common;
 
@@ -96,5 +97,74 @@ public class ExceptionHandlingMiddlewareTests
 
         root.GetProperty("success").GetBoolean().Should().BeFalse();
         root.GetProperty("error").GetProperty("code").GetString().Should().Be("INTERNAL_ERROR");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_PostgresExceptionTooManyConnections_Returns503WithRetryAfter()
+    {
+        var pgEx = new PostgresException("FATAL: too many connections", "FATAL", "FATAL", "53300");
+        RequestDelegate next = _ => throw pgEx;
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(503);
+        context.Response.Headers.RetryAfter.ToString().Should().Be("5");
+
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var json = await JsonDocument.ParseAsync(context.Response.Body);
+        var root = json.RootElement;
+
+        root.GetProperty("success").GetBoolean().Should().BeFalse();
+        root.GetProperty("error").GetProperty("code").GetString().Should().Be("DATABASE_UNAVAILABLE");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_NpgsqlExceptionTransient_Returns503WithRetryAfter()
+    {
+        RequestDelegate next = _ => throw new FakeTransientNpgsqlException();
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(503);
+        context.Response.Headers.RetryAfter.ToString().Should().Be("5");
+
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var json = await JsonDocument.ParseAsync(context.Response.Body);
+        var root = json.RootElement;
+
+        root.GetProperty("error").GetProperty("code").GetString().Should().Be("DATABASE_UNAVAILABLE");
+    }
+
+    [Fact]
+    public async Task InvokeAsync_DbUpdateExceptionWrappingPostgresException_Returns503ViaUnwrap()
+    {
+        var pgEx = new PostgresException("FATAL: too many connections", "FATAL", "FATAL", "53300");
+        var dbEx = new DbUpdateException("Update failed", pgEx);
+        RequestDelegate next = _ => throw dbEx;
+        var middleware = new ExceptionHandlingMiddleware(next, _logger, _env);
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(503);
+
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var json = await JsonDocument.ParseAsync(context.Response.Body);
+        var root = json.RootElement;
+
+        root.GetProperty("error").GetProperty("code").GetString().Should().Be("DATABASE_UNAVAILABLE");
+    }
+
+    private sealed class FakeTransientNpgsqlException : NpgsqlException
+    {
+        public FakeTransientNpgsqlException() : base("Connection pool exhausted") { }
+        public override bool IsTransient => true;
     }
 }

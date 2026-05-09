@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Npgsql;
 
 namespace Smakosz.API.Common;
 
@@ -58,6 +59,22 @@ public class ExceptionHandlingMiddleware
                 }
             });
         }
+        catch (Exception ex) when (IsTransientDatabaseFailure(ex))
+        {
+            _logger.LogWarning(ex, "Database temporarily unavailable (pool or server connection limit reached)");
+
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            context.Response.Headers.RetryAfter = "5";
+            await context.Response.WriteAsJsonAsync(new ApiResponse<object>
+            {
+                Success = false,
+                Error = new ApiError
+                {
+                    Code = "DATABASE_UNAVAILABLE",
+                    Message = "Serwer jest tymczasowo przeciążony. Spróbuj ponownie za chwilę."
+                }
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception");
@@ -75,5 +92,17 @@ public class ExceptionHandlingMiddleware
                 }
             });
         }
+    }
+
+    private static bool IsTransientDatabaseFailure(Exception ex)
+    {
+        var inner = ex;
+        while (inner is not null)
+        {
+            if (inner is NpgsqlException npg && npg.IsTransient)
+                return true;
+            inner = inner.InnerException;
+        }
+        return false;
     }
 }

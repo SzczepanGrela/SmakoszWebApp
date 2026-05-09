@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=<E2E_DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=<E2E_DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>;Timeout=5"
   },
   "Turnstile": {
     "SiteKey": "1x00000000000000000000AA",

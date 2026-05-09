@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=<DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=<DB_NAME>;Username=<DB_USER>;Password=<DB_PASSWORD>;Timeout=5"
   },
   "Jwt": {
     "PrivateKeyPath": "/home/smakosz/keys/jwt_private.pem",
