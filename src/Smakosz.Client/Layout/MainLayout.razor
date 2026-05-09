@@ -1,8 +1,10 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
 @inject ToastService ToastService
 @inject IDishService DishService
+@inject IJSRuntime JS
 
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
@@ -81,23 +83,23 @@
     @Body
 </main>
 
-<footer class="footer py-4 mt-5">
+<footer class="footer py-3 mt-5">
     <div class="container">
-        <div class="row">
-            <div class="col-12 col-sm-6 col-md-4 mb-3">
-                <h5><i class="fa-solid fa-utensils me-2"></i>Smakosz</h5>
-                <p class="text-muted small">Znajdź najlepszy smak w mieście. System recenzji restauracji i dań.</p>
+        <div class="row align-items-start">
+            <div class="col-12 col-sm-6 col-md-4 mb-2 mb-md-0">
+                <h5 class="mb-1"><i class="fa-solid fa-utensils me-2"></i>Smakosz</h5>
+                <p class="text-muted small mb-0">Znajdź najlepszy smak w mieście. System recenzji restauracji i dań.</p>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 mb-3">
-                <h6>Linki</h6>
-                <ul class="list-unstyled small">
+            <div class="col-12 col-sm-6 col-md-4 mb-2 mb-md-0">
+                <h6 class="mb-1">Linki</h6>
+                <ul class="list-unstyled small mb-0 footer-links-grid">
                     <li><a href="/about" class="text-decoration-none" style="color:var(--text-color);">O nas</a></li>
                     <li><a href="/terms" class="text-decoration-none" style="color:var(--text-color);">Regulamin</a></li>
                     <li><a href="/privacy" class="text-decoration-none" style="color:var(--text-color);">Polityka prywatności</a></li>
                     <li><a href="/contact" class="text-decoration-none" style="color:var(--text-color);">Kontakt</a></li>
                 </ul>
             </div>
-            <div class="col-12 col-md-4 mb-3 text-md-end">
+            <div class="col-12 col-md-4 text-md-end">
                 <p class="small text-muted mb-0">&copy; @DateTime.Now.Year Smakosz. Wszelkie prawa zastrzeżone.</p>
             </div>
         </div>
@@ -109,6 +111,27 @@
 <ConcurrencyConflictModalHost />
 
 @code {
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private async void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("smakoszNav.closeMobileMenu", "#mainNav");
+        }
+        catch
+        {
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+
     private async Task GetRandomDish()
     {
         var dish = await DishService.GetRandomAsync();

@@ -65,6 +65,10 @@ body {
     outline: none;
 }
 
+.navbar-toggler:focus:not(:focus-visible) {
+    box-shadow: none;
+}
+
 /* Hero section */
 .hero-section {
     background-size: cover;
@@ -1124,7 +1128,13 @@ button.nav-link {
 
 .footer a {
     display: inline-block;
-    padding-block: 0.25rem;
+    padding-block: 0.15rem;
+}
+
+.footer-links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 1.25rem;
 }
 
 .review-card a {
