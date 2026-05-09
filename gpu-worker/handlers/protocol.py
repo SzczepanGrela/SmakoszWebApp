@@ -15,6 +15,7 @@ class ModelRequirement:
     hf_repo: str
     version_env_key: str
     version_default: str = "v1"
+    prefer_r2: bool = False
 
 
 @dataclasses.dataclass(frozen=True)

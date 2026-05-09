@@ -15,6 +15,7 @@ class ModelManager:
         self._cache_dir = cache_dir or Path("model_cache")
         self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._hf_mapping: dict[str, str] = {}
+        self._prefer_r2: dict[str, bool] = {}
 
         self._s3 = None
         r2_partial = any([settings.r2_endpoint, settings.r2_access_key, settings.r2_bucket]) and not all(
@@ -53,9 +54,10 @@ class ModelManager:
             logger.info("Using cached model: %s/%s", model_name, version)
             return cache_path
 
-        r2_path = self._download_from_r2(model_name, version)
-        if r2_path is not None:
-            return r2_path
+        if self._prefer_r2.get(model_name, False):
+            r2_path = self._download_from_r2(model_name, version)
+            if r2_path is not None:
+                return r2_path
 
         return self._download_from_huggingface(model_name)
 
@@ -68,6 +70,7 @@ class ModelManager:
                     f"'{existing}' vs '{req.hf_repo}'"
                 )
             self._hf_mapping[req.name] = req.hf_repo
+            self._prefer_r2[req.name] = getattr(req, "prefer_r2", False)
 
     @property
     def s3_client(self):

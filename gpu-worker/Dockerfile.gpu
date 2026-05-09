@@ -9,6 +9,9 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
 
 WORKDIR /app
 
+ENV HF_HOME=/app/model_cache/hf
+ENV TRANSFORMERS_CACHE=/app/model_cache/hf
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir --timeout=300 -r requirements.txt
 

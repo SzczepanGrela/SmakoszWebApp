@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class TextModerator(BatchJobMixin):
     PHASE_NAME = "loading_herbert"
     MODELS = [
-        ModelRequirement(name="herbert", hf_repo="allegro/herbert-base-cased", version_env_key="herbert_model_version"),
+        ModelRequirement(name="herbert", hf_repo="allegro/herbert-base-cased", version_env_key="herbert_model_version", prefer_r2=True),
     ]
     JOB_MAPPINGS = [
         JobMapping("text_moderation", "handle_job"),

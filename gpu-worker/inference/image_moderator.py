@@ -36,7 +36,7 @@ GENERIC_PROMPTS = [
 class ImageModerator(BatchJobMixin):
     PHASE_NAME = "loading_nsfw_clip"
     MODELS = [
-        ModelRequirement(name="nsfw", hf_repo="Marqo/nsfw-image-detection-384", version_env_key="nsfw_model_version"),
+        ModelRequirement(name="nsfw", hf_repo="Falconsai/nsfw_image_detection", version_env_key="nsfw_model_version"),
         ModelRequirement(name="clip", hf_repo="openai/clip-vit-base-patch32", version_env_key="clip_model_version"),
     ]
     JOB_MAPPINGS = [
@@ -115,7 +115,7 @@ class ImageModerator(BatchJobMixin):
         verdict = self._apply_thresholds(nsfw_score, relevance_score, config)
 
         return make_result(
-            model_name="Marqo/nsfw-image-detection-384, openai/clip-vit-base-patch32",
+            model_name="Falconsai/nsfw_image_detection, openai/clip-vit-base-patch32",
             model_version=f"nsfw-{self.settings.nsfw_model_version}_clip-{self.settings.clip_model_version}",
             verdict=verdict,
             nsfw_score=nsfw_score,
