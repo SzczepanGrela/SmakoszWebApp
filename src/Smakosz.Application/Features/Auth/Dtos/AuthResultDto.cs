@@ -5,6 +5,7 @@ public class AuthResultDto
     public string AccessToken { get; init; } = default!;
     public string RefreshToken { get; init; } = default!;
     public DateTime ExpiresAt { get; init; }
+    public DateTime RefreshTokenExpiresAt { get; init; }
     public required UserProfileDto User { get; init; }
 }
 

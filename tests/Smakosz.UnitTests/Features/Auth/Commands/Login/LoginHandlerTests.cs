@@ -38,7 +38,8 @@ public class LoginHandlerTests
 
         _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(true);
         _jwtTokenService.GenerateAccessToken(Arg.Any<Smakosz.Domain.Entities.User>(), Arg.Any<TimeSpan>()).Returns("access_token");
-        _sessionService.CreateSessionAsync(Arg.Any<int>(), Arg.Any<bool>(), Arg.Any<CancellationToken>()).Returns("refresh_token");
+        _sessionService.CreateSessionAsync(Arg.Any<int>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(new SessionTokenResult("refresh_token", DateTime.UtcNow.AddDays(7)));
         _sessionService.GetAccessTokenLifetimeSecondsAsync(Arg.Any<CancellationToken>()).Returns(900);
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
@@ -273,7 +274,7 @@ public class LoginHandlerTests
         _sets.Users.Add(user);
         DbContextMockFactory.Refresh(_db, _sets);
         _verificationCodeService
-            .CreateCodeAsync(user.UserId, Smakosz.Domain.Enums.VerificationCodeType.TwoFactorAuth, Arg.Any<CancellationToken>())
+            .CreateCodeAsync(Arg.Any<int>(), Smakosz.Domain.Enums.VerificationCodeType.TwoFactorAuth, Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns("123456");
         var command = new LoginCommand("user@example.com", "password", TurnstileToken: "valid-token");
 

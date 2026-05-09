@@ -31,7 +31,7 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
         if (user.IsDeleted || !user.IsActive || user.IsBanned)
             return DomainErrors.Auth.InvalidRefreshToken;
 
-        var newRefreshToken = await _sessionService.RotateSessionAsync(session, cancellationToken);
+        var rotated = await _sessionService.RotateSessionAsync(session, cancellationToken);
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
@@ -40,8 +40,9 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
         return new AuthResultDto
         {
             AccessToken = accessToken,
-            RefreshToken = newRefreshToken,
+            RefreshToken = rotated.Token,
             ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
+            RefreshTokenExpiresAt = rotated.ExpiresAt,
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,

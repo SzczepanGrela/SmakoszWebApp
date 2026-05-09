@@ -57,7 +57,15 @@ public class SessionServiceTests
     {
         var result = await _sut.CreateSessionAsync(1, false, CancellationToken.None);
 
-        result.Should().Be("raw_token");
+        result.Token.Should().Be("raw_token");
+    }
+
+    [Fact]
+    public async Task CreateSession_ResultExpiresAtMatchesPersistedSession()
+    {
+        var result = await _sut.CreateSessionAsync(1, true, CancellationToken.None);
+
+        result.ExpiresAt.Should().Be(_sets.UserSessions[0].ExpiresAt);
     }
 
     [Fact]

@@ -19,10 +19,19 @@ public class VerificationCodeService : IVerificationCodeService
     public async Task<string> CreateCodeAsync(int userId, VerificationCodeType type, CancellationToken ct)
     {
         var ttlMinutes = await GetTtlMinutesAsync(ct);
-        return await CreateCodeAsync(userId, type, TimeSpan.FromMinutes(ttlMinutes), ct);
+        return await CreateCodeInternalAsync(userId, type, TimeSpan.FromMinutes(ttlMinutes), payload: null, ct);
     }
 
     public async Task<string> CreateCodeAsync(int userId, VerificationCodeType type, TimeSpan ttl, CancellationToken ct)
+        => await CreateCodeInternalAsync(userId, type, ttl, payload: null, ct);
+
+    public async Task<string> CreateCodeAsync(int userId, VerificationCodeType type, string? payload, CancellationToken ct)
+    {
+        var ttlMinutes = await GetTtlMinutesAsync(ct);
+        return await CreateCodeInternalAsync(userId, type, TimeSpan.FromMinutes(ttlMinutes), payload, ct);
+    }
+
+    private async Task<string> CreateCodeInternalAsync(int userId, VerificationCodeType type, TimeSpan ttl, string? payload, CancellationToken ct)
     {
         var code = Random.Shared.Next(100000, 999999).ToString();
 
@@ -31,6 +40,7 @@ public class VerificationCodeService : IVerificationCodeService
             UserId = userId,
             CodeHash = _codeHasher.Hash(code),
             Type = type,
+            Payload = payload,
             ExpiresAt = DateTime.UtcNow.Add(ttl)
         });
 

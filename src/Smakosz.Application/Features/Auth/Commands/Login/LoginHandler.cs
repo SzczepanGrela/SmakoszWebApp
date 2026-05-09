@@ -199,7 +199,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         if (user.Is2faEnabled)
         {
             var twoFactorCode = await _verificationCodeService.CreateCodeAsync(
-                user.UserId, VerificationCodeType.TwoFactorAuth, cancellationToken);
+                user.UserId, VerificationCodeType.TwoFactorAuth,
+                request.RememberMe ? "r" : null,
+                cancellationToken);
             await _emailService.Send2faCodeAsync(user.Email, twoFactorCode, cancellationToken);
             _db.EmailLogs.Add(new EmailLog
             {
@@ -215,7 +217,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
             return DomainErrors.Auth.TwoFactorRequired;
         }
 
-        var refreshToken = await _sessionService.CreateSessionAsync(user.UserId, request.RememberMe, cancellationToken);
+        var session = await _sessionService.CreateSessionAsync(user.UserId, request.RememberMe, cancellationToken);
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
@@ -238,8 +240,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         return new AuthResultDto
         {
             AccessToken = accessToken,
-            RefreshToken = refreshToken,
+            RefreshToken = session.Token,
             ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
+            RefreshTokenExpiresAt = session.ExpiresAt,
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,

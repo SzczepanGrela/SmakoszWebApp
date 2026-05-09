@@ -31,7 +31,15 @@ public class Resend2faHandler : IRequestHandler<Resend2faCommand, ErrorOr<Succes
         if (user is null)
             return Result.Success;
 
-        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.TwoFactorAuth, cancellationToken);
+        var existingPayload = await _db.VerificationCodes
+            .Where(vc => vc.UserId == user.UserId
+                && vc.Type == VerificationCodeType.TwoFactorAuth
+                && vc.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(vc => vc.CreatedAt)
+            .Select(vc => vc.Payload)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var code = await _verificationCodeService.CreateCodeAsync(user.UserId, VerificationCodeType.TwoFactorAuth, existingPayload, cancellationToken);
 
         await _emailService.Send2faCodeAsync(user.Email, code, cancellationToken);
 

@@ -24,6 +24,7 @@ public class VerificationCodeBuilder
     public VerificationCodeBuilder WithType(VerificationCodeType type) { _code.Type = type; return this; }
     public VerificationCodeBuilder AsExpired() { _code.ExpiresAt = DateTime.UtcNow.AddHours(-1); return this; }
     public VerificationCodeBuilder WithExpiresAt(DateTime expiresAt) { _code.ExpiresAt = expiresAt; return this; }
+    public VerificationCodeBuilder WithPayload(string? payload) { _code.Payload = payload; return this; }
 
     public VerificationCode Build() => _code;
 }

@@ -50,9 +50,10 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
             return DomainErrors.Auth.InvalidVerificationCode;
         }
 
+        var rememberMe = verificationCode.Payload == "r";
         _db.VerificationCodes.Remove(verificationCode);
 
-        var refreshToken = await _sessionService.CreateSessionAsync(user.UserId, false, cancellationToken);
+        var session = await _sessionService.CreateSessionAsync(user.UserId, rememberMe, cancellationToken);
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
@@ -62,8 +63,9 @@ public class Verify2faHandler : IRequestHandler<Verify2faCommand, ErrorOr<AuthRe
         return new AuthResultDto
         {
             AccessToken = accessToken,
-            RefreshToken = refreshToken,
+            RefreshToken = session.Token,
             ExpiresAt = DateTime.UtcNow.AddSeconds(accessTtl),
+            RefreshTokenExpiresAt = session.ExpiresAt,
             User = new UserProfileDto
             {
                 PublicId = user.PublicId,

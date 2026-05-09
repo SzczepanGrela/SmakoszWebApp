@@ -12,10 +12,10 @@ public class AuthCookieWriter
         _env = env;
     }
 
-    public void Write(HttpResponse response, string accessToken, string refreshToken)
+    public void Write(HttpResponse response, string accessToken, DateTimeOffset accessExpires, string refreshToken, DateTimeOffset refreshExpires)
     {
-        response.Cookies.Append(CookieNames.Access, accessToken, BuildOptions(DateTimeOffset.UtcNow.AddDays(30)));
-        response.Cookies.Append(CookieNames.Refresh, refreshToken, BuildOptions(DateTimeOffset.UtcNow.AddDays(30)));
+        response.Cookies.Append(CookieNames.Access, accessToken, BuildOptions(accessExpires));
+        response.Cookies.Append(CookieNames.Refresh, refreshToken, BuildOptions(refreshExpires));
     }
 
     public void Clear(HttpResponse response)

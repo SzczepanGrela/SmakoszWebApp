@@ -17,7 +17,7 @@ public class SessionService : ISessionService
         _jwtTokenService = jwtTokenService;
     }
 
-    public async Task<string> CreateSessionAsync(int userId, bool rememberMe, CancellationToken ct)
+    public async Task<SessionTokenResult> CreateSessionAsync(int userId, bool rememberMe, CancellationToken ct)
     {
         var plaintext = _jwtTokenService.GenerateRefreshToken();
         var hash = HashToken(plaintext);
@@ -26,17 +26,18 @@ public class SessionService : ISessionService
             ? await GetIntConfigAsync("auth.refresh_ttl_days_remember", 30, ct)
             : await GetIntConfigAsync("auth.refresh_ttl_days", 7, ct);
 
+        var expiresAt = DateTime.UtcNow.AddDays(ttlDays);
         var session = new UserSession
         {
             UserId = userId,
             RefreshTokenHash = hash,
             IsRememberMe = rememberMe,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(ttlDays),
+            ExpiresAt = expiresAt,
         };
 
         _db.UserSessions.Add(session);
-        return plaintext;
+        return new SessionTokenResult(plaintext, expiresAt);
     }
 
     public async Task<UserSession?> FindActiveSessionAsync(string refreshToken, CancellationToken ct)
@@ -63,7 +64,7 @@ public class SessionService : ISessionService
         session.IsRevoked = true;
     }
 
-    public async Task<string> RotateSessionAsync(UserSession oldSession, CancellationToken ct)
+    public async Task<SessionTokenResult> RotateSessionAsync(UserSession oldSession, CancellationToken ct)
     {
         oldSession.IsRevoked = true;
 
@@ -74,17 +75,18 @@ public class SessionService : ISessionService
             ? await GetIntConfigAsync("auth.refresh_ttl_days_remember", 30, ct)
             : await GetIntConfigAsync("auth.refresh_ttl_days", 7, ct);
 
+        var expiresAt = DateTime.UtcNow.AddDays(ttlDays);
         var newSession = new UserSession
         {
             UserId = oldSession.UserId,
             RefreshTokenHash = hash,
             IsRememberMe = oldSession.IsRememberMe,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(ttlDays),
+            ExpiresAt = expiresAt,
         };
 
         _db.UserSessions.Add(newSession);
-        return plaintext;
+        return new SessionTokenResult(plaintext, expiresAt);
     }
 
     public async Task<int> GetAccessTokenLifetimeSecondsAsync(CancellationToken ct)

@@ -152,7 +152,10 @@ public class AuthController : ApiController
         if (result.IsError)
             return ToActionResult(result);
 
-        _cookies.Write(Response, result.Value.AccessToken, result.Value.RefreshToken);
+        _cookies.Write(
+            Response,
+            result.Value.AccessToken, result.Value.ExpiresAt,
+            result.Value.RefreshToken, result.Value.RefreshTokenExpiresAt);
 
         return Ok(new ApiResponse<AuthResultDto>
         {
@@ -162,6 +165,7 @@ public class AuthController : ApiController
                 AccessToken = string.Empty,
                 RefreshToken = string.Empty,
                 ExpiresAt = result.Value.ExpiresAt,
+                RefreshTokenExpiresAt = result.Value.RefreshTokenExpiresAt,
                 User = result.Value.User
             }
         });

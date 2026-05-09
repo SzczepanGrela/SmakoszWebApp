@@ -24,7 +24,8 @@ public class RefreshTokenHandlerTests
         _sessionService = Substitute.For<ISessionService>();
 
         _jwtTokenService.GenerateAccessToken(Arg.Any<User>(), Arg.Any<TimeSpan>()).Returns("new_access_token");
-        _sessionService.RotateSessionAsync(Arg.Any<UserSession>(), Arg.Any<CancellationToken>()).Returns("new_refresh_token");
+        _sessionService.RotateSessionAsync(Arg.Any<UserSession>(), Arg.Any<CancellationToken>())
+            .Returns(new SessionTokenResult("new_refresh_token", DateTime.UtcNow.AddDays(7)));
         _sessionService.GetAccessTokenLifetimeSecondsAsync(Arg.Any<CancellationToken>()).Returns(900);
 
         _handler = new RefreshTokenHandler(_db, _jwtTokenService, _sessionService);
