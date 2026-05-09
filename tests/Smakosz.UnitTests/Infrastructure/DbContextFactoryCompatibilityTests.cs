@@ -52,12 +52,12 @@ public class DbContextFactoryCompatibilityTests : IDisposable
 
         await using (var ctx1 = await factory.CreateDbContextAsync())
         {
-            ctx1.Set<SiteStats>().Add(new SiteStats { Id = 1, TotalDishes = 42 });
+            ctx1.Set<HomePageCache>().Add(new HomePageCache { Id = 1, TotalDishes = 42 });
             await ctx1.SaveChangesAsync();
         }
 
         await using var ctx2 = await factory.CreateDbContextAsync();
-        var stats = await ctx2.Set<SiteStats>().AsNoTracking().FirstOrDefaultAsync();
+        var stats = await ctx2.Set<HomePageCache>().AsNoTracking().FirstOrDefaultAsync();
 
         stats.Should().NotBeNull();
         stats!.TotalDishes.Should().Be(42);
@@ -70,26 +70,26 @@ public class DbContextFactoryCompatibilityTests : IDisposable
 
         await using (var seed = await factory.CreateDbContextAsync())
         {
-            seed.Set<SiteStats>().Add(new SiteStats { Id = 1, TotalDishes = 7, TotalRestaurants = 7, TotalReviews = 7 });
+            seed.Set<HomePageCache>().Add(new HomePageCache { Id = 1, TotalDishes = 7, TotalRestaurants = 7, TotalReviews = 7 });
             await seed.SaveChangesAsync();
         }
 
         async Task<int> ReadDishesAsync()
         {
             await using var ctx = await factory.CreateDbContextAsync();
-            return (await ctx.Set<SiteStats>().AsNoTracking().FirstAsync()).TotalDishes;
+            return (await ctx.Set<HomePageCache>().AsNoTracking().FirstAsync()).TotalDishes;
         }
 
         async Task<int> ReadRestaurantsAsync()
         {
             await using var ctx = await factory.CreateDbContextAsync();
-            return (await ctx.Set<SiteStats>().AsNoTracking().FirstAsync()).TotalRestaurants;
+            return (await ctx.Set<HomePageCache>().AsNoTracking().FirstAsync()).TotalRestaurants;
         }
 
         async Task<int> ReadReviewsAsync()
         {
             await using var ctx = await factory.CreateDbContextAsync();
-            return (await ctx.Set<SiteStats>().AsNoTracking().FirstAsync()).TotalReviews;
+            return (await ctx.Set<HomePageCache>().AsNoTracking().FirstAsync()).TotalReviews;
         }
 
         var dishesTask = ReadDishesAsync();

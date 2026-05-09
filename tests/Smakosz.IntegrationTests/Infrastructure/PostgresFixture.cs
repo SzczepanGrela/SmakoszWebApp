@@ -66,7 +66,6 @@ public static class PostgresFixture
                     TablesToIgnore = new Respawn.Graph.Table[]
                     {
                         "__EFMigrationsHistory",
-                        new Respawn.Graph.Table("system", "site_stats"),
                         new Respawn.Graph.Table("system", "home_page_cache"),
                     }
                 });

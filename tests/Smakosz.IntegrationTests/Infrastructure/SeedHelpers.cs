@@ -243,16 +243,6 @@ public static class SeedHelpers
         };
     }
 
-    public static Domain.Entities.System.SiteStats CreateSiteStats() => new()
-    {
-        Id = 1,
-        TotalDishes = 0,
-        TotalRestaurants = 0,
-        TotalReviews = 0,
-        TotalUsers = 0,
-        UpdatedAt = DateTime.UtcNow,
-    };
-
     public static ReportReasonDefinition CreateReportReason(
         string code = "spam",
         string label = "Spam lub reklama")

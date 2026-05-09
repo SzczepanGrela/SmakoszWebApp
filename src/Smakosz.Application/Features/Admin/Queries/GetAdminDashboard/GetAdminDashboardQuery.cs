@@ -26,7 +26,7 @@ public class GetAdminDashboardHandler : IRequestHandler<GetAdminDashboardQuery, 
         if (!_currentUser.IsAdminOrModerator)
             return DomainErrors.Admin.Forbidden;
 
-        var siteStats = await _db.SiteStats.AsNoTracking().FirstAsync(cancellationToken);
+        var cache = await _db.HomePageCaches.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
 
         var pendingReports = await _db.Reports
             .CountAsync(r => r.Status == ReportStatus.Pending, cancellationToken);
@@ -43,9 +43,9 @@ public class GetAdminDashboardHandler : IRequestHandler<GetAdminDashboardQuery, 
 
         return new AdminDashboardDto
         {
-            TotalUsers = siteStats.TotalUsers,
-            TotalRestaurants = siteStats.TotalRestaurants,
-            TotalReviews = siteStats.TotalReviews,
+            TotalUsers = cache?.TotalUsers ?? 0,
+            TotalRestaurants = cache?.TotalRestaurants ?? 0,
+            TotalReviews = cache?.TotalReviews ?? 0,
             PendingReports = pendingReports,
             PendingCorrections = pendingCorrections,
             PendingPhotos = pendingPhotos,

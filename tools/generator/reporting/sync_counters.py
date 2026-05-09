@@ -18,7 +18,7 @@ class CounterSync:
         self._sync_dish_avg_rating()
         self._sync_dish_trending_scores()
         self._sync_restaurant_trending_scores()
-        self._sync_site_stats()
+        self._sync_home_page_cache_stats()
         self.db.commit()
         logger.info("All denormalized counters synchronized.")
 
@@ -155,47 +155,14 @@ class CounterSync:
             WHERE res.restaurant_id = sub.restaurant_id
         """)
 
-    def _sync_site_stats(self):
-        logger.info("Syncing system.site_stats...")
+    def _sync_home_page_cache_stats(self):
+        logger.info("Syncing system.home_page_cache stat counters...")
         self.db.execute_query("""
-            INSERT INTO system.site_stats (id, total_dishes, total_restaurants, total_reviews,
-                total_users, total_photos, reviews_this_week, new_users_this_month,
-                avg_dish_rating, avg_restaurant_food_score,
-                most_popular_cuisine, most_active_city, updated_at)
-            VALUES (1,
-                (SELECT COUNT(*) FROM dishes),
-                (SELECT COUNT(*) FROM restaurants WHERE status = 'active'),
-                (SELECT COUNT(*) FROM reviews WHERE is_deleted = false),
-                (SELECT COUNT(*) FROM users WHERE is_active AND NOT is_deleted),
-                (SELECT COUNT(*) FROM media_assets WHERE status = 'approved'),
-                (SELECT COUNT(*) FROM reviews WHERE NOT is_deleted
-                    AND created_at >= NOW() - INTERVAL '7 days'),
-                (SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '30 days'),
-                COALESCE((SELECT AVG(avg_rating) FROM dishes WHERE avg_rating IS NOT NULL), 0),
-                COALESCE((SELECT AVG(avg_food_score) FROM restaurants
-                    WHERE avg_food_score IS NOT NULL), 0),
-                (SELECT ct.name FROM restaurants r
-                    JOIN cuisine_types ct ON r.cuisine_type_id = ct.cuisine_type_id
-                    WHERE r.status = 'active'
-                    GROUP BY ct.name ORDER BY COUNT(*) DESC LIMIT 1),
-                (SELECT c.city_name FROM reviews r
-                    JOIN restaurants rest ON r.restaurant_id = rest.restaurant_id
-                    JOIN cities c ON rest.city_id = c.city_id
-                    WHERE NOT r.is_deleted
-                    GROUP BY c.city_name ORDER BY COUNT(*) DESC LIMIT 1),
-                NOW()
-            )
-            ON CONFLICT (id) DO UPDATE SET
-                total_dishes = EXCLUDED.total_dishes,
-                total_restaurants = EXCLUDED.total_restaurants,
-                total_reviews = EXCLUDED.total_reviews,
-                total_users = EXCLUDED.total_users,
-                total_photos = EXCLUDED.total_photos,
-                reviews_this_week = EXCLUDED.reviews_this_week,
-                new_users_this_month = EXCLUDED.new_users_this_month,
-                avg_dish_rating = EXCLUDED.avg_dish_rating,
-                avg_restaurant_food_score = EXCLUDED.avg_restaurant_food_score,
-                most_popular_cuisine = EXCLUDED.most_popular_cuisine,
-                most_active_city = EXCLUDED.most_active_city,
-                updated_at = EXCLUDED.updated_at
+            UPDATE system.home_page_cache SET
+                total_dishes = (SELECT COUNT(*) FROM dishes),
+                total_restaurants = (SELECT COUNT(*) FROM restaurants WHERE status = 'active'),
+                total_reviews = (SELECT COUNT(*) FROM reviews WHERE is_deleted = false),
+                total_users = (SELECT COUNT(*) FROM users WHERE is_active AND NOT is_deleted),
+                updated_at = NOW()
+            WHERE id = 1
         """)

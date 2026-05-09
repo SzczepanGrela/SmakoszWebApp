@@ -29,15 +29,14 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
 
     public async Task<ErrorOr<HomeDataDto>> Handle(GetHomeDataQuery request, CancellationToken cancellationToken)
     {
-        var siteStats = await _db.SiteStats.AsNoTracking().FirstAsync(cancellationToken);
+        var cache = await _db.HomePageCaches.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+
         var stats = new StatsDto
         {
-            TotalDishes = siteStats.TotalDishes,
-            TotalRestaurants = siteStats.TotalRestaurants,
-            TotalReviews = siteStats.TotalReviews
+            TotalDishes = cache?.TotalDishes ?? 0,
+            TotalRestaurants = cache?.TotalRestaurants ?? 0,
+            TotalReviews = cache?.TotalReviews ?? 0
         };
-
-        var cache = await _db.HomePageCaches.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
 
         var hasCachedData = cache is not null
             && cache.TrendingRestaurantsJson is not null

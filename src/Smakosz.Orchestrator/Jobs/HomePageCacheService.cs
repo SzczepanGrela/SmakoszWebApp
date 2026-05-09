@@ -212,6 +212,14 @@ public class HomePageCacheService
             })
             .ToListAsync(ct);
 
+        var totalDishes = await _db.Dishes.CountAsync(ct);
+        var totalRestaurants = await _db.Restaurants
+            .CountAsync(r => r.Status == RestaurantStatus.Active, ct);
+        var totalReviews = await _db.Reviews
+            .CountAsync(r => !r.IsDeleted, ct);
+        var totalUsers = await _db.Users
+            .CountAsync(u => u.IsActive && !u.IsDeleted, ct);
+
         cache.TrendingRestaurantsJson = JsonSerializer.Serialize(trendingRestaurants, JsonOpts);
         cache.TrendingDishesJson = JsonSerializer.Serialize(trendingDishes, JsonOpts);
         cache.TopRatedDishesJson = JsonSerializer.Serialize(topRatedDishes, JsonOpts);
@@ -220,14 +228,19 @@ public class HomePageCacheService
         cache.HeroImageJson = heroImage is not null ? JsonSerializer.Serialize(heroImage, JsonOpts) : null;
         cache.NewestRestaurantsJson = JsonSerializer.Serialize(newestRestaurants, JsonOpts);
         cache.MostReviewedDishesJson = JsonSerializer.Serialize(mostReviewedDishes, JsonOpts);
+        cache.TotalDishes = totalDishes;
+        cache.TotalRestaurants = totalRestaurants;
+        cache.TotalReviews = totalReviews;
+        cache.TotalUsers = totalUsers;
         cache.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation(
-            "home-cache: restaurants={Restaurants}, trendingDishes={TDishes}, topDishes={TopDishes}, reviews={Reviews}, categories={Categories}, newest={Newest}, mostReviewed={MostReviewed}",
+            "home-cache: restaurants={Restaurants}, trendingDishes={TDishes}, topDishes={TopDishes}, reviews={Reviews}, categories={Categories}, newest={Newest}, mostReviewed={MostReviewed}, stats(d={D},r={R},rv={Rv},u={U})",
             trendingRestaurants.Count, trendingDishes.Count, topRatedDishes.Count,
             recentReviews.Count, popularCategories.Count,
-            newestRestaurants.Count, mostReviewedDishes.Count);
+            newestRestaurants.Count, mostReviewedDishes.Count,
+            totalDishes, totalRestaurants, totalReviews, totalUsers);
     }
 }

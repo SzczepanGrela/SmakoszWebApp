@@ -13,5 +13,10 @@ public class HomePageCache
     public string? NewestRestaurantsJson { get; set; }
     public string? MostReviewedDishesJson { get; set; }
 
+    public int TotalDishes { get; set; }
+    public int TotalRestaurants { get; set; }
+    public int TotalReviews { get; set; }
+    public int TotalUsers { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

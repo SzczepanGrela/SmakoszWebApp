@@ -60,7 +60,6 @@ public class MockDbSets
     public List<BannedIdentifier> BannedIdentifiers { get; } = new();
     public List<ForbiddenWord> ForbiddenWords { get; } = new();
 public List<FileToDelete> FilesToDelete { get; } = new();
-    public List<SiteStats> SiteStats { get; } = new();
     public List<ModerationResult> ModerationResults { get; } = new();
     public List<PushSubscription> PushSubscriptions { get; } = new();
     public List<HomePageCache> HomePageCaches { get; } = new();
@@ -155,7 +154,6 @@ public static class DbContextMockFactory
         WireDbSet(() => sets.BannedIdentifiers, v => context.BannedIdentifiers.Returns(v), sets.BannedIdentifiers);
         WireDbSet(() => sets.ForbiddenWords, v => context.ForbiddenWords.Returns(v), sets.ForbiddenWords);
 WireDbSet(() => sets.FilesToDelete, v => context.FilesToDelete.Returns(v), sets.FilesToDelete);
-        WireDbSet(() => sets.SiteStats, v => context.SiteStats.Returns(v), sets.SiteStats);
         WireDbSet(() => sets.ModerationResults, v => context.ModerationResults.Returns(v), sets.ModerationResults);
         WireDbSet(() => sets.PushSubscriptions, v => context.PushSubscriptions.Returns(v), sets.PushSubscriptions);
         WireDbSet(() => sets.HomePageCaches, v => context.HomePageCaches.Returns(v), sets.HomePageCaches);

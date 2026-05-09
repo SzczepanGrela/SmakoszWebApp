@@ -65,7 +65,6 @@ public interface ISmakoszDbContext : IAsyncDisposable
     DbSet<BannedIdentifier> BannedIdentifiers { get; }
     DbSet<ForbiddenWord> ForbiddenWords { get; }
     DbSet<FileToDelete> FilesToDelete { get; }
-    DbSet<SiteStats> SiteStats { get; }
     DbSet<HomePageCache> HomePageCaches { get; }
     DbSet<ModerationResult> ModerationResults { get; }
     DbSet<UserRecommendationCache> UserRecommendationCaches { get; }

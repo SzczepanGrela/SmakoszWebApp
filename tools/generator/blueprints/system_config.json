@@ -250,11 +250,6 @@
       "description": "Długość okna rate limitera dla /api/search/suggest w sekundach.",
       "is_public": false
     },
-    "trending.window_days": {
-      "value": "7",
-      "description": "Okno czasowe Bayesian Average (dni).",
-      "is_public": false
-    },
     "datacorrection.response_deadline_days": {
       "value": "7",
       "description": "Liczba dni SLA dla właściciela restauracji na reakcję na zgłoszenie korekty danych.",

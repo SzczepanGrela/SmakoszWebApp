@@ -42,7 +42,7 @@ public class GetHomeDataHandlerTests : IDisposable
 
     private void SeedSiteStats(int dishes = 0, int restaurants = 0, int reviews = 0)
     {
-        _db.SiteStats.Add(new SiteStats
+        _db.HomePageCaches.Add(new HomePageCache
         {
             Id = 1,
             TotalDishes = dishes,

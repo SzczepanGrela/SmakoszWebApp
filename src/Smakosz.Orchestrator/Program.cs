@@ -86,7 +86,6 @@ builder.Services.AddScoped<NcfTrainingService>();
 builder.Services.AddScoped<INcfTrainingService>(sp => sp.GetRequiredService<NcfTrainingService>());
 builder.Services.AddScoped<NotificationDigestService>();
 builder.Services.AddScoped<PushNotificationDispatchService>();
-builder.Services.AddScoped<SiteStatsService>();
 builder.Services.AddScoped<NcfModelActivationService>();
 builder.Services.AddScoped<SendSecurityEmailJob>();
 builder.Services.AddScoped<ISendSecurityEmailJob>(sp => sp.GetRequiredService<SendSecurityEmailJob>());
@@ -169,9 +168,6 @@ RecurringJob.AddOrUpdate<NotificationDigestService>(
 RecurringJob.AddOrUpdate<PushNotificationDispatchService>(
     "push-dispatch", x => x.SendAsync(CancellationToken.None), "*/2 * * * *", utc);
 
-RecurringJob.AddOrUpdate<SiteStatsService>(
-    "site-stats", x => x.UpdateAsync(CancellationToken.None), Cron.Hourly, utc);
-
 RecurringJob.AddOrUpdate<HomePageCacheService>(
     "home-page-cache", x => x.RefreshAsync(CancellationToken.None), "*/30 * * * *", utc);
 
@@ -200,7 +196,6 @@ RecurringJob.AddOrUpdate<LogRetentionService>(
     "log-retention", x => x.CleanupAsync(CancellationToken.None), Cron.Daily(3, 45), utc);
 
 RecurringJob.TriggerJob("home-page-cache");
-RecurringJob.TriggerJob("site-stats");
 RecurringJob.TriggerJob("moderation-aggregation");
 RecurringJob.TriggerJob("heartbeat-monitor");
 

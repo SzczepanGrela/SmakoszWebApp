@@ -601,7 +601,6 @@ public static class SeedData
             new SystemConfig { Key = "retention.user_deletion_grace_days", Value = "30", Description = "Dni do fizycznego usuniecia uzytkownika", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "business.default_page_size", Value = "20", Description = "Domyslny rozmiar strony dla business panel queries", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "business.max_page_size", Value = "100", Description = "Max clamp rozmiaru strony dla business panel queries", IsSecret = false, IsPublic = false },
-            new SystemConfig { Key = "trending.window_days", Value = "7", Description = "Okno czasowe trendow (dni)", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "datacorrection.response_deadline_days", Value = "7", Description = "SLA dni na reakcje na korekte danych", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "ratelimit.auth.permit_limit", Value = "10", Description = "Rate limit auth endpointow (req/okno)", IsSecret = false, IsPublic = false },
             new SystemConfig { Key = "ratelimit.auth.window_seconds", Value = "60", Description = "Okno rate limitu auth (sekundy)", IsSecret = false, IsPublic = false },

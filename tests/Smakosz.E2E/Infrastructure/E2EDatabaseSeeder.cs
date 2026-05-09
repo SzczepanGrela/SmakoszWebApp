@@ -7,7 +7,7 @@ namespace Smakosz.E2E.Infrastructure;
 public static class E2EDatabaseSeeder
 {
     // Tables truncated on per-test reset. Dictionaries seeded by EF migrations
-    // (rejection_reasons, system.home_page_cache, system.site_stats) are
+    // (rejection_reasons, system.home_page_cache) are
     // intentionally excluded so migration InsertData rows survive the reset.
     // SeedData own additions to dictionaries (cuisine_types, tags including
     // dish_category) use unique high IDs (1001+) and are wiped explicitly
