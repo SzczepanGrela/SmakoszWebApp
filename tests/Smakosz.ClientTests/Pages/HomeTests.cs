@@ -213,6 +213,72 @@ public class HomeTests : BunitTestBase
     }
 
     [Fact]
+    public void LoggedInUser_WithNcfRecommendations_RendersPolecaneCarousel()
+    {
+        SetAuthenticatedUser("anna-nowak");
+
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var recService = Services.GetRequiredService<IRecommendationService>();
+        recService.GetRecommendationsAsync().Returns(new RecommendationsDto
+        {
+            NcfAvailable = true,
+            Personalized =
+            [
+                new RecommendedDishDto
+                {
+                    DishId = 5,
+                    Name = "Spersonalizowana Pizza",
+                    Slug = "spersonalizowana-pizza",
+                    RestaurantName = "Pizzeria Roma"
+                }
+            ]
+        });
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().Contain("Polecane dla Ciebie");
+        cut.Markup.Should().Contain("Spersonalizowana Pizza");
+        cut.Markup.Should().Contain("Pizzeria Roma");
+    }
+
+    [Fact]
+    public void AnonymousUser_DoesNotRenderPolecaneCarousel()
+    {
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().NotContain("Polecane dla Ciebie");
+    }
+
+    [Fact]
+    public void LoggedInNewcomer_DoesNotRenderPolecaneCarousel()
+    {
+        SetAuthenticatedUser("nowy-user");
+
+        var homeService = Services.GetRequiredService<IHomeService>();
+        homeService.GetHomeDataAsync().Returns(CreateHomeData());
+
+        var recService = Services.GetRequiredService<IRecommendationService>();
+        recService.GetRecommendationsAsync().Returns(new RecommendationsDto
+        {
+            NcfAvailable = false,
+            IsNewcomer = true,
+            FallbackReason = "Wystawiłeś za mało recenzji."
+        });
+
+        var cut = RenderComponent<Home>();
+        cut.WaitForState(() => !cut.Markup.Contains("Ładowanie..."));
+
+        cut.Markup.Should().NotContain("Polecane dla Ciebie");
+    }
+
+    [Fact]
     public void SearchButton_NavigatesToSearch()
     {
         var homeService = Services.GetRequiredService<IHomeService>();

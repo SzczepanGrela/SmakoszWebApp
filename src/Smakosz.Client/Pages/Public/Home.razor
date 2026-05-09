@@ -1,6 +1,8 @@
 @page "/"
 @inject IHomeService HomeService
 @inject IDishService DishService
+@inject IRecommendationService RecommendationService
+@inject AuthenticationStateProvider AuthProvider
 @inject NavigationManager Navigation
 
 <PageTitle>Smakosz - Znajdź najlepszy smak w mieście</PageTitle>
@@ -50,6 +52,26 @@ else if (_data != null)
     </HeroSection>
 
     <div class="container mt-5">
+        @if (_recs?.NcfAvailable == true && _recs.Personalized.Count > 0)
+        {
+            <section class="mb-5">
+                <SectionHeader Title="Polecane dla Ciebie" Icon="fa-solid fa-wand-magic-sparkles text-primary" />
+                <HorizontalCarousel Items="@_recs.Personalized" Context="rec">
+                    <a href="/dishes/@(rec.Slug ?? rec.DishId.ToString())" class="card recommended-dish-card text-decoration-none h-100">
+                        <img src="@ImageHelper.GetDishImage(rec.ImageUrl)" alt="@rec.Name"
+                             class="card-img-top" style="height:160px;object-fit:cover;" loading="lazy" />
+                        <div class="card-body">
+                            <div class="fw-semibold mb-1">@rec.Name</div>
+                            @if (!string.IsNullOrWhiteSpace(rec.RestaurantName))
+                            {
+                                <small class="text-muted"><i class="fa-solid fa-store me-1"></i>@rec.RestaurantName</small>
+                            }
+                        </div>
+                    </a>
+                </HorizontalCarousel>
+            </section>
+        }
+
         @if (_data.PopularCategories.Any())
         {
             <section class="mb-5">
@@ -132,6 +154,7 @@ else if (_data != null)
 
 @code {
     private Models.HomeDataDto? _data;
+    private RecommendationsDto? _recs;
     private bool _loading = true;
     private string _searchQuery = "";
 
@@ -141,7 +164,19 @@ else if (_data != null)
 
     protected override async Task OnInitializedAsync()
     {
-        _data = await HomeService.GetHomeDataAsync();
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var isAuthed = auth.User.Identity?.IsAuthenticated == true;
+
+        var homeTask = HomeService.GetHomeDataAsync();
+        var recsTask = isAuthed
+            ? RecommendationService.GetRecommendationsAsync()
+            : Task.FromResult<RecommendationsDto?>(null);
+
+        await Task.WhenAll(homeTask, recsTask);
+
+        _data = await homeTask;
+        _recs = await recsTask;
+
         if (_data?.HeroImage != null)
         {
             _heroImage = _data.HeroImage.Url;

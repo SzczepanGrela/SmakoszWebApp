@@ -36,8 +36,7 @@
     "SecretKey": "<TURNSTILE_SECRET_KEY>"
   },
   "Onnx": {
-    "ModelBasePath": "/models/ncf",
-    "MinReviewsForRecommendations": 10
+    "ModelBasePath": "/models/ncf"
   },
   "Logging": {
     "LogLevel": {

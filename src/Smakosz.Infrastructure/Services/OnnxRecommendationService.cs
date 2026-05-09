@@ -84,9 +84,10 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
             }
 
             _isAvailable = true;
+            var version = ResolveModelVersion(currentDir);
             _logger.LogInformation(
-                "ONNX model loaded: {Users} users, {Dishes} dishes",
-                _userMap.Count, _dishMap.Count);
+                "ONNX model loaded: version={Version}, path={Path}, users={Users}, dishes={Dishes}",
+                version, currentDir, _userMap.Count, _dishMap.Count);
         }
         catch (Exception ex)
         {
@@ -155,6 +156,23 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
 
         using var results = _session!.Run(inputs);
         return results.First().AsEnumerable<float>().First();
+    }
+
+    private static string ResolveModelVersion(string currentDir)
+    {
+        try
+        {
+            var info = new DirectoryInfo(currentDir);
+            if (info.LinkTarget is { } target)
+            {
+                return Path.GetFileName(target.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            }
+            return info.Name;
+        }
+        catch
+        {
+            return "unknown";
+        }
     }
 
     private void DisposeSession()
