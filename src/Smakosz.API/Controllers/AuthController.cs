@@ -1,5 +1,7 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using Smakosz.API.Auth;
 using Smakosz.Application.Features.Auth.Commands.AcceptInvite;
 using Smakosz.Application.Features.Auth.Commands.ForgotPassword;
 using Smakosz.Application.Features.Auth.Commands.Login;
@@ -11,6 +13,7 @@ using Smakosz.Application.Features.Auth.Commands.ResendVerification;
 using Smakosz.Application.Features.Auth.Commands.ResetPassword;
 using Smakosz.Application.Features.Auth.Commands.Verify2fa;
 using Smakosz.Application.Features.Auth.Commands.VerifyEmail;
+using Smakosz.Application.Features.Auth.Dtos;
 
 namespace Smakosz.API.Controllers;
 
@@ -19,10 +22,12 @@ namespace Smakosz.API.Controllers;
 public class AuthController : ApiController
 {
     private readonly IMediator _mediator;
+    private readonly AuthCookieWriter _cookies;
 
-    public AuthController(IMediator mediator)
+    public AuthController(IMediator mediator, AuthCookieWriter cookies)
     {
         _mediator = mediator;
+        _cookies = cookies;
     }
 
     [HttpPost("register")]
@@ -36,20 +41,33 @@ public class AuthController : ApiController
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var result = await _mediator.Send(command);
-        return ToActionResult(result);
+        return ToSessionResult(result);
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+    public async Task<IActionResult> Refresh()
     {
-        var result = await _mediator.Send(command);
-        return ToActionResult(result);
+        var refreshToken = Request.Cookies[CookieNames.Refresh];
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Unauthorized(new ApiResponse<object>
+            {
+                Success = false,
+                Error = new ApiError { Code = "REFRESH_TOKEN_MISSING", Message = "Brak ciasteczka odswiezania." }
+            });
+
+        var result = await _mediator.Send(new RefreshTokenCommand(refreshToken));
+        return ToSessionResult(result);
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] LogoutCommand command)
+    public async Task<IActionResult> Logout()
     {
-        var result = await _mediator.Send(command);
+        var refreshToken = Request.Cookies[CookieNames.Refresh];
+        _cookies.Clear(Response);
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return NoContent();
+
+        var result = await _mediator.Send(new LogoutCommand(refreshToken));
         return ToNoContentResult(result);
     }
 
@@ -71,7 +89,7 @@ public class AuthController : ApiController
     public async Task<IActionResult> Verify2fa([FromBody] Verify2faCommand command)
     {
         var result = await _mediator.Send(command);
-        return ToActionResult(result);
+        return ToSessionResult(result);
     }
 
     [HttpPost("resend-2fa")]
@@ -101,5 +119,51 @@ public class AuthController : ApiController
         var result = await _mediator.Send(command);
         return ToNoContentResult(result);
     }
-}
 
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var expClaim = User.FindFirst("exp")?.Value;
+        DateTime? expiresAt = null;
+        if (long.TryParse(expClaim, out var expUnix))
+            expiresAt = DateTimeOffset.FromUnixTimeSeconds(expUnix).UtcDateTime;
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Data = new
+            {
+                userId = sub,
+                username = name,
+                email,
+                role,
+                expiresAt
+            }
+        });
+    }
+
+    private IActionResult ToSessionResult(ErrorOr<AuthResultDto> result)
+    {
+        if (result.IsError)
+            return ToActionResult(result);
+
+        _cookies.Write(Response, result.Value.AccessToken, result.Value.RefreshToken);
+
+        return Ok(new ApiResponse<AuthResultDto>
+        {
+            Success = true,
+            Data = new AuthResultDto
+            {
+                AccessToken = string.Empty,
+                RefreshToken = string.Empty,
+                ExpiresAt = result.Value.ExpiresAt,
+                User = result.Value.User
+            }
+        });
+    }
+}

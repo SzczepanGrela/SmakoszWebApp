@@ -2,5 +2,5 @@ namespace Smakosz.Client.Auth;
 
 public interface ITokenRefreshService
 {
-    Task<string?> TryRefreshAsync(CancellationToken ct = default);
+    Task<bool> TryRefreshAsync(CancellationToken ct = default);
 }

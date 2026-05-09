@@ -73,7 +73,22 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             IssuerSigningKey = new RsaSecurityKey(rsa),
             ClockSkew = TimeSpan.Zero
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                if (string.IsNullOrEmpty(ctx.Token) &&
+                    ctx.Request.Cookies.TryGetValue(Smakosz.API.Auth.CookieNames.Access, out var cookieToken) &&
+                    !string.IsNullOrWhiteSpace(cookieToken))
+                {
+                    ctx.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
+
+builder.Services.AddScoped<Smakosz.API.Auth.AuthCookieWriter>();
 
 builder.Services.AddAuthorization(options =>
 {

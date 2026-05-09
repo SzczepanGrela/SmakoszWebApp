@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -11,29 +10,31 @@ builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddScoped<BrowserCredentialsHandler>();
 builder.Services.AddScoped<AuthTokenHandler>();
 builder.Services.AddHttpClient("SmakoszAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
         ?? builder.HostEnvironment.BaseAddress.TrimEnd('/'));
-}).AddHttpMessageHandler<AuthTokenHandler>();
+})
+    .AddHttpMessageHandler<BrowserCredentialsHandler>()
+    .AddHttpMessageHandler<AuthTokenHandler>();
 
 // Raw client without AuthTokenHandler so TokenRefreshService can call /api/auth/refresh without recursion.
+// BrowserCredentialsHandler stays so the refresh and /me calls still ship the cookies.
 builder.Services.AddHttpClient(TokenRefreshService.RawClientName, client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
         ?? builder.HostEnvironment.BaseAddress.TrimEnd('/'));
-});
+}).AddHttpMessageHandler<BrowserCredentialsHandler>();
 
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("SmakoszAPI"));
 
-builder.Services.AddBlazoredLocalStorage();
-
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<ITokenRefreshService, TokenRefreshService>();
-builder.Services.AddScoped<JwtAuthStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthStateProvider>());
+builder.Services.AddScoped<CookieAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthStateProvider>());
 
 builder.Services.AddScoped<SmakoszApiClient>();
 

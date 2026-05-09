@@ -87,7 +87,7 @@ public class AuthEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Login_ValidCredentials_Returns200()
+    public async Task Login_ValidCredentials_SetsHttpOnlyCookiesAndOmitsTokensFromBody()
     {
         var response = await AnonymousClient.PostAsJsonAsync("/api/auth/login", new
         {
@@ -98,9 +98,93 @@ public class AuthEndpointsTests : IntegrationTestBase
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
+        response.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue();
+        var cookieList = cookies!.ToList();
+        cookieList.Should().Contain(c => c.StartsWith("sm_at=") && c.Contains("httponly", StringComparison.OrdinalIgnoreCase));
+        cookieList.Should().Contain(c => c.StartsWith("sm_rt=") && c.Contains("httponly", StringComparison.OrdinalIgnoreCase));
+
         var result = await DeserializeResponse<AuthResult>(response);
         result.Should().NotBeNull();
-        result!.AccessToken.Should().NotBeNullOrEmpty();
+        result!.AccessToken.Should().BeEmpty();
+        result.RefreshToken.Should().BeEmpty();
+        result.User.Email.Should().Be("jan@smakosz.test");
+    }
+
+    [Fact]
+    public async Task Refresh_WithCookie_RotatesAndReturnsNewCookies()
+    {
+        using var client = Factory.CreateClient();
+
+        var loginResp = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "jan@smakosz.test",
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
+        });
+        loginResp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var refreshResp = await client.PostAsync("/api/auth/refresh", content: null);
+        refreshResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        refreshResp.Headers.TryGetValues("Set-Cookie", out var newCookies).Should().BeTrue();
+        newCookies!.ToList().Should().Contain(c => c.StartsWith("sm_at="));
+    }
+
+    [Fact]
+    public async Task Refresh_WithoutCookie_Returns401()
+    {
+        var response = await AnonymousClient.PostAsync("/api/auth/refresh", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        var error = await DeserializeError(response);
+        error!.Code.Should().Be("REFRESH_TOKEN_MISSING");
+    }
+
+    [Fact]
+    public async Task Logout_WithCookie_DeletesCookies()
+    {
+        using var client = Factory.CreateClient();
+
+        await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "jan@smakosz.test",
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
+        });
+
+        var logoutResp = await client.PostAsync("/api/auth/logout", content: null);
+        logoutResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        logoutResp.Headers.TryGetValues("Set-Cookie", out var cookies).Should().BeTrue();
+        var cookieList = cookies!.ToList();
+        cookieList.Should().Contain(c => c.StartsWith("sm_at=") && c.Contains("expires=", StringComparison.OrdinalIgnoreCase));
+        cookieList.Should().Contain(c => c.StartsWith("sm_rt=") && c.Contains("expires=", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Me_WithValidCookie_ReturnsClaims()
+    {
+        using var client = Factory.CreateClient();
+
+        await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            Email = "jan@smakosz.test",
+            Password = SeedHelpers.DefaultPassword,
+            TurnstileToken = "test-token"
+        });
+
+        var meResp = await client.GetAsync("/api/auth/me");
+        meResp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await meResp.Content.ReadAsStringAsync();
+        json.Should().Contain("jan@smakosz.test");
+        json.Should().Contain("\"role\"");
+    }
+
+    [Fact]
+    public async Task Me_WithoutCookie_Returns401()
+    {
+        var response = await AnonymousClient.GetAsync("/api/auth/me");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -168,5 +252,13 @@ public class AuthEndpointsTests : IntegrationTestBase
         public string AccessToken { get; init; } = default!;
         public string RefreshToken { get; init; } = default!;
         public DateTime ExpiresAt { get; init; }
+        public UserDto User { get; init; } = default!;
+    }
+
+    private record UserDto
+    {
+        public string Email { get; init; } = default!;
+        public string Username { get; init; } = default!;
+        public string Role { get; init; } = default!;
     }
 }

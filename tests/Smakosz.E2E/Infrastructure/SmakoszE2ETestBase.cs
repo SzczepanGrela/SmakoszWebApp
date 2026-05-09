@@ -1,7 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
-
-namespace Smakosz.E2E.Infrastructure;
+﻿namespace Smakosz.E2E.Infrastructure;
 
 public class SmakoszE2ETestBase : PageTest
 {
@@ -71,63 +68,32 @@ public class SmakoszE2ETestBase : PageTest
         }
     }
 
+    // Name kept for backward compatibility across 117 test files. Implementation now uses Page.APIRequest
+    // so the API Set-Cookie response lands on the same BrowserContext that the page subsequently uses,
+    // delivering the HttpOnly auth cookies to every following Blazor request. HttpOnly cookies cannot be
+    // set via Page.EvaluateAsync so the previous localStorage shortcut is no longer viable.
     protected async Task LoginViaLocalStorageAsync(string email, string password)
     {
-        // First navigate to the client so we can set localStorage on its origin
         await Page.GotoAsync(TestConstants.ClientBaseUrl, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.NetworkIdle,
             Timeout = 30_000,
         });
 
-        using var http = new HttpClient();
-        var loginPayload = JsonSerializer.Serialize(new { email, password, turnstileToken = "e2e-test" });
-        var content = new StringContent(loginPayload, Encoding.UTF8, "application/json");
-
-        try
-        {
-            var response = await http.PostAsync($"{TestConstants.ApiBaseUrl}/api/auth/login", content);
-
-            if (response.IsSuccessStatusCode)
+        var response = await Page.APIRequest.PostAsync(
+            $"{TestConstants.ApiBaseUrl}/api/auth/login",
+            new APIRequestContextOptions
             {
-                var json = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
+                DataObject = new { email, password, turnstileToken = "e2e-test" },
+                Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" }
+            });
 
-                string? token = null;
-                // API returns ApiResponse<LoginResponse>: { success, data: { accessToken, ... }, error }
-                if (root.TryGetProperty("data", out var dataProp) &&
-                    dataProp.TryGetProperty("accessToken", out var accessTokenProp))
-                    token = accessTokenProp.GetString();
-                else if (root.TryGetProperty("token", out var tokenProp))
-                    token = tokenProp.GetString();
-
-                if (!string.IsNullOrEmpty(token))
-                {
-                    await Page.EvaluateAsync($"localStorage.setItem('auth_token', '{token}')");
-                    await Page.ReloadAsync(new PageReloadOptions
-                    {
-                        WaitUntil = WaitUntilState.NetworkIdle,
-                    });
-                    await WaitForBlazorLoadedAsync();
-                    return;
-                }
-            }
-        }
-        catch
+        if (!response.Ok)
         {
+            var body = await response.TextAsync();
+            throw new InvalidOperationException($"E2E login failed for {email}: HTTP {response.Status} {body}");
         }
 
-        var generatedToken = email switch
-        {
-            TestConstants.BusinessEmail => E2EAuthHelper.GenerateBusinessToken(),
-            TestConstants.AdminEmail => E2EAuthHelper.GenerateAdminToken(),
-            TestConstants.ModeratorEmail => E2EAuthHelper.GenerateModeratorToken(),
-            TestConstants.User2Email => E2EAuthHelper.GenerateToken(2, TestConstants.User2Username, TestConstants.User2Email, "User"),
-            _ => E2EAuthHelper.GenerateUserToken(),
-        };
-
-        await Page.EvaluateAsync($"localStorage.setItem('auth_token', '{generatedToken}')");
         await Page.ReloadAsync(new PageReloadOptions
         {
             WaitUntil = WaitUntilState.NetworkIdle,

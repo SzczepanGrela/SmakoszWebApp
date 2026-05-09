@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using Smakosz.Client.Auth;
 using Smakosz.Client.Models;
 
@@ -7,25 +6,19 @@ namespace Smakosz.Client.Services;
 public class AuthService : IAuthService
 {
     private readonly SmakoszApiClient _api;
-    private readonly ILocalStorageService _localStorage;
-    private readonly JwtAuthStateProvider _authStateProvider;
+    private readonly CookieAuthStateProvider _authStateProvider;
 
-    public AuthService(SmakoszApiClient api, ILocalStorageService localStorage, JwtAuthStateProvider authStateProvider)
+    public AuthService(SmakoszApiClient api, CookieAuthStateProvider authStateProvider)
     {
         _api = api;
-        _localStorage = localStorage;
         _authStateProvider = authStateProvider;
     }
 
     public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request)
     {
         var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/login", request);
-        if (result is { Success: true, Data: not null })
-        {
-            await _localStorage.SetItemAsStringAsync("auth_token", result.Data.AccessToken);
-            await _localStorage.SetItemAsStringAsync("refresh_token", result.Data.RefreshToken);
-            _authStateProvider.NotifyUserAuthentication(result.Data.AccessToken);
-        }
+        if (result is { Success: true })
+            await _authStateProvider.NotifyUserAuthenticationAsync();
         return result;
     }
 
@@ -37,25 +30,16 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<LoginResponse>> RefreshTokenAsync(string refreshToken)
     {
-        var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/refresh", new RefreshTokenRequest { RefreshToken = refreshToken });
-        if (result is { Success: true, Data: not null })
-        {
-            await _localStorage.SetItemAsStringAsync("auth_token", result.Data.AccessToken);
-            await _localStorage.SetItemAsStringAsync("refresh_token", result.Data.RefreshToken);
-            _authStateProvider.NotifyUserAuthentication(result.Data.AccessToken);
-        }
+        // refreshToken parameter is ignored after cookie migration; the server reads the refresh cookie.
+        var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/refresh", new { });
+        if (result is { Success: true })
+            await _authStateProvider.NotifyUserAuthenticationAsync();
         return result;
     }
 
     public async Task LogoutAsync()
     {
-        var refreshToken = await _localStorage.GetItemAsStringAsync("refresh_token");
-        if (!string.IsNullOrEmpty(refreshToken))
-        {
-            await _api.PostApiResponseAsync<object>("/api/auth/logout", new { RefreshToken = refreshToken });
-        }
-        await _localStorage.RemoveItemAsync("auth_token");
-        await _localStorage.RemoveItemAsync("refresh_token");
+        await _api.PostApiResponseAsync<object>("/api/auth/logout", new { });
         _authStateProvider.NotifyUserLogout();
     }
 
@@ -73,12 +57,8 @@ public class AuthService : IAuthService
     public async Task<ApiResponse<LoginResponse>> Verify2faAsync(string email, string code)
     {
         var result = await _api.PostApiResponseAsync<LoginResponse>("/api/auth/verify-2fa", new Verify2faRequest { Email = email, Code = code });
-        if (result is { Success: true, Data: not null })
-        {
-            await _localStorage.SetItemAsStringAsync("auth_token", result.Data.AccessToken);
-            await _localStorage.SetItemAsStringAsync("refresh_token", result.Data.RefreshToken);
-            _authStateProvider.NotifyUserAuthentication(result.Data.AccessToken);
-        }
+        if (result is { Success: true })
+            await _authStateProvider.NotifyUserAuthenticationAsync();
         return result;
     }
 
