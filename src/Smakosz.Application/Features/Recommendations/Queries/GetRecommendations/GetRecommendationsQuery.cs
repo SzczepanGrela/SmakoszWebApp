@@ -10,6 +10,7 @@ public record GetRecommendationsQuery() : IRequest<ErrorOr<RecommendationsDto>>;
 public class RecommendationsDto
 {
     public bool NcfAvailable { get; set; }
+    public bool IsNewcomer { get; set; }
     public string? FallbackReason { get; set; }
     public List<RecommendedDishDto> Trending { get; set; } = new();
     public List<RecommendedDishDto> Personalized { get; set; } = new();
@@ -98,17 +99,19 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
             }
             else if (!_provider.IsUserInMapping(_currentUser.UserId.Value))
             {
+                result.IsNewcomer = true;
                 result.FallbackReason = "Wystawiłeś za mało recenzji. Wystaw więcej i spróbuj ponownie jutro.";
             }
             else
             {
                 try
                 {
+                    var requestCount = 12 + (reviewedDishIds?.Count ?? 0);
                     var personalized = await _provider.GetPersonalizedAsync(
-                        _currentUser.UserId.Value, 12, cancellationToken);
+                        _currentUser.UserId.Value, requestCount, cancellationToken);
 
                     if (reviewedDishIds is not null)
-                        personalized = personalized.Where(p => !reviewedDishIds.Contains(p.DishId)).ToList();
+                        personalized = personalized.Where(p => !reviewedDishIds.Contains(p.DishId)).Take(12).ToList();
 
                     if (personalized.Count > 0)
                     {

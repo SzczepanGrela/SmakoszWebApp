@@ -309,7 +309,10 @@ public class CompleteJobHandler : IRequestHandler<CompleteJobCommand, ErrorOr<Su
             var versionConfig = await _db.SystemConfigs
                 .FirstOrDefaultAsync(c => c.Key == "ncf.model_version", ct);
             if (versionConfig is not null)
+            {
                 versionConfig.Value = modelVersion;
+                versionConfig.UpdatedAt = now;
+            }
             else
                 _db.SystemConfigs.Add(new SystemConfig
                 {

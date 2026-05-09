@@ -89,7 +89,7 @@ public class GetRecommendationsHandlerTests
     {
         _provider.IsAvailable.Returns(true);
         _provider.IsUserInMapping(1).Returns(true);
-        _provider.GetPersonalizedAsync(1, 12, Arg.Any<CancellationToken>())
+        _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new List<(int DishId, float Score)>
             {
                 (10, 4.5f),
@@ -130,7 +130,7 @@ public class GetRecommendationsHandlerTests
     {
         _provider.IsAvailable.Returns(true);
         _provider.IsUserInMapping(1).Returns(true);
-        _provider.GetPersonalizedAsync(1, 12, Arg.Any<CancellationToken>())
+        _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns<List<(int DishId, float Score)>>(x => throw new InvalidOperationException("ONNX error"));
 
         for (var i = 1; i <= 10; i++)

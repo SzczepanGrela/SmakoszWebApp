@@ -5,88 +5,77 @@
 <PageTitle>Rekomendacje AI - Smakosz</PageTitle>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-1"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Rekomendacje dla Ciebie</h1>
-            <p class="text-muted mb-0">Dania dobrane specjalnie na podstawie Twoich preferencji i recenzji.</p>
-        </div>
-        <button class="btn btn-outline-primary" @onclick="LoadRecommendations" disabled="@_loading">
-            <i class="fa-solid fa-rotate me-1"></i>Odswiez
-        </button>
+    <div class="mb-4">
+        <h1 class="mb-1"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Rekomendacje dla Ciebie</h1>
+        <p class="text-muted mb-0">Dania dobrane specjalnie na podstawie Twoich preferencji i recenzji.</p>
     </div>
 
     @if (_loading)
     {
         <LoadingSpinner Text="Generowanie rekomendacji AI..." />
     }
-    else if (_data == null || !_data.Items.Any())
+    else if (_data == null)
     {
         <EmptyState Icon="fa-solid fa-wand-magic-sparkles" Title="Brak rekomendacji"
-                    Description="Dodaj wiecej recenzji, a nasz system AI przygotuje dla Ciebie spersonalizowane rekomendacje."
+                    Description="Nie udało się pobrać rekomendacji. Spróbuj ponownie później."
+                    ActionText="Wróć na stronę główną" ActionUrl="/" />
+    }
+    else if (_data.Personalized.Count == 0 && _data.Trending.Count == 0)
+    {
+        <EmptyState Icon="fa-solid fa-wand-magic-sparkles" Title="Brak rekomendacji"
+                    Description="@(_data.FallbackReason ?? "Dodaj wiecej recenzji, a nasz system AI przygotuje dla Ciebie spersonalizowane rekomendacje.")"
                     ActionText="Dodaj recenzje" ActionUrl="/review/add" />
     }
     else
     {
-        @if (!string.IsNullOrEmpty(_data.GeneratedAt))
+        @if (_data.IsNewcomer)
+        {
+            <div class="card border-primary mb-4">
+                <div class="card-body p-4">
+                    <h3 class="card-title"><i class="fa-solid fa-seedling text-primary me-2"></i>Pomóż naszemu AI Cię poznać</h3>
+                    <p class="card-text mb-3">
+                        Im więcej dań ocenisz, tym trafniejsze rekomendacje przygotuje nasz system. Algorytm uczy się Twoich preferencji
+                        smakowych z każdej wystawionej recenzji i po kolejnym treningu modelu pojawisz się na liście użytkowników,
+                        dla których generujemy spersonalizowane sugestie.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/" class="btn btn-primary"><i class="fa-solid fa-compass me-1"></i>Przeglądaj dania</a>
+                        <a href="/restaurants" class="btn btn-outline-primary"><i class="fa-solid fa-store me-1"></i>Restauracje</a>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_data.Personalized.Count > 0)
         {
             <div class="alert alert-info mb-4">
                 <i class="fa-solid fa-robot me-2"></i>
-                Rekomendacje wygenerowane: @_data.GeneratedAt
+                Spersonalizowane rekomendacje na podstawie Twoich recenzji.
+            </div>
+
+            <div class="row">
+                @foreach (var item in _data.Personalized)
+                {
+                    @RecommendationCard(item, isPersonalized: true)
+                }
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(_data.FallbackReason))
+        {
+            <div class="alert alert-warning mb-4">
+                <i class="fa-solid fa-circle-info me-2"></i>@_data.FallbackReason
             </div>
         }
 
-        <div class="row">
-            @foreach (var item in _data.Items)
-            {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <a href="/dishes/@item.Dish.Slug" class="text-decoration-none">
-                            <div class="position-relative">
-                                <img src="@ImageHelper.GetDishImage(item.Dish.ImageUrl)"
-                                     class="card-img-top" style="height:200px;object-fit:cover;"
-                                     alt="@item.Dish.DishName" loading="lazy" />
-                                <span class="badge bg-primary position-absolute top-0 end-0 m-2">
-                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i>@item.Score.ToString("F0")% dopasowanie
-                                </span>
-                            </div>
-                        </a>
-                        <div class="card-body d-flex flex-column">
-                            <a href="/dishes/@item.Dish.Slug" class="text-decoration-none" style="color:var(--text-color);">
-                                <h5 class="card-title mb-1">@item.Dish.DishName</h5>
-                            </a>
-                            @if (!string.IsNullOrEmpty(item.Dish.RestaurantName))
-                            {
-                                <small class="text-muted mb-2">
-                                    <i class="fa-solid fa-store me-1"></i>@item.Dish.RestaurantName
-                                </small>
-                            }
-                            <div class="mb-2">
-                                @if (item.Dish.AvgRating.HasValue)
-                                {
-                                    <RatingStars Rating="@item.Dish.AvgRating.Value" Size="sm" />
-                                    <small class="text-muted ms-1">(@item.Dish.ReviewCount)</small>
-                                }
-                            </div>
-                            @if (item.Dish.Price.HasValue)
-                            {
-                                <span class="fw-bold mb-2" style="color:var(--accent-color);">
-                                    @item.Dish.Price.Value.ToString("F2") zł
-                                </span>
-                            }
-                            <DietaryBadges IsVegan="@item.Dish.IsVegan" IsVegetarian="@item.Dish.IsVegetarian"
-                                           IsGlutenFree="@item.Dish.IsGlutenFree" />
-
-                            <div class="mt-auto pt-3 border-top">
-                                <div class="d-flex align-items-start gap-2">
-                                    <i class="fa-solid fa-robot text-primary mt-1"></i>
-                                    <small class="text-muted">@item.Reason</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+        @if (_data.Trending.Count > 0)
+        {
+            <h2 class="mt-4 mb-3"><i class="fa-solid fa-fire me-2"></i>Popularne teraz</h2>
+            <div class="row">
+                @foreach (var item in _data.Trending)
+                {
+                    @RecommendationCard(item, isPersonalized: false)
+                }
+            </div>
+        }
     }
 </div>
 
@@ -96,13 +85,69 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRecommendations();
-    }
-
-    private async Task LoadRecommendations()
-    {
         _loading = true;
         _data = await RecommendationService.GetRecommendationsAsync();
         _loading = false;
+    }
+
+    private RenderFragment RecommendationCard(RecommendedDishDto item, bool isPersonalized) => __builder =>
+    {
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <a href="/dishes/@(item.Slug ?? item.DishId.ToString())" class="text-decoration-none">
+                    <div class="position-relative">
+                        <img src="@ImageHelper.GetDishImage(item.ImageUrl)"
+                             class="card-img-top" style="height:200px;object-fit:cover;"
+                             alt="@item.Name" loading="lazy" />
+                        @if (isPersonalized && item.Score.HasValue)
+                        {
+                            <span class="badge bg-primary position-absolute top-0 end-0 m-2">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>@ScoreLabel(item.Score.Value) &middot; @ScorePercent(item.Score.Value)
+                            </span>
+                        }
+                        else if (!isPersonalized)
+                        {
+                            <span class="badge bg-warning position-absolute top-0 end-0 m-2">
+                                <i class="fa-solid fa-fire me-1"></i>Popularne
+                            </span>
+                        }
+                    </div>
+                </a>
+                <div class="card-body d-flex flex-column">
+                    <a href="/dishes/@(item.Slug ?? item.DishId.ToString())" class="text-decoration-none" style="color:var(--text-color);">
+                        <h5 class="card-title mb-1">@item.Name</h5>
+                    </a>
+                    @if (!string.IsNullOrEmpty(item.RestaurantName))
+                    {
+                        <small class="text-muted mb-2">
+                            <i class="fa-solid fa-store me-1"></i>
+                            @if (!string.IsNullOrEmpty(item.RestaurantSlug))
+                            {
+                                <a href="/restaurants/@item.RestaurantSlug" class="text-muted">@item.RestaurantName</a>
+                            }
+                            else
+                            {
+                                @item.RestaurantName
+                            }
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+    };
+
+    private static string ScoreLabel(decimal score) => score switch
+    {
+        >= 9m => "Idealne dopasowanie",
+        >= 8m => "Świetny wybór",
+        >= 7m => "Powinno Ci się spodobać",
+        >= 6m => "Warto spróbować",
+        _ => "Coś nowego dla Ciebie"
+    };
+
+    private static string ScorePercent(decimal score)
+    {
+        var pct = Math.Clamp(score / 10m * 100m, 0m, 100m);
+        return $"{pct:F0}%";
     }
 }
