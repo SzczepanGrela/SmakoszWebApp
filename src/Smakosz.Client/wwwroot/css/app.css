@@ -2156,3 +2156,76 @@ a[href^="tel:"]:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* Dish attributes section (merged dieta + alergeny + ostrość badges) */
+.dish-attributes {
+    margin-bottom: 1rem;
+}
+
+.dish-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.dish-badge-positive {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.dish-badge-warning {
+    background: #fef0e6;
+    color: #b85c2e;
+}
+
+.dish-badge-spice {
+    background: #fff3e0;
+    color: #c4350a;
+}
+
+.dish-attributes + .dish-action-buttons {
+    margin-top: 1.25rem;
+}
+
+.dish-location-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dashed var(--secondary-color);
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.dish-location-link:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+/* Share button - honey gradient (replaces generic btn-outline-secondary) */
+.btn-share-honey {
+    background: linear-gradient(135deg, #D4A574, #B8860B);
+    border: none;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-share-honey:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.35);
+}
+
+.btn-share-honey:active {
+    transform: translateY(0);
+}

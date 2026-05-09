@@ -115,19 +115,49 @@ else
                     {
                         <div class="mb-3">
                             <small class="text-muted d-block">Miasto</small>
-                            <span><i class="fa-solid fa-location-dot me-1"></i>@_dish.CityName</span>
+                            <a href="/search?city=@Uri.EscapeDataString(_dish.CityName)&type=restaurants" class="dish-location-link">
+                                <i class="fa-solid fa-location-dot me-1"></i>@_dish.CityName
+                            </a>
                         </div>
                     }
-                    @if (!_dish.IsVegetarian)
-                    {
-                        <div class="mb-3">
-                            <small class="text-muted d-block">Dieta</small>
-                            <span><i class="fa-solid fa-drumstick-bite me-1"></i>Zawiera mięso</span>
+                    <div class="mb-3 dish-attributes">
+                        <small class="text-muted d-block mb-2">ATRYBUTY ŻYWIENIOWE</small>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (_dish.IsVegan)
+                            {
+                                <span class="dish-badge dish-badge-positive">🌱 Wegańskie</span>
+                            }
+                            else if (_dish.IsVegetarian)
+                            {
+                                <span class="dish-badge dish-badge-positive">🥗 Wegetariańskie</span>
+                            }
+                            else
+                            {
+                                <span class="dish-badge dish-badge-warning">🥩 Zawiera mięso</span>
+                            }
+
+                            <span class="dish-badge @(_dish.IsGlutenFree ? "dish-badge-positive" : "dish-badge-warning")">
+                                @(_dish.IsGlutenFree ? "✓ Bezglutenowe" : "🌾 Zawiera gluten")
+                            </span>
+                            <span class="dish-badge @(_dish.IsLactoseFree ? "dish-badge-positive" : "dish-badge-warning")">
+                                @(_dish.IsLactoseFree ? "✓ Bezlaktozowe" : "🥛 Zawiera laktozę")
+                            </span>
+
+                            <span class="dish-badge dish-badge-spice">
+                                @SpiceIconFor(_dish.SpiceLevel) @(_dish.SpiceLevel ?? "Łagodne")
+                            </span>
+
+                            @{
+                                var allergens = (_dish.Ingredients ?? new()).Where(i => i.IsAllergen).Select(i => i.Name).ToList();
+                            }
+                            @if (allergens.Count > 0)
+                            {
+                                <span class="dish-badge dish-badge-warning">
+                                    ⚠️ Alergeny: @string.Join(", ", allergens)
+                                </span>
+                            }
                         </div>
-                    }
-                    <DietaryBadges IsVegan="@_dish.IsVegan" IsVegetarian="@_dish.IsVegetarian"
-                                   IsGlutenFree="@_dish.IsGlutenFree" IsLactoseFree="@_dish.IsLactoseFree"
-                                   SpiceLevel="@_dish.SpiceLevel" />
+                    </div>
                     @if (!_dish.IsAvailable)
                     {
                         <div class="alert alert-warning small">
@@ -251,4 +281,12 @@ else
         if (success)
             _dish.IsSaved = !_dish.IsSaved;
     }
+
+    private static string SpiceIconFor(string? spiceLevel) => spiceLevel switch
+    {
+        "Bardzo ostre" => "🌶🌶🌶🌶",
+        "Ostre" => "🌶🌶🌶",
+        "Średnio ostre" => "🌶🌶",
+        _ => "🌶"
+    };
 }
