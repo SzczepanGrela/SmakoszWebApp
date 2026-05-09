@@ -157,4 +157,28 @@ public class ConfirmAccountDeletionHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("USER_NOT_FOUND");
     }
+
+    [Fact]
+    public async Task Handle_AdminRole_ReturnsForbiddenWithoutDeleting()
+    {
+        var user = new UserBuilder().WithId(1).WithEmail("admin@example.com").WithRole(UserRole.Admin).Build();
+        var code = new VerificationCodeBuilder()
+            .WithUserId(1)
+            .WithCode("hashed_code")
+            .WithType(VerificationCodeType.AccountDeletion)
+            .WithExpiresAt(DateTime.UtcNow.AddMinutes(15))
+            .Build();
+
+        _sets.Users.Add(user);
+        _sets.VerificationCodes.Add(code);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _codeHasher.Verify("123456", "hashed_code").Returns(true);
+
+        var result = await _handler.Handle(new ConfirmAccountDeletionCommand("123456"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("ACCOUNT_ADMIN_CANNOT_DELETE_OWN");
+        user.IsDeleted.Should().BeFalse();
+        await _emailService.DidNotReceive().SendAccountDeletionConfirmationAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
 }

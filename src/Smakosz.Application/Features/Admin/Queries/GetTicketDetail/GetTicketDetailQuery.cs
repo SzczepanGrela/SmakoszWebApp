@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Features.Admin.Dtos;
@@ -15,11 +17,13 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ILogger<GetTicketDetailHandler> _logger;
 
-    public GetTicketDetailHandler(ISmakoszDbContext db, ICurrentUserService currentUser)
+    public GetTicketDetailHandler(ISmakoszDbContext db, ICurrentUserService currentUser, ILogger<GetTicketDetailHandler>? logger = null)
     {
         _db = db;
         _currentUser = currentUser;
+        _logger = logger ?? NullLogger<GetTicketDetailHandler>.Instance;
     }
 
     public async Task<ErrorOr<AdminTicketDetailDto>> Handle(GetTicketDetailQuery request, CancellationToken cancellationToken)
@@ -54,7 +58,7 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
         switch (ticket.TicketType)
         {
             case TicketType.Contact:
-                dto.Contact = ParseContact(ticket.Description);
+                dto.Contact = ParseContact(ticket.Description, ticket.TicketId);
                 break;
 
             case TicketType.Photo:
@@ -184,23 +188,35 @@ public class GetTicketDetailHandler : IRequestHandler<GetTicketDetailQuery, Erro
         return dto;
     }
 
-    private static ContactInfoDto ParseContact(string? description)
+    private ContactInfoDto ParseContact(string? description, int ticketId)
     {
         if (string.IsNullOrWhiteSpace(description))
             return new ContactInfoDto();
 
-        var nameMatch = Regex.Match(description, @"^Od: (.+?) <");
-        var emailMatch = Regex.Match(description, @"<(.+?)>");
-        var subjectMatch = Regex.Match(description, @"Temat: (.+)$", RegexOptions.Multiline);
+        var senderMatch = Regex.Match(description, @"^\s*Od:\s+(.+?)\s*<\s*([^>\s]+)\s*>", RegexOptions.IgnoreCase);
+        var subjectMatch = Regex.Match(description, @"Temat:\s*(.+?)\s*(?:\r?\n|$)", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-        var bodyStart = description.IndexOf("\n\n", StringComparison.Ordinal);
-        var message = bodyStart >= 0 ? description[(bodyStart + 2)..] : string.Empty;
+        var bodyStart = description.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+        if (bodyStart < 0)
+            bodyStart = description.IndexOf("\n\n", StringComparison.Ordinal);
+        var separatorLen = bodyStart >= 0 && description[bodyStart] == '\r' ? 4 : 2;
+        var message = bodyStart >= 0 ? description[(bodyStart + separatorLen)..] : string.Empty;
+
+        var name = senderMatch.Success ? senderMatch.Groups[1].Value.Trim() : string.Empty;
+        var email = senderMatch.Success ? senderMatch.Groups[2].Value.Trim() : string.Empty;
+        var subject = subjectMatch.Success ? subjectMatch.Groups[1].Value.Trim() : string.Empty;
+
+        if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(email) && string.IsNullOrEmpty(subject))
+        {
+            var preview = description.Length > 200 ? description[..200] : description;
+            _logger.LogWarning("Contact ticket {TicketId} description did not match expected format. Preview: {Preview}", ticketId, preview);
+        }
 
         return new ContactInfoDto
         {
-            Name = nameMatch.Success ? nameMatch.Groups[1].Value : string.Empty,
-            Email = emailMatch.Success ? emailMatch.Groups[1].Value : string.Empty,
-            Subject = subjectMatch.Success ? subjectMatch.Groups[1].Value.Trim() : string.Empty,
+            Name = name,
+            Email = email,
+            Subject = subject,
             Message = message
         };
     }

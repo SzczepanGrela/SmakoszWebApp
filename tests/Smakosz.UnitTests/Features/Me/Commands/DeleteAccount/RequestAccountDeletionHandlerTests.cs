@@ -86,4 +86,19 @@ public class RequestAccountDeletionHandlerTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("ACCOUNT_IS_RESTAURANT_OWNER");
     }
+
+    [Fact]
+    public async Task Handle_AdminRole_ReturnsForbidden()
+    {
+        var user = new UserBuilder().WithId(1).WithPasswordHash("hash").WithRole(UserRole.Admin).Build();
+        _sets.Users.Add(user);
+        DbContextMockFactory.Refresh(_db, _sets);
+        _passwordHasher.Verify("Password123!", "hash").Returns(true);
+
+        var result = await _handler.Handle(new RequestAccountDeletionCommand("Password123!"), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("ACCOUNT_ADMIN_CANNOT_DELETE_OWN");
+        await _emailService.DidNotReceive().SendAccountDeletionCodeAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
 }

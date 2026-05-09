@@ -99,7 +99,7 @@ else
         <div class="card shadow-sm mb-4">
             <div class="card-header"><h5 class="mb-0"><i class="fa-solid fa-envelope me-2"></i>Wiadomość kontaktowa</h5></div>
             <div class="card-body">
-                @if (c != null)
+                @if (c != null && (!string.IsNullOrEmpty(c.Name) || !string.IsNullOrEmpty(c.Email) || !string.IsNullOrEmpty(c.Subject)))
                 {
                     <dl class="row mb-0">
                         <dt class="col-sm-2">Nadawca</dt>
@@ -114,6 +114,10 @@ else
                 }
                 else
                 {
+                    <div class="alert alert-warning small mb-2">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        Nie udało się sparsować metadanych wiadomości. Sprawdź logi (TicketId @_detail!.TicketId).
+                    </div>
                     <p class="text-muted mb-0" style="white-space:pre-line;">@_detail!.Description</p>
                 }
             </div>

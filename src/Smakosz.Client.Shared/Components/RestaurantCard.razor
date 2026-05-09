@@ -21,7 +21,9 @@
                 <div>
                     @if (Restaurant.AvgFoodScore.HasValue)
                     {
-                        <RatingStars Rating="@Restaurant.AvgFoodScore.Value" Size="sm" />
+                        <span class="fw-bold" style="color:var(--accent-color);">
+                            <i class="fa-solid fa-star text-warning me-1"></i>@Restaurant.AvgFoodScore.Value.ToString("F1")<span class="text-muted small ms-1">/ 10</span>
+                        </span>
                         <small class="text-muted ms-1">(@Restaurant.ReviewCount)</small>
                     }
                 </div>

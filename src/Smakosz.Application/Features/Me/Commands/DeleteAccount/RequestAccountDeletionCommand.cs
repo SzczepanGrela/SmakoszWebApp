@@ -44,6 +44,9 @@ public class RequestAccountDeletionHandler : IRequestHandler<RequestAccountDelet
         if (user is null)
             return DomainErrors.User.NotFound;
 
+        if (user.Role == UserRole.Admin)
+            return DomainErrors.Account.AdminCannotDeleteOwn;
+
         if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
             return DomainErrors.Auth.InvalidCredentials;
 

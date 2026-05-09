@@ -361,6 +361,10 @@ public static class DomainErrors
         public static readonly Error IsRestaurantOwner =
             Error.Forbidden("ACCOUNT_IS_RESTAURANT_OWNER",
                 "Nie można usunąć konta właściciela restauracji. Skontaktuj się z administracją.");
+
+        public static readonly Error AdminCannotDeleteOwn =
+            Error.Forbidden("ACCOUNT_ADMIN_CANNOT_DELETE_OWN",
+                "Administrator nie może usunąć własnego konta. Najpierw przekaż uprawnienia innemu administratorowi.");
     }
 
     public static class Captcha

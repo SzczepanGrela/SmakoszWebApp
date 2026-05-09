@@ -50,6 +50,9 @@ public class ConfirmAccountDeletionHandler : IRequestHandler<ConfirmAccountDelet
         if (user is null)
             return DomainErrors.User.NotFound;
 
+        if (user.Role == UserRole.Admin)
+            return DomainErrors.Account.AdminCannotDeleteOwn;
+
         var originalEmail = user.Email;
         var originalAvatarUrl = user.AvatarUrl;
 

@@ -65,7 +65,7 @@ public class ImageHelperTests
     }
 
     [Fact]
-    public void GetAvatarUrl_WithNull_ReturnsUiAvatarsUrl()
+    public void GetAvatarUrl_WithUsername_GeneratesInitialsFromName()
     {
         var result = ImageHelper.GetAvatarUrl(null, "Jan");
         result.Should().Contain("ui-avatars.com")
@@ -74,17 +74,27 @@ public class ImageHelperTests
             .And.Contain("4A3428");
     }
 
-    [Fact]
-    public void GetAvatarUrl_WithNullAndNoUsername_UsesDefaultName()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void GetAvatarUrl_NullOrEmptyUsername_FallsBackToUs(string? username)
     {
-        var result = ImageHelper.GetAvatarUrl(null);
-        result.Should().Contain("name=User");
+        var result = ImageHelper.GetAvatarUrl(null, username);
+        result.Should().Contain("name=US");
     }
 
     [Fact]
-    public void GetAvatarUrl_EscapesSpecialCharacters()
+    public void GetAvatarUrl_MultiWordUsername_EscapesSpaces()
     {
         var result = ImageHelper.GetAvatarUrl(null, "Jan Kowalski");
         result.Should().Contain("name=Jan%20Kowalski");
+    }
+
+    [Fact]
+    public void GetAvatarUrl_UsernameWithWhitespacePadding_IsTrimmed()
+    {
+        var result = ImageHelper.GetAvatarUrl(null, "  Anna  ");
+        result.Should().Contain("name=Anna");
     }
 }

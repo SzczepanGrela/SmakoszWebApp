@@ -19,7 +19,8 @@ public static class ImageHelper
         if (!string.IsNullOrWhiteSpace(avatarUrl))
             return avatarUrl;
 
-        var name = Uri.EscapeDataString(username ?? "User");
-        return $"https://ui-avatars.com/api/?name={name}&background=D4A574&color=4A3428&size=128";
+        var safeName = string.IsNullOrWhiteSpace(username) ? "US" : username.Trim();
+        var encoded = Uri.EscapeDataString(safeName);
+        return $"https://ui-avatars.com/api/?name={encoded}&background=D4A574&color=4A3428&size=128";
     }
 }
