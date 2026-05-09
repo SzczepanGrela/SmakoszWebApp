@@ -81,11 +81,12 @@ public class NcfTrainingService : INcfTrainingService
 
         if (job is null)
         {
-            _logger.LogWarning("ncf-training: no pre-inserted pending row found, creating fallback");
+            _logger.LogInformation("ncf-training: no pre-inserted pending row found (recurring trigger), creating job");
             job = new SystemJob
             {
                 Type = "ncf_training",
                 Status = JobStatus.Pending,
+                Priority = 10,
                 Payload = payload,
                 CreatedAt = now,
                 MaxAttempts = 3

@@ -235,7 +235,7 @@ class NcfTrainer:
         val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
         model = NcfModel(num_users, num_dishes, embedding_dim).to(self.device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=0.5, patience=3, min_lr=1e-6,
         )
@@ -253,7 +253,7 @@ class NcfTrainer:
         val_rmse = float("inf")
         best_val_rmse = float("inf")
         patience_counter = 0
-        PATIENCE = 5
+        PATIENCE = 10
         last_ranking: dict | None = None
         epochs_completed = 0
 
@@ -353,23 +353,25 @@ class NcfTrainer:
 
         model_url = ""
         if self.model_manager.s3_client is not None:
-            try:
-                key = upload_onnx_to_r2(
-                    self.model_manager.s3_client,
-                    self.settings.r2_bucket,
-                    onnx_path,
-                    version,
+            if not self.settings.r2_bucket:
+                raise RuntimeError(
+                    "R2 bucket is not configured (Settings.r2_bucket is empty) "
+                    "but s3_client is initialized. Set R2_BUCKET env var on the worker container."
                 )
-                model_url = f"r2://{self.settings.r2_bucket}/{key}"
+            key = upload_onnx_to_r2(
+                self.model_manager.s3_client,
+                self.settings.r2_bucket,
+                onnx_path,
+                version,
+            )
+            model_url = f"r2://{self.settings.r2_bucket}/{key}"
 
-                upload_mapping_to_r2(
-                    self.model_manager.s3_client,
-                    self.settings.r2_bucket,
-                    mapping_path,
-                    version,
-                )
-            except Exception:
-                logger.exception("Failed to upload ONNX/mapping to R2")
+            upload_mapping_to_r2(
+                self.model_manager.s3_client,
+                self.settings.r2_bucket,
+                mapping_path,
+                version,
+            )
 
         training_time = time.monotonic() - start_time
 

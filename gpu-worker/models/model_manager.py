@@ -17,7 +17,25 @@ class ModelManager:
         self._hf_mapping: dict[str, str] = {}
 
         self._s3 = None
-        if settings.r2_endpoint and settings.r2_access_key:
+        r2_partial = any([settings.r2_endpoint, settings.r2_access_key, settings.r2_bucket]) and not all(
+            [settings.r2_endpoint, settings.r2_access_key, settings.r2_secret_key, settings.r2_bucket]
+        )
+        if r2_partial:
+            missing = [
+                name for name, val in [
+                    ("R2_ENDPOINT", settings.r2_endpoint),
+                    ("R2_ACCESS_KEY", settings.r2_access_key),
+                    ("R2_SECRET_KEY", settings.r2_secret_key),
+                    ("R2_BUCKET", settings.r2_bucket),
+                ] if not val
+            ]
+            logger.warning(
+                "R2 partially configured (missing: %s) - R2 client will NOT be initialized, "
+                "ONNX upload will be skipped. Set all GPU_WORKER_R2_* env vars to enable R2.",
+                ", ".join(missing),
+            )
+
+        if settings.r2_endpoint and settings.r2_access_key and settings.r2_secret_key and settings.r2_bucket:
             try:
                 self._s3 = boto3.client(
                     "s3",
