@@ -285,7 +285,7 @@ def _generate_reviews_for_user(user: dict, db: DatabaseConnection, ctx: Phase5Wo
     if user_review_dates:
         latest = max(user_review_dates)
         offset = timedelta(days=random.randint(0, 30), hours=random.randint(0, 23))
-        last_login = latest + offset
+        last_login = min(latest + offset, datetime.utcnow())
         db.execute_query(
             "UPDATE users SET last_login_at = %s WHERE user_id = %s",
             (to_sql_datetime(last_login), user["user_id"]),
