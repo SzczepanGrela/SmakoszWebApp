@@ -18,6 +18,7 @@ public static class ImageVariants
         MediaEntityType.User => [Full, Tiny],
         MediaEntityType.Hero => [Full],
         MediaEntityType.Review => [Full, Thumb],
+        MediaEntityType.Ingredient => [Full, Thumb],
         _ => [Full, Thumb]
     };
 }

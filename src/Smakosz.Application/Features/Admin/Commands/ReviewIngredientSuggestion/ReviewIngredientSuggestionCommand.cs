@@ -18,7 +18,8 @@ public record ReviewIngredientSuggestionCommand(
     bool? IsVegan = null,
     bool? IsGlutenFree = null,
     bool? IsLactoseFree = null,
-    string? IconUrl = null) : IRequest<ErrorOr<Success>>;
+    string? IconUrl = null,
+    string? IconBlurhash = null) : IRequest<ErrorOr<Success>>;
 
 public class ReviewIngredientSuggestionHandler
     : IRequestHandler<ReviewIngredientSuggestionCommand, ErrorOr<Success>>
@@ -71,6 +72,7 @@ public class ReviewIngredientSuggestionHandler
                 {
                     IngredientName = suggestion.SuggestedName,
                     IconUrl = request.IconUrl,
+                    IconBlurhash = request.IconBlurhash,
                     IsAllergen = request.IsAllergen ?? false,
                     IsVegetarian = request.IsVegetarian ?? true,
                     IsVegan = request.IsVegan ?? true,

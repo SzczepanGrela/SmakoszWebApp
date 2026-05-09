@@ -75,7 +75,8 @@ public interface IAdminService
     Task<PagedResult<AdminIngredientSuggestionDto>?> GetIngredientSuggestionsAsync(int page = 1, string? status = null);
     Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null,
         bool? isAllergen = null, bool? isVegetarian = null, bool? isVegan = null,
-        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null);
+        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null, string? iconBlurhash = null);
+    Task<AdminIngredientIconDto?> UploadIngredientIconAsync(Stream file, string fileName);
     Task<List<AdminHeroImageDto>> GetHeroImagesAsync();
     Task<bool> DeleteHeroImageAsync(Guid publicId);
     Task<AdminHeroImageDto?> UploadHeroImageAsync(Stream file, string fileName, string? creditText);

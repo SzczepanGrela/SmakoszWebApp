@@ -442,6 +442,12 @@ public class AdminHeroImageDto
     public DateTime? CreatedAt { get; set; }
 }
 
+public class AdminIngredientIconDto
+{
+    public string IconUrl { get; set; } = default!;
+    public string? IconBlurhash { get; set; }
+}
+
 public class AdminIngredientSuggestionDto
 {
     public int SuggestionId { get; set; }

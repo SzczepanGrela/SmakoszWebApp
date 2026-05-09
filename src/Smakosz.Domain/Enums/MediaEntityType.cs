@@ -6,5 +6,6 @@ public enum MediaEntityType
     Dish,
     User,
     Review,
-    Hero
+    Hero,
+    Ingredient
 }

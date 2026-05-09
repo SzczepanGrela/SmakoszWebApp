@@ -358,13 +358,32 @@ public class AdminService : IAdminService
 
     public async Task<bool> ReviewIngredientSuggestionAsync(int id, bool approve, string? adminNote = null,
         bool? isAllergen = null, bool? isVegetarian = null, bool? isVegan = null,
-        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null)
+        bool? isGlutenFree = null, bool? isLactoseFree = null, string? iconUrl = null, string? iconBlurhash = null)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/ingredient-suggestions/{id}/review",
             new { Approve = approve, AdminNote = adminNote,
                 IsAllergen = isAllergen, IsVegetarian = isVegetarian, IsVegan = isVegan,
-                IsGlutenFree = isGlutenFree, IsLactoseFree = isLactoseFree, IconUrl = iconUrl });
+                IsGlutenFree = isGlutenFree, IsLactoseFree = isLactoseFree,
+                IconUrl = iconUrl, IconBlurhash = iconBlurhash });
         return response.Success;
+    }
+
+    public async Task<AdminIngredientIconDto?> UploadIngredientIconAsync(Stream file, string fileName)
+    {
+        using var content = new MultipartFormDataContent();
+        using var streamContent = new StreamContent(file);
+        var ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+        var contentType = ext switch
+        {
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "image/jpeg"
+        };
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        content.Add(streamContent, "file", fileName);
+
+        var apiResponse = await _api.PostMultipartApiResponseAsync<AdminIngredientIconDto>("/api/admin/ingredients/icon", content);
+        return apiResponse is { Success: true } ? apiResponse.Data : null;
     }
 
     public async Task<List<AdminHeroImageDto>> GetHeroImagesAsync()

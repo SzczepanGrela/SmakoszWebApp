@@ -66,8 +66,24 @@ else
                     <p class="text-muted small">Ustaw tagi dietetyczne i ikone dla nowego skladnika.</p>
 
                     <div class="mb-3">
-                        <label class="form-label fw-medium">URL ikony (opcjonalnie)</label>
-                        <input type="text" class="form-control form-control-sm" @bind="_reviewIconUrl" placeholder="https://..." />
+                        <label class="form-label fw-medium">Ikona (opcjonalnie)</label>
+                        @if (!string.IsNullOrEmpty(_uploadedIconUrl))
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="@_uploadedIconUrl" alt="ikona" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" />
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="() => { _uploadedIconUrl = null; _uploadedIconBlurhash = null; }">
+                                    <i class="fa-solid fa-xmark me-1"></i>Usuń
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-primary btn-sm" @onclick="() => _iconCropperOpen = true" disabled="@_iconUploading">
+                                @if (_iconUploading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                <i class="fa-solid fa-image me-1"></i>Wybierz ikonę
+                            </button>
+                            <small class="text-muted d-block mt-1">JPG, PNG lub WebP. Po wybraniu zostanie automatycznie przesłana.</small>
+                        }
                     </div>
 
                     <div class="row">
@@ -109,6 +125,13 @@ else
     </div>
 }
 
+<ImageCropper IsOpen="_iconCropperOpen"
+              Title="Przytnij ikonę składnika"
+              AspectRatio="1.0"
+              MaxSizeMb="5"
+              OnClose="() => _iconCropperOpen = false"
+              OnCropped="HandleIconCropped" />
+
 @code {
     private PagedResult<AdminIngredientSuggestionDto>? _suggestions;
     private bool _loading = true;
@@ -120,7 +143,10 @@ else
     private bool _reviewIsVegan = true;
     private bool _reviewIsGlutenFree = true;
     private bool _reviewIsLactoseFree = true;
-    private string? _reviewIconUrl;
+    private bool _iconCropperOpen;
+    private bool _iconUploading;
+    private string? _uploadedIconUrl;
+    private string? _uploadedIconBlurhash;
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 
@@ -139,10 +165,39 @@ else
         _reviewIsVegan = true;
         _reviewIsGlutenFree = true;
         _reviewIsLactoseFree = true;
-        _reviewIconUrl = null;
+        _uploadedIconUrl = null;
+        _uploadedIconBlurhash = null;
     }
 
-    private void CancelAccept() => _acceptingSuggestion = null;
+    private void CancelAccept()
+    {
+        _acceptingSuggestion = null;
+        _uploadedIconUrl = null;
+        _uploadedIconBlurhash = null;
+    }
+
+    private async Task HandleIconCropped(Smakosz.Client.Components.ImageCropper.CroppedImage cropped)
+    {
+        _iconCropperOpen = false;
+        _iconUploading = true;
+        try
+        {
+            var result = await AdminService.UploadIngredientIconAsync(cropped.Stream, cropped.FileName);
+            if (result != null)
+            {
+                _uploadedIconUrl = result.IconUrl;
+                _uploadedIconBlurhash = result.IconBlurhash;
+            }
+            else
+            {
+                Toast.ShowError("Nie udało się przesłać ikony.");
+            }
+        }
+        finally
+        {
+            _iconUploading = false;
+        }
+    }
 
     private async Task ConfirmAccept()
     {
@@ -151,17 +206,19 @@ else
         var success = await AdminService.ReviewIngredientSuggestionAsync(
             _acceptingSuggestion.SuggestionId, true, null,
             _reviewIsAllergen, _reviewIsVegetarian, _reviewIsVegan,
-            _reviewIsGlutenFree, _reviewIsLactoseFree, _reviewIconUrl);
+            _reviewIsGlutenFree, _reviewIsLactoseFree, _uploadedIconUrl, _uploadedIconBlurhash);
         _actionInProgress = false;
         if (success)
         {
-            Toast.ShowSuccess($"Skladnik \"{_acceptingSuggestion.SuggestedName}\" dodany do bazy.");
+            Toast.ShowSuccess($"Składnik \"{_acceptingSuggestion.SuggestedName}\" dodany do bazy.");
             _acceptingSuggestion = null;
+            _uploadedIconUrl = null;
+            _uploadedIconBlurhash = null;
             await LoadPage(1);
         }
         else
         {
-            Toast.ShowError("Nie udalo sie zaakceptowac sugestii.");
+            Toast.ShowError("Nie udało się zaakceptować sugestii.");
         }
     }
 

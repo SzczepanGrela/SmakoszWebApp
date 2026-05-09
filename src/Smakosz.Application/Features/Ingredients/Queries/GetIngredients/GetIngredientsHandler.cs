@@ -21,6 +21,7 @@ public class GetIngredientsHandler : IRequestHandler<GetIngredientsQuery, ErrorO
                 Id = i.IngredientId,
                 Name = i.IngredientName,
                 IconUrl = i.IconUrl,
+                IconBlurhash = i.IconBlurhash,
                 IsAllergen = i.IsAllergen,
                 IsVegetarian = i.IsVegetarian,
                 IsVegan = i.IsVegan,
