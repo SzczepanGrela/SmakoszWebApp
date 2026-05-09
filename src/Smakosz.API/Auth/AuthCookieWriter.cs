@@ -31,7 +31,9 @@ public class AuthCookieWriter
         return new CookieOptions
         {
             HttpOnly = true,
-            Secure = !_env.IsDevelopment(),
+            // Secure only in Production: WebApplicationFactory serves HTTP so a Secure cookie would never
+            // ride a test request, and the local dev server also runs HTTP unless dev-certs are wired.
+            Secure = _env.IsProduction(),
             SameSite = isTesting ? SameSiteMode.Lax : SameSiteMode.Strict,
             Path = "/",
             Expires = expires,
