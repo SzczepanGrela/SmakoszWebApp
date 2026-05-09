@@ -45,14 +45,16 @@ class EvaluationDAO:
     def get_all_dishes_enriched(db: DatabaseConnection) -> list[dict]:
         rows = db.fetch_all(
             """
-            SELECT d.dish_id, d.dish_name, d.secret_archetype,
+            SELECT d.dish_id, d.dish_name, a.archetype_name AS secret_archetype,
                    d.price, d.secret_base_price, d.secret_quality,
                    d.secret_popularity_factor, d.secret_characteristics_vector,
-                   d.secret_penalty_vector, d.secret_variant_name,
+                   d.secret_penalty_vector, v.variant_name AS secret_variant_name,
                    d.restaurant_id
             FROM dishes d
+            LEFT JOIN dish_variants v ON d.secret_variant_id = v.variant_id
+            LEFT JOIN dish_archetypes a ON v.archetype_id = a.archetype_id
             WHERE d.secret_characteristics_vector IS NOT NULL
-              AND d.secret_characteristics_vector != '{}'
+              AND d.secret_characteristics_vector::text != '{}'
             """
         )
 
