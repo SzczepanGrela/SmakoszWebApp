@@ -35,6 +35,14 @@ public class StuckJobsRecoveryService
 
     private static readonly TimeSpan DefaultStuckThreshold = TimeSpan.FromHours(4);
 
+    private static readonly Dictionary<string, TimeSpan> PerTypeZombieThresholds = new()
+    {
+        ["image_moderation"] = TimeSpan.FromDays(30),
+        ["image_moderation_batch"] = TimeSpan.FromDays(30),
+    };
+
+    private static readonly TimeSpan DefaultZombieThreshold = TimeSpan.FromHours(24);
+
     public async Task RecoverAsync(CancellationToken ct)
     {
         var now = _clock.UtcNow;
@@ -79,16 +87,25 @@ public class StuckJobsRecoveryService
             _logger.LogInformation("stuck-jobs-recovery: recovered {Count} stuck jobs", stuckJobs.Count);
         }
 
-        var pendingThreshold = now.AddHours(-24);
+        var shortestZombieThreshold = MinZombieThreshold();
 
-        var zombiePending = await _db.SystemJobs
-            .Where(j => j.Status == JobStatus.Pending && j.CreatedAt < pendingThreshold)
+        var pendingCandidates = await _db.SystemJobs
+            .Where(j => j.Status == JobStatus.Pending && j.CreatedAt < now.Subtract(shortestZombieThreshold))
             .ToListAsync(ct);
+
+        var zombiePending = pendingCandidates
+            .Where(j =>
+            {
+                var threshold = PerTypeZombieThresholds.TryGetValue(j.Type, out var perType) ? perType : DefaultZombieThreshold;
+                return j.CreatedAt < now.Subtract(threshold);
+            })
+            .ToList();
 
         foreach (var job in zombiePending)
         {
+            var threshold = PerTypeZombieThresholds.TryGetValue(job.Type, out var perType) ? perType : DefaultZombieThreshold;
             job.Status = JobStatus.Cancelled;
-            job.ErrorMessage = "Auto-cancelled: pending for over 24 hours without being picked up";
+            job.ErrorMessage = $"Auto-cancelled: pending for over {threshold.TotalHours:F0} hours without being picked up";
             job.FinishedAt = now;
         }
 
@@ -97,6 +114,16 @@ public class StuckJobsRecoveryService
             await _db.SaveChangesAsync(ct);
             _logger.LogInformation("stuck-jobs-recovery: auto-cancelled {Count} zombie pending jobs", zombiePending.Count);
         }
+    }
+
+    private static TimeSpan MinZombieThreshold()
+    {
+        var min = DefaultZombieThreshold;
+        foreach (var threshold in PerTypeZombieThresholds.Values)
+        {
+            if (threshold < min) min = threshold;
+        }
+        return min;
     }
 
     private async Task ResetBatchModerationStatusAsync(Domain.Entities.System.SystemJob job, CancellationToken ct)

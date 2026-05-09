@@ -43,7 +43,25 @@ public class ModerationAggregationSchedulerService
         var pendingTextCount = await CountPendingTextAsync(ct);
         var pendingImageCount = await _db.MediaAssets
             .CountAsync(a => a.ModerationStatus == ContentModerationStatus.Pending, ct);
-        var thresholdReached = pendingTextCount >= textBatchSize || pendingImageCount >= imageBatchSize;
+
+        var pendingTextBatchExists = await _db.SystemJobs
+            .AnyAsync(j => j.Type == "text_moderation_batch" && j.Status == JobStatus.Pending, ct);
+        var pendingImageBatchExists = await _db.SystemJobs
+            .AnyAsync(j => j.Type == "image_moderation_batch" && j.Status == JobStatus.Pending, ct);
+
+        if (pendingTextBatchExists) textBatchSize = 0;
+        if (pendingImageBatchExists) imageBatchSize = 0;
+
+        if (textBatchSize == 0 && imageBatchSize == 0)
+        {
+            _logger.LogInformation(
+                "Moderation auto-aggregation skipped: pending batches already exist (text={TextPending}, image={ImagePending})",
+                pendingTextBatchExists, pendingImageBatchExists);
+            return;
+        }
+
+        var thresholdReached = (textBatchSize > 0 && pendingTextCount >= textBatchSize)
+            || (imageBatchSize > 0 && pendingImageCount >= imageBatchSize);
 
         if (!intervalElapsed && !thresholdReached)
             return;
@@ -52,8 +70,8 @@ public class ModerationAggregationSchedulerService
             return;
 
         _logger.LogInformation(
-            "Moderation auto-aggregation triggered (interval={IntervalElapsed}, threshold={ThresholdReached}, text={TextCount}, image={ImageCount})",
-            intervalElapsed, thresholdReached, pendingTextCount, pendingImageCount);
+            "Moderation auto-aggregation triggered (interval={IntervalElapsed}, threshold={ThresholdReached}, text={TextCount}, image={ImageCount}, textBatchSize={TextBatchSize}, imageBatchSize={ImageBatchSize})",
+            intervalElapsed, thresholdReached, pendingTextCount, pendingImageCount, textBatchSize, imageBatchSize);
 
         await _aggregator.AggregateAsync(textBatchSize, imageBatchSize, ct);
 
