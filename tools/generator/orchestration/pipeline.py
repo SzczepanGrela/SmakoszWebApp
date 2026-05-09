@@ -116,7 +116,7 @@ class DataGenerationPipeline:
         phase_results = []
 
         for idx, phase_id in enumerate(sorted_phase_ids, 1):
-            logger.info(f"\n{'=' * 80}\nPhase {idx}/{len(sorted_phase_ids)}: {phase_id}\n{'=' * 80}")
+            logger.info(f"\n{'=' * 80}\nStep {idx}/{len(sorted_phase_ids)}: {phase_id}\n{'=' * 80}")
 
             result = self._execute_phase(phase_id)
             phase_results.append(result)
@@ -126,12 +126,12 @@ class DataGenerationPipeline:
                     logger.error(f"Pipeline aborted due to failure in {phase_id}")
                     break
                 else:
-                    logger.warning(f"Phase {phase_id} failed but continuing (continue_on_error=True)")
+                    logger.warning(f"Step {phase_id} failed but continuing (continue_on_error=True)")
             elif result.status == PhaseStatus.COMPLETED:
                 self.context.mark_completed(phase_id)
-                logger.info(f"[OK] Phase {phase_id} completed in {result.duration_seconds:.2f}s")
+                logger.info(f"[OK] Step {phase_id} completed in {result.duration_seconds:.2f}s")
             elif result.status == PhaseStatus.SKIPPED:
-                logger.info(f"[SKIP] Phase {phase_id} skipped")
+                logger.info(f"[SKIP] Step {phase_id} skipped")
 
         success = all(r.status == PhaseStatus.COMPLETED for r in phase_results)
 

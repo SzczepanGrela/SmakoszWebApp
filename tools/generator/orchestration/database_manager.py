@@ -100,7 +100,7 @@ class DatabaseManager:
             SELECT schemaname, tablename
             FROM pg_tables
             WHERE schemaname IN ('public', 'system')
-              AND tablename NOT LIKE '\\_\\_%' ESCAPE '\\'
+              AND tablename NOT LIKE '\\_\\_%%' ESCAPE '\\'
             ORDER BY tablename
             """
         )
