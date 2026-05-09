@@ -7,14 +7,16 @@ namespace Smakosz.Client.Services;
 public class SmakoszApiClient
 {
     private readonly HttpClient _http;
+    private readonly IConcurrencyConflictService? _concurrencyConflict;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public SmakoszApiClient(HttpClient http)
+    public SmakoszApiClient(HttpClient http, IConcurrencyConflictService? concurrencyConflict = null)
     {
         _http = http;
+        _concurrencyConflict = concurrencyConflict;
     }
 
     public async Task<T?> GetAsync<T>(string url)
@@ -89,7 +91,7 @@ public class SmakoszApiClient
     private static bool IsRateLimited(HttpResponseMessage response)
         => response.StatusCode == System.Net.HttpStatusCode.TooManyRequests;
 
-    private static async Task<ApiResponse<T>> ParseApiResponse<T>(HttpResponseMessage response)
+    private async Task<ApiResponse<T>> ParseApiResponse<T>(HttpResponseMessage response)
     {
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
             return new ApiResponse<T> { Success = true };
@@ -104,7 +106,10 @@ public class SmakoszApiClient
         try
         {
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<T>>(JsonOptions);
-            return result ?? new ApiResponse<T> { Success = false, Error = new ApiError { Code = "PARSE_ERROR", Message = "Failed to parse response" } };
+            var parsed = result ?? new ApiResponse<T> { Success = false, Error = new ApiError { Code = "PARSE_ERROR", Message = "Failed to parse response" } };
+            if (parsed.Error?.Code == "CONCURRENCY_CONFLICT")
+                _concurrencyConflict?.Show();
+            return parsed;
         }
         catch
         {

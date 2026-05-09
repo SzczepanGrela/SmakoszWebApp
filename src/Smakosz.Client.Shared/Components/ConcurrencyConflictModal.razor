@@ -1,0 +1,15 @@
+<Modal IsOpen="@IsOpen" Title="Dane zostały zmodyfikowane" OnClose="@OnDismiss">
+    <p data-testid="concurrency-conflict-message">
+        Ktoś inny zaktualizował te dane w międzyczasie. Musisz odświeżyć stronę, aby zobaczyć aktualny stan.
+    </p>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-outline-secondary" @onclick="OnDismiss" data-testid="concurrency-conflict-dismiss">Zamknij</button>
+        <button class="btn btn-primary" @onclick="OnRefresh" data-testid="concurrency-conflict-refresh">Odśwież teraz</button>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnDismiss { get; set; }
+    [Parameter] public EventCallback OnRefresh { get; set; }
+}

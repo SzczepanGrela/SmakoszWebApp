@@ -1,0 +1,25 @@
+@implements IDisposable
+@inject IConcurrencyConflictService Concurrency
+
+<div data-testid="concurrency-conflict-modal">
+    <ConcurrencyConflictModal IsOpen="@Concurrency.IsOpen"
+                              OnDismiss="HandleDismiss"
+                              OnRefresh="HandleRefresh" />
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Concurrency.StateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
+
+    private void HandleDismiss() => Concurrency.Dismiss();
+    private void HandleRefresh() => Concurrency.Refresh();
+
+    public void Dispose()
+    {
+        Concurrency.StateChanged -= OnStateChanged;
+    }
+}
