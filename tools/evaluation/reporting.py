@@ -25,6 +25,7 @@ class EvaluationReport:
         coverage_val: float,
         users_skipped: int,
         pairs_evaluated: int,
+        targets: dict | None = None,
     ) -> dict:
         self.data = {
             "generated_at": datetime.now().isoformat(),
@@ -48,7 +49,18 @@ class EvaluationReport:
                 "coverage": round(coverage_val, 4),
             },
         }
+        if targets:
+            self.data["targets"] = targets
+            self.data["pass_status"] = self._compute_pass_status(targets)
         return self.data
+
+    @staticmethod
+    def _compute_pass_status(targets: dict) -> dict:
+        return {k: {"target": v, "passed": False} for k, v in targets.items()}
+
+    @staticmethod
+    def _eval_target(metric_value: float, target_value: float, lower_is_better: bool) -> bool:
+        return metric_value <= target_value if lower_is_better else metric_value >= target_value
 
     def print_report(self) -> None:
         if not self.data:
@@ -58,46 +70,81 @@ class EvaluationReport:
         d = self.data
         m = d["metrics"]
         ds = d["dataset"]
+        targets = d.get("targets", {})
 
         lines = [
             "",
-            "=" * 60,
+            "=" * 64,
             "  NCF Model Evaluation Report",
-            "=" * 60,
+            "=" * 64,
             "",
             f"  Model:      {d['model_path']}",
             f"  Generated:  {d['generated_at']}",
             "",
             "  Dataset",
-            f"    Users evaluated:        {ds['users_evaluated']}",
-            f"    Users skipped (no map):  {ds['users_skipped_no_mapping']}",
-            f"    Dishes total:            {ds['dishes_total']}",
-            f"    Restaurants total:        {ds['restaurants_total']}",
-            f"    Pairs evaluated:          {ds['pairs_evaluated']}",
+            f"    Users evaluated:           {ds['users_evaluated']}",
+            f"    Users skipped (no map):    {ds['users_skipped_no_mapping']}",
+            f"    Dishes total:              {ds['dishes_total']}",
+            f"    Restaurants total:         {ds['restaurants_total']}",
+            f"    Pairs evaluated:           {ds['pairs_evaluated']}",
             "",
             "  Rating Accuracy",
-            f"    RMSE:  {m['rmse']:.4f}",
-            f"    MAE:   {m['mae']:.4f}",
+            self._line("RMSE", m["rmse"], targets.get("rmse"), lower_is_better=True),
+            self._line("MAE", m["mae"], None),
             "",
             "  Ranking Quality",
         ]
 
         for k_label, val in m["hit_rate"].items():
-            lines.append(f"    Hit Rate {k_label}:  {val:.4f}")
+            target = targets.get(f"hr{k_label}")
+            lines.append(self._line(f"Hit Rate {k_label}", val, target))
         for k_label, val in m["ndcg"].items():
-            lines.append(f"    NDCG {k_label}:      {val:.4f}")
+            target = targets.get(f"ndcg{k_label}")
+            lines.append(self._line(f"NDCG {k_label}", val, target))
 
-        lines.extend(
-            [
-                "",
-                f"  Coverage:  {m['coverage']:.4f}",
-                "",
-                "=" * 60,
-            ]
-        )
+        lines.extend([
+            "",
+            self._line("Coverage", m["coverage"], targets.get("coverage")),
+            "",
+            "=" * 64,
+        ])
+
+        if targets:
+            verdict = "ALL TARGETS MET" if self.all_targets_passed() else "SOME TARGETS MISSED"
+            lines.append(f"  Verdict: {verdict}")
+            lines.append("=" * 64)
 
         for line in lines:
             logger.info(line)
+
+    @staticmethod
+    def _line(name: str, value: float, target: float | None, lower_is_better: bool = False) -> str:
+        base = f"    {name:<26} {value:.4f}"
+        if target is None:
+            return base
+        passed = value <= target if lower_is_better else value >= target
+        status = "[PASS]" if passed else "[FAIL]"
+        cmp = "<=" if lower_is_better else ">="
+        return f"{base}   {status}  (target {cmp} {target:.4f})"
+
+    def all_targets_passed(self) -> bool:
+        if "targets" not in self.data:
+            return True
+        m = self.data["metrics"]
+        for key, target in self.data["targets"].items():
+            if key == "rmse":
+                if m["rmse"] > target:
+                    return False
+            elif key == "coverage":
+                if m["coverage"] < target:
+                    return False
+            elif key.startswith("hr@"):
+                if m["hit_rate"].get(key[2:], 0.0) < target:
+                    return False
+            elif key.startswith("ndcg@"):
+                if m["ndcg"].get(key[4:], 0.0) < target:
+                    return False
+        return True
 
     def save_json(self, path: str) -> None:
         if not self.data:

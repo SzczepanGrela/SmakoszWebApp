@@ -4,8 +4,8 @@ from typing import Any
 
 import numpy as np
 
-from algorithms.on_the_fly_calculator import OnTheFlyCalculator
-from algorithms.rating_strategies import RatingAggregator
+from algorithms.on_the_fly_calculator import get_contextual_preferences
+from algorithms.rating_strategies import calculate_review_ratings
 
 @contextmanager
 def suppress_rating_noise():
@@ -31,8 +31,7 @@ def suppress_rating_noise():
 
 class GroundTruthCalculator:
     def __init__(self, vectors_data: dict[str, Any]):
-        self.on_the_fly = OnTheFlyCalculator(vectors_data)
-        self.aggregator = RatingAggregator()
+        self.vectors_data = vectors_data
 
     def calculate_rating(
         self,
@@ -43,17 +42,17 @@ class GroundTruthCalculator:
         archetype = dish.get("secret_archetype", "")
         variant_name = dish.get("secret_variant_name", archetype)
 
-        pref_vector = self.on_the_fly.get_contextual_preferences(
-            user, dish, variant_name, archetype
+        pref_vector = get_contextual_preferences(
+            self.vectors_data, user, dish, variant_name, archetype
         )
 
         with suppress_rating_noise():
-            result = self.aggregator.calculate_all(
+            result = calculate_review_ratings(
                 user_data=user,
                 dish=dish,
                 restaurant=restaurant,
                 user_variant_preference_vector=pref_vector,
-                vectors_data=self.on_the_fly.vectors_data,
+                vectors_data=self.vectors_data,
             )
 
         return result

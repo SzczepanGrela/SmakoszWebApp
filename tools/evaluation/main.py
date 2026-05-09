@@ -22,9 +22,11 @@ from .config import (  # noqa: E402
     DEFAULT_OUTPUT,
     DEFAULT_TOP_N,
 )
+from .config import DEFAULT_MODEL_BASE  # noqa: E402
 from .data_access import EvaluationDAO  # noqa: E402
+from .fetch_from_r2 import DEFAULT_ENV_FILE, download_version, list_versions, load_r2_credentials  # noqa: E402
 from .ground_truth import GroundTruthCalculator  # noqa: E402
-from .inference import OnnxNcfModel, find_latest_model  # noqa: E402
+from .inference import OnnxNcfModel  # noqa: E402
 from .metrics import coverage, hit_rate_at_k, mae, ndcg_at_k, rmse  # noqa: E402
 from .reporting import EvaluationReport  # noqa: E402
 
@@ -32,18 +34,56 @@ logger = logging.getLogger(__name__)
 
 RELEVANCE_THRESHOLD = 7.0
 
-def resolve_model_path(model_path_arg: str | None) -> Path:
+def _build_r2_client(env_path: Path):
+    try:
+        import boto3
+    except ImportError as e:
+        raise RuntimeError("boto3 is required for R2 download. Install with: pip install boto3") from e
+
+    creds = load_r2_credentials(env_path)
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=creds["endpoint"],
+        aws_access_key_id=creds["access_key"],
+        aws_secret_access_key=creds["secret_key"],
+        region_name="auto",
+    )
+    return s3, creds["bucket"]
+
+
+def resolve_model_path(model_path_arg: str | None, model_version_arg: str | None, env_path: Path) -> Path:
     if model_path_arg:
         p = Path(model_path_arg)
         if not p.exists():
             raise FileNotFoundError(f"Model path does not exist: {p}")
         return p
-    return find_latest_model()
+
+    if model_version_arg:
+        local = DEFAULT_MODEL_BASE / model_version_arg
+        if local.exists() and any(local.iterdir()):
+            logger.info("Using local model: %s", local)
+            return local
+        logger.info("Model %s not found locally, fetching from R2", model_version_arg)
+        s3, bucket = _build_r2_client(env_path)
+        return download_version(s3, bucket, model_version_arg, DEFAULT_MODEL_BASE)
+
+    logger.info("No model version specified, looking up latest in R2")
+    s3, bucket = _build_r2_client(env_path)
+    versions = list_versions(s3, bucket)
+    if not versions:
+        raise FileNotFoundError("No model versions found in R2 bucket.")
+    latest = versions[0]
+    local = DEFAULT_MODEL_BASE / latest
+    if local.exists() and any(local.iterdir()):
+        logger.info("Latest version %s already cached locally: %s", latest, local)
+        return local
+    logger.info("Downloading latest version %s from R2", latest)
+    return download_version(s3, bucket, latest, DEFAULT_MODEL_BASE)
 
 def evaluate(args: argparse.Namespace) -> None:
     os.chdir(GENERATOR_ROOT)
 
-    model_dir = resolve_model_path(args.model_path)
+    model_dir = resolve_model_path(args.model_path, args.model_version, Path(args.env))
     logger.info("Using model: %s", model_dir)
     model = OnnxNcfModel(model_dir)
 
@@ -68,7 +108,12 @@ def evaluate(args: argparse.Namespace) -> None:
         users_skipped = 0
         pairs_evaluated = 0
 
-        for user in users:
+        total_users = len(users)
+        progress_step = max(1, total_users // 20)
+
+        for idx, user in enumerate(users, 1):
+            if idx == 1 or idx % progress_step == 0 or idx == total_users:
+                logger.info("Progress: %d/%d users (%.1f%%)", idx, total_users, 100.0 * idx / total_users)
             user_id = user["user_id"]
 
             reviewed = EvaluationDAO.get_user_reviewed_dishes(db, user_id)
@@ -121,6 +166,16 @@ def evaluate(args: argparse.Namespace) -> None:
     mean_ndcg = {k: (sum(v) / len(v) if v else 0.0) for k, v in all_ndcg.items()}
     cov = coverage(all_recommended, len(all_dishes))
 
+    targets = {}
+    if args.target_rmse is not None:
+        targets["rmse"] = args.target_rmse
+    if args.target_ndcg_10 is not None:
+        targets["ndcg@10"] = args.target_ndcg_10
+    if args.target_hr_10 is not None:
+        targets["hr@10"] = args.target_hr_10
+    if args.target_coverage is not None:
+        targets["coverage"] = args.target_coverage
+
     report = EvaluationReport()
     report.collect(
         model_path=str(model_dir),
@@ -136,9 +191,13 @@ def evaluate(args: argparse.Namespace) -> None:
         coverage_val=cov,
         users_skipped=users_skipped,
         pairs_evaluated=pairs_evaluated,
+        targets=targets if targets else None,
     )
     report.print_report()
     report.save_json(args.output)
+
+    if targets and not report.all_targets_passed():
+        sys.exit(2)
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -148,7 +207,19 @@ def main() -> None:
         "--model-path",
         type=str,
         default=None,
-        help=f"Path to model directory (default: latest in {DEFAULT_MODEL_BASE})",
+        help="Explicit path to model directory. Overrides version-based lookup.",
+    )
+    parser.add_argument(
+        "--model-version",
+        type=str,
+        default=None,
+        help="Specific model version to use (e.g. v20260513_004159). Downloads from R2 if missing locally. Default: latest in R2.",
+    )
+    parser.add_argument(
+        "--env",
+        type=str,
+        default=str(DEFAULT_ENV_FILE),
+        help=f"Path to .env with R2 credentials for auto-download (default: {DEFAULT_ENV_FILE})",
     )
     parser.add_argument(
         "--top-n",
@@ -174,6 +245,10 @@ def main() -> None:
         default=DEFAULT_OUTPUT,
         help=f"Output JSON path (default: {DEFAULT_OUTPUT})",
     )
+    parser.add_argument("--target-rmse", type=float, default=None, help="Pass threshold for RMSE (lower is better).")
+    parser.add_argument("--target-ndcg-10", type=float, default=None, help="Pass threshold for NDCG@10.")
+    parser.add_argument("--target-hr-10", type=float, default=None, help="Pass threshold for Hit Rate @10.")
+    parser.add_argument("--target-coverage", type=float, default=None, help="Pass threshold for coverage.")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable DEBUG logging"
     )

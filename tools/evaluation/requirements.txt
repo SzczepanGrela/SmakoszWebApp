@@ -2,3 +2,4 @@ onnxruntime
 numpy
 psycopg2-binary
 python-dotenv
+boto3
