@@ -203,6 +203,37 @@ public class AdminJobDto
     public DateTime? FinishedAt { get; set; }
 }
 
+public class AdminNcfStatusDto
+{
+    public bool NcfAvailable { get; set; }
+    public string? FallbackReason { get; set; }
+    public string LoadedVersion { get; set; } = string.Empty;
+    public int MappedUsersCount { get; set; }
+    public int CachePopulatedCount { get; set; }
+    public double CachePopulatedPercent { get; set; }
+    public AdminNcfTrainingSummaryDto? LastTraining { get; set; }
+    public AdminNcfRegenSummaryDto? LastCacheRegen { get; set; }
+    public List<AdminNcfTrainingSummaryDto> RecentTrainings { get; set; } = [];
+}
+
+public class AdminNcfTrainingSummaryDto
+{
+    public int JobId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
+    public double? DurationSeconds { get; set; }
+    public string? WorkerNode { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+public class AdminNcfRegenSummaryDto
+{
+    public DateTime? LastRow { get; set; }
+    public DateTime? FirstRowInBatch { get; set; }
+    public double? ApproxDurationSeconds { get; set; }
+}
+
 public class CreateJobRequest
 {
     public string Type { get; set; } = default!;

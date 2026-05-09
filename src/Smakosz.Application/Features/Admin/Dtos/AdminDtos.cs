@@ -354,6 +354,37 @@ public class JobDto
     public DateTime? FinishedAt { get; set; }
 }
 
+public class NcfStatusDto
+{
+    public bool NcfAvailable { get; set; }
+    public string? FallbackReason { get; set; }
+    public string LoadedVersion { get; set; } = string.Empty;
+    public int MappedUsersCount { get; set; }
+    public int CachePopulatedCount { get; set; }
+    public double CachePopulatedPercent { get; set; }
+    public NcfTrainingSummaryDto? LastTraining { get; set; }
+    public NcfRegenSummaryDto? LastCacheRegen { get; set; }
+    public List<NcfTrainingSummaryDto> RecentTrainings { get; set; } = [];
+}
+
+public class NcfTrainingSummaryDto
+{
+    public int JobId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
+    public double? DurationSeconds { get; set; }
+    public string? WorkerNode { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+public class NcfRegenSummaryDto
+{
+    public DateTime? LastRow { get; set; }
+    public DateTime? FirstRowInBatch { get; set; }
+    public double? ApproxDurationSeconds { get; set; }
+}
+
 
 public class IngredientSuggestionDto
 {

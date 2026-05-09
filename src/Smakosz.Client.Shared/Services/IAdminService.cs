@@ -67,6 +67,7 @@ public interface IAdminService
     Task<bool> UpdateSystemConfigAsync(string key, string value);
     Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null);
     Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1);
+    Task<AdminNcfStatusDto?> GetNcfStatusAsync();
     Task<bool> TriggerJobAsync(int id);
     Task<bool> CreateJobAsync(CreateJobRequest request);
     Task<bool> CancelJobAsync(int id);

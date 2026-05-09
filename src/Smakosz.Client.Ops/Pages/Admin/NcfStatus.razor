@@ -1,0 +1,121 @@
+@page "/admin/ncf"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+
+<PageTitle>NCF - Admin Smakosz</PageTitle>
+
+<h2 class="dashboard-title">Status NCF</h2>
+
+@if (_loading)
+{
+    <LoadingSpinner Text="Ładowanie statusu NCF..." />
+}
+else if (_status is null)
+{
+    <EmptyState Icon="fa-solid fa-brain" Title="Brak danych" />
+}
+else
+{
+    <div class="dashboard-section-label">Stan modelu</div>
+    <div class="dashboard-grid cols-3">
+        <AdminStatCard Label="NCF dostępny"
+                       Value="@(_status.NcfAvailable ? "TAK" : "NIE")"
+                       Context="@(_status.NcfAvailable ? "model załadowany" : (_status.FallbackReason ?? "brak modelu"))"
+                       Attention="@(!_status.NcfAvailable)" />
+        <AdminStatCard Label="Aktywna wersja"
+                       Value="@(string.IsNullOrEmpty(_status.LoadedVersion) ? "brak" : _status.LoadedVersion)"
+                       Context="symlink current" />
+        <AdminStatCard Label="Userzy w mappingu"
+                       Value="@_status.MappedUsersCount.ToString("N0")"
+                       Context="ID w embeddings" />
+    </div>
+
+    <div class="dashboard-section-label">Cache i ostatnie operacje</div>
+    <div class="dashboard-grid cols-3">
+        <AdminStatCard Label="Cache zapopulowany"
+                       Value="@($"{_status.CachePopulatedPercent:F1}%")"
+                       Context="@($"{_status.CachePopulatedCount} / {_status.MappedUsersCount}")"
+                       Attention="@(_status.MappedUsersCount > 0 && _status.CachePopulatedPercent < 90)" />
+        @if (_status.LastTraining is null)
+        {
+            <AdminStatCard Label="Ostatni trening" Value="nigdy" Context="brak rekordów" />
+        }
+        else
+        {
+            <AdminStatCard Label="Ostatni trening"
+                           Value="@_status.LastTraining.Status"
+                           Context="@FormatTrainingContext(_status.LastTraining)"
+                           Attention="@(_status.LastTraining.Status != "Completed")" />
+        }
+        @if (_status.LastCacheRegen?.LastRow is null)
+        {
+            <AdminStatCard Label="Ostatni regen cache" Value="nigdy" Context="cache pusty" />
+        }
+        else
+        {
+            <AdminStatCard Label="Ostatni regen cache"
+                           Value="@_status.LastCacheRegen.LastRow.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")"
+                           Context="@FormatRegenContext(_status.LastCacheRegen)" />
+        }
+    </div>
+
+    <div class="dashboard-section-label">Ostatnie 5 treningów NCF</div>
+    @if (!_status.RecentTrainings.Any())
+    {
+        <EmptyState Icon="fa-solid fa-graduation-cap" Title="Brak treningów" />
+    }
+    else
+    {
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>JobId</th>
+                    <th>Utworzony</th>
+                    <th>Status</th>
+                    <th>Czas</th>
+                    <th>Worker</th>
+                    <th>Błąd</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _status.RecentTrainings)
+                {
+                    <tr>
+                        <td>@t.JobId</td>
+                        <td>@t.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@t.Status</td>
+                        <td>@(t.DurationSeconds.HasValue ? $"{t.DurationSeconds:F0}s" : "-")</td>
+                        <td>@(t.WorkerNode ?? "-")</td>
+                        <td><small class="text-muted">@t.ErrorMessage</small></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private AdminNcfStatusDto? _status;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _status = await AdminService.GetNcfStatusAsync();
+        _loading = false;
+    }
+
+    private static string FormatTrainingContext(AdminNcfTrainingSummaryDto t)
+    {
+        var ts = t.FinishedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-";
+        var dur = t.DurationSeconds.HasValue ? $"{t.DurationSeconds:F0}s" : "-";
+        var worker = t.WorkerNode ?? "-";
+        return $"{ts} · {dur} · {worker}";
+    }
+
+    private static string FormatRegenContext(AdminNcfRegenSummaryDto r)
+    {
+        if (r.ApproxDurationSeconds is null) return "-";
+        return $"~{r.ApproxDurationSeconds:F0}s batch";
+    }
+}

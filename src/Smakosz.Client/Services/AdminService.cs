@@ -326,6 +326,9 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1)
         => _api.GetAsync<PagedResult<AdminJobDto>>($"/api/admin/jobs?page={page}");
 
+    public Task<AdminNcfStatusDto?> GetNcfStatusAsync()
+        => _api.GetAsync<AdminNcfStatusDto>("/api/admin/ncf");
+
     public async Task<bool> TriggerJobAsync(int id)
     {
         var response = await _api.PostApiResponseAsync<object>($"/api/admin/jobs/{id}/trigger", null);

@@ -11,6 +11,7 @@ using Smakosz.Application.Features.Admin.Queries.GetAiLogs;
 using Smakosz.Application.Features.Admin.Queries.GetEmailLogs;
 using Smakosz.Application.Features.Admin.Queries.GetJobs;
 using Smakosz.Application.Features.Admin.Queries.GetModerationLogs;
+using Smakosz.Application.Features.Admin.Queries.GetNcfStatus;
 using Smakosz.Application.Features.Admin.Queries.GetSystemConfig;
 using Smakosz.Application.Features.Admin.Queries.GetAuditLogs;
 using Smakosz.Application.Features.Admin.Queries.GetSecurityLogs;
@@ -159,6 +160,13 @@ public class AdminSystemController : ApiController
     public async Task<IActionResult> GetSystemNodes()
     {
         var result = await _mediator.Send(new GetSystemNodesQuery());
+        return ToActionResult(result);
+    }
+
+    [HttpGet("ncf")]
+    public async Task<IActionResult> GetNcfStatus(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetNcfStatusQuery(), ct);
         return ToActionResult(result);
     }
 
