@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -104,22 +106,28 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
             }
             else
             {
-                try
+                var cacheRow = await _db.UserRecommendationCaches
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.UserId == _currentUser.UserId.Value, cancellationToken);
+
+                if (cacheRow is null)
                 {
-                    var requestCount = 12 + (reviewedDishIds?.Count ?? 0);
-                    var personalized = await _provider.GetPersonalizedAsync(
-                        _currentUser.UserId.Value, requestCount, cancellationToken);
+                    result.FallbackReason = "Rekomendacje są właśnie generowane. Sprawdź ponownie za chwilę.";
+                }
+                else
+                {
+                    var cached = JsonSerializer.Deserialize<List<CachedDishEntry>>(cacheRow.TopDishIdsJson) ?? [];
+                    var unreviewed = reviewedDishIds is null
+                        ? cached
+                        : cached.Where(c => !reviewedDishIds.Contains(c.DishId)).ToList();
 
-                    if (reviewedDishIds is not null)
-                        personalized = personalized.Where(p => !reviewedDishIds.Contains(p.DishId)).Take(12).ToList();
-
-                    if (personalized.Count > 0)
+                    if (unreviewed.Count > 0)
                     {
-                        var personalizedDishIds = personalized.Select(p => p.DishId).ToList();
-                        var scoreMap = personalized.ToDictionary(p => p.DishId, p => p.Score);
+                        var dishIds = unreviewed.Select(c => c.DishId).ToList();
+                        var scoreMap = unreviewed.ToDictionary(c => c.DishId, c => c.Score);
 
                         var dishes = await _db.Dishes.AsNoTracking()
-                            .Where(d => personalizedDishIds.Contains(d.DishId) && d.IsAvailable && d.Restaurant != null)
+                            .Where(d => dishIds.Contains(d.DishId) && d.IsAvailable && d.Restaurant != null)
                             .Select(d => new RecommendedDishDto
                             {
                                 DishId = d.DishId,
@@ -142,10 +150,6 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
                         result.NcfAvailable = true;
                     }
                 }
-                catch (Exception)
-                {
-                    result.FallbackReason = "Wystąpił błąd podczas generowania rekomendacji.";
-                }
             }
         }
         else if (!_provider.IsAvailable)
@@ -155,4 +159,8 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
 
         return result;
     }
+
+    private sealed record CachedDishEntry(
+        [property: JsonPropertyName("dishId")] int DishId,
+        [property: JsonPropertyName("score")] float Score);
 }

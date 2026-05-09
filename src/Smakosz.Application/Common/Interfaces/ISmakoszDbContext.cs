@@ -68,6 +68,7 @@ public interface ISmakoszDbContext : IAsyncDisposable
     DbSet<SiteStats> SiteStats { get; }
     DbSet<HomePageCache> HomePageCaches { get; }
     DbSet<ModerationResult> ModerationResults { get; }
+    DbSet<UserRecommendationCache> UserRecommendationCaches { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

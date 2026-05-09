@@ -64,6 +64,7 @@ public List<FileToDelete> FilesToDelete { get; } = new();
     public List<ModerationResult> ModerationResults { get; } = new();
     public List<PushSubscription> PushSubscriptions { get; } = new();
     public List<HomePageCache> HomePageCaches { get; } = new();
+    public List<UserRecommendationCache> UserRecommendationCaches { get; } = new();
 }
 
 public static class DbContextMockFactory
@@ -158,6 +159,7 @@ WireDbSet(() => sets.FilesToDelete, v => context.FilesToDelete.Returns(v), sets.
         WireDbSet(() => sets.ModerationResults, v => context.ModerationResults.Returns(v), sets.ModerationResults);
         WireDbSet(() => sets.PushSubscriptions, v => context.PushSubscriptions.Returns(v), sets.PushSubscriptions);
         WireDbSet(() => sets.HomePageCaches, v => context.HomePageCaches.Returns(v), sets.HomePageCaches);
+        WireDbSet(() => sets.UserRecommendationCaches, v => context.UserRecommendationCaches.Returns(v), sets.UserRecommendationCaches);
     }
 
     public static void Refresh(ISmakoszDbContext context, MockDbSets sets)

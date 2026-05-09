@@ -161,6 +161,8 @@ public static class DependencyInjection
             return sp.GetRequiredService<TrendingRecommendationService>();
         });
 
+        services.AddScoped<UserRecommendationCacheRegenerationService>();
+
         return services;
     }
 

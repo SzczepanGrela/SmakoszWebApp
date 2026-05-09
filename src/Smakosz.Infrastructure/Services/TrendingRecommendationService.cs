@@ -20,6 +20,8 @@ public class TrendingRecommendationService : IRecommendationProvider
 
     public bool IsAvailable => true;
     public bool IsUserInMapping(int userId) => false;
+    public string GetLoadedVersion() => string.Empty;
+    public IReadOnlyList<int> GetMappedUserIds() => [];
 
     public string? FallbackReason =>
         "Model NCF nie jest jeszcze dostępny. Pokazujemy popularne dania.";

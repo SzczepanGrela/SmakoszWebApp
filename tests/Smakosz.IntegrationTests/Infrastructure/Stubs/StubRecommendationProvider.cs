@@ -6,6 +6,8 @@ public class StubRecommendationProvider : IRecommendationProvider
 {
     public bool IsAvailable => false;
     public bool IsUserInMapping(int userId) => false;
+    public string GetLoadedVersion() => string.Empty;
+    public IReadOnlyList<int> GetMappedUserIds() => [];
 
     public string? FallbackReason => "NCF unavailable in test environment.";
 

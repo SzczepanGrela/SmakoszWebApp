@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
@@ -12,6 +13,7 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
 {
     private readonly OnnxOptions _options;
     private readonly ILogger<OnnxRecommendationService> _logger;
+    private readonly IBackgroundJobClient? _jobClient;
 
     private InferenceSession? _session;
     private Dictionary<int, int>? _userMap;     // userId -> embedding index
@@ -19,13 +21,16 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
     private Dictionary<int, int>? _reverseDishMap; // embedding index -> dishId
     private bool _isAvailable;
     private string? _fallbackReason;
+    private string _loadedVersion = string.Empty;
 
     public OnnxRecommendationService(
         IOptions<OnnxOptions> options,
-        ILogger<OnnxRecommendationService> logger)
+        ILogger<OnnxRecommendationService> logger,
+        IBackgroundJobClient? jobClient = null)
     {
         _options = options.Value;
         _logger = logger;
+        _jobClient = jobClient;
 
         TryLoadModel();
     }
@@ -33,6 +38,8 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
     public bool IsAvailable => _isAvailable;
     public string? FallbackReason => _fallbackReason;
     public bool IsUserInMapping(int userId) => _userMap?.ContainsKey(userId) ?? false;
+    public string GetLoadedVersion() => _loadedVersion;
+    public IReadOnlyList<int> GetMappedUserIds() => _userMap?.Keys.ToList() ?? [];
 
     private void TryLoadModel()
     {
@@ -84,10 +91,12 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
             }
 
             _isAvailable = true;
-            var version = ResolveModelVersion(currentDir);
+            _loadedVersion = ResolveModelVersion(currentDir);
             _logger.LogInformation(
                 "ONNX model loaded: version={Version}, path={Path}, users={Users}, dishes={Dishes}",
-                version, currentDir, _userMap.Count, _dishMap.Count);
+                _loadedVersion, currentDir, _userMap.Count, _dishMap.Count);
+
+            EnqueueCacheRegen(_loadedVersion);
         }
         catch (Exception ex)
         {
@@ -156,6 +165,23 @@ public class OnnxRecommendationService : IRecommendationProvider, IDisposable
 
         using var results = _session!.Run(inputs);
         return results.First().AsEnumerable<float>().First();
+    }
+
+    private void EnqueueCacheRegen(string version)
+    {
+        if (_jobClient is null)
+            return;
+
+        try
+        {
+            _jobClient.Enqueue<UserRecommendationCacheRegenerationService>(
+                x => x.RegenerateAsync(version, CancellationToken.None));
+            _logger.LogInformation("Enqueued recommendation cache regen for version {Version}", version);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to enqueue cache regen for version {Version}", version);
+        }
     }
 
     private static string ResolveModelVersion(string currentDir)

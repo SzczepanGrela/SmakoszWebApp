@@ -135,6 +135,7 @@ public DbSet<FileToDelete> FilesToDelete => Set<FileToDelete>();
     public DbSet<SiteStats> SiteStats => Set<SiteStats>();
     public DbSet<HomePageCache> HomePageCaches => Set<HomePageCache>();
     public DbSet<ModerationResult> ModerationResults => Set<ModerationResult>();
+    public DbSet<UserRecommendationCache> UserRecommendationCaches => Set<UserRecommendationCache>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

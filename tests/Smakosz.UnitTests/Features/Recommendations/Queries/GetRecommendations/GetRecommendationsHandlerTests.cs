@@ -85,16 +85,10 @@ public class GetRecommendationsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProviderAvailable_EnoughReviews_ReturnsPersonalized()
+    public async Task Handle_CacheExists_ReturnsPersonalizedFromCache()
     {
         _provider.IsAvailable.Returns(true);
         _provider.IsUserInMapping(1).Returns(true);
-        _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(new List<(int DishId, float Score)>
-            {
-                (10, 4.5f),
-                (20, 3.8f)
-            });
 
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         _sets.Restaurants.Add(restaurant);
@@ -106,14 +100,13 @@ public class GetRecommendationsHandlerTests
         _sets.Dishes.Add(dish10);
         _sets.Dishes.Add(dish20);
 
-        for (var i = 1; i <= 10; i++)
+        _sets.UserRecommendationCaches.Add(new UserRecommendationCache
         {
-            _sets.Reviews.Add(new ReviewBuilder()
-                .WithId(i)
-                .WithUserId(1)
-                .WithDishId(100 + i)
-                .Build());
-        }
+            UserId = 1,
+            TopDishIdsJson = "[{\"dishId\":10,\"score\":4.5},{\"dishId\":20,\"score\":3.8}]",
+            ModelVersion = "v20260513_000000",
+            GeneratedAt = DateTime.UtcNow
+        });
 
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -121,26 +114,16 @@ public class GetRecommendationsHandlerTests
 
         result.IsError.Should().BeFalse();
         result.Value.NcfAvailable.Should().BeTrue();
-        result.Value.Personalized.Should().NotBeEmpty();
+        result.Value.Personalized.Should().HaveCount(2);
         result.Value.Personalized.Should().AllSatisfy(d => d.Source.Should().Be("ncf"));
+        result.Value.Personalized.First().DishId.Should().Be(10);
     }
 
     [Fact]
-    public async Task Handle_ProviderThrowsException_ReturnsFallbackGracefully()
+    public async Task Handle_CacheEmpty_UserInMapping_FallbackReason()
     {
         _provider.IsAvailable.Returns(true);
         _provider.IsUserInMapping(1).Returns(true);
-        _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns<List<(int DishId, float Score)>>(x => throw new InvalidOperationException("ONNX error"));
-
-        for (var i = 1; i <= 10; i++)
-        {
-            _sets.Reviews.Add(new ReviewBuilder()
-                .WithId(i)
-                .WithUserId(1)
-                .WithDishId(100 + i)
-                .Build());
-        }
 
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -148,6 +131,43 @@ public class GetRecommendationsHandlerTests
 
         result.IsError.Should().BeFalse();
         result.Value.NcfAvailable.Should().BeFalse();
-        result.Value.FallbackReason.Should().Contain("błąd");
+        result.Value.Personalized.Should().BeEmpty();
+        result.Value.FallbackReason.Should().Contain("generowane");
+    }
+
+    [Fact]
+    public async Task Handle_CacheExists_FiltersReviewedDishes()
+    {
+        _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(true);
+
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        _sets.Restaurants.Add(restaurant);
+
+        foreach (var id in new[] { 1, 2, 3, 4, 5 })
+        {
+            var d = new DishBuilder().WithId(id).WithName($"Dish {id}").AsAvailable().Build();
+            d.Restaurant = restaurant;
+            _sets.Dishes.Add(d);
+        }
+
+        _sets.Reviews.Add(new ReviewBuilder().WithId(1).WithUserId(1).WithDishId(2).Build());
+        _sets.Reviews.Add(new ReviewBuilder().WithId(2).WithUserId(1).WithDishId(4).Build());
+
+        _sets.UserRecommendationCaches.Add(new UserRecommendationCache
+        {
+            UserId = 1,
+            TopDishIdsJson = "[{\"dishId\":1,\"score\":4.9},{\"dishId\":2,\"score\":4.8},{\"dishId\":3,\"score\":4.7},{\"dishId\":4,\"score\":4.6},{\"dishId\":5,\"score\":4.5}]",
+            ModelVersion = "v20260513_000000",
+            GeneratedAt = DateTime.UtcNow
+        });
+
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.NcfAvailable.Should().BeTrue();
+        result.Value.Personalized.Select(p => p.DishId).Should().BeEquivalentTo(new[] { 1, 3, 5 });
     }
 }

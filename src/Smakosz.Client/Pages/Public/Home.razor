@@ -56,7 +56,7 @@ else if (_data != null)
         {
             <section class="mb-5">
                 <SectionHeader Title="Polecane dla Ciebie" Icon="fa-solid fa-wand-magic-sparkles text-primary" />
-                <HorizontalCarousel Items="@_recs.Personalized" Context="rec">
+                <HorizontalCarousel Items="@_recs.Personalized.Take(4).ToList()" Context="rec">
                     <a href="/dishes/@(rec.Slug ?? rec.DishId.ToString())" class="card recommended-dish-card text-decoration-none h-100">
                         <img src="@ImageHelper.GetDishImage(rec.ImageUrl)" alt="@rec.Name"
                              class="card-img-top" style="height:160px;object-fit:cover;" loading="lazy" />
