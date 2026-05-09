@@ -465,9 +465,9 @@ def _get_tags_for_dish(
 
     if spiciness < 4:
         spice_tag = "Łagodne"
-    elif spiciness <= 6:
+    elif spiciness <= 7:
         spice_tag = "Średnio ostre"
-    elif spiciness <= 8:
+    elif spiciness <= 9:
         spice_tag = "Ostre"
     else:
         spice_tag = "Bardzo ostre"
@@ -494,7 +494,7 @@ def _get_tags_for_dish(
     if not has_meat and not has_dairy and not has_egg:
         if "Wegańskie" in tag_map:
             tag_ids.add(tag_map["Wegańskie"])
-    elif not has_meat and "Wegetariańskie" in tag_map:
+    if not has_meat and "Wegetariańskie" in tag_map:
         tag_ids.add(tag_map["Wegetariańskie"])
 
     if not has_gluten and "Bezglutenowe" in tag_map:
