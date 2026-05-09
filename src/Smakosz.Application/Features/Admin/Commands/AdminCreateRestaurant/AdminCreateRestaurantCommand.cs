@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Helpers;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Domain.Entities;
 using Smakosz.Domain.Entities.System;
@@ -120,6 +121,28 @@ public class AdminCreateRestaurantHandler : IRequestHandler<AdminCreateRestauran
             ticket.ResolvedByAdminId = _currentUser.UserId;
             ticket.Resolution = $"Restaurant created (name={restaurant.RestaurantName})";
             ticket.UpdatedAt = now;
+
+            if (ticket.RequesterId.HasValue)
+            {
+                var pushSettings = await _db.UserNotificationSettings
+                    .FirstOrDefaultAsync(s => s.UserId == ticket.RequesterId.Value, cancellationToken);
+                var (sendPush, pushStatus) = NotificationPushHelper.Resolve(pushSettings, NotificationType.System);
+
+                _db.Notifications.Add(new Notification
+                {
+                    UserId = ticket.RequesterId.Value,
+                    ActorId = _currentUser.UserId,
+                    Type = NotificationType.System,
+                    Severity = NotificationSeverity.Success,
+                    Title = "Zgłoszenie nowej restauracji zaakceptowane",
+                    Message = $"Twoja propozycja '{restaurant.RestaurantName}' jest aktywna w katalogu.",
+                    SendEmail = false,
+                    EmailStatus = EmailStatus.None,
+                    SendPush = sendPush,
+                    PushStatus = pushStatus,
+                    CreatedAt = now
+                });
+            }
         }
 
         _db.AuditLogs.Add(new AuditLog
