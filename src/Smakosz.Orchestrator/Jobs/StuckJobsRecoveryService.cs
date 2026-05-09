@@ -24,15 +24,34 @@ public class StuckJobsRecoveryService
         _logger = logger;
     }
 
+    private static readonly Dictionary<string, TimeSpan> PerTypeStuckThresholds = new()
+    {
+        ["ncf_training"] = TimeSpan.FromMinutes(30),
+        ["text_moderation"] = TimeSpan.FromMinutes(10),
+        ["image_moderation"] = TimeSpan.FromMinutes(10),
+        ["text_moderation_batch"] = TimeSpan.FromHours(1),
+        ["image_moderation_batch"] = TimeSpan.FromHours(1),
+    };
+
+    private static readonly TimeSpan DefaultStuckThreshold = TimeSpan.FromHours(4);
+
     public async Task RecoverAsync(CancellationToken ct)
     {
         var now = _clock.UtcNow;
 
-        var processingThreshold = now.AddHours(-4);
+        var widestThreshold = now.Subtract(DefaultStuckThreshold);
 
-        var stuckJobs = await _db.SystemJobs
-            .Where(j => j.Status == JobStatus.Processing && j.StartedAt < processingThreshold)
+        var candidates = await _db.SystemJobs
+            .Where(j => j.Status == JobStatus.Processing && j.StartedAt != null)
             .ToListAsync(ct);
+
+        var stuckJobs = candidates
+            .Where(j =>
+            {
+                var threshold = PerTypeStuckThresholds.TryGetValue(j.Type, out var perType) ? perType : DefaultStuckThreshold;
+                return j.StartedAt < now.Subtract(threshold);
+            })
+            .ToList();
 
         foreach (var job in stuckJobs)
         {

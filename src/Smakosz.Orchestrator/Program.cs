@@ -142,7 +142,7 @@ RecurringJob.AddOrUpdate<NotificationCleanupService>(
     "prune-notifications", x => x.PruneAsync(CancellationToken.None), Cron.Daily(3), utc);
 
 RecurringJob.AddOrUpdate<StuckJobsRecoveryService>(
-    "stuck-jobs-recovery", x => x.RecoverAsync(CancellationToken.None), Cron.Hourly, utc);
+    "stuck-jobs-recovery", x => x.RecoverAsync(CancellationToken.None), "*/15 * * * *", utc);
 
 RecurringJob.AddOrUpdate<UserReaperService>(
     "user-reaper", x => x.ReapAsync(CancellationToken.None), Cron.Daily(2), utc);
