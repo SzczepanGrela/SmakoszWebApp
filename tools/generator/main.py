@@ -206,7 +206,7 @@ Examples:
                         start_num = 1
 
                     phase_map = {
-                        1: ["phase1_cities", "phase1_cuisines", "phase1_ingredients", "phase1_tags"],
+                        1: ["phase1_cities", "phase1_cuisines", "phase1_ingredients", "phase1_tags", "phase1_themes", "phase1_hero"],
                         2: ["phase2_restaurants"],
                         3: ["phase3_dishes"],
                         4: ["phase4_users"],

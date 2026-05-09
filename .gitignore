@@ -413,6 +413,7 @@ tools/herbert/training_job.yaml
 
 # One-off maintenance scripts
 tools/r2_maintenance.py
+tools/pg_restore_prod.py
 
 # Performance audit local artifacts
 tools/perf-audit/audit-output/

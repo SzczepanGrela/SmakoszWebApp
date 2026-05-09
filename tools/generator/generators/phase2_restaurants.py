@@ -497,7 +497,7 @@ class RestaurantsPhase(BasePhase):
         return PhaseMetadata(
             phase_id="phase2_restaurants",
             display_name="Restaurants Generation",
-            dependencies=["phase1_cities", "phase1_cuisines", "phase1_tags"],
+            dependencies=["phase1_cities", "phase1_cuisines", "phase1_tags", "phase1_themes"],
             required_tables=["restaurants", "restaurant_opening_hours", "menu_sections"],
             cleanup_tables=["restaurants", "restaurant_opening_hours", "menu_sections", "restaurant_tags"],
             estimated_duration=30,
