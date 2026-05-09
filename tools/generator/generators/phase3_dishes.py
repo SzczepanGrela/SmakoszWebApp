@@ -463,11 +463,11 @@ def _get_tags_for_dish(
     if cuisine_tag and cuisine_tag in tag_map:
         tag_ids.add(tag_map[cuisine_tag])
 
-    if spiciness < 4:
+    if spiciness < 6:
         spice_tag = "Łagodne"
-    elif spiciness <= 7:
+    elif spiciness <= 7.5:
         spice_tag = "Średnio ostre"
-    elif spiciness <= 9:
+    elif spiciness <= 9.5:
         spice_tag = "Ostre"
     else:
         spice_tag = "Bardzo ostre"
