@@ -2,15 +2,16 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
-using Smakosz.Application.Features.Business.Dtos;
+using Smakosz.Application.Features.Reviews.Dtos;
 
 namespace Smakosz.Application.Features.Business.Queries.GetBusinessReviews;
 
-public record GetBusinessReviewsQuery(PaginationParams Pagination) : IRequest<ErrorOr<PagedResult<BusinessReviewDto>>>;
+public record GetBusinessReviewsQuery(PaginationParams Pagination) : IRequest<ErrorOr<PagedResult<ReviewCardDto>>>;
 
-public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery, ErrorOr<PagedResult<BusinessReviewDto>>>
+public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery, ErrorOr<PagedResult<ReviewCardDto>>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
@@ -23,7 +24,7 @@ public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery
         _config = config;
     }
 
-    public async Task<ErrorOr<PagedResult<BusinessReviewDto>>> Handle(
+    public async Task<ErrorOr<PagedResult<ReviewCardDto>>> Handle(
         GetBusinessReviewsQuery request,
         CancellationToken cancellationToken)
     {
@@ -37,44 +38,45 @@ public class GetBusinessReviewsHandler : IRequestHandler<GetBusinessReviewsQuery
         if (restaurant is null)
             return DomainErrors.Restaurant.NotFound;
 
-        var query = _db.Reviews
-            .AsNoTracking()
-            .Where(r => r.RestaurantId == restaurant.RestaurantId && !r.IsDeleted);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var defaultPageSize = _config.GetInt("business.default_page_size", 20);
         var maxPageSize = _config.GetInt("business.max_page_size", 100);
-        var page = Math.Max(1, request.Pagination.Page);
-        var pageSize = Math.Clamp(request.Pagination.PageSize > 0 ? request.Pagination.PageSize : defaultPageSize, 1, maxPageSize);
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-        var reviews = await query
+        var result = await _db.Reviews
+            .AsNoTracking()
+            .Include(r => r.User)
+            .Include(r => r.Dish)
+            .Include(r => r.Restaurant)
+            .Where(r => r.RestaurantId == restaurant.RestaurantId && !r.IsDeleted)
             .OrderByDescending(r => r.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(r => new BusinessReviewDto
+            .Select(r => new ReviewCardDto
             {
-                ReviewId = r.ReviewId,
-                Username = r.User.Username,
-                DishName = r.Dish.DishName,
+                PublicId = r.PublicId,
                 DishRating = r.DishRating,
                 ServiceRating = r.ServiceRating,
+                CleanlinessRating = r.CleanlinessRating,
+                AmbianceRating = r.AmbianceRating,
                 Content = r.Content,
-                CreatedAt = r.CreatedAt
+                ContentStatus = r.ModerationStatus,
+                VisitDate = r.VisitDate,
+                HelpfulCount = r.HelpfulCount,
+                IsHelpfulByMe = false,
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                Author = new UserSummaryDto
+                {
+                    PublicId = r.User.PublicId,
+                    Slug = r.User.Slug ?? string.Empty,
+                    Username = r.User.Username,
+                    AvatarUrl = r.User.AvatarUrl,
+                    AvatarBlurhash = r.User.AvatarBlurhash,
+                    ReviewCount = r.User.ReviewCount
+                },
+                DishName = r.Dish.DishName,
+                DishSlug = r.Dish.Slug ?? string.Empty,
+                RestaurantName = r.Restaurant.RestaurantName,
+                RestaurantSlug = r.Restaurant.Slug ?? string.Empty
             })
-            .ToListAsync(cancellationToken);
+            .ToPagedResultAsync(request.Pagination, maxPageSize, cancellationToken);
 
-        return new PagedResult<BusinessReviewDto>
-        {
-            Data = reviews,
-            Pagination = new PaginationInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = totalPages,
-                TotalCount = totalCount
-            }
-        };
+        return result;
     }
 }

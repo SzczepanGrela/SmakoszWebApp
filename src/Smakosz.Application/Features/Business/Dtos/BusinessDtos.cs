@@ -56,17 +56,6 @@ public class OpeningHoursDto
     public bool IsClosed { get; init; }
 }
 
-public class BusinessReviewDto
-{
-    public int ReviewId { get; set; }
-    public string? Username { get; set; }
-    public string? DishName { get; set; }
-    public int DishRating { get; set; }
-    public int ServiceRating { get; set; }
-    public string? Content { get; set; }
-    public DateTime? CreatedAt { get; set; }
-}
-
 public class BusinessStatsDto
 {
     public int TotalReviews { get; set; }
