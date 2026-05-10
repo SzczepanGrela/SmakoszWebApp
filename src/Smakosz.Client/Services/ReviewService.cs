@@ -17,7 +17,7 @@ public class ReviewService : IReviewService
     public Task<ApiResponse<object>> DeleteAsync(Guid publicId)
         => _api.DeleteApiResponseAsync($"/api/reviews/{publicId}");
 
-    public Task<PagedResult<ReviewCardDto>?> GetByDishAsync(string dishSlug, int page = 1, int pageSize = 10, string sortBy = "newest")
+    public Task<PagedResult<ReviewCardDto>?> GetByDishAsync(string dishSlug, int page = 1, int pageSize = 10, string sortBy = "helpful")
         => _api.GetAsync<PagedResult<ReviewCardDto>>($"/api/dishes/{dishSlug}/reviews?page={page}&pageSize={pageSize}&sortBy={sortBy}");
 
     public Task<PagedResult<ReviewCardDto>?> GetByUserAsync(string userSlug, int page = 1, int pageSize = 10)

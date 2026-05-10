@@ -34,7 +34,7 @@ public class DishesController : ApiController
         string slug,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string sortBy = "newest")
+        [FromQuery] string sortBy = "helpful")
     {
         var query = new GetReviewsByDishQuery(slug, new PaginationParams(page, pageSize), sortBy);
         var result = await _mediator.Send(query);

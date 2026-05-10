@@ -48,11 +48,11 @@ public class GetReviewsByDishHandler
 
         query = request.SortBy.ToLowerInvariant() switch
         {
-            "helpful" => query.OrderByDescending(r => r.HelpfulCount),
+            "newest" => query.OrderByDescending(r => r.CreatedAt),
             "rating_desc" => query.OrderByDescending(r => r.DishRating),
             "rating_asc" => query.OrderBy(r => r.DishRating),
             "oldest" => query.OrderBy(r => r.CreatedAt),
-            _ => query.OrderByDescending(r => r.CreatedAt)
+            _ => query.OrderByDescending(r => r.HelpfulCount).ThenByDescending(r => r.CreatedAt)
         };
 
         var result = await query

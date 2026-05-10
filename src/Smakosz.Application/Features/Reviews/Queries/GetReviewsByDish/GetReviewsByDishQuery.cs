@@ -8,5 +8,5 @@ namespace Smakosz.Application.Features.Reviews.Queries.GetReviewsByDish;
 public record GetReviewsByDishQuery(
     string DishSlug,
     PaginationParams Pagination,
-    string SortBy = "newest"
+    string SortBy = "helpful"
 ) : IRequest<ErrorOr<PagedResult<ReviewCardDto>>>;
