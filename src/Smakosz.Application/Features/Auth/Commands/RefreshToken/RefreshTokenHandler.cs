@@ -11,12 +11,14 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
     private readonly ISmakoszDbContext _db;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ISessionService _sessionService;
+    private readonly IBusinessMetrics _metrics;
 
-    public RefreshTokenHandler(ISmakoszDbContext db, IJwtTokenService jwtTokenService, ISessionService sessionService)
+    public RefreshTokenHandler(ISmakoszDbContext db, IJwtTokenService jwtTokenService, ISessionService sessionService, IBusinessMetrics metrics)
     {
         _db = db;
         _jwtTokenService = jwtTokenService;
         _sessionService = sessionService;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<AuthResultDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -24,18 +26,26 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<
         var session = await _sessionService.FindActiveSessionAsync(request.RefreshToken, cancellationToken);
 
         if (session is null)
+        {
+            _metrics.RecordJwtRefresh("invalid_session");
             return DomainErrors.Auth.InvalidRefreshToken;
+        }
 
         var user = session.User;
 
         if (user.IsDeleted || !user.IsActive || user.IsBanned)
+        {
+            _metrics.RecordJwtRefresh("user_inactive");
             return DomainErrors.Auth.InvalidRefreshToken;
+        }
 
         var rotated = await _sessionService.RotateSessionAsync(session, cancellationToken);
         var accessTtl = await _sessionService.GetAccessTokenLifetimeSecondsAsync(cancellationToken);
         var accessToken = _jwtTokenService.GenerateAccessToken(user, TimeSpan.FromSeconds(accessTtl));
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        _metrics.RecordJwtRefresh("success");
 
         return new AuthResultDto
         {

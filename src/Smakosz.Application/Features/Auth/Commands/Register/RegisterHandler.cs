@@ -55,13 +55,13 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
 
         if (usernameExists)
         {
-            _metrics.RecordRegistration("validation_failed");
+            _metrics.RecordRegistration("username_taken");
             return DomainErrors.Auth.UsernameAlreadyExists;
         }
 
         if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
         {
-            _metrics.RecordRegistration("validation_failed");
+            _metrics.RecordRegistration("username_forbidden");
             return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
         }
 
@@ -90,7 +90,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(cancellationToken);
-            _metrics.RecordRegistration("validation_failed");
+            _metrics.RecordRegistration("identifier_banned");
             return DomainErrors.Auth.IdentifierBanned;
         }
 

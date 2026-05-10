@@ -68,19 +68,22 @@ public class BulkModeratePhotosHandler : IRequestHandler<BulkModeratePhotosComma
     private readonly IPublicConfigProvider _configProvider;
     private readonly IReviewVisibilityRecalculator _visibility;
     private readonly IPrimaryPhotoSyncer _photoSyncer;
+    private readonly IBusinessMetrics _metrics;
 
     public BulkModeratePhotosHandler(
         ISmakoszDbContext db,
         ICurrentUserService currentUser,
         IPublicConfigProvider configProvider,
         IReviewVisibilityRecalculator visibility,
-        IPrimaryPhotoSyncer photoSyncer)
+        IPrimaryPhotoSyncer photoSyncer,
+        IBusinessMetrics metrics)
     {
         _db = db;
         _currentUser = currentUser;
         _configProvider = configProvider;
         _visibility = visibility;
         _photoSyncer = photoSyncer;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<BulkModerateResult>> Handle(BulkModeratePhotosCommand request, CancellationToken cancellationToken)
@@ -159,6 +162,10 @@ public class BulkModeratePhotosHandler : IRequestHandler<BulkModeratePhotosComma
                     await _visibility.EvaluateAsync(asset.EntityId, cancellationToken);
                 await _photoSyncer.SyncToEntityAsync(asset.AssetId, cancellationToken);
             }
+
+            var verdict = request.Approve ? "approved" : "rejected";
+            for (var i = 0; i < success.Count; i++)
+                _metrics.RecordModerationDecision("photo", verdict);
         }
 
         return new BulkModerateResult(success, failed);

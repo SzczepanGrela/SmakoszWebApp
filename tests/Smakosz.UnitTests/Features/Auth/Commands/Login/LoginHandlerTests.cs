@@ -22,6 +22,7 @@ public class LoginHandlerTests
     private readonly IValidationConfigProvider _config;
     private readonly IVerificationCodeService _verificationCodeService;
     private readonly IEmailService _emailService;
+    private readonly IBusinessMetrics _metrics;
     private readonly LoginHandler _handler;
 
     public LoginHandlerTests()
@@ -49,7 +50,8 @@ public class LoginHandlerTests
         _config.GetInt("auth.priv_ip_ban_window_min", 15).Returns(15);
         _config.GetInt("auth.priv_ip_ban_hours", 1).Returns(1);
 
-        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService, Substitute.For<IBusinessMetrics>(), Substitute.For<ISecurityNotificationService>());
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new LoginHandler(_db, _passwordHasher, _jwtTokenService, _sessionService, _currentUser, _turnstile, _config, _verificationCodeService, _emailService, _metrics, Substitute.For<ISecurityNotificationService>());
     }
 
     [Fact]
@@ -118,7 +120,7 @@ public class LoginHandlerTests
     }
 
     [Fact]
-    public async Task Handle_InactiveUser_ReturnsAccountInactive()
+    public async Task Handle_InactiveUser_ReturnsAccountInactiveAndRecordsMetric()
     {
         var user = new UserBuilder().WithEmail("user@example.com").AsInactive().Build();
         _sets.Users.Add(user);
@@ -129,6 +131,7 @@ public class LoginHandlerTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("AUTH_ACCOUNT_INACTIVE");
+        _metrics.Received(1).RecordLogin("account_inactive");
     }
 
     [Fact]

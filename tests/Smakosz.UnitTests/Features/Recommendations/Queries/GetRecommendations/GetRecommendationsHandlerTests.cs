@@ -15,6 +15,7 @@ public class GetRecommendationsHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly IRecommendationProvider _provider;
+    private readonly IBusinessMetrics _metrics;
     private readonly GetRecommendationsHandler _handler;
 
     public GetRecommendationsHandlerTests()
@@ -24,7 +25,8 @@ public class GetRecommendationsHandlerTests
         _provider = Substitute.For<IRecommendationProvider>();
         _provider.IsAvailable.Returns(false);
         _provider.FallbackReason.Returns("Model NCF nie jest jeszcze dostępny.");
-        _handler = new GetRecommendationsHandler(_db, _currentUser, _provider);
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new GetRecommendationsHandler(_db, _currentUser, _provider, _metrics);
     }
 
     [Fact]

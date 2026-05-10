@@ -72,6 +72,9 @@ jobs:
               - 'src/Smakosz.Infrastructure/**'
               - 'Smakosz.slnx'
               - 'docker-compose.yml'
+              - 'infra/grafana/**'
+              - 'infra/prometheus/**'
+              - 'infra/scripts/deploy.sh'
               - '.github/workflows/ci-cd.yml'
             client:
               - 'src/Smakosz.Client/**'
@@ -161,8 +164,8 @@ jobs:
       - name: Pytest
         run: pytest tests/
 
-  test-smakosz:
-    name: Test Smakosz
+  test-smakosz-unit:
+    name: Test Smakosz Unit
     needs: [changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
@@ -170,19 +173,6 @@ jobs:
       (needs.changes.outputs.client == 'true') ||
       (needs.changes.outputs.orchestrator == 'true')
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          - name: Unit
-            path: tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj
-            env: Production
-          - name: Client
-            path: tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj
-            env: Production
-          - name: Integration
-            path: tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj
-            env: Testing
     steps:
       - uses: actions/checkout@v4
 
@@ -204,10 +194,80 @@ jobs:
       - name: Build
         run: dotnet build Smakosz.slnx --no-restore -c Release
 
-      - name: ${{ matrix.project.name }} Tests
-        run: dotnet test ${{ matrix.project.path }} --no-build -c Release
+      - name: Unit Tests
+        run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
         env:
-          ASPNETCORE_ENVIRONMENT: ${{ matrix.project.env }}
+          ASPNETCORE_ENVIRONMENT: Production
+
+  test-smakosz-client:
+    name: Test Smakosz Client
+    needs: [changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (needs.changes.outputs.api == 'true') ||
+      (needs.changes.outputs.client == 'true') ||
+      (needs.changes.outputs.orchestrator == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Client Tests
+        run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+
+  test-smakosz-integration:
+    name: Test Smakosz Integration
+    needs: [changes]
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (needs.changes.outputs.api == 'true') ||
+      (needs.changes.outputs.client == 'true') ||
+      (needs.changes.outputs.orchestrator == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Integration Tests
+        run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
 
   build-rbpi-gateway:
     name: Build & Push RBPI Gateway
@@ -295,7 +355,7 @@ jobs:
 
   build-api:
     name: Build & Push API
-    needs: [test-smakosz, changes]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.api == 'true')
@@ -334,7 +394,7 @@ jobs:
 
   build-client:
     name: Build & Push Client
-    needs: [test-smakosz, changes]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.client == 'true')
@@ -373,7 +433,7 @@ jobs:
 
   build-orchestrator:
     name: Build & Push Orchestrator
-    needs: [test-smakosz, changes]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration, changes]
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.orchestrator == 'true')

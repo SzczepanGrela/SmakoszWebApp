@@ -17,6 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/in
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/aspnetcore.json -o infra/grafana/dashboards/aspnetcore.json
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/business.json -o infra/grafana/dashboards/business.json
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/node.json -o infra/grafana/dashboards/node.json
+curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/dashboards/security.json -o infra/grafana/dashboards/security.json
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/contact-points.yml -o infra/grafana/provisioning/alerting/contact-points.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/policies.yml -o infra/grafana/provisioning/alerting/policies.yml
 curl -fsSL https://raw.githubusercontent.com/SzczepanGrela/SmakoszWebApp/main/infra/grafana/provisioning/alerting/rules.yml -o infra/grafana/provisioning/alerting/rules.yml

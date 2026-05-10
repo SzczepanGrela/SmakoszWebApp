@@ -15,6 +15,7 @@ public class RefreshTokenHandlerTests
     private readonly MockDbSets _sets;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ISessionService _sessionService;
+    private readonly IBusinessMetrics _metrics;
     private readonly RefreshTokenHandler _handler;
 
     public RefreshTokenHandlerTests()
@@ -22,13 +23,14 @@ public class RefreshTokenHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _jwtTokenService = Substitute.For<IJwtTokenService>();
         _sessionService = Substitute.For<ISessionService>();
+        _metrics = Substitute.For<IBusinessMetrics>();
 
         _jwtTokenService.GenerateAccessToken(Arg.Any<User>(), Arg.Any<TimeSpan>()).Returns("new_access_token");
         _sessionService.RotateSessionAsync(Arg.Any<UserSession>(), Arg.Any<CancellationToken>())
             .Returns(new SessionTokenResult("new_refresh_token", DateTime.UtcNow.AddDays(7)));
         _sessionService.GetAccessTokenLifetimeSecondsAsync(Arg.Any<CancellationToken>()).Returns(900);
 
-        _handler = new RefreshTokenHandler(_db, _jwtTokenService, _sessionService);
+        _handler = new RefreshTokenHandler(_db, _jwtTokenService, _sessionService, _metrics);
     }
 
     [Fact]

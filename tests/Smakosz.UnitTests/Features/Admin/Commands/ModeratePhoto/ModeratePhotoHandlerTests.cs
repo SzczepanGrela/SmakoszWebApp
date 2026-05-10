@@ -17,6 +17,7 @@ public class ModeratePhotoHandlerTests
     private readonly ICurrentUserService _currentUser;
     private readonly IReviewVisibilityRecalculator _visibility;
     private readonly IPrimaryPhotoSyncer _photoSyncer;
+    private readonly IBusinessMetrics _metrics;
     private readonly ModeratePhotoHandler _handler;
 
     public ModeratePhotoHandlerTests()
@@ -25,7 +26,8 @@ public class ModeratePhotoHandlerTests
         _currentUser = MockExtensions.CreateAdminUser();
         _visibility = Substitute.For<IReviewVisibilityRecalculator>();
         _photoSyncer = Substitute.For<IPrimaryPhotoSyncer>();
-        _handler = new ModeratePhotoHandler(_db, _currentUser, _visibility, _photoSyncer);
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new ModeratePhotoHandler(_db, _currentUser, _visibility, _photoSyncer, _metrics);
     }
 
     private void SeedReasons()
@@ -178,7 +180,7 @@ public class ModeratePhotoHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new ModeratePhotoHandler(_db, nonAdmin, _visibility, _photoSyncer);
+        var handler = new ModeratePhotoHandler(_db, nonAdmin, _visibility, _photoSyncer, _metrics);
 
         var result = await handler.Handle(
             new ModeratePhotoCommand(Guid.NewGuid(), true, null, null),

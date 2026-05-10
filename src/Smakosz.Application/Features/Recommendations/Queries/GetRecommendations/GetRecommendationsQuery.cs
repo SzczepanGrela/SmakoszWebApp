@@ -35,15 +35,18 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IRecommendationProvider _provider;
+    private readonly IBusinessMetrics _metrics;
 
     public GetRecommendationsHandler(
         ISmakoszDbContext db,
         ICurrentUserService currentUser,
-        IRecommendationProvider provider)
+        IRecommendationProvider provider,
+        IBusinessMetrics metrics)
     {
         _db = db;
         _currentUser = currentUser;
         _provider = provider;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<RecommendationsDto>> Handle(GetRecommendationsQuery request, CancellationToken cancellationToken)
@@ -98,11 +101,13 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
             if (ncfEnabled == "false")
             {
                 result.FallbackReason = "System rekomendacji jest tymczasowo wyłączony.";
+                _metrics.RecordRecommendationCacheLookup("ncf_disabled");
             }
             else if (!_provider.IsUserInMapping(_currentUser.UserId.Value))
             {
                 result.IsNewcomer = true;
                 result.FallbackReason = "Wystawiłeś za mało recenzji. Wystaw więcej i spróbuj ponownie jutro.";
+                _metrics.RecordRecommendationCacheLookup("newcomer");
             }
             else
             {
@@ -113,6 +118,7 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
                 if (cacheRow is null)
                 {
                     result.FallbackReason = "Rekomendacje są właśnie generowane. Sprawdź ponownie za chwilę.";
+                    _metrics.RecordRecommendationCacheLookup("cold");
                 }
                 else
                 {
@@ -148,6 +154,11 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
 
                         result.Personalized = dishes.OrderByDescending(d => d.Score).ToList();
                         result.NcfAvailable = true;
+                        _metrics.RecordRecommendationCacheLookup("hit");
+                    }
+                    else
+                    {
+                        _metrics.RecordRecommendationCacheLookup("empty_after_filter");
                     }
                 }
             }
@@ -155,6 +166,11 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
         else if (!_provider.IsAvailable)
         {
             result.FallbackReason = _provider.FallbackReason;
+            _metrics.RecordRecommendationCacheLookup("provider_unavailable");
+        }
+        else
+        {
+            _metrics.RecordRecommendationCacheLookup("anonymous");
         }
 
         return result;

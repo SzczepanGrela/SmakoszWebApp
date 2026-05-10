@@ -45,12 +45,14 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IReviewVisibilityRecalculator _visibility;
+    private readonly IBusinessMetrics _metrics;
 
-    public ModerateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IReviewVisibilityRecalculator visibility)
+    public ModerateReviewHandler(ISmakoszDbContext db, ICurrentUserService currentUser, IReviewVisibilityRecalculator visibility, IBusinessMetrics metrics)
     {
         _db = db;
         _currentUser = currentUser;
         _visibility = visibility;
+        _metrics = metrics;
     }
 
     public async Task<ErrorOr<Success>> Handle(ModerateReviewCommand request, CancellationToken cancellationToken)
@@ -152,6 +154,8 @@ public class ModerateReviewHandler : IRequestHandler<ModerateReviewCommand, Erro
         await _db.SaveChangesAsync(cancellationToken);
 
         await _visibility.EvaluateAsync(review.ReviewId, cancellationToken);
+
+        _metrics.RecordModerationDecision("review", request.Approve ? "approved" : "rejected");
 
         return Result.Success;
     }

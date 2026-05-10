@@ -382,8 +382,16 @@
             "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
           },
           {
-            "matcher": { "id": "byName", "options": "validation_failed" },
+            "matcher": { "id": "byName", "options": "username_taken" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "light-orange", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "username_forbidden" },
             "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "identifier_banned" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } }]
           },
           {
             "matcher": { "id": "byName", "options": "captcha_failed" },

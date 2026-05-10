@@ -182,7 +182,10 @@ public class LoginHandler : IRequestHandler<LoginCommand, ErrorOr<AuthResultDto>
         user.LockedUntilUtc = null;
 
         if (!user.IsActive)
+        {
+            _metrics.RecordLogin("account_inactive");
             return DomainErrors.Auth.AccountInactive;
+        }
 
         if (user.IsBanned)
         {

@@ -18,6 +18,7 @@ public class RegisterHandlerTests
     private readonly IEmailService _emailService;
     private readonly IForbiddenWordService _forbiddenWords;
     private readonly ITurnstileService _turnstile;
+    private readonly IBusinessMetrics _metrics;
     private readonly RegisterHandler _handler;
 
     public RegisterHandlerTests()
@@ -36,7 +37,8 @@ public class RegisterHandlerTests
         _turnstile.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(true);
         _turnstile.VerifyAsync(string.Empty, Arg.Any<CancellationToken>()).Returns(false);
 
-        _handler = new RegisterHandler(_db, _passwordHasher, _verificationCodeService, _currentUser, _emailService, _forbiddenWords, _turnstile, Substitute.For<IBusinessMetrics>());
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new RegisterHandler(_db, _passwordHasher, _verificationCodeService, _currentUser, _emailService, _forbiddenWords, _turnstile, _metrics);
     }
 
     [Fact]
@@ -86,7 +88,7 @@ public class RegisterHandlerTests
     }
 
     [Fact]
-    public async Task Handle_UsernameAlreadyExists_ReturnsError()
+    public async Task Handle_UsernameAlreadyExists_ReturnsErrorAndRecordsUsernameTakenOutcome()
     {
         _sets.Users.Add(new UserBuilder().WithUsername("existinguser").Build());
         DbContextMockFactory.Refresh(_db, _sets);
@@ -96,6 +98,8 @@ public class RegisterHandlerTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("AUTH_USERNAME_EXISTS");
+        _metrics.Received(1).RecordRegistration("username_taken");
+        _metrics.DidNotReceive().RecordRegistration("validation_failed");
     }
 
     [Fact]

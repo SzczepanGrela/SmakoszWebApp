@@ -16,6 +16,7 @@ public class ModerateReviewHandlerTests
     private readonly MockDbSets _sets;
     private readonly ICurrentUserService _currentUser;
     private readonly IReviewVisibilityRecalculator _visibility;
+    private readonly IBusinessMetrics _metrics;
     private readonly ModerateReviewHandler _handler;
 
     public ModerateReviewHandlerTests()
@@ -23,7 +24,8 @@ public class ModerateReviewHandlerTests
         (_db, _sets) = DbContextMockFactory.Create();
         _currentUser = MockExtensions.CreateAdminUser();
         _visibility = Substitute.For<IReviewVisibilityRecalculator>();
-        _handler = new ModerateReviewHandler(_db, _currentUser, _visibility);
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new ModerateReviewHandler(_db, _currentUser, _visibility, _metrics);
     }
 
     private void SeedReasons()
@@ -218,7 +220,7 @@ public class ModerateReviewHandlerTests
     public async Task Handle_NonAdmin_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 1, role: "User");
-        var handler = new ModerateReviewHandler(_db, nonAdmin, _visibility);
+        var handler = new ModerateReviewHandler(_db, nonAdmin, _visibility, _metrics);
 
         var result = await handler.Handle(
             new ModerateReviewCommand(Guid.NewGuid(), true, null, null),

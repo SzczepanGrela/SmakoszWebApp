@@ -19,6 +19,7 @@ public class BulkModeratePhotosHandlerTests
     private readonly IPublicConfigProvider _configProvider;
     private readonly IReviewVisibilityRecalculator _visibility;
     private readonly IPrimaryPhotoSyncer _photoSyncer;
+    private readonly IBusinessMetrics _metrics;
     private readonly BulkModeratePhotosHandler _handler;
 
     public BulkModeratePhotosHandlerTests()
@@ -30,7 +31,8 @@ public class BulkModeratePhotosHandlerTests
             .Returns(50);
         _visibility = Substitute.For<IReviewVisibilityRecalculator>();
         _photoSyncer = Substitute.For<IPrimaryPhotoSyncer>();
-        _handler = new BulkModeratePhotosHandler(_db, _currentUser, _configProvider, _visibility, _photoSyncer);
+        _metrics = Substitute.For<IBusinessMetrics>();
+        _handler = new BulkModeratePhotosHandler(_db, _currentUser, _configProvider, _visibility, _photoSyncer, _metrics);
     }
 
     private void SeedReason(string code = "photo_nudity")
@@ -182,7 +184,7 @@ public class BulkModeratePhotosHandlerTests
     public async Task Handle_NonAdminAndNonModerator_ReturnsForbidden()
     {
         var nonAdmin = MockExtensions.CreateAuthenticatedUser(userId: 5, role: "User");
-        var handler = new BulkModeratePhotosHandler(_db, nonAdmin, _configProvider, _visibility, _photoSyncer);
+        var handler = new BulkModeratePhotosHandler(_db, nonAdmin, _configProvider, _visibility, _photoSyncer, _metrics);
 
         var result = await handler.Handle(
             new BulkModeratePhotosCommand(new[] { Guid.NewGuid() }, true, null, null),
@@ -196,7 +198,7 @@ public class BulkModeratePhotosHandlerTests
     public async Task Handle_ModeratorRole_Allowed()
     {
         var moderator = MockExtensions.CreateAuthenticatedUser(userId: 7, role: "Moderator");
-        var handler = new BulkModeratePhotosHandler(_db, moderator, _configProvider, _visibility, _photoSyncer);
+        var handler = new BulkModeratePhotosHandler(_db, moderator, _configProvider, _visibility, _photoSyncer, _metrics);
         var a1 = SeedPendingAsset(1, uploaderId: 10);
         DbContextMockFactory.Refresh(_db, _sets);
 
