@@ -11,6 +11,7 @@ class EvaluationDAO:
         rows = db.fetch_all(
             """
             SELECT u.user_id,
+                   u.username,
                    u.secret_characteristics_vector,
                    u.secret_rating_baseline,
                    u.secret_preferred_ambiance,
@@ -32,11 +33,12 @@ class EvaluationDAO:
             users.append(
                 {
                     "user_id": r[0],
-                    "secret_characteristics_vector": safe_json_loads(r[1]),
-                    "secret_rating_baseline": float(r[2]) if r[2] is not None else 6.0,
-                    "secret_preferred_ambiance": r[3] or "Casual",
-                    "secret_cleanliness_preference": safe_json_loads(r[4]),
-                    "secret_ingredient_preferences": safe_json_loads(r[5]),
+                    "username": r[1],
+                    "secret_characteristics_vector": safe_json_loads(r[2]),
+                    "secret_rating_baseline": float(r[3]) if r[3] is not None else 6.0,
+                    "secret_preferred_ambiance": r[4] or "Casual",
+                    "secret_cleanliness_preference": safe_json_loads(r[5]),
+                    "secret_ingredient_preferences": safe_json_loads(r[6]),
                 }
             )
         return users

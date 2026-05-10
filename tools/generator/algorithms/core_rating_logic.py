@@ -8,8 +8,8 @@ from .preference_calculator import calculate_affinity
 
 logger = logging.getLogger(__name__)
 
-def get_review_rng(user_id: int, dish_id: int) -> _random.Random:
-    seed_str = f"review_{user_id}_{dish_id}"
+def get_review_rng(username: str, variant_name: str) -> _random.Random:
+    seed_str = f"review_{username}_{variant_name}"
     seed_int = int.from_bytes(hashlib.md5(seed_str.encode()).digest()[:8], "little")
     return _random.Random(seed_int)
 

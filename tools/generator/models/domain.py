@@ -6,6 +6,7 @@ from datetime import datetime
 @dataclass(slots=True)
 class UserForReview:
     user_id: int
+    username: str
     city_id: int
     secret_total_review_count: int
     travel_propensity: float

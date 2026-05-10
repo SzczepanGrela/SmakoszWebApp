@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 NOISE_STDEV = 0.03
 
-def _get_deterministic_rng(user_id: int, dish_name: str, variant_name: str) -> random.Random:
-    seed_str = f"{user_id}_{dish_name}_{variant_name}"
+def _get_deterministic_rng(username: str, variant_name: str) -> random.Random:
+    seed_str = f"{username}_{variant_name}"
     hash_bytes = hashlib.md5(seed_str.encode("utf-8")).digest()
     seed_int = int.from_bytes(hash_bytes[:8], "little")
     return random.Random(seed_int)
@@ -22,8 +22,7 @@ def _get_deterministic_rng(user_id: int, dish_name: str, variant_name: str) -> r
 def get_contextual_preferences(
     vectors_data: dict[str, Any], user: dict, dish: dict, variant_name: str, archetype: str
 ) -> dict[str, float]:
-    user_id = user.get("user_id", 0)
-    dish_name = dish.get("dish_name", variant_name)
+    username = str(user.get("username") or user.get("user_id", ""))
 
     blueprint = vectors_data.get(archetype, {})
     archetype_base = blueprint.get("archetype_base", {})
@@ -57,7 +56,7 @@ def get_contextual_preferences(
     if not target_vector:
         target_vector = dict.fromkeys(DIMENSIONS, 0.5)
 
-    rng = _get_deterministic_rng(user_id, dish_name, variant_name)
+    rng = _get_deterministic_rng(username, variant_name)
 
     for dim in list(target_vector.keys()):
         noise = rng.gauss(0, NOISE_STDEV)

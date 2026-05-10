@@ -26,7 +26,7 @@ class UserDAO:
     @staticmethod
     def get_all_users_for_reviews(db: DatabaseConnection) -> list[UserForReview]:
         rows = db.fetch_all("""
-            SELECT user_id, secret_home_city_id, secret_total_review_count, secret_travel_propensity,
+            SELECT user_id, username, secret_home_city_id, secret_total_review_count, secret_travel_propensity,
                    secret_enjoyed_archetypes, secret_ingredient_preferences,
                    secret_cleanliness_preference, secret_preferred_ambiance,
                    secret_mood_propensity, secret_cross_impact_factor,
@@ -38,29 +38,30 @@ class UserDAO:
         """)
         result = []
         for u in rows:
-            join_date = u[12]
+            join_date = u[13]
             if join_date and hasattr(join_date, "replace"):
                 join_date = join_date.replace(tzinfo=None)
 
-            pref_vector = safe_json_loads(u[13], {})
+            pref_vector = safe_json_loads(u[14], {})
 
             result.append(
                 UserForReview(
                     user_id=u[0],
-                    city_id=u[1],
-                    secret_total_review_count=u[2],
-                    travel_propensity=u[3],
-                    secret_enjoyed_archetypes=safe_json_loads(u[4], {}),
-                    secret_ingredient_preferences=safe_json_loads(u[5], {}),
-                    secret_cleanliness_preference=safe_json_loads(u[6], {}),
-                    secret_preferred_ambiance=u[7],
-                    secret_mood_propensity=u[8],
-                    secret_cross_impact_factor=u[9],
-                    secret_chance_dine_random=u[10] if u[10] is not None else 0.1,
-                    secret_chance_pick_random_dish=u[11] if u[11] is not None else 0.05,
+                    username=u[1],
+                    city_id=u[2],
+                    secret_total_review_count=u[3],
+                    travel_propensity=u[4],
+                    secret_enjoyed_archetypes=safe_json_loads(u[5], {}),
+                    secret_ingredient_preferences=safe_json_loads(u[6], {}),
+                    secret_cleanliness_preference=safe_json_loads(u[7], {}),
+                    secret_preferred_ambiance=u[8],
+                    secret_mood_propensity=u[9],
+                    secret_cross_impact_factor=u[10],
+                    secret_chance_dine_random=u[11] if u[11] is not None else 0.1,
+                    secret_chance_pick_random_dish=u[12] if u[12] is not None else 0.05,
                     join_date=join_date,
                     secret_characteristics_vector=pref_vector,
-                    secret_rating_baseline=u[14] if len(u) > 14 else 6.0,
+                    secret_rating_baseline=u[15] if len(u) > 15 else 6.0,
                     secret_spice_preference=pref_vector.get("flavor_spiciness", 0.5),
                     secret_richness_preference=pref_vector.get("physics_richness", 0.5),
                     secret_texture_preference=pref_vector.get("texture_crispy", 0.5),

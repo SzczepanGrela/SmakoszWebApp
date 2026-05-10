@@ -239,9 +239,9 @@ def calculate_review_ratings(
 ) -> dict[str, float]:
     sw = _get_scoring_weights()
 
-    user_id = int(user_data.get("user_id", 0))
-    dish_id = int(dish.get("dish_id", 0))
-    rng = get_review_rng(user_id, dish_id)
+    username = str(user_data.get("username") or user_data.get("user_id", ""))
+    variant_name = str(dish.get("secret_variant_name") or dish.get("dish_name", ""))
+    rng = get_review_rng(username, variant_name)
 
     components = {}
     for name, fn in COMPONENT_FUNCTIONS.items():
