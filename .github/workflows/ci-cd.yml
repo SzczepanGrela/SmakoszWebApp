@@ -61,10 +61,8 @@ jobs:
               - 'tools/rbpi-gateway/**'
               - 'infra/rbpi/**'
               - 'infra/scripts/deploy-rbpi.sh'
-              - '.github/workflows/ci-cd.yml'
             gpu-worker:
               - 'gpu-worker/**'
-              - '.github/workflows/ci-cd.yml'
             api:
               - 'src/Smakosz.API/**'
               - 'src/Smakosz.Application/**'
