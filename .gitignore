@@ -404,9 +404,6 @@ gpu-worker/model_cache/
 # Windows nul artifact
 /nul
 
-# All markdown files (documentation kept local-only)
-*.md
-docs/
 .vscode/settings.json
 tools/generator/data/dataset_stats.json
 
