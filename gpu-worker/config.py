@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     api_url: str = "http://localhost:5000"
     api_key: str = ""
-    worker_id: str = "gpu-worker"
+    worker_id: str = "gpu-homelab"
 
     poll_interval_idle: int = 5
     poll_interval_busy: int = 1

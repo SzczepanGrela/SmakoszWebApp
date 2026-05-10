@@ -1,9 +1,9 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
-using Smakosz.Domain.Entities.System;
-using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Worker.Commands.SendHeartbeat;
 
@@ -11,11 +11,13 @@ public class SendHeartbeatHandler : IRequestHandler<SendHeartbeatCommand, ErrorO
 {
     private readonly ISmakoszDbContext _db;
     private readonly IDateTimeProvider _clock;
+    private readonly ILogger<SendHeartbeatHandler> _logger;
 
-    public SendHeartbeatHandler(ISmakoszDbContext db, IDateTimeProvider clock)
+    public SendHeartbeatHandler(ISmakoszDbContext db, IDateTimeProvider clock, ILogger<SendHeartbeatHandler> logger)
     {
         _db = db;
         _clock = clock;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<Success>> Handle(SendHeartbeatCommand request, CancellationToken cancellationToken)
@@ -25,13 +27,8 @@ public class SendHeartbeatHandler : IRequestHandler<SendHeartbeatCommand, ErrorO
 
         if (node is null)
         {
-            node = new SystemNode
-            {
-                NodeId = request.NodeId,
-                NodeType = NodeType.Gpu,
-                Role = NodeRole.Worker
-            };
-            _db.SystemNodes.Add(node);
+            _logger.LogWarning("Heartbeat received for unknown node {NodeId}", request.NodeId);
+            return DomainErrors.Node.NotFound;
         }
 
         node.Status = "online";
