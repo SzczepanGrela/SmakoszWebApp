@@ -59,7 +59,7 @@ public class RegisterHandler : IRequestHandler<RegisterCommand, ErrorOr<Success>
             return DomainErrors.Auth.UsernameAlreadyExists;
         }
 
-        if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
+        if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
         {
             _metrics.RecordRegistration("username_forbidden");
             return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;

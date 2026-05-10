@@ -25,9 +25,10 @@ public class GetMyReviewsHandlerTests
     [Fact]
     public async Task Handle_ReturnsMyReviews()
     {
+        var user = new UserBuilder().WithId(1).WithUsername("me").Build();
         var restaurant = new RestaurantBuilder().WithId(1).Build();
         var dish = new DishBuilder().WithId(1).WithRestaurant(restaurant).Build();
-        var review = new ReviewBuilder().WithId(1).WithUserId(1).WithDishId(1).WithRestaurantId(1)
+        var review = new ReviewBuilder().WithId(1).WithUser(user).WithDishId(1).WithRestaurantId(1)
             .WithDish(dish).WithRestaurant(restaurant).Build();
         _sets.Reviews.Add(review);
         DbContextMockFactory.Refresh(_db, _sets);
@@ -37,6 +38,11 @@ public class GetMyReviewsHandlerTests
 
         result.IsError.Should().BeFalse();
         result.Value.Data.Should().HaveCount(1);
+        result.Value.Data[0].DishRating.Should().Be(8);
+        result.Value.Data[0].ServiceRating.Should().Be(7);
+        result.Value.Data[0].CleanlinessRating.Should().Be(8);
+        result.Value.Data[0].AmbianceRating.Should().Be(7);
+        result.Value.Data[0].Author.Username.Should().Be("me");
     }
 
     [Fact]

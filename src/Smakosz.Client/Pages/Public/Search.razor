@@ -438,6 +438,7 @@
         _page = page;
         await LoadResults();
         UpdateUrl();
+        await Task.Yield();
         await ScrollService.ScrollToElementAsync("search-results-anchor");
     }
 

@@ -15,11 +15,11 @@
 <EditForm Model="_model" OnValidSubmit="HandleLogin">
     <div class="mb-3">
         <label class="form-label">Email</label>
-        <input type="email" class="form-control" @bind="_model.Email" required />
+        <input type="email" class="form-control" @bind="_model.Email" required autocomplete="username" />
     </div>
     <div class="mb-3">
         <label class="form-label">Hasło</label>
-        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" />
+        <Smakosz.Client.Components.PasswordInput Value="@_model.Password" ValueChanged="v => _model.Password = v" Autocomplete="current-password" />
     </div>
     <div class="form-check mb-3">
         <input class="form-check-input" type="checkbox" @bind="_model.RememberMe" />

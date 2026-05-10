@@ -1,11 +1,12 @@
 @inject Smakosz.Client.Services.IAuthService AuthService
+@inject Smakosz.Client.Services.IUserProfileService UserProfileService
 @inject NavigationManager Navigation
 
 <AuthorizeView>
     <Authorized>
         <div class="dropdown">
             <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
-                <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(null, context.User.Identity?.Name)"
+                <img src="@Smakosz.Client.Helpers.ImageHelper.GetAvatarUrl(_avatarUrl, context.User.Identity?.Name)"
                      class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" alt="" />
                 <span>@context.User.Identity?.Name</span>
             </button>
@@ -39,6 +40,20 @@
 </AuthorizeView>
 
 @code {
+    private string? _avatarUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var profile = await UserProfileService.GetMyProfileAsync();
+            _avatarUrl = profile?.AvatarUrl;
+        }
+        catch
+        {
+        }
+    }
+
     private async Task Logout()
     {
         await AuthService.LogoutAsync();

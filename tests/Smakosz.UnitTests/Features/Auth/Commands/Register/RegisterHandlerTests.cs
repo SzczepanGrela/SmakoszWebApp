@@ -103,6 +103,23 @@ public class RegisterHandlerTests
     }
 
     [Fact]
+    public async Task Handle_UsernameContainsProfanity_ReturnsForbiddenWordError()
+    {
+        _forbiddenWords.ContainsAsync(
+                "kurwa123",
+                Arg.Any<CancellationToken>(),
+                Arg.Is<Domain.Enums.ForbiddenWordCategory[]>(c => c.Contains(Domain.Enums.ForbiddenWordCategory.Profanity)))
+            .Returns(true);
+        var command = new RegisterCommand("kurwa123", "new@example.com", "Password123", "valid-token");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("FORBIDDEN_WORD_USERNAME");
+        _metrics.Received(1).RecordRegistration("username_forbidden");
+    }
+
+    [Fact]
     public async Task Handle_ValidCommand_HashesPasswordWithPasswordHasher()
     {
         var command = new RegisterCommand("newuser", "new@example.com", "Password123", "valid-token");

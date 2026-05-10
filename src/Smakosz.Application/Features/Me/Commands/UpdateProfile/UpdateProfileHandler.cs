@@ -34,7 +34,7 @@ public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, ErrorO
 
         if (request.Username is not null)
         {
-            if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
+            if (await _forbiddenWords.ContainsAsync(request.Username, cancellationToken, ForbiddenWordCategory.Profanity, ForbiddenWordCategory.Reserved, ForbiddenWordCategory.Offensive))
                 return DomainErrors.ForbiddenWord.UsernameContainsForbiddenWord;
 
             var slugCandidate = request.Username.ToLowerInvariant().Replace(" ", "-");

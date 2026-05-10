@@ -2,15 +2,16 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Smakosz.Application.Common.Errors;
+using Smakosz.Application.Common.Extensions;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
-using Smakosz.Application.Features.Me.Dtos;
+using Smakosz.Application.Features.Reviews.Dtos;
 
 namespace Smakosz.Application.Features.Me.Queries.GetMyReviews;
 
-public record GetMyReviewsQuery(PaginationParams Pagination) : IRequest<ErrorOr<PagedResult<MyReviewDto>>>;
+public record GetMyReviewsQuery(PaginationParams Pagination) : IRequest<ErrorOr<PagedResult<ReviewCardDto>>>;
 
-public class GetMyReviewsHandler : IRequestHandler<GetMyReviewsQuery, ErrorOr<PagedResult<MyReviewDto>>>
+public class GetMyReviewsHandler : IRequestHandler<GetMyReviewsQuery, ErrorOr<PagedResult<ReviewCardDto>>>
 {
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
@@ -21,46 +22,55 @@ public class GetMyReviewsHandler : IRequestHandler<GetMyReviewsQuery, ErrorOr<Pa
         _currentUser = currentUser;
     }
 
-    public async Task<ErrorOr<PagedResult<MyReviewDto>>> Handle(GetMyReviewsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<PagedResult<ReviewCardDto>>> Handle(GetMyReviewsQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUser.UserId.HasValue)
             return DomainErrors.Auth.InvalidCredentials;
 
         var userId = _currentUser.UserId.Value;
 
-        var query = _db.Reviews
-            .AsNoTracking()
-            .Where(r => r.UserId == userId && !r.IsDeleted);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
-            .OrderByDescending(r => r.CreatedAt)
-            .Skip((request.Pagination.Page - 1) * request.Pagination.PageSize)
-            .Take(request.Pagination.PageSize)
-            .Select(r => new MyReviewDto
-            {
-                ReviewId = r.ReviewId,
-                DishName = r.Dish.DishName,
-                DishSlug = r.Dish.Slug,
-                RestaurantName = r.Restaurant.RestaurantName,
-                RestaurantSlug = r.Restaurant.Slug,
-                DishRating = r.DishRating,
-                Content = r.Content,
-                CreatedAt = r.CreatedAt
-            })
+        var likedReviewIds = await _db.ReviewLikes
+            .Where(l => l.UserId == userId)
+            .Select(l => l.ReviewId)
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<MyReviewDto>
-        {
-            Data = items,
-            Pagination = new PaginationInfo
+        var result = await _db.Reviews
+            .AsNoTracking()
+            .Include(r => r.User)
+            .Include(r => r.Dish)
+            .Include(r => r.Restaurant)
+            .Where(r => r.UserId == userId && !r.IsDeleted)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ReviewCardDto
             {
-                Page = request.Pagination.Page,
-                PageSize = request.Pagination.PageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)request.Pagination.PageSize)
-            }
-        };
+                PublicId = r.PublicId,
+                DishRating = r.DishRating,
+                ServiceRating = r.ServiceRating,
+                CleanlinessRating = r.CleanlinessRating,
+                AmbianceRating = r.AmbianceRating,
+                Content = r.Content,
+                ContentStatus = r.ModerationStatus,
+                VisitDate = r.VisitDate,
+                HelpfulCount = r.HelpfulCount,
+                IsHelpfulByMe = likedReviewIds.Contains(r.ReviewId),
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                Author = new UserSummaryDto
+                {
+                    PublicId = r.User.PublicId,
+                    Slug = r.User.Slug ?? string.Empty,
+                    Username = r.User.Username,
+                    AvatarUrl = r.User.AvatarUrl,
+                    AvatarBlurhash = r.User.AvatarBlurhash,
+                    ReviewCount = r.User.ReviewCount
+                },
+                DishName = r.Dish.DishName,
+                DishSlug = r.Dish.Slug ?? string.Empty,
+                RestaurantName = r.Restaurant.RestaurantName,
+                RestaurantSlug = r.Restaurant.Slug ?? string.Empty
+            })
+            .ToPagedResultAsync(request.Pagination, cancellationToken);
+
+        return result;
     }
 }

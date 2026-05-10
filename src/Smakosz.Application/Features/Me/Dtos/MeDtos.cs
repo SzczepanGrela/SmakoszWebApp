@@ -76,14 +76,3 @@ public class FollowUserDto
     public DateTime CreatedAt { get; set; }
 }
 
-public class MyReviewDto
-{
-    public int ReviewId { get; set; }
-    public string? DishName { get; set; }
-    public string? DishSlug { get; set; }
-    public string? RestaurantName { get; set; }
-    public string? RestaurantSlug { get; set; }
-    public int DishRating { get; set; }
-    public string? Content { get; set; }
-    public DateTime? CreatedAt { get; set; }
-}
