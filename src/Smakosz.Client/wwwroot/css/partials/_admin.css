@@ -1,0 +1,273 @@
+/* === ADMIN === */
+
+/* Admin sidebar */
+.admin-sidebar {
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    background-color: var(--secondary-color);
+}
+
+.admin-sidebar .nav-link {
+    color: var(--text-color);
+    padding: 12px 16px;
+    border-radius: 0;
+    border-bottom: 1px solid var(--primary-color);
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+/* Business sidebar */
+.business-sidebar {
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    background: linear-gradient(180deg, var(--secondary-color), var(--card-bg));
+    border-right: 1px solid var(--primary-color);
+}
+
+.business-sidebar .nav-link {
+    color: var(--text-color);
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.3);
+    transition: all 0.2s ease;
+}
+
+.business-sidebar .nav-link:hover {
+    background-color: var(--hover-color);
+}
+
+.business-sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+/* Data table */
+.data-table {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.data-table th {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: none;
+}
+
+.data-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+/* Admin stat card (base definition) */
+.admin-stat-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    transition: transform 0.2s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Node status strip */
+.node-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.node-pill-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 220px;
+    z-index: 1050;
+}
+
+/* Admin content overflow guards */
+.admin-content {
+    overflow: hidden;
+    min-width: 0;
+}
+
+.admin-content > * {
+    min-width: 0;
+}
+
+.admin-stat-card,
+.data-table {
+    overflow-x: auto;
+}
+
+/* Admin Dashboard */
+.dashboard-title {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.75rem;
+    margin-bottom: 32px;
+}
+
+.dashboard-section-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #6B5435;
+    margin: 0 0 18px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ead9bf;
+}
+.dashboard-section-label:not(:first-of-type) {
+    margin-top: 40px;
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: 1px;
+    background: #e8dbc3;
+    border: 1px solid #e8dbc3;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.dashboard-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+.dashboard-grid.cols-5-flex {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.dashboard-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: contents;
+}
+
+/* Admin stat card (extended definition — overrides base) */
+.admin-stat-card {
+    background: #fefcf6;
+    padding: 28px 28px;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: background 0.15s;
+}
+.admin-stat-card.is-clickable {
+    cursor: pointer;
+}
+.admin-stat-card.is-clickable:hover {
+    background: #fbf3e1;
+}
+
+.admin-stat-card .stat-label {
+    font-size: 12px;
+    color: #8B6F47;
+    margin-bottom: 12px;
+}
+.admin-stat-card .stat-num {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--text-color);
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+.admin-stat-card .stat-num.is-attention {
+    color: #B8543C;
+}
+
+.admin-stat-card .stat-context {
+    font-size: 11px;
+    color: #aa8e60;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid.cols-3,
+    .dashboard-grid.cols-5-flex {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 480px) {
+    .dashboard-grid.cols-3,
+    .dashboard-grid.cols-5-flex {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Progress cell + admin utils */
+.progress-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.progress-sm {
+    height: 6px;
+}
+
+.progress-cell-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.progress-cell-msg {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-link-sm {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.btn-link-sm:hover {
+    text-decoration: underline;
+}
+
+.error-log-pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    max-height: 400px;
+    overflow: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Responsive: admin sidebar static on tablet */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        position: static;
+        height: auto;
+    }
+}

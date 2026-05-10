@@ -421,3 +421,6 @@ tools/pg_restore_prod.py
 # Performance audit local artifacts
 tools/perf-audit/audit-output/
 tools/perf-audit/tmp/
+
+# Generated bundled CSS (built from wwwroot/css/partials/_*.css via MSBuild ConcatCss target)
+src/Smakosz.Client/wwwroot/css/app.css

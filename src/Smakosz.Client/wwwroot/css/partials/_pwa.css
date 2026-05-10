@@ -1,0 +1,26 @@
+/* === PWA === */
+
+.pwa-update-btn {
+    background: linear-gradient(45deg, #D4A574, #B8860B);
+    border: none;
+    color: #FFFFFF;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    min-height: 44px;
+    box-shadow: 0 2px 6px rgba(184, 134, 11, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.pwa-update-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(184, 134, 11, 0.4);
+    filter: brightness(1.05);
+}
+
+.pwa-update-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(184, 134, 11, 0.3);
+}

@@ -32,4 +32,28 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <ItemGroup>
+    <CssPartials Include="wwwroot/css/partials/_base.css" />
+    <CssPartials Include="wwwroot/css/partials/_layout.css" />
+    <CssPartials Include="wwwroot/css/partials/_pages.css" />
+    <CssPartials Include="wwwroot/css/partials/_components.css" />
+    <CssPartials Include="wwwroot/css/partials/_forms.css" />
+    <CssPartials Include="wwwroot/css/partials/_admin.css" />
+    <CssPartials Include="wwwroot/css/partials/_pwa.css" />
+    <Watch Include="@(CssPartials)" />
+  </ItemGroup>
+
+  <Target Name="ConcatCss" BeforeTargets="BeforeBuild" Inputs="@(CssPartials)" Outputs="wwwroot/css/app.css">
+    <ReadLinesFromFile File="%(CssPartials.Identity)">
+      <Output TaskParameter="Lines" ItemName="AllCssLines" />
+    </ReadLinesFromFile>
+
+    <WriteLinesToFile File="wwwroot/css/app.css"
+                      Lines="@(AllCssLines)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <Message Text="ConcatCss: regenerated wwwroot/css/app.css from $(MSBuildProjectName) partials" Importance="high" />
+  </Target>
+
 </Project>
