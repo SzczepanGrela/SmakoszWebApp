@@ -162,21 +162,6 @@ public class SearchHandlerTests
         result.Value.Dishes[0].IsGlutenFree.Should().BeTrue();
     }
 
-    [Fact(Skip = "EF.Functions.Collate is server-only and throws when MockQueryable forces client evaluation. The pl-PL-x-icu collation behavior is covered by SearchHandlerRegressionTests.Sort_Restaurants_NameAsc_OrdersAlphabeticallyByPolishCollation in the integration tests.")]
-    public async Task Handle_SortByNameAsc_ReturnsSorted()
-    {
-        var r1 = new RestaurantBuilder().WithId(1).WithName("Zebra").Build();
-        var r2 = new RestaurantBuilder().WithId(2).WithName("Amber").Build();
-        _sets.Restaurants.AddRange(new[] { r1, r2 });
-        DbContextMockFactory.Refresh(_db, _sets);
-        var query = new AppSearch.SearchQuery(_defaultPagination, Type: "restaurants", SortBy: "name", SortDir: "asc");
-
-        var result = await _handler.Handle(query, CancellationToken.None);
-
-        result.Value.Restaurants[0].RestaurantName.Should().Be("Amber");
-        result.Value.Restaurants[1].RestaurantName.Should().Be("Zebra");
-    }
-
     [Fact]
     public async Task Handle_SortByPriceAsc_ReturnsSorted()
     {
