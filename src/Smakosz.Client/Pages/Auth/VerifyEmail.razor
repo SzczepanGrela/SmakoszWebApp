@@ -2,6 +2,7 @@
 @layout Smakosz.Client.Layout.AuthLayout
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 <PageTitle>Weryfikacja email - Smakosz</PageTitle>
 
@@ -63,6 +64,7 @@
         if (result.Success)
         {
             _success = true;
+            try { await Js.InvokeVoidAsync("localStorage.setItem", "push-prompt.pending", "1"); } catch { }
             await Task.Delay(1500);
             Navigation.NavigateTo("/login", forceLoad: true);
         }

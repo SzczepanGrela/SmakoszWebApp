@@ -77,7 +77,7 @@
             + '<strong><i class="fa-solid fa-mobile-screen-button me-2"></i>Zainstaluj aplikacje</strong>'
             + '<button id="pwa-install-close" style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;padding:0 0.25rem;">&times;</button></div>'
             + '<div style="padding:1rem;color:#4A3428;">'
-            + '<p style="margin:0 0 0.75rem;">Dodaj Smakosz do ekranu glownego, by korzystac szybciej i offline.</p>'
+            + '<p style="margin:0 0 0.75rem;">Dodaj Smakosz do ekranu glownego.</p>'
             + '<button id="pwa-install-btn" class="pwa-update-btn">Zainstaluj</button></div>';
         document.body.appendChild(t);
 
