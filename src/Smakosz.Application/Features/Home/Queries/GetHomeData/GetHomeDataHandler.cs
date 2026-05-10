@@ -129,7 +129,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 CityName = r.City != null ? r.City.CityName : null,
                 PriceLevel = r.PriceLevel,
                 AvgFoodScore = r.AvgFoodScore,
-                ReviewCount = 0,
+                ReviewCount = ctx.Reviews.Count(rv => rv.RestaurantId == r.RestaurantId && !rv.IsDeleted),
                 ImageUrl = r.ImageUrl,
                 ImageBlurhash = r.ImageBlurhash,
                 IsFavorite = false
@@ -299,7 +299,7 @@ public class GetHomeDataHandler : IRequestHandler<GetHomeDataQuery, ErrorOr<Home
                 CityName = r.City != null ? r.City.CityName : null,
                 PriceLevel = r.PriceLevel,
                 AvgFoodScore = r.AvgFoodScore,
-                ReviewCount = 0,
+                ReviewCount = ctx.Reviews.Count(rv => rv.RestaurantId == r.RestaurantId && !rv.IsDeleted),
                 ImageUrl = r.ImageUrl,
                 ImageBlurhash = r.ImageBlurhash,
                 IsFavorite = false
