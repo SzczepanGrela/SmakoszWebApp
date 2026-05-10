@@ -95,4 +95,66 @@ public class BusinessMetricsTests
         output.Should().Contain("app_moderation_queue_depth{kind=\"photo\"} 5");
         output.Should().Contain("app_moderation_queue_depth{kind=\"report\"} 0");
     }
+
+    [Fact]
+    public async Task Constructor_PreInitializesAllKnownLabels_ExposesZeroValuedSeries()
+    {
+        var registry = Prometheus.Metrics.NewCustomRegistry();
+        _ = new BusinessMetrics(Prometheus.Metrics.WithCustomRegistry(registry));
+
+        var output = await CollectAsync(registry);
+
+        var registrationOutcomes = new[]
+        {
+            "success", "email_taken", "username_taken", "username_forbidden",
+            "identifier_banned", "captcha_failed"
+        };
+        foreach (var outcome in registrationOutcomes)
+            output.Should().Contain($"app_registrations_total{{outcome=\"{outcome}\"}} 0");
+
+        var loginOutcomes = new[]
+        {
+            "success", "wrong_password", "account_locked", "account_inactive",
+            "email_not_verified", "2fa_required", "captcha_failed"
+        };
+        foreach (var outcome in loginOutcomes)
+            output.Should().Contain($"app_logins_total{{outcome=\"{outcome}\"}} 0");
+
+        foreach (var outcome in new[] { "success", "invalid_session", "user_inactive" })
+            output.Should().Contain($"app_jwt_refresh_total{{outcome=\"{outcome}\"}} 0");
+
+        var recommendationOutcomes = new[]
+        {
+            "hit", "anonymous", "provider_unavailable", "ncf_disabled",
+            "newcomer", "cold", "empty_after_filter"
+        };
+        foreach (var outcome in recommendationOutcomes)
+            output.Should().Contain($"app_recommendation_cache_lookups_total{{outcome=\"{outcome}\"}} 0");
+
+        var moderationLabels = new[]
+        {
+            ("review", "approved"), ("review", "rejected"),
+            ("photo", "approved"), ("photo", "rejected")
+        };
+        foreach (var (kind, verdict) in moderationLabels)
+            output.Should().Contain($"app_moderation_decisions_total{{kind=\"{kind}\",verdict=\"{verdict}\"}} 0");
+
+        var photoTargets = new[] { "restaurant", "dish", "review", "user", "hero", "other" };
+        foreach (var target in photoTargets)
+            output.Should().Contain($"app_photo_uploads_total{{target=\"{target}\"}} 0");
+    }
+
+    [Fact]
+    public async Task RecordRegistration_AfterPreInit_IncrementsFromZeroBaseline()
+    {
+        var registry = Prometheus.Metrics.NewCustomRegistry();
+        var sut = new BusinessMetrics(Prometheus.Metrics.WithCustomRegistry(registry));
+
+        sut.RecordRegistration("username_forbidden");
+
+        var output = await CollectAsync(registry);
+        output.Should().Contain("app_registrations_total{outcome=\"username_forbidden\"} 1");
+        output.Should().Contain("app_registrations_total{outcome=\"success\"} 0");
+        output.Should().Contain("app_registrations_total{outcome=\"identifier_banned\"} 0");
+    }
 }

@@ -135,6 +135,8 @@ app.MapHangfireDashboard("/hangfire", new DashboardOptions
 
 var utc = new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc };
 
+RecurringJob.RemoveIfExists("site-stats");
+
 RecurringJob.AddOrUpdate<SessionCleanupService>(
     "session-cleanup", x => x.CleanupAsync(CancellationToken.None), Cron.Hourly, utc);
 
