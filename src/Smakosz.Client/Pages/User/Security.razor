@@ -191,7 +191,13 @@
                                             Wygasa: @session.ExpiresAt.ToString("dd.MM.yyyy HH:mm")
                                         </small>
                                     </div>
-                                    @if (!session.IsCurrent)
+                                    @if (session.IsCurrent)
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="LogoutCurrentSession">
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i>Wyloguj
+                                        </button>
+                                    }
+                                    else
                                     {
                                         <button class="btn btn-outline-danger btn-sm" @onclick="() => RevokeSession(session.SessionId)">
                                             <i class="fa-solid fa-right-from-bracket me-1"></i>Wyloguj
@@ -437,6 +443,13 @@
         {
             Toast.ShowError("Nie udało się wylogować sesji.");
         }
+    }
+
+    private async Task LogoutCurrentSession()
+    {
+        await AuthService.LogoutAsync();
+        Toast.ShowSuccess("Wylogowano.");
+        Navigation.NavigateTo("/");
     }
 
     private async Task HandleEnable2fa()
