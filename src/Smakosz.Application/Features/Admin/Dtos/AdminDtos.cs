@@ -153,6 +153,7 @@ public class AdminModerationLogDto
     public int? ProcessedBy { get; init; }
     public string? ProcessedByUsername { get; init; }
     public string? AiScores { get; init; }
+    public string? ContentFullText { get; init; }
     public DateTime? CreatedAt { get; init; }
 }
 

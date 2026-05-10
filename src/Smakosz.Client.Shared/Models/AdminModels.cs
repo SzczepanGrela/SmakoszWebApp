@@ -416,6 +416,7 @@ public class AdminModerationLogDto
     public int? ProcessedBy { get; set; }
     public string? ProcessedByUsername { get; set; }
     public string? AiScores { get; set; }
+    public string? ContentFullText { get; set; }
     public DateTime? CreatedAt { get; set; }
 }
 

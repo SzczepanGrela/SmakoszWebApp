@@ -48,6 +48,7 @@ else
                     <th style="width:160px;">Czas</th>
                     <th style="width:90px;">Actor</th>
                     <th style="width:180px;">Encja</th>
+                    <th style="width:160px;">Treść</th>
                     <th style="width:110px;">Verdict</th>
                     <th>Powody</th>
                     <th style="width:140px;">Moderator</th>
@@ -61,6 +62,24 @@ else
                         <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
                         <td><span class="badge @ActorBadge(log.Actor)">@log.Actor</span></td>
                         <td><EntityLink EntityType="@log.EntityType" EntityId="@log.EntityId" /></td>
+                        <td>
+                            @if (log.EntityType == "Review" && !string.IsNullOrWhiteSpace(log.ContentFullText))
+                            {
+                                <button type="button" class="btn-link-sm" @onclick="() => ShowText(log)" title="@log.ContentFullText">
+                                    <i class="fa-solid fa-quote-right me-1"></i>@TruncatePreview(log.ContentFullText, 40)
+                                </button>
+                            }
+                            else if (log.EntityType == "Photo" && !string.IsNullOrWhiteSpace(log.ContentFullText))
+                            {
+                                <button type="button" class="btn-link-sm" @onclick="() => ShowImage(log)">
+                                    <i class="fa-solid fa-image me-1"></i>Podgląd
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
                         <td><span class="badge @VerdictBadge(log.Verdict)">@log.Verdict</span></td>
                         <td>
                             @foreach (var reason in log.ReasonCodes)
@@ -99,6 +118,47 @@ else
     }
 }
 
+@if (_textLog is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseModals">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Treść recenzji #@_textLog.EntityId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh; overflow-y:auto;">
+                    <pre style="white-space: pre-wrap; word-break: break-word; font-family: inherit; margin: 0;">@_textLog.ContentFullText</pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModals">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_imageLog is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseModals">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Zdjęcie #@_imageLog.EntityId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="@_imageLog.ContentFullText" alt="Moderowane zdjęcie" style="max-width:100%; max-height:75vh;" />
+                </div>
+                <div class="modal-footer">
+                    <a href="@_imageLog.ContentFullText" target="_blank" class="btn btn-outline-primary">Otwórz oryginał</a>
+                    <button class="btn btn-secondary" @onclick="CloseModals">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private static readonly string[] EntityTypes =
         { "Photo", "Review", "EditRequest", "User", "Report", "Ticket", "Restaurant", "Dish", "MenuSection" };
@@ -107,6 +167,18 @@ else
     private string? _actorFilter;
     private string _entityTypeFilter = string.Empty;
     private bool _loading = true;
+    private AdminModerationLogDto? _textLog;
+    private AdminModerationLogDto? _imageLog;
+
+    private void ShowText(AdminModerationLogDto log) => _textLog = log;
+    private void ShowImage(AdminModerationLogDto log) => _imageLog = log;
+    private void CloseModals() { _textLog = null; _imageLog = null; }
+
+    private static string TruncatePreview(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
 
     protected override async Task OnInitializedAsync() => await LoadPage(1);
 

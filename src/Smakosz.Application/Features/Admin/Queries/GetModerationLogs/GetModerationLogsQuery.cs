@@ -60,6 +60,11 @@ public class GetModerationLogsHandler : IRequestHandler<GetModerationLogsQuery, 
                 ProcessedBy = l.ProcessedBy,
                 ProcessedByUsername = l.ProcessedByUser != null ? l.ProcessedByUser.Username : null,
                 AiScores = l.AiScores,
+                ContentFullText = l.EntityType == ModerationEntityType.Review
+                    ? _db.Reviews.Where(r => r.ReviewId == l.EntityId).Select(r => r.Content).FirstOrDefault()
+                    : l.EntityType == ModerationEntityType.Photo
+                        ? _db.MediaAssets.Where(m => m.AssetId == (long)l.EntityId).Select(m => m.Url).FirstOrDefault()
+                        : null,
                 CreatedAt = l.CreatedAt
             })
             .ToListAsync(cancellationToken);
