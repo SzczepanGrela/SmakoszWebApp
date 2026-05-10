@@ -126,7 +126,7 @@ else
                                 </ul>
                                 <button class="btn @(dish.IsAvailable ? "btn-outline-secondary" : "btn-outline-success")"
                                         @onclick="() => ToggleAvailability(dish)" disabled="@_actionInProgress">
-                                    @(dish.IsAvailable ? "Wyłącz" : "Włącz")
+                                    @(dish.IsAvailable ? "Ukryj" : "Opublikuj")
                                 </button>
                                 <button class="btn btn-outline-danger" @onclick="() => ConfirmDelete(dish)" disabled="@_actionInProgress">Usuń</button>
                             </div>
@@ -259,7 +259,7 @@ else
         if (success)
         {
             dish.IsAvailable = newValue;
-            Toast.ShowSuccess(newValue ? "Danie dostepne." : "Danie ukryte.");
+            Toast.ShowSuccess(newValue ? "Danie opublikowane." : "Danie ukryte.");
         }
         else
         {

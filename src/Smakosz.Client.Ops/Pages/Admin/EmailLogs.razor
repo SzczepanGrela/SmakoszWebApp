@@ -14,7 +14,7 @@
         <div class="small text-muted mb-1">Status</div>
         <div class="btn-group btn-group-sm">
             <button class="btn @(_statusFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByStatus(null)">Wszystkie</button>
-            <button class="btn @(_statusFilter == "sent" ? "btn-success" : "btn-outline-success")" @onclick='() => FilterByStatus("sent")'>Sent</button>
+            <button class="btn @(_statusFilter == "sent" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByStatus("sent")'>Sent</button>
             <button class="btn @(_statusFilter == "failed" ? "btn-danger" : "btn-outline-danger")" @onclick='() => FilterByStatus("failed")'>Failed</button>
             <button class="btn @(_statusFilter == "pending" ? "btn-warning" : "btn-outline-warning")" @onclick='() => FilterByStatus("pending")'>Pending</button>
         </div>
