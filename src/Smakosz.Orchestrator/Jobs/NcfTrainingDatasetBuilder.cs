@@ -13,6 +13,8 @@ public interface INcfTrainingDatasetBuilder
 
 public class NcfTrainingDatasetBuilder : INcfTrainingDatasetBuilder
 {
+    private const int MinReviewsPerUserForTraining = 5;
+
     private readonly ISmakoszDbContext _db;
     private readonly IDateTimeProvider _clock;
 
@@ -32,10 +34,18 @@ public class NcfTrainingDatasetBuilder : INcfTrainingDatasetBuilder
             query = query.Where(r => r.CreatedAt >= since);
         }
 
-        return await query
+        var filteredReviews = query
             .Where(r => r.IsVisible
                 && !r.IsDeleted
-                && r.ModerationStatus != ContentModerationStatus.Rejected)
+                && r.ModerationStatus != ContentModerationStatus.Rejected);
+
+        var qualifyingUserIds = filteredReviews
+            .GroupBy(r => r.UserId)
+            .Where(g => g.Select(r => r.DishId).Distinct().Count() >= MinReviewsPerUserForTraining)
+            .Select(g => g.Key);
+
+        return await filteredReviews
+            .Where(r => qualifyingUserIds.Contains(r.UserId))
             .Join(_db.Users.Where(u => !u.IsDeleted),
                 r => r.UserId, u => u.UserId,
                 (r, _) => new NcfTrainingSample(r.UserId, r.DishId, r.DishRating))

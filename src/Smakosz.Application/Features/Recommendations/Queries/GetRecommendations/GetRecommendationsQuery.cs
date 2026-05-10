@@ -35,6 +35,7 @@ public class RecommendedDishDto
 public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery, ErrorOr<RecommendationsDto>>
 {
     private const int CacheSize = 12;
+    private const int MinReviewsForPersonalization = 5;
 
     private readonly ISmakoszDbContext _db;
     private readonly ICurrentUserService _currentUser;
@@ -124,11 +125,12 @@ public class GetRecommendationsHandler : IRequestHandler<GetRecommendationsQuery
         }
 
         var userId = _currentUser.UserId.Value;
+        var userReviewCount = reviewedDishIds?.Count ?? 0;
 
-        if (!_provider.IsUserInMapping(userId))
+        if (userReviewCount < MinReviewsForPersonalization || !_provider.IsUserInMapping(userId))
         {
             result.IsNewcomer = true;
-            result.FallbackReason = "Wystawiłeś za mało recenzji. Wystaw więcej i spróbuj ponownie jutro.";
+            result.FallbackReason = $"Wystaw co najmniej {MinReviewsForPersonalization} recenzji aby dostać spersonalizowane rekomendacje.";
             _metrics.RecordRecommendationCacheLookup("newcomer");
             return result;
         }

@@ -71,16 +71,35 @@ public class NcfTrainingDatasetBuilderTests : IDisposable
     }
 
     [Fact]
-    public async Task VisibleApprovedReview_IsIncluded()
+    public async Task VisibleApprovedReviews_AreIncluded_WhenUserHasFiveOrMore()
     {
         SeedUser(1);
         SeedReview(1, userId: 1, dishId: 10, rating: 5);
+        SeedReview(2, userId: 1, dishId: 11, rating: 4);
+        SeedReview(3, userId: 1, dishId: 12, rating: 3);
+        SeedReview(4, userId: 1, dishId: 13, rating: 5);
+        SeedReview(5, userId: 1, dishId: 14, rating: 4);
         await _db.SaveChangesAsync();
 
         var result = await _builder.FetchSamplesAsync(0, CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].Should().BeEquivalentTo(new NcfTrainingSample(1, 10, 5));
+        result.Should().HaveCount(5);
+        result.Select(s => s.DishId).Should().BeEquivalentTo(new[] { 10, 11, 12, 13, 14 });
+    }
+
+    [Fact]
+    public async Task UserWithFewerThanFiveReviews_IsFiltered()
+    {
+        SeedUser(1);
+        SeedReview(1, userId: 1, dishId: 10, rating: 5);
+        SeedReview(2, userId: 1, dishId: 11, rating: 4);
+        SeedReview(3, userId: 1, dishId: 12, rating: 3);
+        SeedReview(4, userId: 1, dishId: 13, rating: 5);
+        await _db.SaveChangesAsync();
+
+        var result = await _builder.FetchSamplesAsync(0, CancellationToken.None);
+
+        result.Should().BeEmpty();
     }
 
     [Fact]
@@ -135,11 +154,13 @@ public class NcfTrainingDatasetBuilderTests : IDisposable
         SeedReview(2, 1, 11, 4, moderationStatus: ContentModerationStatus.NeedsReview);
         SeedReview(3, 1, 12, 3, moderationStatus: ContentModerationStatus.Approved);
         SeedReview(4, 1, 13, 2, moderationStatus: ContentModerationStatus.Rejected);
+        SeedReview(5, 1, 14, 5, moderationStatus: ContentModerationStatus.Approved);
+        SeedReview(6, 1, 15, 4, moderationStatus: ContentModerationStatus.Approved);
         await _db.SaveChangesAsync();
 
         var result = await _builder.FetchSamplesAsync(0, CancellationToken.None);
-        result.Should().HaveCount(3);
-        result.Select(s => s.DishId).Should().BeEquivalentTo(new[] { 10, 11, 12 });
+        result.Should().HaveCount(5);
+        result.Select(s => s.DishId).Should().BeEquivalentTo(new[] { 10, 11, 12, 14, 15 });
     }
 
     [Fact]
@@ -148,22 +169,30 @@ public class NcfTrainingDatasetBuilderTests : IDisposable
         SeedUser(1);
         SeedReview(1, 1, 10, 5, createdAt: _now.AddDays(-365));
         SeedReview(2, 1, 11, 4, createdAt: _now);
+        SeedReview(3, 1, 12, 5, createdAt: _now.AddDays(-200));
+        SeedReview(4, 1, 13, 3, createdAt: _now.AddDays(-30));
+        SeedReview(5, 1, 14, 4, createdAt: _now.AddDays(-5));
         await _db.SaveChangesAsync();
 
         var result = await _builder.FetchSamplesAsync(reviewWindowDays: 0, CancellationToken.None);
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(5);
     }
 
     [Fact]
-    public async Task ReviewWindowDays30_FiltersOlderReviews()
+    public async Task ReviewWindowDays30_FiltersOlderReviewsBeforeQualifyingUser()
     {
         SeedUser(1);
         SeedReview(1, 1, 10, 5, createdAt: _now.AddDays(-60));
         SeedReview(2, 1, 11, 4, createdAt: _now.AddDays(-10));
+        SeedReview(3, 1, 12, 3, createdAt: _now.AddDays(-9));
+        SeedReview(4, 1, 13, 5, createdAt: _now.AddDays(-8));
+        SeedReview(5, 1, 14, 4, createdAt: _now.AddDays(-7));
+        SeedReview(6, 1, 15, 3, createdAt: _now.AddDays(-6));
         await _db.SaveChangesAsync();
 
         var result = await _builder.FetchSamplesAsync(reviewWindowDays: 30, CancellationToken.None);
-        result.Should().HaveCount(1);
-        result[0].DishId.Should().Be(11);
+        result.Should().HaveCount(5);
+        result.Select(s => s.DishId).Should().NotContain(10);
+        result.Select(s => s.DishId).Should().BeEquivalentTo(new[] { 11, 12, 13, 14, 15 });
     }
 }

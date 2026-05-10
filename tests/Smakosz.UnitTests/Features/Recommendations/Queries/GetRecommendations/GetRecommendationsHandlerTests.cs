@@ -110,6 +110,8 @@ public class GetRecommendationsHandlerTests
         _sets.Dishes.Add(dish10);
         _sets.Dishes.Add(dish20);
 
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104]);
+
         _sets.UserRecommendationCaches.Add(new UserRecommendationCache
         {
             UserId = 1,
@@ -152,6 +154,8 @@ public class GetRecommendationsHandlerTests
         _sets.Dishes.Add(dish10);
         _sets.Dishes.Add(dish20);
 
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104]);
+
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
@@ -187,6 +191,8 @@ public class GetRecommendationsHandlerTests
             GeneratedAt = DateTime.UtcNow.AddDays(-7)
         });
 
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104]);
+
         DbContextMockFactory.Refresh(_db, _sets);
 
         var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
@@ -206,6 +212,8 @@ public class GetRecommendationsHandlerTests
         _provider.IsUserInMapping(1).Returns(true);
         _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns<Task<List<(int DishId, float Score)>>>(_ => throw new InvalidOperationException("onnx failed"));
+
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104]);
 
         DbContextMockFactory.Refresh(_db, _sets);
 
@@ -236,6 +244,9 @@ public class GetRecommendationsHandlerTests
 
         _sets.Reviews.Add(new ReviewBuilder().WithId(1).WithUserId(1).WithDishId(2).Build());
         _sets.Reviews.Add(new ReviewBuilder().WithId(2).WithUserId(1).WithDishId(4).Build());
+        _sets.Reviews.Add(new ReviewBuilder().WithId(3).WithUserId(1).WithDishId(100).Build());
+        _sets.Reviews.Add(new ReviewBuilder().WithId(4).WithUserId(1).WithDishId(101).Build());
+        _sets.Reviews.Add(new ReviewBuilder().WithId(5).WithUserId(1).WithDishId(102).Build());
 
         _sets.UserRecommendationCaches.Add(new UserRecommendationCache
         {
@@ -252,5 +263,84 @@ public class GetRecommendationsHandlerTests
         result.IsError.Should().BeFalse();
         result.Value.NcfAvailable.Should().BeTrue();
         result.Value.Personalized.Select(p => p.DishId).Should().BeEquivalentTo(new[] { 1, 3, 5 });
+    }
+
+    [Fact]
+    public async Task Handle_UserHasLessThan5Reviews_ReturnsNewcomerEvenIfInMapping()
+    {
+        _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(true);
+        _provider.FallbackReason.Returns((string?)null);
+
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102]);
+
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.NcfAvailable.Should().BeFalse();
+        result.Value.IsNewcomer.Should().BeTrue();
+        result.Value.Personalized.Should().BeEmpty();
+        result.Value.FallbackReason.Should().Contain("5");
+        _metrics.Received().RecordRecommendationCacheLookup("newcomer");
+        await _provider.DidNotReceive().GetPersonalizedAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_UserHasExactly5Reviews_AndInMapping_ProceedsToCompute()
+    {
+        _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(true);
+        _provider.GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new List<(int DishId, float Score)> { (10, 4.8f) });
+
+        var restaurant = new RestaurantBuilder().WithId(1).Build();
+        _sets.Restaurants.Add(restaurant);
+        var dish10 = new DishBuilder().WithId(10).WithName("Boundary Dish").AsAvailable().Build();
+        dish10.Restaurant = restaurant;
+        _sets.Dishes.Add(dish10);
+
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104]);
+
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.NcfAvailable.Should().BeTrue();
+        result.Value.IsNewcomer.Should().BeFalse();
+        result.Value.Personalized.Should().ContainSingle().Which.DishId.Should().Be(10);
+        await _provider.Received(1).GetPersonalizedAsync(1, Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_UserHasManyReviews_NotInMapping_ReturnsNewcomer()
+    {
+        _provider.IsAvailable.Returns(true);
+        _provider.IsUserInMapping(1).Returns(false);
+        _provider.FallbackReason.Returns((string?)null);
+
+        SeedUserReviews(userId: 1, dishIds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]);
+
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new GetRecommendationsQuery(), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.NcfAvailable.Should().BeFalse();
+        result.Value.IsNewcomer.Should().BeTrue();
+        result.Value.Personalized.Should().BeEmpty();
+        _metrics.Received().RecordRecommendationCacheLookup("newcomer");
+        await _provider.DidNotReceive().GetPersonalizedAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    private void SeedUserReviews(int userId, int[] dishIds)
+    {
+        var nextId = _sets.Reviews.Count == 0 ? 1 : _sets.Reviews.Max(r => r.ReviewId) + 1;
+        foreach (var dishId in dishIds)
+        {
+            _sets.Reviews.Add(new ReviewBuilder().WithId(nextId++).WithUserId(userId).WithDishId(dishId).Build());
+        }
     }
 }
