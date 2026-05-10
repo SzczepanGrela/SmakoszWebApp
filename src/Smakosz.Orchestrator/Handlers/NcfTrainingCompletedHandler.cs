@@ -1,7 +1,6 @@
 using Hangfire;
 using MediatR;
 using Smakosz.Application.Features.Worker.Notifications;
-using Smakosz.Infrastructure.Services;
 using Smakosz.Orchestrator.Jobs;
 
 namespace Smakosz.Orchestrator.Handlers;
@@ -19,9 +18,6 @@ public class NcfTrainingCompletedHandler : INotificationHandler<NcfTrainingCompl
     {
         _jobs.Enqueue<NcfModelActivationService>(
             x => x.ActivateAsync(notification.ModelVersion, CancellationToken.None));
-
-        _jobs.Enqueue<UserRecommendationCacheRegenerationService>(
-            x => x.RegenerateAsync(notification.ModelVersion, CancellationToken.None));
 
         return Task.CompletedTask;
     }

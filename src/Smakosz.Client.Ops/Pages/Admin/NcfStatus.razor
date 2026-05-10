@@ -50,13 +50,13 @@ else
         }
         @if (_status.LastCacheRegen?.LastRow is null)
         {
-            <AdminStatCard Label="Ostatni regen cache" Value="nigdy" Context="cache pusty" />
+            <AdminStatCard Label="Ostatni zapis cache" Value="nigdy" Context="cache pusty" />
         }
         else
         {
-            <AdminStatCard Label="Ostatni regen cache"
+            <AdminStatCard Label="Ostatni zapis cache"
                            Value="@_status.LastCacheRegen.LastRow.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")"
-                           Context="@FormatRegenContext(_status.LastCacheRegen)" />
+                           Context="lazy on demand" />
         }
     </div>
 
@@ -113,9 +113,4 @@ else
         return $"{ts} · {dur} · {worker}";
     }
 
-    private static string FormatRegenContext(AdminNcfRegenSummaryDto r)
-    {
-        if (r.ApproxDurationSeconds is null) return "-";
-        return $"~{r.ApproxDurationSeconds:F0}s batch";
-    }
 }

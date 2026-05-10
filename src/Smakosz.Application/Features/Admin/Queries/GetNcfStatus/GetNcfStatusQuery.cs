@@ -81,8 +81,7 @@ public class GetNcfStatusHandler : IRequestHandler<GetNcfStatusQuery, ErrorOr<Nc
                 regen = new NcfRegenSummaryDto
                 {
                     FirstRowInBatch = batch.First,
-                    LastRow = batch.Last,
-                    ApproxDurationSeconds = (batch.Last - batch.First).TotalSeconds
+                    LastRow = batch.Last
                 };
             }
         }

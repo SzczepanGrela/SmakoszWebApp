@@ -25,7 +25,7 @@ public class BusinessMetrics : IBusinessMetrics
     private static readonly IReadOnlyList<string> RecommendationCacheOutcomes = new[]
     {
         "hit", "anonymous", "provider_unavailable", "ncf_disabled",
-        "newcomer", "cold", "empty_after_filter"
+        "newcomer", "cold_computed", "compute_failed", "empty_after_filter"
     };
 
     private static readonly IReadOnlyList<(string Kind, string Verdict)> ModerationDecisionLabels = new[]

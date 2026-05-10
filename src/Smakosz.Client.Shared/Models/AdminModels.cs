@@ -237,7 +237,6 @@ public class AdminNcfRegenSummaryDto
 {
     public DateTime? LastRow { get; set; }
     public DateTime? FirstRowInBatch { get; set; }
-    public double? ApproxDurationSeconds { get; set; }
 }
 
 public class CreateJobRequest

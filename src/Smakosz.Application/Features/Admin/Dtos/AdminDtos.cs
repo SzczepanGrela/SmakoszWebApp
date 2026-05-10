@@ -389,7 +389,6 @@ public class NcfRegenSummaryDto
 {
     public DateTime? LastRow { get; set; }
     public DateTime? FirstRowInBatch { get; set; }
-    public double? ApproxDurationSeconds { get; set; }
 }
 
 

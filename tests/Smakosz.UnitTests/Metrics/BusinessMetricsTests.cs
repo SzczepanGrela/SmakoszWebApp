@@ -126,7 +126,7 @@ public class BusinessMetricsTests
         var recommendationOutcomes = new[]
         {
             "hit", "anonymous", "provider_unavailable", "ncf_disabled",
-            "newcomer", "cold", "empty_after_filter"
+            "newcomer", "cold_computed", "compute_failed", "empty_after_filter"
         };
         foreach (var outcome in recommendationOutcomes)
             output.Should().Contain($"app_recommendation_cache_lookups_total{{outcome=\"{outcome}\"}} 0");

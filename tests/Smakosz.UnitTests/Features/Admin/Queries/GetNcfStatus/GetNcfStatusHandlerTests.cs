@@ -111,7 +111,8 @@ public class GetNcfStatusHandlerTests
         result.Value.CachePopulatedCount.Should().Be(80);
         result.Value.CachePopulatedPercent.Should().Be(80.0);
         result.Value.LastTraining!.JobId.Should().Be(20);
-        result.Value.LastCacheRegen!.ApproxDurationSeconds.Should().Be(60);
+        result.Value.LastCacheRegen!.LastRow.Should().NotBeNull();
+        result.Value.LastCacheRegen!.FirstRowInBatch.Should().NotBeNull();
         result.Value.RecentTrainings.Should().HaveCount(2);
     }
 
