@@ -59,6 +59,11 @@
             var result = await AuthService.LoginAsync(_model);
             if (result.Success)
             {
+                _turnstileToken = null;
+                if (_turnstileWidget is not null)
+                {
+                    try { await _turnstileWidget.ResetAsync(); } catch { }
+                }
                 Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
                 return;
             }
@@ -87,11 +92,6 @@
         }
         finally
         {
-            _turnstileToken = null;
-            if (_turnstileWidget is not null)
-            {
-                try { await _turnstileWidget.ResetAsync(); } catch { }
-            }
             _loading = false;
         }
     }
