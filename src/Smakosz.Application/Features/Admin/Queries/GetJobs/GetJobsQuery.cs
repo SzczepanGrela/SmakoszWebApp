@@ -5,10 +5,12 @@ using Smakosz.Application.Common.Errors;
 using Smakosz.Application.Common.Interfaces;
 using Smakosz.Application.Common.Models;
 using Smakosz.Application.Features.Admin.Dtos;
+using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Queries.GetJobs;
 
-public record GetJobsQuery(PaginationParams Pagination) : IRequest<ErrorOr<PagedResult<JobDto>>>;
+public record GetJobsQuery(PaginationParams Pagination, string? Type = null, string? Status = null)
+    : IRequest<ErrorOr<PagedResult<JobDto>>>;
 
 public class GetJobsHandler : IRequestHandler<GetJobsQuery, ErrorOr<PagedResult<JobDto>>>
 {
@@ -27,6 +29,13 @@ public class GetJobsHandler : IRequestHandler<GetJobsQuery, ErrorOr<PagedResult<
             return DomainErrors.Admin.Forbidden;
 
         var query = _db.SystemJobs.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.Type))
+            query = query.Where(j => j.Type == request.Type);
+
+        if (!string.IsNullOrWhiteSpace(request.Status)
+            && Enum.TryParse<JobStatus>(request.Status, ignoreCase: true, out var statusEnum))
+            query = query.Where(j => j.Status == statusEnum);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

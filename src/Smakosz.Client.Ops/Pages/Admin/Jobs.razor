@@ -22,6 +22,29 @@
     </div>
 </div>
 
+<div class="d-flex flex-wrap gap-3 mb-3">
+    <div>
+        <div class="small text-muted mb-1">Status</div>
+        <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filtr statusu">
+            <button class="btn @(_currentStatus == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => SetStatus(null)">Wszystkie</button>
+            <button class="btn @(_currentStatus == "Pending" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetStatus("Pending")'>Pending</button>
+            <button class="btn @(_currentStatus == "Processing" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetStatus("Processing")'>Processing</button>
+            <button class="btn @(_currentStatus == "Completed" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetStatus("Completed")'>Completed</button>
+            <button class="btn @(_currentStatus == "Failed" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetStatus("Failed")'>Failed</button>
+            <button class="btn @(_currentStatus == "Cancelled" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetStatus("Cancelled")'>Cancelled</button>
+        </div>
+    </div>
+    <div>
+        <div class="small text-muted mb-1">Typ</div>
+        <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Filtr typu">
+            <button class="btn @(_currentType == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => SetType(null)">Wszystkie</button>
+            <button class="btn @(_currentType == "text_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetType("text_moderation")'>text_moderation</button>
+            <button class="btn @(_currentType == "image_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetType("image_moderation")'>image_moderation</button>
+            <button class="btn @(_currentType == "ncf_training" ? "btn-primary" : "btn-outline-primary")" @onclick='() => SetType("ncf_training")'>ncf_training</button>
+        </div>
+    </div>
+</div>
+
 @if (_loading)
 {
     <LoadingSpinner />
@@ -237,29 +260,49 @@ else
     [SupplyParameterFromQuery(Name = "page")]
     public int? PageQuery { get; set; }
 
+    [SupplyParameterFromQuery(Name = "type")]
+    public string? TypeQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? StatusQuery { get; set; }
+
+    private string? _currentType;
+    private string? _currentStatus;
+
     protected override async Task OnParametersSetAsync()
     {
         var targetPage = PageQuery ?? 1;
-        if (targetPage == _currentPage && _jobs != null)
+        if (targetPage == _currentPage
+            && TypeQuery == _currentType
+            && StatusQuery == _currentStatus
+            && _jobs != null)
             return;
+        _currentType = TypeQuery;
+        _currentStatus = StatusQuery;
         await FetchPage(targetPage);
     }
 
-    private async Task LoadPage(int page)
+    private Task LoadPage(int page) => NavigateWithFilters(page, _currentType, _currentStatus);
+
+    private Task SetStatus(string? status) => NavigateWithFilters(1, _currentType, status);
+    private Task SetType(string? type) => NavigateWithFilters(1, type, _currentStatus);
+
+    private Task NavigateWithFilters(int page, string? type, string? status)
     {
-        if (page == _currentPage)
-        {
-            await FetchPage(page);
-            return;
-        }
-        Navigation.NavigateTo($"/admin/jobs?page={page}");
+        var url = $"/admin/jobs?page={page}";
+        if (!string.IsNullOrWhiteSpace(type))
+            url += $"&type={Uri.EscapeDataString(type)}";
+        if (!string.IsNullOrWhiteSpace(status))
+            url += $"&status={Uri.EscapeDataString(status)}";
+        Navigation.NavigateTo(url);
+        return Task.CompletedTask;
     }
 
     private async Task FetchPage(int page)
     {
         _loading = true;
         _currentPage = page;
-        _jobs = await AdminService.GetJobsAsync(page);
+        _jobs = await AdminService.GetJobsAsync(page, _currentType, _currentStatus);
         _loading = false;
         await ScrollService.ScrollToElementAsync("jobs-table-anchor");
     }
@@ -267,14 +310,14 @@ else
     private async Task TriggerJob(int id)
     {
         var success = await AdminService.TriggerJobAsync(id);
-        if (success) { Toast.ShowSuccess("Zadanie uruchomione."); await LoadPage(1); }
+        if (success) { Toast.ShowSuccess("Zadanie uruchomione."); await NavigateWithFilters(1, _currentType, _currentStatus); }
         else Toast.ShowError("Nie udało się uruchomić zadania.");
     }
 
     private async Task CancelJob(int id)
     {
         var success = await AdminService.CancelJobAsync(id);
-        if (success) { Toast.ShowSuccess("Zadanie anulowane."); await LoadPage(1); }
+        if (success) { Toast.ShowSuccess("Zadanie anulowane."); await NavigateWithFilters(1, _currentType, _currentStatus); }
         else Toast.ShowError("Nie udało się anulować zadania.");
     }
 

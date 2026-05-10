@@ -323,8 +323,15 @@ public class AdminService : IAdminService
     public Task<PagedResult<AdminLogEntryDto>?> GetLogsAsync(int page = 1, string? level = null)
         => _api.GetAsync<PagedResult<AdminLogEntryDto>>($"/api/admin/logs?page={page}&level={level}");
 
-    public Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1)
-        => _api.GetAsync<PagedResult<AdminJobDto>>($"/api/admin/jobs?page={page}");
+    public Task<PagedResult<AdminJobDto>?> GetJobsAsync(int page = 1, string? type = null, string? status = null)
+    {
+        var url = $"/api/admin/jobs?page={page}";
+        if (!string.IsNullOrWhiteSpace(type))
+            url += $"&type={Uri.EscapeDataString(type)}";
+        if (!string.IsNullOrWhiteSpace(status))
+            url += $"&status={Uri.EscapeDataString(status)}";
+        return _api.GetAsync<PagedResult<AdminJobDto>>(url);
+    }
 
     public Task<AdminNcfStatusDto?> GetNcfStatusAsync()
         => _api.GetAsync<AdminNcfStatusDto>("/api/admin/ncf");

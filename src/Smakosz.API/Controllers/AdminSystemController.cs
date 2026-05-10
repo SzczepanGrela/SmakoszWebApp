@@ -60,9 +60,11 @@ public class AdminSystemController : ApiController
     [HttpGet("jobs")]
     public async Task<IActionResult> GetJobs(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? type = null,
+        [FromQuery] string? status = null)
     {
-        var result = await _mediator.Send(new GetJobsQuery(new PaginationParams(page, pageSize)));
+        var result = await _mediator.Send(new GetJobsQuery(new PaginationParams(page, pageSize), type, status));
         return ToActionResult(result);
     }
 
