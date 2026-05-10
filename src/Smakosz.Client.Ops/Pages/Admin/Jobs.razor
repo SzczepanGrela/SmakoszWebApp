@@ -40,7 +40,8 @@ else
                     <th>Typ</th>
                     <th>Status</th>
                     <th>Priorytet</th>
-                    <th>Postęp</th>
+                    <th style="min-width: 200px">Postęp</th>
+                    <th>Worker</th>
                     <th>Utworzono</th>
                     <th>Zakończono</th>
                     <th></th>
@@ -53,7 +54,30 @@ else
                         <td class="fw-medium">@job.Type</td>
                         <td><StatusBadge Status="@job.Status" /></td>
                         <td>@job.Priority</td>
-                        <td>@job.Progress%</td>
+                        <td>
+                            <div class="progress-cell">
+                                <div class="progress progress-sm">
+                                    <div class="progress-bar @ProgressBarClass(job)"
+                                         role="progressbar"
+                                         style="width: @job.Progress%"
+                                         aria-valuenow="@job.Progress" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="progress-cell-meta">
+                                    <span class="progress-cell-pct">@job.Progress%</span>
+                                    @if (!string.IsNullOrWhiteSpace(job.ProgressMessage))
+                                    {
+                                        <span class="progress-cell-msg" title="@job.ProgressMessage">@job.ProgressMessage</span>
+                                    }
+                                </div>
+                                @if (job.Status == "Failed" && !string.IsNullOrWhiteSpace(job.ErrorMessage))
+                                {
+                                    <button type="button" class="btn-link-sm text-danger" @onclick="() => ShowError(job)">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>Pokaż błąd
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                        <td class="text-muted small">@(job.WorkerNode ?? "-")</td>
                         <td class="text-muted small">@(job.CreatedAt?.ToString("dd.MM HH:mm") ?? "-")</td>
                         <td class="text-muted small">@(job.FinishedAt?.ToString("dd.MM HH:mm") ?? "-")</td>
                         <td>
@@ -77,6 +101,46 @@ else
     {
         <Pagination Info="@_jobs.Pagination" OnPageChange="LoadPage" />
     }
+}
+
+@if (_errorJob is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseErrorModal">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>
+                        Błąd zadania #@_errorJob.JobId (@_errorJob.Type)
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseErrorModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Wiadomość</label>
+                        <div class="text-danger">@_errorJob.ErrorMessage</div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_errorJob.ErrorLog))
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Stack trace</label>
+                            <pre class="error-log-pre">@_errorJob.ErrorLog</pre>
+                        </div>
+                    }
+                    <div class="text-muted small">
+                        Próby: @_errorJob.Attempts / @_errorJob.MaxAttempts
+                        @if (!string.IsNullOrWhiteSpace(_errorJob.WorkerNode))
+                        {
+                            <span class="ms-2">| Worker: @_errorJob.WorkerNode</span>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseErrorModal">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @if (_showCreateModal)
@@ -129,6 +193,19 @@ else
     private bool _showCreateModal;
     private int _currentPage;
     private CreateJobRequest _createRequest = new();
+    private AdminJobDto? _errorJob;
+
+    private static string ProgressBarClass(AdminJobDto job) => job.Status switch
+    {
+        "Failed" => "bg-danger",
+        "Completed" => "bg-success",
+        "Processing" => "progress-bar-striped progress-bar-animated bg-primary",
+        "Cancelled" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private void ShowError(AdminJobDto job) => _errorJob = job;
+    private void CloseErrorModal() => _errorJob = null;
 
     [SupplyParameterFromQuery(Name = "page")]
     public int? PageQuery { get; set; }

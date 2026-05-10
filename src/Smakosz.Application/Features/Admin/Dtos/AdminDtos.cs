@@ -350,6 +350,12 @@ public class JobDto
     public string Status { get; set; } = string.Empty;
     public int Priority { get; set; }
     public int Progress { get; set; }
+    public string? ProgressMessage { get; set; }
+    public string? WorkerNode { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string? ErrorLog { get; set; }
+    public int Attempts { get; set; }
+    public int MaxAttempts { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? FinishedAt { get; set; }
 }

@@ -2244,3 +2244,54 @@ a[href^="tel:"]:hover {
 .btn-share-honey:active {
     transform: translateY(0);
 }
+
+.progress-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.progress-sm {
+    height: 6px;
+}
+
+.progress-cell-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.progress-cell-msg {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-link-sm {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.btn-link-sm:hover {
+    text-decoration: underline;
+}
+
+.error-log-pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    max-height: 400px;
+    overflow: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

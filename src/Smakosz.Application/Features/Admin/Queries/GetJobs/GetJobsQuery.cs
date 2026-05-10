@@ -41,6 +41,12 @@ public class GetJobsHandler : IRequestHandler<GetJobsQuery, ErrorOr<PagedResult<
                 Status = j.Status.ToString(),
                 Priority = j.Priority,
                 Progress = j.Progress,
+                ProgressMessage = j.ProgressMessage,
+                WorkerNode = j.WorkerNode,
+                ErrorMessage = j.ErrorMessage,
+                ErrorLog = j.ErrorLog,
+                Attempts = j.Attempts,
+                MaxAttempts = j.MaxAttempts,
                 CreatedAt = j.CreatedAt,
                 FinishedAt = j.FinishedAt
             })
