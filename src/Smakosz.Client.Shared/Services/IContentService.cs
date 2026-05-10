@@ -8,5 +8,7 @@ public interface IContentService
     Task<ContentPageDto?> GetTermsPageAsync();
     Task<ContentPageDto?> GetPrivacyPageAsync();
     Task<ContactPageDto?> GetContactPageAsync();
-    Task<bool> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null);
+    Task<ContactMessageResult> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null);
 }
+
+public record ContactMessageResult(bool Success, string? ErrorMessage);

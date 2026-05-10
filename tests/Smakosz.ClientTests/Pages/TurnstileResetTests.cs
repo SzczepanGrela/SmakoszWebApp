@@ -77,14 +77,14 @@ public class TurnstileResetTests : BunitTestBase
         var content = Services.GetRequiredService<IContentService>();
         content.GetContactPageAsync().Returns(new ContactPageDto { Email = "support@smakosz.xyz" });
         content.SendContactMessageAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>())
-            .Returns(true);
+            .Returns(new ContactMessageResult(true, null));
 
         var cut = RenderComponent<Contact>();
         cut.WaitForState(() => cut.Markup.Contains("Wyślij"));
         cut.FindAll("input")[0].Change("Jan");
         cut.FindAll("input")[1].Change("test@test.com");
         cut.FindAll("input")[2].Change("Tytul");
-        cut.Find("textarea").Change("Wiadomosc");
+        cut.Find("textarea").Change("Wiadomosc testowa o dlugosci powyzej 10 znakow.");
 
         var widget = cut.FindComponent<Smakosz.Client.Components.TurnstileWidget>().Instance;
         await cut.InvokeAsync(() => widget.OnTokenChanged("test-token"));

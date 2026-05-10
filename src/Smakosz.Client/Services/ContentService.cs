@@ -20,7 +20,7 @@ public class ContentService : IContentService
     public Task<ContactPageDto?> GetContactPageAsync()
         => _api.GetAsync<ContactPageDto>("/api/content/contact-info");
 
-    public async Task<bool> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null)
+    public async Task<ContactMessageResult> SendContactMessageAsync(string name, string email, string subject, string message, string? turnstileToken = null)
     {
         var response = await _api.PostApiResponseAsync<object>("/api/content/contact", new
         {
@@ -30,6 +30,8 @@ public class ContentService : IContentService
             Message = message,
             TurnstileToken = turnstileToken
         });
-        return response.Success;
+        return response.Success
+            ? new ContactMessageResult(true, null)
+            : new ContactMessageResult(false, response.Error?.GetDisplayMessage());
     }
 }

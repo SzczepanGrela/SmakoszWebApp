@@ -34,10 +34,13 @@ public class GetContactInfoHandler : IRequestHandler<GetContactInfoQuery, ErrorO
 
         return new ContactInfoDto
         {
-            Email = dict.GetValueOrDefault("contact.email"),
-            Phone = dict.GetValueOrDefault("contact.phone"),
-            Address = dict.GetValueOrDefault("contact.address"),
-            Hours = dict.GetValueOrDefault("contact.hours")
+            Email = NullIfBlank(dict.GetValueOrDefault("contact.email")),
+            Phone = NullIfBlank(dict.GetValueOrDefault("contact.phone")),
+            Address = NullIfBlank(dict.GetValueOrDefault("contact.address")),
+            Hours = NullIfBlank(dict.GetValueOrDefault("contact.hours"))
         };
     }
+
+    private static string? NullIfBlank(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value;
 }

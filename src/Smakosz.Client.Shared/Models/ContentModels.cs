@@ -9,8 +9,8 @@ public class ContentPageDto
 
 public class ContactPageDto
 {
-    public string Email { get; set; } = default!;
+    public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
-    public string? SupportHours { get; set; }
+    public string? Hours { get; set; }
 }

@@ -9,22 +9,25 @@
 
     <div class="row mt-4">
         <div class="col-md-6 mb-4">
-            @if (_contact != null)
+            @if (_contact != null && _hasAnyContactInfo)
             {
                 <div class="card p-4">
                     <h5 class="mb-3">Dane kontaktowe</h5>
-                    <div class="mb-2"><i class="fa-solid fa-envelope me-2"></i>@_contact.Email</div>
-                    @if (_contact.Phone != null)
+                    @if (!string.IsNullOrWhiteSpace(_contact.Email))
+                    {
+                        <div class="mb-2"><i class="fa-solid fa-envelope me-2"></i>@_contact.Email</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_contact.Phone))
                     {
                         <div class="mb-2"><i class="fa-solid fa-phone me-2"></i>@_contact.Phone</div>
                     }
-                    @if (_contact.Address != null)
+                    @if (!string.IsNullOrWhiteSpace(_contact.Address))
                     {
                         <div class="mb-2"><i class="fa-solid fa-location-dot me-2"></i>@_contact.Address</div>
                     }
-                    @if (_contact.SupportHours != null)
+                    @if (!string.IsNullOrWhiteSpace(_contact.Hours))
                     {
-                        <div class="mb-2"><i class="fa-solid fa-clock me-2"></i>@_contact.SupportHours</div>
+                        <div class="mb-2"><i class="fa-solid fa-clock me-2"></i>@_contact.Hours</div>
                     }
                 </div>
             }
@@ -34,19 +37,19 @@
                 <h5 class="mb-3">Wyślij wiadomość</h5>
                 <div class="mb-3">
                     <label class="form-label">Imię</label>
-                    <input class="form-control" @bind="_name" />
+                    <input class="form-control" maxlength="100" autocomplete="name" @bind="_name" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-control" @bind="_email" />
+                    <input type="email" class="form-control" autocomplete="email" @bind="_email" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Temat</label>
-                    <input class="form-control" @bind="_subject" />
+                    <input class="form-control" maxlength="200" @bind="_subject" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Wiadomość</label>
-                    <textarea class="form-control" rows="4" @bind="_message"></textarea>
+                    <label class="form-label">Wiadomość <span class="text-muted small">(min. 10 znaków)</span></label>
+                    <textarea class="form-control" rows="4" minlength="10" maxlength="5000" @bind="_message"></textarea>
                 </div>
                 <div class="mb-3">
                     <Smakosz.Client.Components.TurnstileWidget @ref="_turnstileWidget" OnVerified="t => _turnstileToken = t" />
@@ -65,6 +68,12 @@
     private string? _turnstileToken;
     private Smakosz.Client.Components.TurnstileWidget? _turnstileWidget;
 
+    private bool _hasAnyContactInfo =>
+        !string.IsNullOrWhiteSpace(_contact?.Email)
+        || !string.IsNullOrWhiteSpace(_contact?.Phone)
+        || !string.IsNullOrWhiteSpace(_contact?.Address)
+        || !string.IsNullOrWhiteSpace(_contact?.Hours);
+
     protected override async Task OnInitializedAsync()
     {
         _contact = await ContentService.GetContactPageAsync();
@@ -72,20 +81,41 @@
 
     private async Task Send()
     {
-        if (string.IsNullOrEmpty(_turnstileToken))
+        if (string.IsNullOrWhiteSpace(_name))
         {
-            Toast.ShowError("Potwierdź, że nie jesteś robotem");
+            Toast.ShowError("Podaj imię.");
             return;
         }
-        var ok = await ContentService.SendContactMessageAsync(_name, _email, _subject, _message, _turnstileToken);
-        if (ok)
+        if (string.IsNullOrWhiteSpace(_email) || !_email.Contains('@'))
+        {
+            Toast.ShowError("Podaj prawidłowy adres email.");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_subject))
+        {
+            Toast.ShowError("Podaj temat wiadomości.");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_message) || _message.Trim().Length < 10)
+        {
+            Toast.ShowError("Wiadomość musi mieć co najmniej 10 znaków.");
+            return;
+        }
+        if (string.IsNullOrEmpty(_turnstileToken))
+        {
+            Toast.ShowError("Potwierdź, że nie jesteś robotem.");
+            return;
+        }
+
+        var result = await ContentService.SendContactMessageAsync(_name, _email, _subject, _message, _turnstileToken);
+        if (result.Success)
         {
             Toast.ShowSuccess("Wiadomość wysłana!");
             _name = _email = _subject = _message = "";
         }
         else
         {
-            Toast.ShowError("Nie udało się wysłać wiadomości — spróbuj ponownie");
+            Toast.ShowError(result.ErrorMessage ?? "Nie udało się wysłać wiadomości — spróbuj ponownie.");
         }
         _turnstileToken = null;
         if (_turnstileWidget is not null) await _turnstileWidget.ResetAsync();
