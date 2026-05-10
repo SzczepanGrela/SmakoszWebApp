@@ -1,0 +1,567 @@
+@page "/admin/logs"
+@page "/admin/ai-logs"
+@page "/admin/moderation-logs"
+@layout AdminLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject IAdminService AdminService
+@inject NavigationManager Navigation
+
+<PageTitle>Logi - Admin Smakosz</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-list me-2"></i>Logi</h2>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "all" ? "active" : "")" @onclick='() => SwitchTab("all")'>
+            <i class="fa-solid fa-list me-2"></i>Wszystkie
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "ai" ? "active" : "")" @onclick='() => SwitchTab("ai")'>
+            <i class="fa-solid fa-robot me-2"></i>AI
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "moderation" ? "active" : "")" @onclick='() => SwitchTab("moderation")'>
+            <i class="fa-solid fa-gavel me-2"></i>Moderacja
+        </button>
+    </li>
+</ul>
+
+@if (_activeTab == "ai")
+{
+    <div class="d-flex flex-wrap gap-3 mb-3">
+        <div>
+            <div class="small text-muted mb-1">Model</div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn @(_modelTypeFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByModelType(null)">Wszystkie</button>
+                <button class="btn @(_modelTypeFilter == "image_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("image_moderation")'>image_moderation</button>
+                <button class="btn @(_modelTypeFilter == "text_moderation" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("text_moderation")'>text_moderation</button>
+                <button class="btn @(_modelTypeFilter == "ncf_training" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByModelType("ncf_training")'>ncf_training</button>
+            </div>
+        </div>
+        <div>
+            <div class="small text-muted mb-1">Fallback</div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn @(_fallbackFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByFallback(null)">Wszystkie</button>
+                <button class="btn @(_fallbackFilter == false ? "btn-success" : "btn-outline-success")" @onclick="() => FilterByFallback(false)">Normalne</button>
+                <button class="btn @(_fallbackFilter == true ? "btn-warning" : "btn-outline-warning")" @onclick="() => FilterByFallback(true)">Fallback</button>
+            </div>
+        </div>
+    </div>
+}
+else if (_activeTab == "moderation")
+{
+    <div class="d-flex flex-wrap gap-3 mb-3">
+        <div>
+            <div class="small text-muted mb-1">Actor</div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn @(_actorFilter == null ? "btn-primary" : "btn-outline-primary")" @onclick="() => FilterByActor(null)">Wszystkie</button>
+                <button class="btn @(_actorFilter == "Admin" ? "btn-primary" : "btn-outline-primary")" @onclick='() => FilterByActor("Admin")'>Admin</button>
+                <button class="btn @(_actorFilter == "System" ? "btn-info" : "btn-outline-info")" @onclick='() => FilterByActor("System")'>System</button>
+                <button class="btn @(_actorFilter == "Ai" ? "btn-secondary" : "btn-outline-secondary")" @onclick='() => FilterByActor("Ai")'>Ai</button>
+            </div>
+        </div>
+        <div>
+            <div class="small text-muted mb-1">Typ encji</div>
+            <select class="form-select form-select-sm" style="width:auto;" @bind="_entityTypeFilter" @bind:after="() => LoadModerationPage(1)">
+                <option value="">Wszystkie</option>
+                @foreach (var et in EntityTypes)
+                {
+                    <option value="@et">@et</option>
+                }
+            </select>
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else if (_activeTab == "all")
+{
+    @if (_allLogs == null || _allLogs.Count == 0)
+    {
+        <EmptyState Icon="fa-solid fa-list" Title="Brak logów" />
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover" style="font-size:0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="width:160px;">Czas</th>
+                        <th style="width:110px;">Źródło</th>
+                        <th style="width:180px;">Encja</th>
+                        <th style="width:130px;">Verdict</th>
+                        <th>Szczegóły</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in _allLogs)
+                    {
+                        <tr>
+                            <td class="text-muted">@entry.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>
+                                @if (entry.Source == "ai")
+                                {
+                                    <span class="badge bg-primary"><i class="fa-solid fa-robot me-1"></i>AI</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info"><i class="fa-solid fa-gavel me-1"></i>Moderacja</span>
+                                }
+                            </td>
+                            <td><EntityLink EntityType="@entry.EntityType" EntityId="@entry.EntityId" /></td>
+                            <td>
+                                @if (entry.Source == "moderation")
+                                {
+                                    <span class="badge @VerdictBadge(entry.Verdict ?? "")">@entry.Verdict</span>
+                                }
+                                else
+                                {
+                                    @entry.Verdict
+                                }
+                            </td>
+                            <td>
+                                @if (entry.Source == "ai" && entry.Ai is not null && !string.IsNullOrEmpty(entry.Ai.InputSummary))
+                                {
+                                    <button type="button" class="btn-link-sm" @onclick="() => ShowAiInput(entry.Ai)">
+                                        <i class="fa-solid fa-quote-right me-1"></i>@TruncatePreview(entry.Ai.InputSummary, 40)
+                                    </button>
+                                }
+                                else if (entry.Source == "moderation" && entry.Moderation is not null)
+                                {
+                                    @if (entry.Moderation.EntityType == "Review" && !string.IsNullOrWhiteSpace(entry.Moderation.ContentFullText))
+                                    {
+                                        <button type="button" class="btn-link-sm" @onclick="() => ShowText(entry.Moderation)" title="@entry.Moderation.ContentFullText">
+                                            <i class="fa-solid fa-quote-right me-1"></i>@TruncatePreview(entry.Moderation.ContentFullText, 40)
+                                        </button>
+                                    }
+                                    else if (entry.Moderation.EntityType == "Photo" && !string.IsNullOrWhiteSpace(entry.Moderation.ContentFullText))
+                                    {
+                                        <button type="button" class="btn-link-sm" @onclick="() => ShowImage(entry.Moderation)">
+                                            <i class="fa-solid fa-image me-1"></i>Podgląd
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_allLogs.Count >= 20)
+        {
+            <p class="text-muted small mt-3">
+                <i class="fa-solid fa-info-circle me-1"></i>Pokazano 20 najnowszych wpisów łącznie.
+                Pełna historia: <a href="/admin/logs?tab=ai">AI</a> &middot; <a href="/admin/logs?tab=moderation">Moderacja</a>.
+            </p>
+        }
+    }
+}
+else if (_activeTab == "ai")
+{
+    @if (_aiLogs == null || !_aiLogs.Data.Any())
+    {
+        <EmptyState Icon="fa-solid fa-robot" Title="Brak logów AI" />
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover" style="font-size:0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="width:160px;">Czas</th>
+                        <th style="width:220px;">Model</th>
+                        <th style="width:180px;">Encja</th>
+                        <th style="width:110px;">Verdict</th>
+                        <th style="width:90px;">Czas</th>
+                        <th style="width:100px;">Fallback</th>
+                        <th>Input i Scores</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in _aiLogs.Data)
+                    {
+                        <tr>
+                            <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>
+                                <div><span class="badge bg-secondary">@log.ModelType</span></div>
+                                @if (!string.IsNullOrEmpty(log.ModelName))
+                                {
+                                    <div class="small text-muted">@log.ModelName @(!string.IsNullOrEmpty(log.ModelVersion) ? $"v{log.ModelVersion}" : "")</div>
+                                }
+                            </td>
+                            <td><EntityLink EntityType="@(log.EntityType ?? string.Empty)" EntityId="@log.EntityId" /></td>
+                            <td>@log.Verdict</td>
+                            <td class="text-muted">@(log.ProcessingTimeMs.HasValue ? $"{log.ProcessingTimeMs} ms" : "")</td>
+                            <td>
+                                @if (log.Fallback)
+                                {
+                                    <span class="badge bg-warning text-dark">Fallback</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.InputSummary) || !string.IsNullOrEmpty(log.Scores))
+                                {
+                                    @if (!string.IsNullOrEmpty(log.InputSummary) && log.InputSummary.Length > 40)
+                                    {
+                                        <button type="button" class="btn-link-sm" @onclick="() => ShowAiInput(log)" title="@log.InputSummary">
+                                            <i class="fa-solid fa-quote-right me-1"></i>@TruncatePreview(log.InputSummary, 40)
+                                        </button>
+                                    }
+                                    <details>
+                                        <summary class="small text-primary">Szczegóły</summary>
+                                        @if (!string.IsNullOrEmpty(log.InputSummary))
+                                        {
+                                            <div class="small text-muted mt-1">Input:</div>
+                                            <pre class="small mb-1" style="max-height:150px;overflow:auto;">@log.InputSummary</pre>
+                                        }
+                                        @if (!string.IsNullOrEmpty(log.Scores))
+                                        {
+                                            <div class="small text-muted">Scores:</div>
+                                            <pre class="small mb-0" style="max-height:150px;overflow:auto;">@log.Scores</pre>
+                                        }
+                                    </details>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_aiLogs.Pagination.TotalPages > 1)
+        {
+            <Pagination Info="@_aiLogs.Pagination" OnPageChange="LoadAiPage" />
+        }
+    }
+}
+else if (_activeTab == "moderation")
+{
+    @if (_moderationLogs == null || !_moderationLogs.Data.Any())
+    {
+        <EmptyState Icon="fa-solid fa-gavel" Title="Brak logów moderacji" />
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover" style="font-size:0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="width:160px;">Czas</th>
+                        <th style="width:90px;">Actor</th>
+                        <th style="width:180px;">Encja</th>
+                        <th style="width:160px;">Treść</th>
+                        <th style="width:110px;">Verdict</th>
+                        <th>Powody</th>
+                        <th style="width:140px;">Moderator</th>
+                        <th>Scores</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in _moderationLogs.Data)
+                    {
+                        <tr>
+                            <td class="text-muted">@log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><span class="badge @ActorBadge(log.Actor)">@log.Actor</span></td>
+                            <td><EntityLink EntityType="@log.EntityType" EntityId="@log.EntityId" /></td>
+                            <td>
+                                @if (log.EntityType == "Review" && !string.IsNullOrWhiteSpace(log.ContentFullText))
+                                {
+                                    <button type="button" class="btn-link-sm" @onclick="() => ShowText(log)" title="@log.ContentFullText">
+                                        <i class="fa-solid fa-quote-right me-1"></i>@TruncatePreview(log.ContentFullText, 40)
+                                    </button>
+                                }
+                                else if (log.EntityType == "Photo" && !string.IsNullOrWhiteSpace(log.ContentFullText))
+                                {
+                                    <button type="button" class="btn-link-sm" @onclick="() => ShowImage(log)">
+                                        <i class="fa-solid fa-image me-1"></i>Podgląd
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td><span class="badge @VerdictBadge(log.Verdict)">@log.Verdict</span></td>
+                            <td>
+                                @foreach (var reason in log.ReasonCodes)
+                                {
+                                    <span class="badge bg-light text-dark border me-1">@reason</span>
+                                }
+                                @if (!string.IsNullOrEmpty(log.AdminNote))
+                                {
+                                    <div class="small text-muted mt-1">@log.AdminNote</div>
+                                }
+                            </td>
+                            <td>
+                                @if (log.ProcessedBy.HasValue)
+                                {
+                                    <a href="@($"/admin/users/{log.ProcessedBy}")">@(log.ProcessedByUsername ?? $"User#{log.ProcessedBy}")</a>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.AiScores))
+                                {
+                                    <details>
+                                        <summary class="small text-primary">Szczegóły</summary>
+                                        <pre class="small mb-0" style="max-height:200px;overflow:auto;">@log.AiScores</pre>
+                                    </details>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (_moderationLogs.Pagination.TotalPages > 1)
+        {
+            <Pagination Info="@_moderationLogs.Pagination" OnPageChange="LoadModerationPage" />
+        }
+    }
+}
+
+@if (_textLog is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseModals">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Treść recenzji #@_textLog.EntityId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh; overflow-y:auto;">
+                    <pre style="white-space: pre-wrap; word-break: break-word; font-family: inherit; margin: 0;">@_textLog.ContentFullText</pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModals">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_imageLog is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseModals">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Zdjęcie #@_imageLog.EntityId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="@_imageLog.ContentFullText" alt="Moderowane zdjęcie" style="max-width:100%; max-height:75vh;" />
+                </div>
+                <div class="modal-footer">
+                    <a href="@_imageLog.ContentFullText" target="_blank" class="btn btn-outline-primary">Otwórz oryginał</a>
+                    <button class="btn btn-secondary" @onclick="CloseModals">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_aiInputLog is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseModals">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Wejście modelu AI (log #@_aiInputLog.LogId)</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModals"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh; overflow-y:auto;">
+                    <pre style="white-space: pre-wrap; word-break: break-word; font-family: inherit; margin: 0;">@_aiInputLog.InputSummary</pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModals">Zamknij</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly string[] EntityTypes =
+        { "Photo", "Review", "EditRequest", "User", "Report", "Ticket", "Restaurant", "Dish", "MenuSection" };
+
+    [SupplyParameterFromQuery(Name = "tab")] public string? TabQuery { get; set; }
+
+    private string _activeTab = "all";
+    private string? _lastLoadedTab;
+
+    private PagedResult<AdminAiLogDto>? _aiLogs;
+    private PagedResult<AdminModerationLogDto>? _moderationLogs;
+    private List<MergedLogEntry>? _allLogs;
+
+    private string? _modelTypeFilter;
+    private bool? _fallbackFilter;
+    private string? _actorFilter;
+    private string _entityTypeFilter = string.Empty;
+
+    private bool _loading = true;
+
+    private AdminModerationLogDto? _textLog;
+    private AdminModerationLogDto? _imageLog;
+    private AdminAiLogDto? _aiInputLog;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0].TrimEnd('/');
+
+        if (relativePath.Equals("admin/ai-logs", StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo("/admin/logs?tab=ai", replace: true);
+            return;
+        }
+        if (relativePath.Equals("admin/moderation-logs", StringComparison.OrdinalIgnoreCase))
+        {
+            Navigation.NavigateTo("/admin/logs?tab=moderation", replace: true);
+            return;
+        }
+
+        var newTab = NormalizeTab(TabQuery);
+        if (_lastLoadedTab == newTab) return;
+
+        _activeTab = newTab;
+        _lastLoadedTab = newTab;
+        await LoadActiveTab();
+    }
+
+    private static string NormalizeTab(string? tab) => tab?.ToLowerInvariant() switch
+    {
+        "ai" => "ai",
+        "moderation" => "moderation",
+        _ => "all"
+    };
+
+    private void SwitchTab(string tab)
+    {
+        _modelTypeFilter = null;
+        _fallbackFilter = null;
+        _actorFilter = null;
+        _entityTypeFilter = string.Empty;
+        Navigation.NavigateTo($"/admin/logs?tab={tab}", replace: false);
+    }
+
+    private async Task LoadActiveTab()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        if (_activeTab == "all")
+        {
+            await LoadAllTab();
+        }
+        else if (_activeTab == "ai")
+        {
+            await LoadAiPage(1);
+            return;
+        }
+        else if (_activeTab == "moderation")
+        {
+            await LoadModerationPage(1);
+            return;
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadAllTab()
+    {
+        var aiTask = AdminService.GetAiLogsAsync(1, null, null);
+        var modTask = AdminService.GetModerationLogsAsync(1, null, null);
+        await Task.WhenAll(aiTask, modTask);
+
+        var aiEntries = (aiTask.Result?.Data ?? Enumerable.Empty<AdminAiLogDto>())
+            .Select(a => new MergedLogEntry(
+                "ai",
+                a.CreatedAt ?? DateTime.MinValue,
+                a.EntityType ?? string.Empty,
+                a.EntityId,
+                a.Verdict,
+                a,
+                null));
+
+        var modEntries = (modTask.Result?.Data ?? Enumerable.Empty<AdminModerationLogDto>())
+            .Select(m => new MergedLogEntry(
+                "moderation",
+                m.CreatedAt ?? DateTime.MinValue,
+                m.EntityType,
+                m.EntityId,
+                m.Verdict,
+                null,
+                m));
+
+        _allLogs = aiEntries.Concat(modEntries)
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(20)
+            .ToList();
+    }
+
+    private async Task LoadAiPage(int page)
+    {
+        _loading = true;
+        StateHasChanged();
+        _aiLogs = await AdminService.GetAiLogsAsync(page, _modelTypeFilter, _fallbackFilter);
+        _loading = false;
+    }
+
+    private async Task LoadModerationPage(int page)
+    {
+        _loading = true;
+        StateHasChanged();
+        var entityType = string.IsNullOrWhiteSpace(_entityTypeFilter) ? null : _entityTypeFilter;
+        _moderationLogs = await AdminService.GetModerationLogsAsync(page, _actorFilter, entityType);
+        _loading = false;
+    }
+
+    private async Task FilterByModelType(string? modelType) { _modelTypeFilter = modelType; await LoadAiPage(1); }
+    private async Task FilterByFallback(bool? fallback) { _fallbackFilter = fallback; await LoadAiPage(1); }
+    private async Task FilterByActor(string? actor) { _actorFilter = actor; await LoadModerationPage(1); }
+
+    private void ShowText(AdminModerationLogDto log) => _textLog = log;
+    private void ShowImage(AdminModerationLogDto log) => _imageLog = log;
+    private void ShowAiInput(AdminAiLogDto log) => _aiInputLog = log;
+    private void CloseModals() { _textLog = null; _imageLog = null; _aiInputLog = null; }
+
+    private static string TruncatePreview(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
+
+    private static string ActorBadge(string actor) => actor switch
+    {
+        "Admin" => "bg-primary",
+        "System" => "bg-info",
+        "Ai" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+
+    private static string VerdictBadge(string verdict) => verdict switch
+    {
+        "Approved" or "Unbanned" or "Resolved" => "bg-success",
+        "Rejected" or "Banned" => "bg-danger",
+        "NeedsReview" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+
+    private sealed record MergedLogEntry(
+        string Source,
+        DateTime CreatedAt,
+        string EntityType,
+        int? EntityId,
+        string? Verdict,
+        AdminAiLogDto? Ai,
+        AdminModerationLogDto? Moderation);
+}
