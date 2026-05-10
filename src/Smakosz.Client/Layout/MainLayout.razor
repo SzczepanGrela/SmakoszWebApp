@@ -12,6 +12,20 @@
         <a class="navbar-brand" href="/">
             <i class="fa-solid fa-utensils me-2"></i>Smakosz
         </a>
+        <div class="navbar-actions d-flex align-items-center order-lg-last">
+            <AuthorizeView>
+                <Authorized>
+                    <NotificationBell />
+                    <UserDropdown />
+                </Authorized>
+                <NotAuthorized>
+                    <a class="nav-link" href="/login">
+                        <i class="fa-solid fa-right-to-bracket me-1"></i>Zaloguj
+                    </a>
+                    <a class="btn btn-primary btn-sm ms-2" href="/register">Rejestracja</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -52,30 +66,6 @@
                     </Authorized>
                 </AuthorizeView>
             </ul>
-            <AuthorizeView>
-                <Authorized>
-                    <ul class="navbar-nav align-items-center">
-                        <li class="nav-item d-flex align-items-center">
-                            <NotificationBell />
-                        </li>
-                        <li class="nav-item">
-                            <UserDropdown />
-                        </li>
-                    </ul>
-                </Authorized>
-                <NotAuthorized>
-                    <ul class="navbar-nav align-items-center">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login">
-                                <i class="fa-solid fa-right-to-bracket me-1"></i>Zaloguj
-                            </a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-primary btn-sm" href="/register">Rejestracja</a>
-                        </li>
-                    </ul>
-                </NotAuthorized>
-            </AuthorizeView>
         </div>
     </div>
 </nav>
