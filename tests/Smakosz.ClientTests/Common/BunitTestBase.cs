@@ -31,6 +31,7 @@ public abstract class BunitTestBase : Bunit.TestContext
         Services.AddSingleton(Substitute.For<ILocalStorageService>());
         Services.AddSingleton(Substitute.For<IPublicConfigService>());
         Services.AddSingleton(Substitute.For<ICategoryService>());
+        Services.AddSingleton(Substitute.For<IScrollPositionService>());
         Services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {

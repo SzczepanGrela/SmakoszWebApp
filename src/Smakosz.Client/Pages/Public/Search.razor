@@ -2,6 +2,7 @@
 @inject ISearchService SearchService
 @inject NavigationManager Navigation
 @inject Smakosz.Client.Services.IPublicConfigService Config
+@inject IScrollPositionService ScrollService
 
 <PageTitle>@(_type == "restaurants" ? "Restauracje" : "Szukaj") - Smakosz</PageTitle>
 
@@ -91,6 +92,7 @@
             }
             else
             {
+                <div id="search-results-anchor"></div>
                 @if (_type == "restaurants" && _result.Restaurants.Any())
                 {
                     <div class="row">
@@ -431,7 +433,13 @@
 
     private async Task ChangeType(string type) { _type = type; _page = 1; await LoadResults(); UpdateUrl(); }
     private async Task ChangeSort(string sort) { _sortBy = sort; _page = 1; await LoadResults(); UpdateUrl(); }
-    private async Task GoToPage(int page) { _page = page; await LoadResults(); UpdateUrl(); }
+    private async Task GoToPage(int page)
+    {
+        _page = page;
+        await LoadResults();
+        UpdateUrl();
+        await ScrollService.ScrollToElementAsync("search-results-anchor");
+    }
 
     private void ToggleCuisine(string c, bool v) { if (v) _selectedCuisines.Add(c); else _selectedCuisines.Remove(c); _isDirty = true; }
     private void ToggleDietary(string d, bool v) { if (v) _selectedDietary.Add(d); else _selectedDietary.Remove(d); _isDirty = true; }
@@ -477,6 +485,6 @@
         if (_selectedMoods.Any()) url += $"&moods={Uri.EscapeDataString(string.Join(",", _selectedMoods))}";
         if (_selectedOccasions.Any()) url += $"&occasions={Uri.EscapeDataString(string.Join(",", _selectedOccasions))}";
         if (_selectedSpiceLevels.Any()) url += $"&spiceLevels={Uri.EscapeDataString(string.Join(",", _selectedSpiceLevels))}";
-        Navigation.NavigateTo(url, replace: true);
+        Navigation.NavigateTo(url);
     }
 }

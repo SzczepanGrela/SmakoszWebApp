@@ -3,6 +3,8 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
 @inject IAdminService AdminService
 @inject ToastService Toast
+@inject NavigationManager Navigation
+@inject IScrollPositionService ScrollService
 
 <PageTitle>Zadania - Admin Smakosz</PageTitle>
 
@@ -30,6 +32,7 @@ else if (_jobs == null || !_jobs.Data.Any())
 }
 else
 {
+    <div id="jobs-table-anchor"></div>
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
@@ -124,15 +127,37 @@ else
     private PagedResult<AdminJobDto>? _jobs;
     private bool _loading = true;
     private bool _showCreateModal;
+    private int _currentPage;
     private CreateJobRequest _createRequest = new();
 
-    protected override async Task OnInitializedAsync() => await LoadPage(1);
+    [SupplyParameterFromQuery(Name = "page")]
+    public int? PageQuery { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var targetPage = PageQuery ?? 1;
+        if (targetPage == _currentPage && _jobs != null)
+            return;
+        await FetchPage(targetPage);
+    }
 
     private async Task LoadPage(int page)
     {
+        if (page == _currentPage)
+        {
+            await FetchPage(page);
+            return;
+        }
+        Navigation.NavigateTo($"/admin/jobs?page={page}");
+    }
+
+    private async Task FetchPage(int page)
+    {
         _loading = true;
+        _currentPage = page;
         _jobs = await AdminService.GetJobsAsync(page);
         _loading = false;
+        await ScrollService.ScrollToElementAsync("jobs-table-anchor");
     }
 
     private async Task TriggerJob(int id)

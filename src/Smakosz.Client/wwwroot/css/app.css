@@ -1362,7 +1362,9 @@ button.nav-link {
 .carousel-track {
     display: flex;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
     gap: 1rem;
     padding: 0.5rem;
     scrollbar-width: none;
@@ -1680,6 +1682,9 @@ a[href^="tel:"]:hover {
 .pagination-nav {
     display: flex;
     justify-content: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
 }
 .pagination-panel {
     display: inline-flex;

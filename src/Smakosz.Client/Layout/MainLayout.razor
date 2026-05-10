@@ -5,6 +5,7 @@
 @inject ToastService ToastService
 @inject IDishService DishService
 @inject IJSRuntime JS
+@inject IScrollPositionService ScrollService
 
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
@@ -112,13 +113,35 @@
 <ConcurrencyConflictModalHost />
 
 @code {
+    private IDisposable? _locationChangingRegistration;
+
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += HandleLocationChanged;
+        _locationChangingRegistration = Navigation.RegisterLocationChangingHandler(HandleLocationChanging);
     }
 
-    private async void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private async ValueTask HandleLocationChanging(LocationChangingContext context)
     {
+        try
+        {
+            await ScrollService.SaveCurrentPositionAsync(Navigation.Uri);
+        }
+        catch
+        {
+        }
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        try
+        {
+            await ScrollService.TryRestorePositionAsync(e.Location);
+        }
+        catch
+        {
+        }
+
         try
         {
             await JS.InvokeVoidAsync("smakoszNav.closeMobileMenu", "#mainNav");
@@ -131,6 +154,7 @@
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
+        _locationChangingRegistration?.Dispose();
     }
 
     private async Task GetRandomDish()
