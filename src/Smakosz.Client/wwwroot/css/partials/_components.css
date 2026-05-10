@@ -867,15 +867,22 @@
     position: relative;
     display: flex;
     align-items: center;
-    font-size: 1.15rem;
+    font-size: 1.4rem;
+    padding: 0.25rem 0.5rem;
 }
 
 .notification-bell .badge {
     position: absolute;
-    top: 2px;
-    right: -2px;
+    top: auto;
+    right: auto;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 0.6rem;
-    padding: 0.2rem 0.35rem;
+    padding: 0.15rem 0.3rem;
+    line-height: 1;
+    min-width: 1.1rem;
+    text-align: center;
 }
 
 /* Empty state */
