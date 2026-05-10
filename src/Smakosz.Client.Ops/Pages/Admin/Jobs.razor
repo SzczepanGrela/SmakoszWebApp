@@ -13,7 +13,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Zadania w tle</h2>
     <div>
-        <button class="btn btn-outline-success me-2" @onclick="ScheduleNcfTraining">
+        <button class="btn btn-outline-success me-2" @onclick="ShowNcfModal">
             <i class="fa-solid fa-brain me-1"></i>NCF Training
         </button>
         <button class="btn btn-primary" @onclick="ShowCreateModal">
@@ -101,6 +101,31 @@ else
     {
         <Pagination Info="@_jobs.Pagination" OnPageChange="LoadPage" />
     }
+}
+
+@if (_showNcfModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,.5)" @onclick="CloseNcfModal">
+        <div class="modal-dialog" @onclick:stopPropagation>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-brain me-2"></i>Zaplanuj NCF Training</h5>
+                    <button type="button" class="btn-close" @onclick="CloseNcfModal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Priorytet: <strong>@_ncfPriority</strong></label>
+                    <input type="range" min="1" max="10" step="1" class="form-range"
+                           value="@_ncfPriority"
+                           @oninput="OnNcfPriorityChanged" />
+                    <small class="text-muted d-block mt-2">10 = najwyższy (domyślny). 1 = najniższy.</small>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseNcfModal">Anuluj</button>
+                    <button class="btn btn-success" @onclick="SubmitNcfTraining">Zaplanuj</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @if (_errorJob is not null)
@@ -194,6 +219,8 @@ else
     private int _currentPage;
     private CreateJobRequest _createRequest = new();
     private AdminJobDto? _errorJob;
+    private bool _showNcfModal;
+    private int _ncfPriority = 10;
 
     private static string ProgressBarClass(AdminJobDto job) => job.Status switch
     {
@@ -251,11 +278,33 @@ else
         else Toast.ShowError("Nie udało się anulować zadania.");
     }
 
-    private async Task ScheduleNcfTraining()
+    private void ShowNcfModal()
     {
-        var (success, errorMessage) = await AdminService.ScheduleNcfTrainingAsync();
-        if (success) { Toast.ShowSuccess("NCF Training zaplanowany."); await LoadPage(1); }
-        else Toast.ShowError(errorMessage ?? "Nie udało się zaplanować NCF Training.");
+        _ncfPriority = 10;
+        _showNcfModal = true;
+    }
+
+    private void CloseNcfModal() => _showNcfModal = false;
+
+    private void OnNcfPriorityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            _ncfPriority = value;
+    }
+
+    private async Task SubmitNcfTraining()
+    {
+        var (success, errorMessage) = await AdminService.ScheduleNcfTrainingAsync(_ncfPriority);
+        if (success)
+        {
+            Toast.ShowSuccess($"NCF Training zaplanowany (priorytet {_ncfPriority}).");
+            _showNcfModal = false;
+            await LoadPage(1);
+        }
+        else
+        {
+            Toast.ShowError(errorMessage ?? "Nie udało się zaplanować NCF Training.");
+        }
     }
 
     private void ShowCreateModal()

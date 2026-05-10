@@ -24,13 +24,17 @@ public class T126_NcfTrainingAppearsInJobsListTest : SmakoszE2ETestBase
         }
 
         await ncfButton.ClickAsync();
+        await Page.WaitForTimeoutAsync(500);
+
+        var scheduleButton = Page.GetByRole(AriaRole.Button, new() { Name = "Zaplanuj" }).First;
+        await scheduleButton.ClickAsync();
         await Page.WaitForTimeoutAsync(3000);
         await WaitForBlazorLoadedAsync();
 
         var pageContent = await Page.ContentAsync();
         var hasNcfRow = pageContent.Contains("ncf_training");
         Assert.That(hasNcfRow, Is.True,
-            "/admin/jobs should show ncf_training row immediately after the schedule button click " +
+            "/admin/jobs should show ncf_training row after the modal submit " +
             "(handler now inserts the row before delegating to NcfTrainingService)");
     }
 }

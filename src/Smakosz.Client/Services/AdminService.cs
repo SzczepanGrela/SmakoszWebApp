@@ -347,9 +347,9 @@ public class AdminService : IAdminService
         return response.Success;
     }
 
-    public async Task<(bool Success, string? ErrorMessage)> ScheduleNcfTrainingAsync()
+    public async Task<(bool Success, string? ErrorMessage)> ScheduleNcfTrainingAsync(int priority = 10)
     {
-        var response = await _api.PostApiResponseAsync<object>("/api/admin/ncf-training/schedule", null);
+        var response = await _api.PostApiResponseAsync<object>("/api/admin/ncf-training/schedule", new { Priority = priority });
         return (response.Success, response.Error?.Message);
     }
 

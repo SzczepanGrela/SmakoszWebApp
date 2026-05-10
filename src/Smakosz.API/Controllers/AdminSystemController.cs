@@ -89,9 +89,12 @@ public class AdminSystemController : ApiController
     }
 
     [HttpPost("ncf-training/schedule")]
-    public async Task<IActionResult> ScheduleNcfTraining()
+    public async Task<IActionResult> ScheduleNcfTraining([FromBody] ScheduleNcfTrainingRequest? request = null)
     {
-        var result = await _mediator.Send(new ScheduleNcfTrainingCommand());
+        var command = request is null
+            ? new ScheduleNcfTrainingCommand()
+            : new ScheduleNcfTrainingCommand(request.Priority);
+        var result = await _mediator.Send(command);
         return ToNoContentResult(result);
     }
 
@@ -180,3 +183,4 @@ public class AdminSystemController : ApiController
 
 public record UpdateSystemConfigRequest(string Key, string Value);
 public record CreateJobRequest(string Type, int Priority, string? Payload, string? EntityId, string? EntityType);
+public record ScheduleNcfTrainingRequest(int Priority);

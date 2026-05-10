@@ -8,7 +8,7 @@ using Smakosz.Domain.Enums;
 
 namespace Smakosz.Application.Features.Admin.Commands.ScheduleNcfTraining;
 
-public record ScheduleNcfTrainingCommand : IRequest<ErrorOr<Success>>;
+public record ScheduleNcfTrainingCommand(int Priority = 10) : IRequest<ErrorOr<Success>>;
 
 public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCommand, ErrorOr<Success>>
 {
@@ -34,6 +34,9 @@ public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCom
         if (!_currentUser.IsAdmin)
             return DomainErrors.Admin.Forbidden;
 
+        if (request.Priority < 1 || request.Priority > 10)
+            return Error.Validation("NCF_INVALID_PRIORITY", "Priorytet musi być z zakresu 1-10.");
+
         var blockingJob = await _db.SystemJobs
             .Where(j => j.Type == "ncf_training"
                 && (j.Status == JobStatus.Pending || j.Status == JobStatus.Processing))
@@ -50,7 +53,7 @@ public class ScheduleNcfTrainingHandler : IRequestHandler<ScheduleNcfTrainingCom
         {
             Type = "ncf_training",
             Status = JobStatus.Pending,
-            Priority = 10,
+            Priority = request.Priority,
             Payload = null,
             Progress = 0,
             Attempts = 0,

@@ -140,4 +140,29 @@ public class ScheduleNcfTrainingHandlerTests
 
         await _ncfService.Received(1).ScheduleAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_WithCustomPriority_AppliesIt()
+    {
+        DbContextMockFactory.Refresh(_db, _sets);
+
+        var result = await _handler.Handle(new ScheduleNcfTrainingCommand(3), CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _sets.SystemJobs.Should().HaveCount(1);
+        _sets.SystemJobs[0].Priority.Should().Be(3);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(11)]
+    [InlineData(-1)]
+    public async Task Handle_InvalidPriority_ReturnsValidationError(int invalidPriority)
+    {
+        var result = await _handler.Handle(new ScheduleNcfTrainingCommand(invalidPriority), CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("NCF_INVALID_PRIORITY");
+        await _ncfService.DidNotReceive().ScheduleAsync(Arg.Any<CancellationToken>());
+    }
 }
