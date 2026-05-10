@@ -71,6 +71,12 @@ body {
     box-shadow: none;
 }
 
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
 /* Button styles */
 .btn-primary {
     background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
