@@ -1,5 +1,6 @@
 import io
 import logging
+import time
 
 import httpx
 import torch
@@ -18,6 +19,15 @@ from handlers.result import make_result
 from models.model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
+
+TRANSIENT_HTTPX_ERRORS = (
+    httpx.ConnectError,
+    httpx.RemoteProtocolError,
+    httpx.ReadError,
+)
+MAX_DOWNLOAD_ATTEMPTS = 3
+BACKOFF_SECONDS = (2.0, 4.0, 8.0)
+USER_AGENT = "smakosz-gpu-worker/1.0"
 
 FOOD_PROMPTS = [
     "a photo of food",
@@ -64,16 +74,36 @@ class ImageModerator(BatchJobMixin):
         logger.info("Image moderation models loaded on %s", device)
 
     def _download_image(self, url: str) -> Image.Image:
-        try:
-            resp = httpx.get(url, timeout=30.0, follow_redirects=True)
-            resp.raise_for_status()
-            return Image.open(io.BytesIO(resp.content)).convert("RGB")
-        except httpx.HTTPStatusError as e:
-            raise ValueError(f"Failed to download image ({e.response.status_code}): {url}") from e
-        except httpx.TimeoutException:
-            raise ValueError(f"Timeout downloading image: {url}")
-        except Exception as e:
-            raise ValueError(f"Failed to process image from {url}: {e}") from e
+        last_error: Exception | None = None
+        for attempt in range(1, MAX_DOWNLOAD_ATTEMPTS + 1):
+            try:
+                resp = httpx.get(
+                    url,
+                    timeout=30.0,
+                    follow_redirects=True,
+                    headers={"User-Agent": USER_AGENT},
+                )
+                resp.raise_for_status()
+                return Image.open(io.BytesIO(resp.content)).convert("RGB")
+            except httpx.HTTPStatusError as e:
+                raise ValueError(f"Failed to download image ({e.response.status_code}): {url}") from e
+            except httpx.TimeoutException:
+                raise ValueError(f"Timeout downloading image: {url}")
+            except TRANSIENT_HTTPX_ERRORS as e:
+                last_error = e
+                if attempt < MAX_DOWNLOAD_ATTEMPTS:
+                    delay = BACKOFF_SECONDS[attempt - 1]
+                    logger.warning(
+                        "Transient httpx error on attempt %d/%d for %s: %s. Retrying in %.1fs",
+                        attempt, MAX_DOWNLOAD_ATTEMPTS, url, e, delay,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise
+            except Exception as e:
+                raise ValueError(f"Failed to process image from {url}: {e}") from e
+        assert last_error is not None
+        raise last_error
 
     def _predict_nsfw(self, image: Image.Image) -> float:
         inputs = self.nsfw_processor(images=image, return_tensors="pt").to(self.device)

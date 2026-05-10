@@ -56,6 +56,8 @@ def is_retryable(e: Exception) -> bool:
         return True
     if isinstance(e, httpx.TimeoutException):
         return True
+    if isinstance(e, (httpx.ConnectError, httpx.RemoteProtocolError, httpx.ReadError)):
+        return True
     if isinstance(e, OSError):
         return True
     return False

@@ -19,7 +19,13 @@ class BatchJobMixin:
         config = api.get_config()
         results = []
         for item in items:
-            prediction = self.predict(item[self.BATCH_INPUT_KEY], config)
+            try:
+                prediction = self.predict(item[self.BATCH_INPUT_KEY], config)
+            except Exception as e:
+                prediction = {
+                    "verdict": "error",
+                    "error_message": str(e),
+                }
             prediction["entity_type"] = item["entity_type"]
             prediction["entity_id"] = item["entity_id"]
             results.append(prediction)
