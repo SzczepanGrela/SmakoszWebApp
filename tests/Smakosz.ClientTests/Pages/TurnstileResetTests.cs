@@ -14,7 +14,7 @@ public class TurnstileResetTests : BunitTestBase
     }
 
     [Fact]
-    public void Login_OnError_KeepsTurnstileToken()
+    public void Login_OnError_ResetsTurnstile()
     {
         var auth = Services.GetRequiredService<IAuthService>();
         auth.LoginAsync(Arg.Any<LoginRequest>())
@@ -30,7 +30,7 @@ public class TurnstileResetTests : BunitTestBase
         cut.Find("form").Submit();
 
         cut.WaitForState(() => cut.Markup.Contains("Bad credentials") || cut.Markup.Contains("Nieprawidłowy"));
-        JSInterop.VerifyNotInvoke("smakoszTurnstile.reset");
+        cut.WaitForAssertion(() => JSInterop.VerifyInvoke("smakoszTurnstile.reset"));
     }
 
     [Fact]
