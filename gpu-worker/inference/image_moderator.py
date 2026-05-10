@@ -69,7 +69,8 @@ class ImageModerator(BatchJobMixin):
         logger.info("Loading CLIP model from: %s", clip_path)
         self.clip_model = CLIPModel.from_pretrained(clip_path)
         self.clip_processor = CLIPProcessor.from_pretrained(clip_path)
-        self.clip_model.to(device).eval()
+        self.clip_model.to(device)  # type: ignore[arg-type,unused-ignore]
+        self.clip_model.eval()
 
         logger.info("Image moderation models loaded on %s", device)
 

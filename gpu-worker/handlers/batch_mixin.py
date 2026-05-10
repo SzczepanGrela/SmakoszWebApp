@@ -2,6 +2,7 @@ import json
 
 from api.client import WorkerApiClient
 
+
 class BatchJobMixin:
     BATCH_INPUT_KEY: str  # "text" / "image_url"
 

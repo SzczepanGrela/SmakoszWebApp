@@ -43,7 +43,7 @@ def _start_gpu_worker_after_boot():
         logger.warning("HOMELAB_API_URL not configured, skipping container start")
         return
 
-    headers = {}
+    headers: dict[str, str | bytes] = {}
     if config.HOMELAB_API_TOKEN:
         headers["X-API-Token"] = config.HOMELAB_API_TOKEN
 

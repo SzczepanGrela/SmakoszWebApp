@@ -16,7 +16,7 @@ from api.client import WorkerApiClient
 from config import Settings
 from handlers.protocol import JobMapping, ModelRequirement
 from models.model_manager import ModelManager
-from training.export_onnx import export_to_onnx, upload_onnx_to_r2, upload_mapping_to_r2
+from training.export_onnx import export_to_onnx, upload_mapping_to_r2, upload_onnx_to_r2
 
 logger = logging.getLogger(__name__)
 
@@ -127,12 +127,12 @@ class NcfTrainer:
         global_mean = train_r.mean().item()
 
         user_mean_acc: dict[int, list[float]] = {}
-        for u, r in zip(user_ids[train_idx].tolist(), train_r.tolist()):
+        for u, r in zip(user_ids[train_idx].tolist(), train_r.tolist(), strict=False):
             user_mean_acc.setdefault(u, []).append(r)
         user_mean = {u: sum(v) / len(v) for u, v in user_mean_acc.items()}
 
         dish_mean_acc: dict[int, list[float]] = {}
-        for d, r in zip(dish_ids[train_idx].tolist(), train_r.tolist()):
+        for d, r in zip(dish_ids[train_idx].tolist(), train_r.tolist(), strict=False):
             dish_mean_acc.setdefault(d, []).append(r)
         dish_mean = {d: sum(v) / len(v) for d, v in dish_mean_acc.items()}
 
@@ -142,8 +142,8 @@ class NcfTrainer:
 
         def metrics(preds: list[float]) -> dict[str, float]:
             n = len(preds)
-            acc = sum(1 for p, t in zip(preds, val_truth) if abs(p - t) < 0.5) / n
-            rmse = (sum((p - t) ** 2 for p, t in zip(preds, val_truth)) / n) ** 0.5
+            acc = sum(1 for p, t in zip(preds, val_truth, strict=False) if abs(p - t) < 0.5) / n
+            rmse = (sum((p - t) ** 2 for p, t in zip(preds, val_truth, strict=False)) / n) ** 0.5
             return {"acc": acc, "rmse": rmse}
 
         return {
@@ -152,7 +152,7 @@ class NcfTrainer:
             "dish_mean": metrics([dish_mean.get(d, global_mean) for d in val_d_list]),
             "user_dish_avg": metrics([
                 (user_mean.get(u, global_mean) + dish_mean.get(d, global_mean)) / 2
-                for u, d in zip(val_u_list, val_d_list)
+                for u, d in zip(val_u_list, val_d_list, strict=False)
             ]),
         }
 
@@ -169,7 +169,7 @@ class NcfTrainer:
 
         model.eval()
         user_to_items: dict[int, list[tuple[int, float]]] = {}
-        for u, d, r in zip(val_users.tolist(), val_dishes.tolist(), val_ratings.tolist()):
+        for u, d, r in zip(val_users.tolist(), val_dishes.tolist(), val_ratings.tolist(), strict=False):
             user_to_items.setdefault(u, []).append((d, r))
 
         eligible = [u for u, items in user_to_items.items() if len(items) >= 5]
@@ -186,7 +186,7 @@ class NcfTrainer:
                 d_ids = torch.tensor([d for d, _ in items], dtype=torch.long, device=self.device)
                 u_ids = torch.full_like(d_ids, u)
                 preds = model(u_ids, d_ids).cpu().tolist()
-                scored = sorted(zip(items, preds), key=lambda x: -x[1])
+                scored = sorted(zip(items, preds, strict=False), key=lambda x: -x[1])
                 top_k = scored[:k]
                 hr = sum(1 for ((_, true_r), _) in top_k if true_r >= 8) / len(top_k)
                 ideal = sorted([true_r for (_, true_r), _ in scored], reverse=True)[:k]
@@ -253,7 +253,7 @@ class NcfTrainer:
         val_rmse = float("inf")
         best_val_rmse = float("inf")
         patience_counter = 0
-        PATIENCE = 10
+        patience_limit = 10
         last_ranking: dict | None = None
         epochs_completed = 0
 
@@ -332,10 +332,10 @@ class NcfTrainer:
                 patience_counter = 0
             else:
                 patience_counter += 1
-                if patience_counter >= PATIENCE:
+                if patience_counter >= patience_limit:
                     logger.info(
                         "Early stopping at epoch %d (val_rmse plateaued for %d epochs)",
-                        epoch, PATIENCE,
+                        epoch, patience_limit,
                     )
                     break
 

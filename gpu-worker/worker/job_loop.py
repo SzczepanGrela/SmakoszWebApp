@@ -19,7 +19,7 @@ def drain_jobs(
     settings: Settings,
 ) -> int:
     processed = 0
-    job = first_job
+    job: dict | None = first_job
 
     while job is not None:
         job_id = job["jobId"]
@@ -58,9 +58,7 @@ def is_retryable(e: Exception) -> bool:
         return True
     if isinstance(e, (httpx.ConnectError, httpx.RemoteProtocolError, httpx.ReadError)):
         return True
-    if isinstance(e, OSError):
-        return True
-    return False
+    return isinstance(e, OSError)
 
 def run_loop(
     api: WorkerApiClient,

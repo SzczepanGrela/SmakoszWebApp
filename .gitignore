@@ -391,6 +391,12 @@ FodyWeavers.xsd
 /venv/
 .venv/
 
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+gpu-worker/model_cache/
+
 # PyCharm IDE
 .idea/
 
