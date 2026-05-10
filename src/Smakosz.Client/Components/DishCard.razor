@@ -21,7 +21,7 @@
                     <div style="min-width:0;overflow:hidden;">
                         @if (Dish.AvgRating.HasValue)
                         {
-                            <RatingStars Rating="@Dish.AvgRating.Value" Compact="true" />
+                            <RatingStars Rating="@Dish.AvgRating.Value" Compact="true" ShowMaxValue="true" />
                             <small class="text-muted ms-1">(@Dish.ReviewCount)</small>
                         }
                     </div>

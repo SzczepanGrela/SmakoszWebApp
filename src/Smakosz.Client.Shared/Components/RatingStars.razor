@@ -5,6 +5,10 @@
     <span class="rating-stars rating-compact">
         <i class="fa-solid fa-star text-warning"></i>
         <span class="ms-1 small fw-bold">@Rating.ToString("F1")</span>
+        @if (ShowMaxValue)
+        {
+            <span class="text-muted small ms-1">/ 10</span>
+        }
     </span>
 }
 else
@@ -38,6 +42,7 @@ else
     [Parameter] public string Size { get; set; } = "sm";
     [Parameter] public bool ShowValue { get; set; }
     [Parameter] public bool Compact { get; set; }
+    [Parameter] public bool ShowMaxValue { get; set; }
 
     private string SizeClass => Size switch { "lg" => "fa-lg", "sm" => "", _ => "" };
 }
