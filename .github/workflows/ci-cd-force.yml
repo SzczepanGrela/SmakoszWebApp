@@ -12,35 +12,6 @@ env:
   IMAGE_PREFIX: ghcr.io/szczepangrela/smakoszwebapp
 
 jobs:
-  test:
-    name: Build & Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Restore
-        run: dotnet restore Smakosz.slnx
-
-      - name: Build
-        run: dotnet build Smakosz.slnx --no-restore -c Release
-
-      - name: Unit Tests
-        run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
-
-      - name: Client Tests
-        run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
-
-      - name: Integration Tests
-        run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
-        env:
-          ASPNETCORE_ENVIRONMENT: Testing
-
   test-rbpi-gateway:
     name: Test RBPI Gateway
     runs-on: ubuntu-latest
@@ -105,9 +76,96 @@ jobs:
       - name: Pytest
         run: pytest tests/
 
+  test-smakosz-unit:
+    name: Test Smakosz Unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Unit Tests
+        run: dotnet test tests/Smakosz.UnitTests/Smakosz.UnitTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+
+  test-smakosz-client:
+    name: Test Smakosz Client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Client Tests
+        run: dotnet test tests/Smakosz.ClientTests/Smakosz.ClientTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+
+  test-smakosz-integration:
+    name: Test Smakosz Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Smakosz.slnx') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Smakosz.slnx
+
+      - name: Build
+        run: dotnet build Smakosz.slnx --no-restore -c Release
+
+      - name: Integration Tests
+        run: dotnet test tests/Smakosz.IntegrationTests/Smakosz.IntegrationTests.csproj --no-build -c Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+
   build-api:
     name: Build & Push API
-    needs: [test]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -143,7 +201,7 @@ jobs:
 
   build-client:
     name: Build & Push Client
-    needs: [test]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -179,7 +237,7 @@ jobs:
 
   build-orchestrator:
     name: Build & Push Orchestrator
-    needs: [test]
+    needs: [test-smakosz-unit, test-smakosz-client, test-smakosz-integration]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -214,8 +272,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=orchestrator
 
   build-gpu-worker:
-    name: Build GPU Worker image
-    needs: [test, test-gpu-worker]
+    name: Build & Push GPU Worker
+    needs: [test-gpu-worker]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -250,8 +308,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=gpu-worker
 
   build-rbpi-gateway:
-    name: Build RBPI Gateway image
-    needs: [test, test-rbpi-gateway]
+    name: Build & Push RBPI Gateway
+    needs: [test-rbpi-gateway]
     runs-on: ubuntu-latest
     permissions:
       contents: read
