@@ -72,7 +72,7 @@ DUMP_SIZE=$(stat -c%s "$DAILY_FILE")
 SIZE_MB=$(( DUMP_SIZE / 1024 / 1024 ))
 log "Dump completed: ${SIZE_MB} MB"
 
-find "$BACKUP_DIR" -maxdepth 1 -name 'daily-*.dump' -mtime +7 -delete
+find "$BACKUP_DIR" -maxdepth 1 -name 'daily-*.dump' -mtime +3 -delete
 
 export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY"
 export AWS_SECRET_ACCESS_KEY="$R2_SECRET_KEY"
@@ -85,7 +85,7 @@ if [ "$DOW" = "7" ]; then
     aws s3 cp "$WEEKLY_FILE" "s3://$R2_BUCKET/weekly/$(basename "$WEEKLY_FILE")" \
         --endpoint-url "$R2_ENDPOINT"
 
-    find "$BACKUP_DIR" -maxdepth 1 -name 'weekly-*.dump' -mtime +28 -delete
+    find "$BACKUP_DIR" -maxdepth 1 -name 'weekly-*.dump' -mtime +14 -delete
 
     if [ "$DOM" -le 07 ]; then
         MONTHLY_FILE="$BACKUP_DIR/monthly-$MONTH_TAG.dump"
