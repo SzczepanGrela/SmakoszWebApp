@@ -387,13 +387,13 @@ jobs:
     needs: deploy-vps
     runs-on: ubuntu-latest
     steps:
-      - name: Purge entire Cloudflare cache
+      - name: Purge frontend Cloudflare cache
         run: |
           curl -fsS -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}'
+            --data '{"hosts":["smakosz.xyz","www.smakosz.xyz"]}'
 
   deploy-rbpi:
     name: Deploy RBPI Gateway
